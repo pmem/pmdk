@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * container_seglists.h -- internal definitions for
@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-struct block_container *container_new_seglists(struct palloc_heap *heap);
+struct block_container *container_new_seglists(void);
 
 #ifdef __cplusplus
 }

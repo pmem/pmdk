@@ -88,6 +88,9 @@
     <ClCompile Include="..\..\libpmemobj\heap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\arenas.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\lane.c">
       <Filter>Source Files</Filter>
     </ClCompile>

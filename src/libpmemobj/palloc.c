@@ -43,6 +43,7 @@
 #include "palloc.h"
 #include "ravl.h"
 #include "vec.h"
+#include "arenas.h"
 
 struct pobj_action_internal {
 	/* type of operation (alloc/free vs set) */
@@ -297,7 +298,7 @@ palloc_restore_free_chunk_state(struct palloc_heap *heap,
 	if (m->type == MEMORY_BLOCK_HUGE) {
 		struct bucket *b = heap_bucket_acquire(heap,
 			DEFAULT_ALLOC_CLASS_ID,
-			HEAP_ARENA_PER_THREAD);
+			ARENA_DEFAULT_ASSIGNMENT);
 		if (heap_free_chunk_reuse(heap, b, m) != 0) {
 			if (errno == EEXIST) {
 				FATAL(
@@ -1043,7 +1044,7 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 		if (palloc_reservation_create(heap, user_size,
 		    NULL, NULL,
 		    m.m_ops->get_extra(&m), m.m_ops->get_flags(&m),
-		    0, HEAP_ARENA_PER_THREAD,
+		    0, ARENA_DEFAULT_ASSIGNMENT,
 		    (struct pobj_action_internal *)reserve) != 0) {
 			VEC_POP_BACK(&actv);
 			continue;

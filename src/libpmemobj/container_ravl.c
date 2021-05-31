@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * container_ravl.c -- implementation of ravl-based block container
@@ -166,13 +166,12 @@ static const struct block_container_ops container_ravl_ops = {
  * container_new_ravl -- allocates and initializes a ravl container
  */
 struct block_container *
-container_new_ravl(struct palloc_heap *heap)
+container_new_ravl(void)
 {
 	struct block_container_ravl *bc = Malloc(sizeof(*bc));
 	if (bc == NULL)
 		goto error_container_malloc;
 
-	bc->super.heap = heap;
 	bc->super.c_ops = &container_ravl_ops;
 	bc->tree = ravl_new(container_compare_memblocks);
 	if (bc->tree == NULL)

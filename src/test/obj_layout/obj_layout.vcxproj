@@ -18,6 +18,7 @@
     <ClCompile Include="..\..\libpmemobj\ctl_debug.c" />
     <ClCompile Include="..\..\libpmemobj\critnib.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c" />
+    <ClCompile Include="..\..\libpmemobj\arenas.c" />
     <ClCompile Include="..\..\libpmemobj\lane.c" />
     <ClCompile Include="..\..\libpmemobj\libpmemobj.c" />
     <ClCompile Include="..\..\libpmemobj\list.c" />
