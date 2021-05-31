@@ -27,6 +27,7 @@
 #include "alloc_class.h"
 #include "valgrind_internal.h"
 #include "set.h"
+#include "arenas.h"
 
 #define MOCK_POOL_SIZE PMEMOBJ_MIN_POOL
 
@@ -193,7 +194,7 @@ do_fault_injection_new_ravl()
 
 	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "container_new_ravl");
 
-	struct block_container *bc = container_new_ravl(NULL);
+	struct block_container *bc = container_new_ravl();
 	UT_ASSERTeq(bc, NULL);
 	UT_ASSERTeq(errno, ENOMEM);
 }
@@ -206,7 +207,7 @@ do_fault_injection_new_seglists()
 
 	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "container_new_seglists");
 
-	struct block_container *bc = container_new_seglists(NULL);
+	struct block_container *bc = container_new_seglists();
 	UT_ASSERTeq(bc, NULL);
 	UT_ASSERTeq(errno, ENOMEM);
 }
@@ -318,10 +319,10 @@ test_heap(void)
 	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
 
-	test_container((struct block_container *)container_new_ravl(heap),
+	test_container((struct block_container *)container_new_ravl(),
 		heap);
 
-	test_container((struct block_container *)container_new_seglists(heap),
+	test_container((struct block_container *)container_new_seglists(),
 		heap);
 
 	struct alloc_class *c_small = heap_get_best_class(heap, 1);
@@ -339,7 +340,7 @@ test_heap(void)
 	};
 
 	struct bucket *b_def = heap_bucket_acquire(heap,
-		DEFAULT_ALLOC_CLASS_ID, HEAP_ARENA_PER_THREAD);
+		DEFAULT_ALLOC_CLASS_ID, ARENA_DEFAULT_ASSIGNMENT);
 
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
 		heap_get_bestfit_block(heap, b_def, &blocks[i]);
@@ -351,7 +352,7 @@ test_heap(void)
 	struct memory_block new_run = {0, 0, 0, 0};
 	struct alloc_class *c_run = heap_get_best_class(heap, 1024);
 	struct bucket *b_run = heap_bucket_acquire(heap, c_run->id,
-			HEAP_ARENA_PER_THREAD);
+			ARENA_DEFAULT_ASSIGNMENT);
 
 	/*
 	 * Allocate blocks from a run until one run is exhausted.
@@ -422,7 +423,7 @@ test_heap_with_size()
 	UT_ASSERT(pop->heap.rt != NULL);
 
 	struct bucket *b_def = heap_bucket_acquire(heap,
-		DEFAULT_ALLOC_CLASS_ID, HEAP_ARENA_PER_THREAD);
+		DEFAULT_ALLOC_CLASS_ID, ARENA_DEFAULT_ASSIGNMENT);
 
 	struct memory_block mb;
 	mb.size_idx = 1;
@@ -488,7 +489,7 @@ test_recycler(void)
 	m.size_idx = 1;
 	struct bucket *b = heap_bucket_acquire(heap,
 		DEFAULT_ALLOC_CLASS_ID,
-		HEAP_ARENA_PER_THREAD);
+		ARENA_DEFAULT_ASSIGNMENT);
 	UT_ASSERT(heap_get_bestfit_block(heap, b, &m) == 0);
 	heap_bucket_release(b);
 

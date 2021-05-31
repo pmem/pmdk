@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * container.h -- internal definitions for block containers
@@ -16,7 +16,6 @@ extern "C" {
 
 struct block_container {
 	const struct block_container_ops *c_ops;
-	struct palloc_heap *heap;
 };
 
 struct block_container_ops {

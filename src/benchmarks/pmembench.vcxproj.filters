@@ -49,6 +49,9 @@
     <ClCompile Include="..\libpmemobj\heap.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\libpmemobj\arenas.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
     <ClCompile Include="..\libpmemobj\ctl_debug.c">
       <Filter>pmemobj</Filter>
     </ClCompile>

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * container_ravl.h -- internal definitions for ravl-based block container
@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-struct block_container *container_new_ravl(struct palloc_heap *heap);
+struct block_container *container_new_ravl(void);
 
 #ifdef __cplusplus
 }

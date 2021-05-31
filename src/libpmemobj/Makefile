@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 
 #
 # src/libpmemobj/Makefile -- Makefile for libpmemobj
@@ -14,6 +14,7 @@ include ../common/pmemcommon.inc
 
 SOURCE +=\
 	alloc_class.c\
+	arenas.c\
 	bucket.c\
 	container_ravl.c\
 	container_seglists.c\

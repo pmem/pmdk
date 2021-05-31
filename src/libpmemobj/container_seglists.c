@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * container_seglists.c -- implementation of segregated lists block container
@@ -151,13 +151,12 @@ static const struct block_container_ops container_seglists_ops = {
  * container_new_seglists -- allocates and initializes a seglists container
  */
 struct block_container *
-container_new_seglists(struct palloc_heap *heap)
+container_new_seglists(void)
 {
 	struct block_container_seglists *bc = Malloc(sizeof(*bc));
 	if (bc == NULL)
 		goto error_container_malloc;
 
-	bc->super.heap = heap;
 	bc->super.c_ops = &container_seglists_ops;
 
 	for (unsigned i = 0; i < SEGLIST_BLOCK_LISTS; ++i)
