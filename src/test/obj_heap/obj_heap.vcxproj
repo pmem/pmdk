@@ -18,6 +18,7 @@
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\critnib.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c" />
+    <ClCompile Include="..\..\libpmemobj\arenas.c" />
     <ClCompile Include="..\..\libpmemobj\memblock.c" />
     <ClCompile Include="..\..\libpmemobj\memops.c" />
     <ClCompile Include="..\..\core\ravl.c" />

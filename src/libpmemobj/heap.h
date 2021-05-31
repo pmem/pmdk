@@ -21,14 +21,11 @@
 extern "C" {
 #endif
 
-extern enum pobj_arenas_assignment_type Default_arenas_assignment_type;
-
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\
 	((uintptr_t)(ptr) - (uintptr_t)((heap)->base))
 
 #define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
-#define HEAP_ARENA_PER_THREAD (0)
 
 int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		uint64_t *sizep,
@@ -80,30 +77,9 @@ void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
 
 struct alloc_class_collection *heap_alloc_classes(struct palloc_heap *heap);
+struct arenas *heap_arenas(struct palloc_heap *heap);
 
 void *heap_end(struct palloc_heap *heap);
-
-unsigned heap_get_narenas_total(struct palloc_heap *heap);
-
-unsigned heap_get_narenas_max(struct palloc_heap *heap);
-
-int heap_set_narenas_max(struct palloc_heap *heap, unsigned size);
-
-unsigned heap_get_narenas_auto(struct palloc_heap *heap);
-
-unsigned heap_get_thread_arena_id(struct palloc_heap *heap);
-
-int heap_arena_create(struct palloc_heap *heap);
-
-struct bucket_locked **
-heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id);
-
-int heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id);
-
-int heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
-		int automatic);
-
-void heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id);
 
 void heap_vg_open(struct palloc_heap *heap, object_callback cb,
 		void *arg, int objects);

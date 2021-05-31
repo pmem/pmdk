@@ -4,6 +4,9 @@
     <ClCompile Include="..\..\src\libpmemobj\bucket.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\libpmemobj\arenas.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\critnib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -168,6 +171,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\libpmemobj\arenas.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\core\out.h">
       <Filter>Header Files</Filter>
     </ClInclude>

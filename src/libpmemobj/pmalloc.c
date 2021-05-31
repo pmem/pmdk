@@ -25,6 +25,7 @@
 #include "alloc_class.h"
 #include "set.h"
 #include "mmap.h"
+#include "arenas.h"
 
 enum pmalloc_operation_type {
 	OPERATION_INTERNAL, /* used only for single, one-off operations */
@@ -447,7 +448,7 @@ CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 	struct palloc_heap *heap = &pop->heap;
 	struct bucket *defb = heap_bucket_acquire(heap,
 		DEFAULT_ALLOC_CLASS_ID,
-		HEAP_ARENA_PER_THREAD);
+		ARENA_DEFAULT_ASSIGNMENT);
 
 	int ret = heap_extend(heap, defb, (size_t)arg_in) < 0 ? -1 : 0;
 
@@ -505,7 +506,9 @@ CTL_READ_HANDLER(total)(void *ctx,
 	PMEMobjpool *pop = ctx;
 	unsigned *narenas = arg;
 
-	*narenas = heap_get_narenas_total(&pop->heap);
+	struct arenas *arenas = heap_arenas(&pop->heap);
+
+	*narenas = arenas_total(arenas);
 
 	return 0;
 }
@@ -520,7 +523,8 @@ CTL_READ_HANDLER(max)(void *ctx,
 	PMEMobjpool *pop = ctx;
 	unsigned *max = arg;
 
-	*max = heap_get_narenas_max(&pop->heap);
+	struct arenas *arenas = heap_arenas(&pop->heap);
+	*max = arenas_max(arenas);
 
 	return 0;
 }
@@ -535,7 +539,8 @@ CTL_WRITE_HANDLER(max)(void *ctx,
 	PMEMobjpool *pop = ctx;
 	unsigned size = *(unsigned *)arg;
 
-	int ret = heap_set_narenas_max(&pop->heap, size);
+	struct arenas *arenas = heap_arenas(&pop->heap);
+	int ret = arenas_increase_max(arenas, size);
 	if (ret) {
 		LOG(1, "cannot change max arena number");
 		return -1;
@@ -556,7 +561,8 @@ CTL_READ_HANDLER(automatic, narenas)(void *ctx,
 	PMEMobjpool *pop = ctx;
 	unsigned *narenas = arg;
 
-	*narenas = heap_get_narenas_auto(&pop->heap);
+	struct arenas *arenas = heap_arenas(&pop->heap);
+	*narenas = arenas_total_automatic(arenas);
 
 	return 0;
 }
@@ -572,7 +578,10 @@ CTL_READ_HANDLER(arena_id)(void *ctx,
 	PMEMobjpool *pop = ctx;
 	unsigned *arena_id = arg;
 
-	*arena_id = heap_get_thread_arena_id(&pop->heap);
+	struct arenas *arenas = heap_arenas(&pop->heap);
+	struct arena *arena = arenas_get_arena_by_assignment(arenas);
+
+	*arena_id = arena_get_id(arena);
 
 	return 0;
 }
@@ -587,20 +596,13 @@ CTL_WRITE_HANDLER(arena_id)(void *ctx,
 	PMEMobjpool *pop = ctx;
 	unsigned arena_id = *(unsigned *)arg;
 
-	unsigned narenas = heap_get_narenas_total(&pop->heap);
+	struct arenas *arenas = heap_arenas(&pop->heap);
 
-	/*
-	 * check if index is not bigger than number of arenas
-	 * or if it is not equal zero
-	 */
-	if (arena_id < 1 || arena_id > narenas) {
-		LOG(1, "arena id outside of the allowed range: <1,%u>",
-			narenas);
+	if (arenas_force_thread_assignment(arenas, arena_id) != 0) {
+		LOG(1, "invalid arena_id");
 		errno = ERANGE;
 		return -1;
 	}
-
-	heap_set_arena_thread(&pop->heap, arena_id);
 
 	return 0;
 }
@@ -622,15 +624,10 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
 	arena_id = (unsigned)idx->value;
 
-	unsigned narenas = heap_get_narenas_total(&pop->heap);
-
-	/*
-	 * check if index is not bigger than number of arenas
-	 * or if it is not equal zero
-	 */
-	if (arena_id < 1 || arena_id > narenas) {
-		LOG(1, "arena id outside of the allowed range: <1,%u>",
-			narenas);
+	struct arenas *arenas = heap_arenas(&pop->heap);
+	struct arena *arena = arenas_get_arena_by_id(arenas, arena_id);
+	if (arena == NULL) {
+		LOG(1, "invalid arena_id");
 		errno = ERANGE;
 		return -1;
 	}
@@ -640,7 +637,7 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 		return -1;
 	}
 
-	return heap_set_arena_auto(&pop->heap, arena_id, arg_in);
+	return arena_set_automatic(arena, arg_in);
 }
 
 /*
@@ -658,20 +655,15 @@ CTL_READ_HANDLER(automatic)(void *ctx,
 	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
 	arena_id = (unsigned)idx->value;
 
-	unsigned narenas = heap_get_narenas_total(&pop->heap);
-
-	/*
-	 * check if index is not bigger than number of arenas
-	 * or if it is not equal zero
-	 */
-	if (arena_id < 1 || arena_id > narenas) {
-		LOG(1, "arena id outside of the allowed range: <1,%u>",
-			narenas);
+	struct arenas *arenas = heap_arenas(&pop->heap);
+	struct arena *arena = arenas_get_arena_by_id(arenas, arena_id);
+	if (arena == NULL) {
+		LOG(1, "invalid arena_id");
 		errno = ERANGE;
 		return -1;
 	}
 
-	*arg_out = heap_get_arena_auto(&pop->heap, arena_id);
+	*arg_out = arena_is_automatic(arena);
 
 	return 0;
 }
@@ -694,7 +686,6 @@ CTL_READ_HANDLER(size)(void *ctx,
 {
 	PMEMobjpool *pop = ctx;
 	unsigned arena_id;
-	unsigned narenas;
 	size_t *arena_size = arg;
 
 	struct ctl_index *idx = PMDK_SLIST_FIRST(indexes);
@@ -702,38 +693,16 @@ CTL_READ_HANDLER(size)(void *ctx,
 
 	/* take index of arena */
 	arena_id = (unsigned)idx->value;
-	/* take number of arenas */
-	narenas = heap_get_narenas_total(&pop->heap);
 
-	/*
-	 * check if index is not bigger than number of arenas
-	 * or if it is not equal zero
-	 */
-	if (arena_id < 1 || arena_id > narenas) {
-		LOG(1, "arena id outside of the allowed range: <1,%u>",
-			narenas);
+	struct arenas *arenas = heap_arenas(&pop->heap);
+	struct arena *arena = arenas_get_arena_by_id(arenas, arena_id);
+	if (arena == NULL) {
+		LOG(1, "invalid arena_id");
 		errno = ERANGE;
 		return -1;
 	}
 
-	/* take buckets for arena */
-	struct bucket_locked **buckets;
-	buckets = heap_get_arena_buckets(&pop->heap, arena_id);
-
-	/* calculate number of reservation for arena using buckets */
-	unsigned size = 0;
-	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
-		if (buckets[i] != NULL) {
-			struct bucket *b = bucket_acquire(buckets[i]);
-			struct memory_block_reserved *active =
-				bucket_active_block(b);
-
-			size += active ? active->m.size_idx : 0;
-			bucket_release(b);
-		}
-	}
-
-	*arena_size = size * CHUNKSIZE;
+	*arena_size = arena_estimated_size(arena);
 
 	return 0;
 }
@@ -749,7 +718,8 @@ CTL_RUNNABLE_HANDLER(create)(void *ctx,
 	unsigned *arena_id = arg;
 	struct palloc_heap *heap = &pop->heap;
 
-	int ret = heap_arena_create(heap);
+	struct arenas *arenas = heap_arenas(heap);
+	int ret = arenas_create_arena(arenas, heap_alloc_classes(heap));
 	if (ret < 0)
 		return -1;
 

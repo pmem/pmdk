@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\libpmemobj\arenas.c" />
     <ClCompile Include="..\..\src\libpmemobj\bucket.c" />
     <ClCompile Include="..\..\src\libpmemobj\critnib.c" />
     <ClCompile Include="..\..\src\libpmemobj\ctl_debug.c" />
@@ -72,6 +73,7 @@
     <ClInclude Include="..\..\src\core\util.h" />
     <ClInclude Include="..\..\src\common\valgrind_internal.h" />
     <ClInclude Include="..\..\src\include\libpmemobj.h" />
+    <ClInclude Include="..\..\src\libpmemobj\arenas.h" />
     <ClInclude Include="..\..\src\libpmemobj\bucket.h" />
     <ClInclude Include="..\..\src\libpmemobj\critnib.h" />
     <ClInclude Include="..\..\src\libpmemobj\ctl_debug.h" />

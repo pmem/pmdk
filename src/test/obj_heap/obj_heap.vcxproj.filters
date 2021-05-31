@@ -32,6 +32,9 @@
     <ClCompile Include="..\..\libpmemobj\heap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\arenas.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\memblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
