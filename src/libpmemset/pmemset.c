@@ -500,7 +500,7 @@ pmemset_find_reservation_empty_range(struct pmem2_vm_reservation *p2rsv,
 
 	struct pmem2_map *any_p2map;
 	size_t search_offset = 0;
-	while (search_offset < p2rsv_size) {
+	while (search_offset + size <= p2rsv_size) {
 		pmem2_vm_reservation_map_find(p2rsv, search_offset, size,
 				&any_p2map);
 		if (!any_p2map) {
@@ -514,7 +514,10 @@ pmemset_find_reservation_empty_range(struct pmem2_vm_reservation *p2rsv,
 		search_offset = p2map_addr + p2map_size - p2rsv_addr;
 	}
 
-	return PMEMSET_E_PART_EXISTS;
+	ERR("reservation %p with reservation size %zu could not fit a part "
+		"mapping with size %zu at any offset, possible reservation "
+		"ranges could already be occupied", p2rsv, p2rsv_size, size);
+	return PMEMSET_E_CANNOT_FIT_PART_MAP;
 }
 
 /*
@@ -574,6 +577,8 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 	bool coalesced = true;
 	struct pmemset_part_map *pmap = NULL;
 	struct pmem2_vm_reservation *pmem2_reserv;
+	struct pmem2_vm_reservation *config_rsv =
+			pmemset_config_get_reservation(set_config);
 	size_t map_reserv_offset;
 	enum pmemset_coalescing coalescing = set->part_coalescing;
 	switch (coalescing) {
@@ -585,15 +590,18 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 				pmem2_reserv = pmap->pmem2_reserv;
 				void *p2rsv_addr;
 				p2rsv_addr = pmem2_vm_reservation_get_address(
-							pmem2_reserv);
+						pmem2_reserv);
 				map_reserv_offset = (size_t)pmap->desc.addr +
 						pmap->desc.size -
 						(size_t)p2rsv_addr;
 
+				enum reservation_prep_type prep = (config_rsv) ?
+					RESERV_PREP_TYPE_CHECK_IF_OCCUPIED :
+					RESERV_PREP_TYPE_EXTEND_IF_NEEDED;
+
 				ret = pmemset_prepare_reservation_range(
-					pmem2_reserv, map_reserv_offset,
-					part_size,
-					RESERV_PREP_TYPE_EXTEND_IF_NEEDED);
+						pmem2_reserv, map_reserv_offset,
+						part_size, prep);
 				if (!ret) {
 					pmap->desc.size += part_size;
 					break;
@@ -606,23 +614,12 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 			/* if reached this case, then don't coalesce */
 			map_reserv_offset = 0;
 
-			struct pmem2_vm_reservation *config_rsv =
-					pmemset_config_get_reservation(
-					set_config);
-
 			if (config_rsv) {
 				pmem2_reserv = config_rsv;
 
 				ret = pmemset_find_reservation_empty_range(
 						pmem2_reserv, part_size,
 						&map_reserv_offset);
-				if (ret)
-					break;
-
-				ret = pmemset_prepare_reservation_range(
-					pmem2_reserv, map_reserv_offset,
-					part_size,
-					RESERV_PREP_TYPE_CHECK_IF_OCCUPIED);
 			} else {
 				ret = pmemset_create_reservation(&pmem2_reserv,
 						part_size);

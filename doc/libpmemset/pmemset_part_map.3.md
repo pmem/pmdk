@@ -51,7 +51,8 @@ descriptor when this function succeeds.
 
 Before the initialization of pmemset, a virtual memory reservation can be set in its configuration.
 This limits the future part mappings of initialized pmemset to the virtual address space spanned by the provided
-reservation. For more information about this configuration please see **pmemset_config_set_reservation**(3).
+reservation. Provided reservation's address and size will not be changed on pmemset operations.
+For more information about this configuration please see **pmemset_config_set_reservation**(3).
 
 During the lifespan of initialized pmemset, a contiguous part coalescing feature value can
 be set using **pmemset_set_contiguous_part_coalescing**() function, modifying the default behavior of
