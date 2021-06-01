@@ -285,3 +285,20 @@ class TEST36(PMEMSET_PART):
     pmemset
     """
     test_case = "test_part_map_coalesce_with_set_reservation"
+
+
+class TEST37(PMEMSET_PART):
+    """
+    create a pmem2 vm reservation with half the size of one file and set it in
+    the pmemset config, try to map a part to the pmemset
+    """
+    test_case = "test_part_map_with_set_reservation_too_small"
+
+
+class TEST38(PMEMSET_PART):
+    """
+    create a pmem2 vm reservation with the size of three files and set it in
+    the pmemset config, map six parts with half the size of one file, remove
+    every second part mapping then try to map a part with the size of one file
+    """
+    test_case = "test_part_map_with_set_reservation_cannot_fit"
