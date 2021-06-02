@@ -92,6 +92,10 @@
         pmem2_vm_reservation_get_address.3
         pmem2_vm_reservation_get_size.3
         pmem2_vm_reservation_map_find.3
+        pmem2_vm_reservation_map_find_first.3
+        pmem2_vm_reservation_map_find_last.3
+        pmem2_vm_reservation_map_find_next.3
+        pmem2_vm_reservation_map_find_prev.3
         pmem2_vm_reservation_new.3
         pmem2_vm_reservation_shrink.3
 
