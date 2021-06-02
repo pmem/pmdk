@@ -24,6 +24,7 @@
 #define RPMEM_CONNECT_TIMEOUT 30000
 #define RPMEM_MONITOR_TIMEOUT 1000
 
+#include "pool_hdr.h"
 #include <stdint.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -108,9 +109,9 @@ struct rpmem_resp_attr {
 #define RPMEM_MAX_USER		(32 + 1)   /* see useradd(8) + 1 for '\0' */
 #define RPMEM_MAX_NODE		(255 + 1)  /* see gethostname(2) + 1 for '\0' */
 #define RPMEM_MAX_SERVICE	(NI_MAXSERV + 1)  /* + 1 for '\0' */
-#define RPMEM_HDR_SIZE		4096
+#define RPMEM_HDR_SIZE		POOL_HDR_SIZE
 #define RPMEM_CLOSE_FLAGS_REMOVE 0x1
-#define RPMEM_DEF_BUFF_SIZE	8192
+#define RPMEM_DEF_BUFF_SIZE	(2 * (POOL_HDR_SIZE))
 
 struct rpmem_target_info {
 	char user[RPMEM_MAX_USER];
