@@ -108,12 +108,12 @@ pmemset_config_event_callback(struct pmemset_config *cfg,
  *                                   config
  */
 void
-pmemset_config_set_reservation(struct pmemset_config *config,
+pmemset_config_set_reservation(struct pmemset_config *cfg,
 		struct pmem2_vm_reservation *rsv)
 {
-	LOG(3, "config %p reservation %p", config, rsv);
+	LOG(3, "config %p reservation %p", cfg, rsv);
 
-	config->set_reservation = rsv;
+	cfg->set_reservation = rsv;
 }
 
 /*

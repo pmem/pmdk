@@ -256,48 +256,6 @@ ravl_interval_find(struct ravl_interval *ri, void *addr)
 }
 
 /*
- * ravl_interval_find_closest_prior -- find the closest interval
- *                                     neighbor prior to the current one
- */
-struct ravl_interval_node *
-ravl_interval_find_closest_prior(struct ravl_interval *ri, void *addr)
-{
-	struct ravl_interval_node range;
-	range.addr = addr;
-	range.get_min = ri->get_min;
-	range.get_max = ri->get_max;
-	range.overlap = true;
-
-	struct ravl_node *node;
-	node = ravl_find(ri->tree, &range, RAVL_PREDICATE_LESS);
-	if (!node)
-		return NULL;
-
-	return ravl_data(node);
-}
-
-/*
- * ravl_interval_find_closest_later -- find the closest interval neighbor
- *                                     that occurs after the current one
- */
-struct ravl_interval_node *
-ravl_interval_find_closest_later(struct ravl_interval *ri, void *addr)
-{
-	struct ravl_interval_node range;
-	range.addr = addr;
-	range.get_min = ri->get_min;
-	range.get_max = ri->get_max;
-	range.overlap = true;
-
-	struct ravl_node *node;
-	node = ravl_find(ri->tree, &range, RAVL_PREDICATE_GREATER);
-	if (!node)
-		return NULL;
-
-	return ravl_data(node);
-}
-
-/*
  * ravl_interval_data -- returns the data contained within an interval node
  */
 void *
@@ -307,7 +265,7 @@ ravl_interval_data(struct ravl_interval_node *rin)
 }
 
 /*
- * ravl_interval_first -- returns first interval in the tree
+ * ravl_interval_find_first -- returns first interval in the tree
  */
 struct ravl_interval_node *
 ravl_interval_find_first(struct ravl_interval *ri)
@@ -316,6 +274,20 @@ ravl_interval_find_first(struct ravl_interval *ri)
 	first = ravl_first(ri->tree);
 	if (first)
 		return ravl_data(first);
+
+	return NULL;
+}
+
+/*
+ * ravl_interval_find_last -- returns last interval in the tree
+ */
+struct ravl_interval_node *
+ravl_interval_find_last(struct ravl_interval *ri)
+{
+	struct ravl_node *last;
+	last = ravl_last(ri->tree);
+	if (last)
+		return ravl_data(last);
 
 	return NULL;
 }
@@ -336,6 +308,26 @@ ravl_interval_find_next(struct ravl_interval *ri, void *addr)
 	next = ravl_find(ri->tree, &range, RAVL_PREDICATE_GREATER);
 	if (next)
 		return ravl_data(next);
+
+	return NULL;
+}
+
+/*
+ * ravl_interval_find_prev -- returns interval preceding the one provided
+ */
+struct ravl_interval_node *
+ravl_interval_find_prev(struct ravl_interval *ri, void *addr)
+{
+	struct ravl_interval_node range;
+	range.addr = addr;
+	range.get_min = ri->get_min;
+	range.get_max = ri->get_max;
+	range.overlap = true;
+
+	struct ravl_node *prev = NULL;
+	prev = ravl_find(ri->tree, &range, RAVL_PREDICATE_LESS);
+	if (prev)
+		return ravl_data(prev);
 
 	return NULL;
 }

@@ -1856,6 +1856,9 @@ test_part_map_invalid_source_temp(const struct test_case *tc, int argc,
 	ret = pmemset_part_map(&part, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE);
 
+	ret = pmemset_part_delete(&part);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
@@ -1910,6 +1913,9 @@ test_part_map_source_truncate(const struct test_case *tc, int argc,
 	/* is should failed - size of file is too small  */
 	ret = pmemset_part_map(&part, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_PMEM2_MAP);
+
+	ret = pmemset_part_delete(&part);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -2475,6 +2481,8 @@ test_part_map_with_set_reservation(const struct test_case *tc,
 
 	create_config(&cfg);
 
+	pmemset_config_set_reservation(cfg, rsv);
+
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
@@ -2522,7 +2530,9 @@ test_part_map_with_set_reservation(const struct test_case *tc,
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmem2_source_delete(&pmem2_src);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
 	CLOSE(fd);
 
 	return 1;
@@ -2531,7 +2541,8 @@ test_part_map_with_set_reservation(const struct test_case *tc,
 /*
  * test_part_map_coalesce_with_set_reservation -- create a pmem2 vm reservation
  * with the size of three files and set it in the pmemset config, turn on full
- * coalescing and map three files to the pmemset
+ * coalescing and map three files to the pmemset, remove the ranges of first and
+ * third parts then map a new part
  */
 static int
 test_part_map_coalesce_with_set_reservation(const struct test_case *tc,
@@ -2547,9 +2558,193 @@ test_part_map_coalesce_with_set_reservation(const struct test_case *tc,
 	struct pmemset *set;
 	struct pmemset_config *cfg;
 	struct pmemset_part *part;
+	struct pmemset_part_descriptor desc;
+	struct pmemset_part_descriptor desc_after;
 	struct pmemset_part_map *pmap;
 	struct pmemset_source *src;
 	size_t part_size = 64 * 1024;
+	size_t rsv_size = 3 * part_size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+
+	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+	UT_ASSERTne(rsv_addr, NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	int fd = OPEN(file, O_RDWR);
+
+	ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	pmemset_config_set_reservation(cfg, rsv);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_set_contiguous_part_coalescing(set, PMEMSET_COALESCING_FULL);
+
+	size_t n_maps = 3;
+	for (int i = 0; i < n_maps; i++) {
+		ret = pmemset_part_new(&part, set, src, 0, part_size);
+		UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+		ret = pmemset_part_map(&part, NULL, NULL);
+		UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	}
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTne(pmap, NULL);
+
+	desc = pmemset_descriptor_part_map(pmap);
+	UT_ASSERTeq(desc.addr, rsv_addr);
+	UT_ASSERTeq(desc.size, 3 * part_size);
+
+	pmemset_part_map_drop(&pmap);
+
+	/* remove the range of first part */
+	ret = pmemset_remove_range(set, desc.addr, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* remove the range of third part */
+	ret = pmemset_remove_range(set, (char *)desc.addr + 2 * part_size,
+			part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTne(pmap, NULL);
+
+	desc_after = pmemset_descriptor_part_map(pmap);
+	UT_ASSERTeq(desc_after.addr, (char *)desc.addr + part_size);
+	UT_ASSERTeq(desc_after.size, 2 * part_size);
+
+	pmemset_part_map_drop(&pmap);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_part_map_with_set_reservation_too_small -- create a pmem2 vm reservation
+ * with half the size of one file and set it in the pmemset config, try to map a
+ * part to the pmemset
+ */
+static int
+test_part_map_with_set_reservation_too_small(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_with_set_reservation_too_small" \
+				" <path>");
+
+	const char *file = argv[0];
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part *part;
+	struct pmemset_part_map *pmap;
+	struct pmemset_source *src;
+	size_t part_size = 128 * 1024;
+	size_t rsv_size = part_size / 2;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	int fd = OPEN(file, O_RDWR);
+
+	ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	pmemset_config_set_reservation(cfg, rsv);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_FIT_PART_MAP);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTeq(pmap, NULL);
+
+	ret = pmemset_part_delete(&part);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_part_map_with_set_reservation_cannot_fit -- create a pmem2 vm
+ * reservation with the size of three files and set it in the pmemset config,
+ * map six parts with half the size of one file, remove every second part
+ * mapping then try to map a part with the size of one file
+ */
+static int
+test_part_map_with_set_reservation_cannot_fit(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+				"usage: test_part_map_with_set_reservation_cannot_fit" \
+				" <path>");
+
+	const char *file = argv[0];
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part *part;
+	struct pmemset_part_descriptor *descs;
+	struct pmemset_part_map **pmaps;
+	struct pmemset_source *src;
+	size_t part_size = 128 * 1024;
 	size_t rsv_size = 3 * part_size;
 
 	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
@@ -2567,40 +2762,55 @@ test_part_map_coalesce_with_set_reservation(const struct test_case *tc,
 
 	create_config(&cfg);
 
+	pmemset_config_set_reservation(cfg, rsv);
+
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	pmemset_set_contiguous_part_coalescing(set, PMEMSET_COALESCING_FULL);
-
-	size_t n_maps = 3;
+	size_t n_maps = 6;
 	for (int i = 0; i < n_maps; i++) {
-		ret = pmemset_part_new(&part, set, src, 0, part_size);
+		ret = pmemset_part_new(&part, set, src, 0, part_size / 2);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 		ret = pmemset_part_map(&part, NULL, NULL);
-		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
-			pmemset_part_delete(&part);
-			goto err_cleanup;
-		}
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
-	pmemset_first_part_map(set, &pmap);
-	UT_ASSERTne(pmap, NULL);
+	pmaps = malloc(sizeof(struct pmemset_part_map *) * n_maps);
+	descs = malloc(sizeof(struct pmemset_part_descriptor) * n_maps);
 
-	pmemset_remove_part_map(set, &pmap);
-	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(pmap, NULL);
+	pmemset_first_part_map(set, &pmaps[0]);
+	UT_ASSERTne(pmaps[0], NULL);
+	descs[0] = pmemset_descriptor_part_map(pmaps[0]);
 
-	pmemset_first_part_map(set, &pmap);
-	UT_ASSERTeq(pmap, NULL);
+	for (int i = 1; i < n_maps; i++) {
+		pmemset_next_part_map(set, pmaps[i - 1], &pmaps[i]);
+		UT_ASSERTne(pmaps[i], NULL);
+
+		descs[i] = pmemset_descriptor_part_map(pmaps[i]);
+		UT_ASSERTne(descs[i - 1].addr, descs[i].addr);
+	}
+
+	/* removing every second part mapping */
+	for (int i = 1; i < n_maps; i += 2) {
+		ret = pmemset_remove_part_map(set, &pmaps[i]);
+		UT_PMEMSET_EXPECT_RETURN(ret, 0);
+		UT_ASSERTeq(pmaps[i], NULL);
+	}
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_FIT_PART_MAP);
+
+	ret = pmemset_part_delete(&part);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
-	pmemset_first_part_map(set, &pmap);
-	UT_ASSERTeq(pmap, NULL);
-
-err_cleanup:
+	free(pmaps);
+	free(descs);
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
@@ -2608,7 +2818,9 @@ err_cleanup:
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmem2_source_delete(&pmem2_src);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
 	CLOSE(fd);
 
 	return 1;
@@ -2652,6 +2864,9 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_pmemset_async_map_remove_multiple_part_maps),
 	TEST_CASE(test_divide_coalesced_remove_obtained_pmaps),
 	TEST_CASE(test_part_map_with_set_reservation),
+	TEST_CASE(test_part_map_coalesce_with_set_reservation),
+	TEST_CASE(test_part_map_with_set_reservation_too_small),
+	TEST_CASE(test_part_map_with_set_reservation_cannot_fit),
 	TEST_CASE(test_part_map_coalesce_with_set_reservation),
 };
 

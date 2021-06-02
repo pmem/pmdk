@@ -64,6 +64,7 @@ extern "C" {
 #define PMEMSET_E_CANNOT_CREATE_TEMP_FILE		(-200020)
 #define PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE		(-200021)
 #define PMEMSET_E_PART_MAP_POSSIBLE_USE_AFTER_DROP	(-200022)
+#define PMEMSET_E_CANNOT_FIT_PART_MAP			(-200023)
 
 /* pmemset setup */
 
@@ -239,7 +240,7 @@ int pmemset_config_new(struct pmemset_config **cfg);
 
 int pmemset_config_delete(struct pmemset_config **cfg);
 
-void pmemset_config_set_reservation(struct pmemset_config *config,
+void pmemset_config_set_reservation(struct pmemset_config *cfg,
 		struct pmem2_vm_reservation *rsv);
 
 int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
