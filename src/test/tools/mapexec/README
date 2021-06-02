@@ -1,0 +1,15 @@
+Persistent Memory Development Kit
+
+This is src/test/tools/mapexec/README.
+
+This directory contains a simple application for checking if
+mmap with exec rights is allowed.
+
+It's used as a helper program by some tests.
+
+Usage:
+	$ mapexec <path>
+
+Return values:
+	1 - exec allowed
+	0 - exec not allowed
