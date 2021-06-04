@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * rand.c -- random utils
@@ -40,7 +40,7 @@ hash64(uint64_t x)
  *
  * By David Blackman and Sebastiano Vigna; PD/CC0 2018.
  *
- * It has a period of 2²⁵⁶-1, excluding all-zero state; it must always get
+ * It has a period of 2**256 - 1, excluding all-zero state; it must always get
  * initialized to avoid that zero.
  */
 

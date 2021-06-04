@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * critnib.c -- implementation of critnib tree
@@ -327,12 +327,12 @@ alloc_leaf(struct critnib *__restrict c)
 }
 
 /*
- * crinib_insert -- write a key:value pair to the critnib structure
+ * critnib_insert -- write a key:value pair to the critnib structure
  *
  * Returns:
- *  • 0 on success
- *  • EEXIST if such a key already exists
- *  • ENOMEM if we're out of memory
+ *  - 0 on success
+ *  - EEXIST if such a key already exists
+ *  - ENOMEM if we're out of memory
  *
  * Takes a global write lock but doesn't stall any readers.
  */
