@@ -1,3 +1,30 @@
+Wed Jun 8 2021 Piotr Balcer <piotr.balcer@intel.com>
+
+	* Version 1.11.0
+
+	This release:
+	 - Adds new APIs for libpmem2, most notably there are new functions
+	to shrink and extend an existing reservation and a new iterator API
+	for mappings contained within an existing reservation. There's also
+	a new function to retrieve a numa node for a source.
+	- Makes the pmemobj_open() and pmemobj_close() functions from libpmemobj
+	thread-safe, making it easier to correctly manage persistent memory
+	pools in a parallel environment.
+	- Introduces a new API in libpmemobj to globally change the method of
+	assigning arenas to threads. The default is to rely on a OS per-thread
+	key to store arena information, and this release introduces an option
+	to have avoid the use of thread-local keys by simply using one global
+	arena for all threads in a pool.
+
+	Other changes and notable bug fixes:
+	 - pmem2: don't force smaller alignment for fsdax mappings
+	 - rpmem: various fixes for powerpc64le
+	 - doc: fix documentation of pmem_is_pmem()
+	 - common: fix various minor problems found by static analysis
+
+	This release introduces to changes to the on-media layout and is
+	fully compatible with the previous version of PMDK.
+
 Wed Oct 28 2020 Piotr Balcer <piotr.balcer@intel.com>
 
 	* Version 1.10
