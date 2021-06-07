@@ -5,35 +5,44 @@
 ==$(N)== Parent PID: $(N)
 ==$(N)== 
 ==$(N)== Invalid write of size 4
-==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==    at 0x$(X): main ($(*)obj_action$(*))
 ==$(N)==  Address 0x$(X) is $(*)
 ==$(N)== 
 ==$(N)== Invalid write of size 4
-==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==    at 0x$(X): main ($(*)obj_action$(*))
 ==$(N)==  Address 0x$(X) is $(*)
 ==$(N)== 
 ==$(N)== Invalid write of size 4
-==$(N)==    at 0x$(X): main (obj_action.c:$(N))
+==$(N)==    at 0x$(X): main ($(*)obj_action$(*))
 ==$(N)==  Address 0x$(X) is $(*)
 ==$(N)== 
 ==$(N)== Invalid write of size 4
-==$(N)==    at 0x$(X): test_defer_free (obj_action.c:$(N))
-==$(N)==    by 0x$(X): main (obj_action.c:$(N))
+==$(N)==    at 0x$(X): test_defer_free ($(*)obj_action$(*))
+==$(N)==    by 0x$(X): main ($(*)obj_action$(*))
 ==$(N)==  Address 0x$(X) is 0 bytes inside a block of size 112 free'd
-==$(N)==    at 0x$(X): palloc_heap_action_on_process (palloc.c:$(N))
-==$(N)==    by 0x$(X): palloc_exec_actions (palloc.c:$(N))
-==$(N)==    by 0x$(X): palloc_publish (palloc.c:$(N))
-==$(N)==    by 0x$(X): pmemobj_publish (obj.c:$(N))
-==$(N)==    by 0x$(X): test_defer_free (obj_action.c:$(N))
-==$(N)==    by 0x$(X): main (obj_action.c:$(N))
+$(OPT)==$(N)==    at 0x$(X): palloc_heap_action_on_process (palloc.c:$(N))
+$(OPX)==$(N)==    at 0x$(X): palloc_heap_action_on_process ($(*)src/debug/libpmemobj.so.1.0.0)
+$(OPT)==$(N)==    by 0x$(X): palloc_exec_actions (palloc.c:$(N))
+$(OPX)==$(N)==    by 0x$(X): palloc_exec_actions ($(*)src/debug/libpmemobj.so.1.0.0)
+$(OPT)==$(N)==    by 0x$(X): palloc_publish (palloc.c:$(N))
+$(OPX)==$(N)==    by 0x$(X): palloc_publish ($(*)src/debug/libpmemobj.so.1.0.0)
+$(OPT)==$(N)==    by 0x$(X): pmemobj_publish (obj.c:$(N))
+$(OPX)==$(N)==    by 0x$(X): pmemobj_publish ($(*)src/debug/libpmemobj.so.1.0.0)
+==$(N)==    by 0x$(X): test_defer_free ($(*)obj_action$(*))
+==$(N)==    by 0x$(X): main ($(*)obj_action$(*))
 ==$(N)==  Block was alloc'd at
-==$(N)==    at 0x$(X): alloc_prep_block (palloc.c:$(N))
-==$(N)==    by 0x$(X): palloc_reservation_create (palloc.c:$(N))
-==$(N)==    by 0x$(X): palloc_operation (palloc.c:$(N))
-==$(N)==    by 0x$(X): obj_alloc_construct (obj.c:$(N))
-==$(N)==    by 0x$(X): pmemobj_alloc (obj.c:$(N))
-==$(N)==    by 0x$(X): test_defer_free (obj_action.c:$(N))
-==$(N)==    by 0x$(X): main (obj_action.c:$(N))
+$(OPT)==$(N)==    at 0x$(X): alloc_prep_block (palloc.c:$(N))
+$(OPX)==$(N)==    at 0x$(X): alloc_prep_block ($(*)src/debug/libpmemobj.so.1.0.0)
+$(OPT)==$(N)==    by 0x$(X): palloc_reservation_create (palloc.c:$(N))
+$(OPX)==$(N)==    by 0x$(X): palloc_reservation_create ($(*)src/debug/libpmemobj.so.1.0.0)
+$(OPT)==$(N)==    by 0x$(X): palloc_operation (palloc.c:$(N))
+$(OPX)==$(N)==    by 0x$(X): palloc_operation ($(*)src/debug/libpmemobj.so.1.0.0)
+$(OPT)==$(N)==    by 0x$(X): obj_alloc_construct (obj.c:$(N))
+$(OPX)==$(N)==    by 0x$(X): obj_alloc_construct ($(*)src/debug/libpmemobj.so.1.0.0)
+$(OPT)==$(N)==    by 0x$(X): pmemobj_alloc (obj.c:$(N))
+$(OPX)==$(N)==    by 0x$(X): pmemobj_alloc ($(*)src/debug/libpmemobj.so.1.0.0)
+==$(N)==    by 0x$(X): test_defer_free ($(*)obj_action$(*))
+==$(N)==    by 0x$(X): main ($(*)obj_action$(*))
 ==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
