@@ -22,7 +22,7 @@ Wed Jun 8 2021 Piotr Balcer <piotr.balcer@intel.com>
 	 - doc: fix documentation of pmem_is_pmem()
 	 - common: fix various minor problems found by static analysis
 
-	This release introduces to changes to the on-media layout and is
+	This release introduces no changes to the on-media layout and is
 	fully compatible with the previous version of PMDK.
 
 Wed Oct 28 2020 Piotr Balcer <piotr.balcer@intel.com>
