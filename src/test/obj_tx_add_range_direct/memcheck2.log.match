@@ -10,8 +10,8 @@
 ==$(*)==    by $(*): pmemobj_tx_add_snapshot ($(*))
 ==$(*)==    by $(*): pmemobj_tx_add_common ($(*))
 ==$(*)==    by $(*): pmemobj_tx_add_range_direct ($(*))
-==$(*)==    by $(*): do_tx_add_range_no_uninit_check_commit_no_flag (obj_tx_add_range_direct.c:$(*))
-==$(*)==    by $(*): main (obj_tx_add_range_direct.c:$(*))
+==$(*)==    by $(*): do_tx_add_range_no_uninit_check_commit_no_flag ($(*)obj_tx_add_range_direct$(*))
+==$(*)==    by $(*): main ($(*)obj_tx_add_range_direct$(*))
 ==$(*)==  Address $(*) is 8 bytes inside a block of size $(*) client-defined
 ==$(*)==    at $(*): alloc_prep_block ($(*))
 ==$(*)==    by $(*): palloc_reservation_create ($(*))
@@ -19,8 +19,8 @@
 ==$(*)==    by $(*): tx_alloc_common ($(*))
 ==$(*)==    by $(*): pmemobj_tx_alloc ($(*))
 ==$(*)==    by $(*): do_tx_alloc ($(*))
-==$(*)==    by $(*): do_tx_add_range_no_uninit_check_commit_no_flag (obj_tx_add_range_direct.c:$(*))
-==$(*)==    by $(*): main (obj_tx_add_range_direct.c:$(*))
+==$(*)==    by $(*): do_tx_add_range_no_uninit_check_commit_no_flag ($(*)obj_tx_add_range_direct$(*))
+==$(*)==    by $(*): main ($(*)obj_tx_add_range_direct$(*))
 ==$(*)== 
 ==$(*)== 
 ==$(*)== HEAP SUMMARY:
