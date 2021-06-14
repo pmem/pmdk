@@ -87,6 +87,9 @@ CFLAGS += -fno-common
 CFLAGS += -pthread
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 
+# XXX: This flag must be removed when we fix LTO builds.
+CFLAGS += -fno-lto
+
 ifeq ($(OS_DIMM),ndctl)
 CFLAGS += -DSDS_ENABLED
 CFLAGS += $(OS_DIMM_CFLAG)
