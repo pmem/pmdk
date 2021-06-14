@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 #
 # src/Makefile.inc -- common Makefile rules for PMDK
 #
@@ -86,6 +86,9 @@ CFLAGS += -std=gnu99
 CFLAGS += -fno-common
 CFLAGS += -pthread
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
+
+# XXX: This flag must be removed when we fix LTO builds.
+CFLAGS += -fno-lto
 
 ifeq ($(OS_DIMM),ndctl)
 CFLAGS += -DSDS_ENABLED
