@@ -48,13 +48,6 @@ static char *granularity_name[3] = {
 };
 
 /*
- * pmemset_header
- */
-struct pmemset_header {
-	char stub;
-};
-
-/*
  * pmemset_mapping_min
  */
 static size_t
@@ -738,38 +731,6 @@ err_pmem2_cfg_delete:
 	pmem2_config_delete(&pmem2_cfg);
 	return ret;
 }
-
-#ifndef _WIN32
-/*
- * pmemset_header_init -- not supported
- */
-int
-pmemset_header_init(struct pmemset_header *header, const char *layout,
-		int major, int minor)
-{
-	return PMEMSET_E_NOSUPP;
-}
-#else
-/*
- * pmemset_header_initU -- not supported
- */
-int
-pmemset_header_initU(struct pmemset_header *header, const char *layout,
-		int major, int minor)
-{
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
- * pmemset_header_initW -- not supported
- */
-int
-pmemset_header_initW(struct pmemset_header *header, const wchar_t *layout,
-		int major, int minor)
-{
-	return PMEMSET_E_NOSUPP;
-}
-#endif
 
 /*
  * pmemset_update_previous_part_map -- updates previous part map for the

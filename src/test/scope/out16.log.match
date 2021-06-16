@@ -2,11 +2,8 @@ DllMain
 pmemset_config_delete
 pmemset_config_new
 pmemset_config_set_event_callback
-pmemset_config_set_layout_nameU
-pmemset_config_set_layout_nameW
 pmemset_config_set_required_store_granularity
 pmemset_config_set_reservation
-pmemset_config_set_version
 pmemset_deep_flush
 pmemset_delete
 pmemset_descriptor_part_map
@@ -16,8 +13,6 @@ pmemset_errormsgW
 pmemset_first_part_map
 pmemset_flush
 pmemset_get_store_granularity
-pmemset_header_initU
-pmemset_header_initW
 pmemset_memcpy
 pmemset_memmove
 pmemset_memset
@@ -28,8 +23,6 @@ pmemset_part_map
 pmemset_part_map_by_address
 pmemset_part_map_drop
 pmemset_part_new
-pmemset_part_pread_mcsafe
-pmemset_part_pwrite_mcsafe
 pmemset_perrorU
 pmemset_perrorW
 pmemset_persist
