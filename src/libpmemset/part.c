@@ -76,26 +76,6 @@ pmemset_part_delete(struct pmemset_part **part)
 }
 
 /*
- * memset_part_pread_mcsafe -- not supported
- */
-int
-pmemset_part_pread_mcsafe(struct pmemset_part_descriptor *part,
-		void *dst, size_t size, size_t offset)
-{
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
- * pmemset_part_pwrite_mcsafe -- not supported
- */
-int
-pmemset_part_pwrite_mcsafe(struct pmemset_part_descriptor *part,
-		void *dst, size_t size, size_t offset)
-{
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
  * pmemset_part_get_pmemset -- return set assigned to the part
  */
 struct pmemset *

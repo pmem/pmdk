@@ -18,16 +18,12 @@
 #include <pmemcompat.h>
 
 #ifndef PMDK_UTF8_API
-#define pmemset_config_set_layout_name pmemset_config_set_layout_nameW
-#define pmemset_header_init pmemset_header_initW
 #define pmemset_source_from_file pmemset_source_from_fileW
 #define pmemset_xsource_from_file pmemset_xsource_from_fileW
 #define pmemset_source_from_temporary pmemset_source_from_temporaryW
 #define pmemset_errormsg pmemset_errormsgW
 #define pmemset_perror pmemset_perrorW
 #else
-#define pmemset_config_set_layout_name pmemset_config_set_layout_nameU
-#define pmemset_header_init pmemset_header_initU
 #define pmemset_source_from_file pmemset_source_from_fileU
 #define pmemset_xsource_from_file pmemset_xsource_from_fileU
 #define pmemset_source_from_temporary pmemset_source_from_temporaryU
@@ -76,7 +72,6 @@ enum pmemset_coalescing {
 
 struct pmemset;
 struct pmemset_config;
-struct pmemset_header;
 struct pmemset_part;
 struct pmemset_part_map;
 
@@ -86,8 +81,6 @@ struct pmemset_part_descriptor {
 };
 
 struct pmemset_extras {
-	const struct pmemset_header *header_in;
-	struct pmemset_header *header_out;
 	const struct pmemset_part_shutdown_state_data *sds_in;
 	struct pmemset_part_shutdown_state_data *sds_out;
 	enum pmemset_part_state *state;
@@ -172,17 +165,6 @@ int pmemset_new(struct pmemset **set, struct pmemset_config *cfg);
 
 int pmemset_delete(struct pmemset **set);
 
-#ifndef WIN32
-int pmemset_header_init(struct pmemset_header *header, const char *layout,
-		int major, int minor);
-#else
-int pmemset_header_initU(struct pmemset_header *header, const char *layout,
-		int major, int minor);
-
-int pmemset_header_initW(struct pmemset_header *header, const wchar_t *layout,
-		int major, int minor);
-#endif
-
 int pmemset_remove_part_map(struct pmemset *set,
 		struct pmemset_part_map **part);
 
@@ -245,20 +227,6 @@ void pmemset_config_set_reservation(struct pmemset_config *cfg,
 
 int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
 		enum pmem2_granularity g);
-
-#ifndef _WIN32
-int pmemset_config_set_layout_name(struct pmemset_config *cfg,
-		const char *layout);
-#else
-int pmemset_config_set_layout_nameU(struct pmemset_config *cfg,
-		const char *layout);
-
-int pmemset_config_set_layout_nameW(struct pmemset_config *cfg,
-		const wchar_t *layout);
-#endif
-
-int pmemset_config_set_version(struct pmemset_config *cfg,
-		int major, int minor);
 
 /* source setup */
 
@@ -342,12 +310,6 @@ int pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 		struct pmemset_source *src, size_t offset, size_t length);
 
 int pmemset_part_delete(struct pmemset_part **part);
-
-int pmemset_part_pread_mcsafe(struct pmemset_part_descriptor *part,
-		void *dst, size_t size, size_t offset);
-
-int pmemset_part_pwrite_mcsafe(struct pmemset_part_descriptor *part,
-		void *dst, size_t size, size_t offset);
 
 int pmemset_part_map(struct pmemset_part **part_ptr,
 		struct pmemset_extras *extra,

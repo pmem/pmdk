@@ -115,7 +115,9 @@ MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.m
 MANPAGES_1_MD_PMEM2 =
 MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3 \
 	libpmem2/pmem2_get_memset_fn.3 libpmem2/pmem2_get_memcpy_fn.3 libpmem2/pmem2_vm_reservation_delete.3 \
-	libpmem2/pmem2_badblock_context_delete.3 libpmem2/pmem2_vm_reservation_shrink.3
+	libpmem2/pmem2_badblock_context_delete.3 libpmem2/pmem2_vm_reservation_shrink.3 \
+	libpmem2/pmem2_vm_reservation_map_find_first.3 libpmem2/pmem2_vm_reservation_map_find_last.3 \
+	libpmem2/pmem2_vm_reservation_map_find_next.3 libpmem2/pmem2_vm_reservation_map_find_prev.3
 
 # libpmemset
 MANPAGES_7_MD_PMEMSET = libpmemset/libpmemset.7.md
@@ -135,7 +137,8 @@ MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perr
 MANPAGES_1_MD_PMEMSET =
 ifeq ($(PMEMSET_INSTALL),y)
 MANPAGES_3_DUMMY += libpmemset/pmemset_config_delete.3 libpmemset/pmemset_delete.3 libpmemset/pmemset_part_delete.3 \
-		    libpmemset/pmemset_next_part_map.3 libpmemset/pmemset_memcpy.3 libpmemset/pmemset_memset.3
+		    libpmemset/pmemset_next_part_map.3 libpmemset/pmemset_memcpy.3 libpmemset/pmemset_memset.3 \
+		    libpmemset/pmemset_xsource_from_file.3
 endif
 
 ifeq ($(BUILD_RPMEM),y)
