@@ -52,6 +52,7 @@ void pmemset_config_set_event_callback(struct pmemset_config *cfg,
 ```
 
 # DESCRIPTION #
+
 The **pmemset_config_set_event_callback**() sets an user provided *callback* in *cfg*.
 *arg* will be passed to the *callback* each time it will be called by the library.
 
@@ -70,11 +71,15 @@ The library user must guarantee this by not having multiple threads accessing th
 Once the function exits *ctx* and its data are invalid.
 
 # RETURN VALUE #
+
 The **pmemset_config_set_event_callback**() returns no value.
 
 # EVENTS #
-XXX: For now there are no events implemented
+
+* **PMEMSET_EVENT_PART_ADD** - occurs for each new part added to the pmemset
+using **pmemset_part_map**(3) function.
 
 # SEE ALSO #
 
-**libpmem2**(7), **libpmemset**(7) and **<http://pmem.io>**
+**pmemset_part_map**, **libpmem2**(7),
+**libpmemset**(7) and **<http://pmem.io>**
