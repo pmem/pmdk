@@ -104,7 +104,7 @@ reservation set, provided reservation has no space for a new part mapping
 
 # SEE ALSO #
 
-**pmemset_config_set_reservation**(3), **pmemset_first_part_map**(3),
+**pmemset_config_set_reservation**(3),**pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
 **pmemset_part_new**(3), **pmemset_set_contiguous_part_coalescing**(3),
 **pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
