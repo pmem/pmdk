@@ -302,3 +302,10 @@ class TEST38(PMEMSET_PART):
     every second part mapping then try to map a part with the size of one file
     """
     test_case = "test_part_map_with_set_reservation_cannot_fit"
+
+
+class TEST39(PMEMSET_PART):
+    """
+    set a part add event callback in a pmemset and map a part to this set
+    """
+    test_case = "test_part_map_set_event_part_add_cb"
