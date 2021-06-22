@@ -28,12 +28,10 @@ date: pmemset API version 1.0
 ```c
 #include <libpmemset.h>
 
-struct pmemset_extras;
 struct pmemset_part;
 struct pmemset_part_descriptor;
 struct pmemset_source;
 int pmemset_part_map(struct pmemset_part **part_ptr,
-		struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc);
 ```
 
@@ -100,12 +98,19 @@ temporary file created in *dir* cannot be truncated for the defined part size an
 of *struct pmemset_part_map*.
 
 * **PMEMSET_E_CANNOT_FIT_PART_MAP** - in case of pmemset created from config with a
-reservation set, provided reservation has no space for a new part mapping
+reservation set, provided reservation has no space for a new part mapping.
+
+* **PMEMSET_E_UNDESIRABLE_PART_STATE** - determined state of the part to be mapped does not
+match any of the acceptable states set in the SDS structure. For more information please see
+**pmemset_sds_new**(3).
+
+It can also return **libpmem2**(7) errors from the underlying functions.
 
 # SEE ALSO #
 
 **pmemset_config_set_reservation**(3),**pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
-**pmemset_part_new**(3), **pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_part_new**(3), **pmemset_sds_new**(3),
+**pmemset_set_contiguous_part_coalescing**(3),
 **pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
 **libpmemset**(7), **libpmem2**(7) and **<http://pmem.io>**

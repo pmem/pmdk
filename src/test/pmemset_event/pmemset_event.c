@@ -38,7 +38,7 @@ static void map(struct pmemset *set, struct pmemset_source *src,
 	struct pmemset_part *part;
 	int ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_part_map(&part, NULL, desc);
+	ret = pmemset_part_map(&part, desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 }
 
@@ -280,12 +280,105 @@ test_pmemset_copy_event(const struct test_case *tc,
 	return 1;
 }
 
+struct sds_update_args {
+	size_t count;
+};
+
+/*
+ * sds_update_callback -- callback used in pmemset_sds_update test
+ */
+static int
+sds_update_callback(struct pmemset *set, struct pmemset_event_context *ctx,
+		void *arg)
+{
+	struct sds_update_args *args = arg;
+
+	if (ctx->type == PMEMSET_EVENT_SDS_UPDATE) {
+		UT_ASSERTne(ctx->data.sds_update.sds, NULL);
+		UT_ASSERTne(ctx->data.sds_update.src, NULL);
+		args->count++;
+	}
+
+	return 0;
+}
+
+/*
+ * test_pmemset_sds_update_event -- test PMEMSET_EVENT_SDS_UPDATE event
+ */
+static int
+test_pmemset_sds_update_event(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_pmemset_sds_update_event <file>");
+
+	char *file = argv[0];
+
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_extras extras;
+	struct pmemset_part_descriptor desc;
+	struct pmemset_part_map *pmap;
+	struct pmemset_sds *sds;
+	struct pmemset_source *src;
+	struct sds_update_args args;
+	args.count = 0;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+	pmemset_config_set_event_callback(cfg, &sds_update_callback, &args);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_sds_new(&sds, src);
+	if (ret == PMEMSET_E_NOSUPP)
+		goto cleanup;
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	uint64_t acceptable_states = (PMEMSET_PART_STATE_OK |
+			PMEMSET_PART_STATE_INDETERMINATE);
+	pmemset_sds_set_acceptable_states(sds, acceptable_states);
+
+	extras.in_sds = sds;
+	extras.in_bb = NULL;
+	extras.out_state = NULL;
+	pmemset_source_set_extras(src, &extras);
+	UT_ASSERTeq(extras.in_sds, NULL);
+	UT_ASSERTeq(extras.in_bb, NULL);
+
+	map(set, src, &desc);
+	UT_ASSERTeq(args.count, 1); /* sds updated, sds refcount raised */
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTne(pmap, NULL);
+
+	ret = pmemset_remove_part_map(set, &pmap);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(pmap, NULL);
+	UT_ASSERTeq(args.count, 2); /* sds updated, sds refcount lowered */
+
+cleanup:
+	cleanup(set, cfg, src, pmem2_src, fd);
+
+	return 1;
+}
+
 /*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
 	TEST_CASE(test_pmemset_persist_event),
 	TEST_CASE(test_pmemset_copy_event),
+	TEST_CASE(test_pmemset_sds_update_event),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
@@ -299,3 +392,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmemset_init)
+MSVC_DESTR(libpmemset_fini)
+#endif

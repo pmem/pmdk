@@ -17,6 +17,7 @@
 #include "pmemset.h"
 #include "pmemset_utils.h"
 #include "ravl_interval.h"
+#include "sds.h"
 #include "source.h"
 
 struct pmemset_part {
@@ -24,6 +25,7 @@ struct pmemset_part {
 	size_t offset;
 	size_t length;
 	struct pmemset_file *file;
+	struct pmemset_source *src;
 };
 
 /*
@@ -55,6 +57,7 @@ pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 	partp->offset = offset;
 	partp->length = length;
 	partp->file = pmemset_source_get_set_file(src);
+	partp->src = src;
 	*part = partp;
 
 	return ret;
@@ -88,11 +91,12 @@ pmemset_part_get_pmemset(struct pmemset_part *part)
  * pmemset_part_map_init -- initialize the part map structure
  */
 static int
-pmemset_part_map_init(struct pmemset_part_map *pmap,
+pmemset_part_map_init(struct pmemset_part_map *pmap, struct pmemset *set,
 		struct pmem2_vm_reservation *pmem2_reserv,
 		void *addr, size_t size)
 {
 	pmap->pmem2_reserv = pmem2_reserv;
+	pmap->set = set;
 	pmap->desc.addr = addr;
 	pmap->desc.size = size;
 	pmap->refcount = 0;
@@ -104,7 +108,7 @@ pmemset_part_map_init(struct pmemset_part_map *pmap,
  * pmemset_part_map_new -- creates a new part map structure
  */
 int
-pmemset_part_map_new(struct pmemset_part_map **pmap_ptr,
+pmemset_part_map_new(struct pmemset_part_map **pmap_ptr, struct pmemset *set,
 		struct pmem2_vm_reservation *pmem2_reserv, size_t offset,
 		size_t size)
 {
@@ -117,7 +121,7 @@ pmemset_part_map_new(struct pmemset_part_map **pmap_ptr,
 
 	void *addr = (char *)pmem2_vm_reservation_get_address(pmem2_reserv) +
 			offset;
-	ret = pmemset_part_map_init(pmap, pmem2_reserv, addr, size);
+	ret = pmemset_part_map_init(pmap, set, pmem2_reserv, addr, size);
 	if (ret)
 		goto err_pmap_free;
 
@@ -196,9 +200,33 @@ pmemset_part_map_iterate(struct pmemset_part_map *pmap, size_t offset,
  */
 static int
 pmemset_pmem2_map_delete_cb(struct pmemset_part_map *pmap,
-		struct pmem2_map *map, void *arg)
+		struct pmem2_map *p2map, void *arg)
 {
-	return pmem2_map_delete(&map);
+	struct pmemset_sds_record *sds_record = pmemset_sds_find_record(p2map);
+
+	int ret = pmem2_map_delete(&p2map);
+	if (ret)
+		return ret;
+
+	if (sds_record) {
+		struct pmemset_sds *sds = pmemset_sds_record_get_sds(
+				sds_record);
+		ASSERTne(sds, NULL);
+
+		struct pmemset_source *src = pmemset_sds_record_get_source(
+				sds_record);
+		ASSERTne(src, NULL);
+
+		struct pmemset *set = pmap->set;
+		struct pmemset_config *cfg = pmemset_get_pmemset_config(set);
+
+		ret = pmemset_sds_unregister_record(sds_record);
+		ASSERTeq(ret, 0);
+
+		pmemset_sds_fire_sds_update_event(set, sds, cfg, src);
+	}
+
+	return 0;
 }
 
 /*
@@ -245,6 +273,15 @@ struct pmemset_file *
 pmemset_part_get_file(struct pmemset_part *part)
 {
 	return part->file;
+}
+
+/*
+ * pmemset_part_get_source -- returns source associated with part
+ */
+struct pmemset_source *
+pmemset_part_get_source(struct pmemset_part *part)
+{
+	return part->src;
 }
 
 /*
