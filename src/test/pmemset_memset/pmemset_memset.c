@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 
 	ut_create_map_config(&map_cfg, set, 0, 4 * 1024 * 1024);
 
-	ret = pmemset_map(ssrc, map_cfg, NULL, &desc);
+	ret = pmemset_map(ssrc, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	dest = desc.addr;

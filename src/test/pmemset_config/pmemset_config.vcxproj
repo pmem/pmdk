@@ -71,6 +71,9 @@
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
       <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\libpmem2\libpmem2.vcxproj">
+      <Project>{f596c36c-5c96-4f08-b420-8908af500954}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
@@ -84,7 +87,10 @@
     <ClCompile Include="..\..\libpmemset\file.c" />
     <ClCompile Include="..\..\libpmemset\file_windows.c" />
     <ClCompile Include="..\..\libpmemset\map_config.c" />
+    <ClCompile Include="..\..\libpmemset\part.c" />
+    <ClCompile Include="..\..\libpmemset\pmemset.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
+    <ClCompile Include="..\..\libpmemset\sds.c" />
     <ClCompile Include="..\..\libpmemset\source.c" />
     <ClCompile Include="..\unittest\ut_pmemset_utils.c" />
     <ClCompile Include="pmemset_config.c" />
