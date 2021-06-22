@@ -23,3 +23,7 @@ class TEST1(PmemsetEvent):
 
 class TEST2(PmemsetEvent):
     test_case = "test_pmemset_copy_event"
+
+
+class TEST3(PmemsetEvent):
+    test_case = "test_pmemset_sds_update_event"

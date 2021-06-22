@@ -48,7 +48,7 @@ test_persist_single_part(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(part, NULL);
 
@@ -97,13 +97,13 @@ test_persist_multiple_parts(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, first_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, &first_desc);
+	ret = pmemset_part_map(&part, &first_desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, second_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, &second_desc);
+	ret = pmemset_part_map(&part, &second_desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	memset(first_desc.addr, 1, first_desc.size);
@@ -151,7 +151,7 @@ test_persist_incomplete(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	memset(desc.addr, 1, desc.size);
@@ -199,13 +199,13 @@ test_set_flush_drain(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, first_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, &first_desc);
+	ret = pmemset_part_map(&part, &first_desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, second_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, &second_desc);
+	ret = pmemset_part_map(&part, &second_desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	memset(first_desc.addr, 1, first_desc.size);
@@ -248,3 +248,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmemset_init)
+MSVC_DESTR(libpmemset_fini)
+#endif
