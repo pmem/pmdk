@@ -142,6 +142,7 @@ OBJS +=\
 	$(TOP)/src/debug/libpmemset/part.o\
 	$(TOP)/src/debug/libpmemset/pmemset.o\
 	$(TOP)/src/debug/libpmemset/pmemset_utils.o\
+	$(TOP)/src/debug/libpmemset/sds.o\
 	$(TOP)/src/debug/libpmemset/source.o
 
 INCS += -I$(TOP)/src/libpmemset
@@ -160,6 +161,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmemset/part.o\
 	$(TOP)/src/nondebug/libpmemset/pmemset.o\
 	$(TOP)/src/nondebug/libpmemset/pmemset_utils.o\
+	$(TOP)/src/nondebug/libpmemset/sds.o
 	$(TOP)/src/nondebug/libpmemset/source.o
 
 INCS += -I$(TOP)/src/libpmemset

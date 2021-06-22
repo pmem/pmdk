@@ -37,7 +37,6 @@ test_persist_single_part(const struct test_case *tc, int argc,
 	UT_ASSERTne(map_cfg, NULL);
 
 	struct pmemset_part_descriptor desc;
-
 	ret = pmemset_map(src, map_cfg, NULL, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
@@ -251,3 +250,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmemset_init)
+MSVC_DESTR(libpmemset_fini)
+#endif
