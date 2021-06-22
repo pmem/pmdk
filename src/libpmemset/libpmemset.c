@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * libpmemset.c -- pmemset library constructor & destructor
@@ -9,6 +9,7 @@
 
 #include "out.h"
 #include "pmemset.h"
+#include "sds.h"
 #include "util.h"
 
 /*
@@ -26,6 +27,8 @@ libpmemset_init(void)
 			PMEMSET_MINOR_VERSION);
 
 	LOG(3, NULL);
+
+	pmemset_sds_init();
 }
 
 /*
@@ -40,4 +43,6 @@ libpmemset_fini(void)
 	LOG(3, NULL);
 
 	out_fini();
+
+	pmemset_sds_fini();
 }
