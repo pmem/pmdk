@@ -10,8 +10,9 @@
 #include "file.h"
 
 struct pmemset_part_map {
-	struct pmemset_part_descriptor desc;
+	struct pmemset *set;
 	struct pmem2_vm_reservation *pmem2_reserv;
+	struct pmemset_part_descriptor desc;
 	int refcount;
 };
 
@@ -34,8 +35,8 @@ struct pmemset_part_shutdown_state_data {
 struct pmemset *pmemset_map_config_get_set(struct pmemset_map_config *map_cfg);
 
 int pmemset_part_map_new(struct pmemset_part_map **pmap_ptr,
-		struct pmem2_vm_reservation *pmem2_reserv, size_t offset,
-		size_t size);
+		struct pmemset *set, struct pmem2_vm_reservation *pmem2_reserv,
+		size_t offset, size_t size);
 
 int pmemset_part_map_delete(struct pmemset_part_map **pmap_ptr);
 
