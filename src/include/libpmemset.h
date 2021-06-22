@@ -62,6 +62,10 @@ extern "C" {
 #define PMEMSET_E_PART_MAP_POSSIBLE_USE_AFTER_DROP	(-200022)
 #define PMEMSET_E_CANNOT_FIT_PART_MAP			(-200023)
 #define PMEMSET_E_OFFSET_OUT_OF_RANGE			(-200024)
+#define PMEMSET_E_INVALID_PART_STATES			(-200025)
+#define PMEMSET_E_UNDESIRABLE_PART_STATE		(-200026)
+#define PMEMSET_E_EXTRAS_ALREADY_SET			(-200027)
+#define PMEMSET_E_SDS_ENOSUPP				(-200028)
 
 /* pmemset setup */
 
@@ -81,11 +85,6 @@ struct pmemset_part_descriptor {
 	size_t size;
 };
 
-struct pmemset_extras {
-	const struct pmemset_part_shutdown_state_data *sds_in;
-	struct pmemset_part_shutdown_state_data *sds_out;
-	enum pmemset_part_state *state;
-};
 enum pmemset_event {
 	PMEMSET_EVENT_COPY,
 	PMEMSET_EVENT_MOVE,
@@ -97,6 +96,7 @@ enum pmemset_event {
 	PMEMSET_EVENT_REMOVE_RANGE,
 	PMEMSET_EVENT_PART_ADD,
 	PMEMSET_EVENT_PART_REMOVE,
+	PMEMSET_EVENT_SDS_UPDATE,
 };
 
 struct pmemset_event_copy {
@@ -150,6 +150,12 @@ struct pmemset_event_part_add {
 	size_t len;
 	struct pmem2_source *src;
 };
+
+struct pmemset_event_sds_update {
+	struct pmemset_sds *sds;
+	struct pmemset_source *src;
+};
+
 #define PMEMSET_EVENT_CONTEXT_SIZE (64)
 
 struct pmemset_event_context {
@@ -165,6 +171,7 @@ struct pmemset_event_context {
 		struct pmemset_event_remove_range remove_range;
 		struct pmemset_event_part_remove part_remove;
 		struct pmemset_event_part_add part_add;
+		struct pmemset_event_sds_update sds_update;
 	} data;
 };
 
@@ -240,6 +247,41 @@ int pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size);
 
 /* config setup */
 
+#define PMEMSET_SDS_DEVICE_ID_LEN ((size_t)512ULL)
+
+struct pmemset_sds {
+	char id[PMEMSET_SDS_DEVICE_ID_LEN]; /* DIMM device id */
+	uint64_t usc; /* unsafe shutdown count */
+	int refcount;
+};
+
+enum pmemset_part_state {
+	/*
+	 * The pool state cannot be determined because of errors during
+	 * retrieval of device information.
+	 */
+	PMEMSET_PART_STATE_INDETERMINATE = (1 << 0),
+
+	/*
+	 * The pool is internally consistent and was closed cleanly.
+	 * Application can assume that no custom recovery is needed.
+	 */
+	PMEMSET_PART_STATE_OK = (1 << 1),
+
+	/*
+	 * The pool is internally consistent, but it was not closed cleanly.
+	 * Application must perform consistency checking and custom recovery
+	 * on user data.
+	 */
+	PMEMSET_PART_STATE_OK_BUT_INTERRUPTED = (1 << 2),
+
+	/*
+	 * The pool can contain invalid data as a result of hardware failure.
+	 * Reading the pool is unsafe.
+	 */
+	PMEMSET_PART_STATE_CORRUPTED = (1 << 3),
+};
+
 int pmemset_config_new(struct pmemset_config **cfg);
 
 int pmemset_config_delete(struct pmemset_config **cfg);
@@ -250,10 +292,19 @@ void pmemset_config_set_reservation(struct pmemset_config *cfg,
 int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
 		enum pmem2_granularity g);
 
+int pmemset_config_set_acceptable_states(struct pmemset_config *cfg,
+		uint64_t states);
+
 /* source setup */
 
 struct pmem2_source;
 struct pmemset_source;
+
+struct pmemset_extras {
+	struct pmemset_sds *sds;
+	struct pmemset_badblock *bb;
+	enum pmemset_part_state *state;
+};
 
 int pmemset_source_from_pmem2(struct pmemset_source **src,
 	struct pmem2_source *pmem2_src);
@@ -295,37 +346,12 @@ int pmemset_source_from_temporaryW(struct pmemset_source **src,
 
 int pmemset_source_delete(struct pmemset_source **src);
 
+int pmemset_source_set_extras(struct pmemset_source *src,
+		struct pmemset_extras *ext);
+
 /* part setup */
 
 struct pmemset_part_map;
-struct pmemset_part_shutdown_state_data;
-
-enum pmemset_part_state {
-	/*
-	 * The pool state cannot be determined because of errors during
-	 * retrieval of device information.
-	 */
-	PMEMSET_PART_STATE_INDETERMINATE,
-
-	/*
-	 * The pool is internally consistent and was closed cleanly.
-	 * Application can assume that no custom recovery is needed.
-	 */
-	PMEMSET_PART_STATE_OK,
-
-	/*
-	 * The pool is internally consistent, but it was not closed cleanly.
-	 * Application must perform consistency checking and custom recovery
-	 * on user data.
-	 */
-	PMEMSET_PART_STATE_OK_BUT_INTERRUPTED,
-
-	/*
-	 * The pool can contain invalid data as a result of hardware failure.
-	 * Reading the pool is unsafe.
-	 */
-	PMEMSET_PART_STATE_CORRUPTED,
-};
 
 int pmemset_map_config_new(struct pmemset_map_config **map_cfg, struct
 		pmemset *set);
