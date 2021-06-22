@@ -95,6 +95,7 @@
     <ClCompile Include="..\..\libpmemset\pmemset.c" />
     <ClCompile Include="..\..\libpmemset\errormsg.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
+    <ClCompile Include="..\..\libpmemset\sds.c" />
     <ClCompile Include="..\..\libpmemset\source.c" />
     <ClCompile Include="..\unittest\ut_pmemset_utils.c" />
     <ClCompile Include="pmemset_new.c" />
