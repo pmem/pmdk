@@ -16,8 +16,12 @@
 #include "alloc.h"
 #include "file.h"
 #include "os.h"
+#include "os_thread.h"
 #include "pmemset_utils.h"
+#include "ravl.h"
+#include "sds.h"
 #include "source.h"
+#include "sys_util.h"
 
 struct pmemset_source {
 	enum pmemset_source_type type;
@@ -33,6 +37,7 @@ struct pmemset_source {
 		} temp;
 	};
 	struct pmemset_file *file_set;
+	struct pmemset_extras extras;
 };
 
 /*
@@ -81,6 +86,9 @@ pmemset_source_from_pmem2(struct pmemset_source **src,
 
 	srcp->type = PMEMSET_SOURCE_PMEM2;
 	srcp->pmem2.src = pmem2_src;
+	srcp->extras.sds = NULL;
+	srcp->extras.bb = NULL;
+	srcp->extras.state = NULL;
 
 	ret = pmemset_source_open_file(srcp, 0);
 	if (ret)
@@ -128,6 +136,9 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 
 	srcp->type = PMEMSET_SOURCE_FILE;
 	srcp->file.path = Strdup(file);
+	srcp->extras.sds = NULL;
+	srcp->extras.bb = NULL;
+	srcp->extras.state = NULL;
 
 	if (srcp->file.path == NULL) {
 		ERR("!strdup");
@@ -189,6 +200,9 @@ pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir)
 
 	srcp->type = PMEMSET_SOURCE_TEMP;
 	srcp->temp.dir = Strdup(dir);
+	srcp->extras.sds = NULL;
+	srcp->extras.bb = NULL;
+	srcp->extras.state = NULL;
 
 	if (srcp->temp.dir == NULL) {
 		ERR("!strdup");
@@ -395,13 +409,20 @@ pmemset_source_delete(struct pmemset_source **src)
 	if (*src == NULL)
 		return 0;
 
-	enum pmemset_source_type type = (*src)->type;
+	struct pmemset_source *source = *src;
+
+	enum pmemset_source_type type = source->type;
 	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
 
-	struct pmemset_file *f = pmemset_source_get_set_file(*src);
+	struct pmemset_file *f = pmemset_source_get_set_file(source);
 	pmemset_file_delete(&f);
 
 	pmemset_source_ops[type].destroy(src);
+
+	if (source->extras.sds) {
+		int ret = pmemset_sds_delete(&source->extras.sds);
+		ASSERTeq(ret, 0);
+	}
 
 	Free(*src);
 	*src = NULL;
@@ -442,4 +463,39 @@ struct pmemset_file *
 pmemset_source_get_set_file(struct pmemset_source *src)
 {
 	return src->file_set;
+}
+
+/*
+ * pmemset_source_set_extras -- sets extras in the source structure
+ */
+int
+pmemset_source_set_extras(struct pmemset_source *src,
+		struct pmemset_extras *ext)
+{
+	LOG(3, "src %p extras %p", src, ext);
+
+	if (src->extras.sds || src->extras.bb || src->extras.state) {
+		ERR("extras are already set in the source %p", src);
+		return PMEMSET_E_EXTRAS_ALREADY_SET;
+	}
+
+	struct pmemset_sds *sds_copy = NULL;
+	int ret = pmemset_sds_duplicate(&sds_copy, ext->sds);
+	if (ret)
+		return ret;
+
+	src->extras.sds = sds_copy;
+	src->extras.bb = ext->bb;
+	src->extras.state = ext->state;
+
+	return 0;
+}
+
+/*
+ * pmemset_source_get_extras -- gets extras from the source structure
+ */
+struct pmemset_extras
+pmemset_source_get_extras(struct pmemset_source *src)
+{
+	return src->extras;
 }
