@@ -46,7 +46,7 @@ test_deep_flush_single(const struct test_case *tc, int argc,
 	UT_ASSERTne(map_cfg, NULL);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_map(src, map_cfg, NULL, &desc);
+	ret = pmemset_map(src, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* flush single part map */
@@ -121,7 +121,7 @@ test_deep_flush_multiple_coal(const struct test_case *tc, int argc,
 	UT_ASSERTne(map_cfg, NULL);
 
 	for (int i = 0; i < num_of_parts; i++) {
-		ret = pmemset_map(src, map_cfg, NULL, &desc);
+		ret = pmemset_map(src, map_cfg, &desc);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 			goto end;
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -226,10 +226,10 @@ test_deep_flush_multiple(const struct test_case *tc, int argc,
 	ut_create_map_config(&map_cfg, set, 0, part_size);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(src, map_cfg, NULL, NULL);
+	ret = pmemset_map(src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_map(src, map_cfg, NULL, NULL);
+	ret = pmemset_map(src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);

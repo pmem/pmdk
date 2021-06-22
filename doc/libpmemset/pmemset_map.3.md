@@ -28,13 +28,11 @@ date: pmemset API version 1.0
 ```c
 #include <libpmemset.h>
 
-struct pmemset_extras;
 struct pmemset_map_config;
 struct pmemset_part_descriptor;
 struct pmemset_source;
 int pmemset_map(struct pmemset_source *src,
 		struct pmemset_map_config *map_cfg,
-		struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc);
 ```
 
@@ -56,7 +54,7 @@ Optionally **pmemset_map**() function can take a part descriptor object passed v
 If an optional descriptor was provided then address and size of the mapping are stored in the
 descriptor when this function succeeds.
 
-Before the initialization of pmemset, a virtual memory reservation can be set in its configuration.
+Before the initialization of pmemset, a virtual memory reservation can be set in its config structure.
 This limits the future part mappings of initialized pmemset to the virtual address space spanned by the provided
 reservation. Provided reservation's address and size will not be changed on pmemset operations.
 For more information about this configuration please see **pmemset_config_set_reservation**(3).
@@ -106,13 +104,28 @@ temporary file created in *dir* cannot be truncated for the defined part size an
 of *struct pmemset_part_map*.
 
 * **PMEMSET_E_CANNOT_FIT_PART_MAP** - in case of pmemset created from config with a
-reservation set, provided reservation has no space for a new part mapping
+reservation set, provided reservation has no space for a new part mapping.
+
+* **PMEMSET_E_UNDESIRABLE_PART_STATE** - determined state of the part to be mapped does not
+match any of the acceptable states set in the SDS structure. For more information please see
+**pmemset_config_set_acceptable_states**(3).
+
+* **PMEMSET_E_SDS_ENOSUPP** - device that stores the data described by the *struct pmemset_source*
+does not support unsafe shutdown feature that SDS depends on. To avoid this error user should not
+reference the *struct pmemset_sds* in the source using **pmemset_source_set_sds**(3) function.
+
+* **PMEMSET_E_SDS_DEVICE_ID_LEN_TOO_BIG** - device id is too big and can't fit into the buffer
+with predefined size *PMEMSET_SDS_DEVICE_ID_LEN*.
+
+It can also return **libpmem2**(7) errors from the underlying functions.
 
 # SEE ALSO #
 
+**pmemset_config_set_acceptable_states**(3),
 **pmemset_config_set_reservation**(3),**pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
 **pmemset_set_contiguous_part_coalescing**(3),
 **pmemset_source_from_file**(3), **pmemset_source_from_pmem2**(3),
-**pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
-**libpmemset**(7), **libpmem2**(7) and **<http://pmem.io>**
+**pmemset_source_from_temporary**(3), **pmemset_source_set_sds**(3),
+**pmemset_xsource_from_file**(3),**libpmem2**(7),
+**libpmemset**(7) and **<http://pmem.io>**
