@@ -41,6 +41,7 @@ struct pmemset_event_context {
 		struct pmemset_event_bad_block bad_block;
 		struct pmemset_event_part_remove part_remove;
 		struct pmemset_event_part_add part_add;
+		struct pmemset_event_sds_update;
 	} data;
 };
 
@@ -87,6 +88,7 @@ struct pmemset_event_flush {
 	size_t len;
 };
 ```
+
 **PMEMSET_EVENT_FLUSH** is fired before **pmemset_flush**(3) or **pmemset_persist**(3) completes its work.
 The *flush* field in *data* union contains *addr* and *len* passed to those functions.
 This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
@@ -117,6 +119,7 @@ struct pmemset_event_set {
 	unsigned flags;
 };
 ```
+
 **PMEMSET_EVENT_COPY**, **PMEMSET_EVENT_MOVE**, **PMEMSET_EVENT_SET** are fired, respectively,
 before **pmemset_memcpy**(3), **pmemset_memmove**(3), **pmemset_memset**(3) completed its work.
 Similarly, *copy*, *move*, or *set* fields in the *data* union contain all arguments passed to these functions.
@@ -127,7 +130,18 @@ but they will not trigger any additional events.
 **PMEMSET_EVENT_FLUSH** and **PMEMSET_EVENT_DRAIN**
 This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
 
+```c
+struct pmemset_event_sds_update {
+	struct pmemset_sds *sds;
+	struct pmemset_source *src;
+};
+```
+
+**PMEMSET_EVENT_SDS_UPDATE** is fired after each change made to any shutdown data state structure
+provided by the user.
+Fields *sds* and *src* correspond respectively to the SDS structure and a source it corresponds to.
+
 # SEE ALSO #
 
-**pmemset_part_map**, **libpmem2**(7),
+**pmemset_part_map**,
 **libpmemset**(7) and **<http://pmem.io>**

@@ -234,7 +234,7 @@ test_part_map_valid_source_pmem2(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(part, NULL);
 	UT_ASSERTne(desc.addr, NULL);
@@ -283,7 +283,7 @@ test_part_map_valid_source_file(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(part, NULL);
 
@@ -326,7 +326,7 @@ test_part_map_invalid_offset(const struct test_case *tc, int argc,
 			(size_t)(INT64_MAX) + 1, 64 * 1024);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_OFFSET_VALUE);
 
 	ret = pmemset_part_delete(&part);
@@ -373,7 +373,7 @@ test_part_map_gran_read(const struct test_case *tc, int argc,
 	ret = pmemset_get_store_granularity(set, &effective_gran);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_NO_PART_MAPPED);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_get_store_granularity(set, &effective_gran);
@@ -430,7 +430,7 @@ test_unmap_part(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(part, NULL);
 
@@ -492,7 +492,7 @@ test_part_map_enomem(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	core_inject_fault_at(PMEM_MALLOC, 1, "pmemset_malloc");
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
 
 	ret = pmemset_part_delete(&part);
@@ -543,7 +543,7 @@ test_part_map_first(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -599,7 +599,7 @@ test_part_map_descriptor(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -661,13 +661,13 @@ test_part_map_next(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, first_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, second_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -734,7 +734,7 @@ test_part_map_drop(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &pmap);
@@ -799,13 +799,13 @@ test_part_map_by_addr(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size_first);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, part_size_second);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -874,7 +874,7 @@ test_part_map_unaligned_size(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_LENGTH_UNALIGNED);
 
 	ret = pmemset_part_delete(&part);
@@ -934,7 +934,7 @@ test_part_map_full_coalesce_before(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -945,7 +945,7 @@ test_part_map_full_coalesce_before(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -1014,7 +1014,7 @@ test_part_map_full_coalesce_after(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -1029,7 +1029,7 @@ test_part_map_full_coalesce_after(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -1103,13 +1103,13 @@ test_part_map_opp_coalesce_before(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/*
@@ -1180,7 +1180,7 @@ test_part_map_opp_coalesce_after(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_set_contiguous_part_coalescing(set,
@@ -1190,7 +1190,7 @@ test_part_map_opp_coalesce_after(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/*
@@ -1262,13 +1262,13 @@ test_remove_part_map(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, first_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, second_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -1360,13 +1360,13 @@ test_full_coalescing_before_remove_part_map(const struct test_case *tc,
 	ret = pmemset_part_new(&part, set, src, 0, first_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, second_part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	/* the address next to the previous part mapping is already occupied */
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
 		pmemset_part_delete(&part);
@@ -1447,14 +1447,14 @@ test_full_coalescing_after_remove_first_part_map(const struct test_case *tc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* map second part */
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* there should be two mapping in the pmemset */
@@ -1493,7 +1493,7 @@ test_full_coalescing_after_remove_first_part_map(const struct test_case *tc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	/* the address next to the previous part mapping is already occupied */
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
 		pmemset_part_delete(&part);
@@ -1571,14 +1571,14 @@ test_full_coalescing_after_remove_second_part_map(const struct test_case *tc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* map second part */
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* there should be two mapping in the pmemset */
@@ -1618,7 +1618,7 @@ test_full_coalescing_after_remove_second_part_map(const struct test_case *tc,
 	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	/* the address next to the previous part mapping is already occupied */
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
 		pmemset_part_delete(&part);
@@ -1697,7 +1697,7 @@ test_remove_multiple_part_maps(const struct test_case *tc, int argc,
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, NULL);
+		ret = pmemset_part_map(&part, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -1775,7 +1775,7 @@ test_part_map_valid_source_temp(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ASSERTeq(desc.size, part_size);
 	UT_ASSERTeq(part, NULL);
@@ -1785,7 +1785,7 @@ test_part_map_valid_source_temp(const struct test_case *tc, int argc,
 		ret = pmemset_part_new(&part, set, src, 0, part_size / 2);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, &desc);
+		ret = pmemset_part_map(&part, &desc);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 		ASSERTeq(desc.size, part_size / 2);
 	}
@@ -1853,7 +1853,7 @@ test_part_map_invalid_source_temp(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, SIZE_MAX);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE);
 
 	ret = pmemset_part_delete(&part);
@@ -1911,7 +1911,7 @@ test_part_map_source_truncate(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* is should failed - size of file is too small  */
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_PMEM2_MAP);
 
 	ret = pmemset_part_delete(&part);
@@ -1931,7 +1931,7 @@ test_part_map_source_truncate(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ASSERTeq(desc.size, part_size);
 	UT_ASSERTeq(part, NULL);
@@ -1945,7 +1945,7 @@ test_part_map_source_truncate(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size * 2);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ASSERTeq(desc.size, part_size * 2);
 
@@ -2006,7 +2006,7 @@ test_remove_two_ranges(const struct test_case *tc, int argc, char *argv[])
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, NULL);
+		ret = pmemset_part_map(&part, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -2093,7 +2093,7 @@ test_remove_coalesced_two_ranges(const struct test_case *tc, int argc,
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, NULL);
+		ret = pmemset_part_map(&part, NULL);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
 			pmemset_part_delete(&part);
 			goto err_cleanup;
@@ -2200,7 +2200,7 @@ test_remove_coalesced_middle_range(const struct test_case *tc, int argc,
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, NULL);
+		ret = pmemset_part_map(&part, NULL);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
 			pmemset_part_delete(&part);
 			goto err_cleanup;
@@ -2265,7 +2265,7 @@ part_map_and_remove_worker(void *arg)
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, &desc);
+		ret = pmemset_part_map(&part, &desc);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 		ret = pmemset_part_map_by_address(set, &pmap, desc.addr);
@@ -2401,7 +2401,7 @@ test_part_map_set_event_part_add_cb(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	Part_add_counter = 0;
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(part, NULL);
 
@@ -2461,7 +2461,7 @@ test_divide_coalesced_remove_obtained_pmaps(const struct test_case *tc,
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, NULL);
+		ret = pmemset_part_map(&part, NULL);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
 			pmemset_part_delete(&part);
 			goto err_cleanup;
@@ -2558,7 +2558,7 @@ test_part_map_with_set_reservation(const struct test_case *tc,
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, NULL);
+		ret = pmemset_part_map(&part, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -2661,7 +2661,7 @@ test_part_map_coalesce_with_set_reservation(const struct test_case *tc,
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, NULL);
+		ret = pmemset_part_map(&part, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -2686,7 +2686,7 @@ test_part_map_coalesce_with_set_reservation(const struct test_case *tc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
@@ -2762,7 +2762,7 @@ test_part_map_with_set_reservation_too_small(const struct test_case *tc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_FIT_PART_MAP);
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
@@ -2839,7 +2839,7 @@ test_part_map_with_set_reservation_cannot_fit(const struct test_case *tc,
 		ret = pmemset_part_new(&part, set, src, 0, part_size / 2);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-		ret = pmemset_part_map(&part, NULL, NULL);
+		ret = pmemset_part_map(&part, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -2868,7 +2868,7 @@ test_part_map_with_set_reservation_cannot_fit(const struct test_case *tc,
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_FIT_PART_MAP);
 
 	ret = pmemset_part_delete(&part);
@@ -2952,3 +2952,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmemset_init)
+MSVC_DESTR(libpmemset_fini)
+#endif

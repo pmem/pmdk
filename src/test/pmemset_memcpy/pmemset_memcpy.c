@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 	ret = pmemset_part_new(&part, set, ssrc, 0, 4 * 1024 * 1024);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(part, NULL);
 

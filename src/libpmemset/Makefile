@@ -1,6 +1,6 @@
 
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 
 #
 # src/libpmemset/Makefile -- Makefile for libpmemset
@@ -20,6 +20,7 @@ SOURCE =\
 	part.c\
 	pmemset.c\
 	pmemset_utils.c\
+	sds.c\
 	source.c
 
 include ../core/pmemcore.inc

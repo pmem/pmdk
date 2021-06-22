@@ -57,7 +57,7 @@ test_deep_flush_single(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_part_map(&part, NULL, &desc);
+	ret = pmemset_part_map(&part, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(part, NULL);
 
@@ -130,7 +130,7 @@ test_deep_flush_multiple_coal(const struct test_case *tc, int argc,
 	for (int i = 0; i < num_of_parts; i++) {
 		ret = pmemset_part_new(&part, set, src, 0, part_size);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
-		ret = pmemset_part_map(&part, NULL, &desc);
+		ret = pmemset_part_map(&part, &desc);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 			goto end;
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -232,12 +232,12 @@ test_deep_flush_multiple(const struct test_case *tc, int argc,
 
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_part_map(&part, NULL, NULL);
+	ret = pmemset_part_map(&part, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);

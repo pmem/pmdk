@@ -17,6 +17,7 @@
 #include "pmemset_utils.h"
 #include "ravl_interval.h"
 #include "ravl.h"
+#include "sds.h"
 #include "sys_util.h"
 
 /*
@@ -518,12 +519,13 @@ pmemset_find_reservation_empty_range(struct pmem2_vm_reservation *p2rsv,
  * pmemset_part_map -- map a part to the set
  */
 int
-pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
+pmemset_part_map(struct pmemset_part **part_ptr,
 		struct pmemset_part_descriptor *desc)
 {
-	LOG(3, "part %p extra %p desc %p", part_ptr, extra, desc);
+	LOG(3, "part %p desc %p", part_ptr, desc);
 	PMEMSET_ERR_CLR();
 
+	int ret = 0;
 	struct pmemset_part *part = *part_ptr;
 	struct pmemset *set = pmemset_part_get_pmemset(part);
 	struct pmemset_config *set_config = pmemset_get_pmemset_config(set);
@@ -535,10 +537,30 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 	struct pmemset_file *part_file = pmemset_part_get_file(part);
 	struct pmem2_source *pmem2_src =
 			pmemset_file_get_pmem2_source(part_file);
+	struct pmemset_source *set_source = pmemset_part_get_source(part);
+	struct pmemset_sds *sds = pmemset_source_get_extras(set_source).sds;
+
+	if (sds != NULL) {
+		enum pmemset_part_state *out_state =
+				pmemset_source_get_extras(set_source).state;
+		enum pmemset_part_state sds_state;
+
+		ret = pmemset_sds_state_check_and_possible_refresh(set_source,
+				&sds_state);
+		if (ret)
+			return ret;
+
+		if (out_state)
+			*out_state = sds_state;
+
+		ret = pmemset_config_validate_state(set_config, sds_state);
+		if (ret)
+			return ret;
+	}
 
 	size_t part_size = pmemset_part_get_size(part);
 	size_t source_size;
-	int ret = pmem2_source_size(pmem2_src, &source_size);
+	ret = pmem2_source_size(pmem2_src, &source_size);
 	if (ret)
 		return ret;
 
@@ -622,7 +644,7 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 			if (ret)
 				break;
 
-			ret = pmemset_part_map_new(&pmap, pmem2_reserv,
+			ret = pmemset_part_map_new(&pmap, set, pmem2_reserv,
 					map_reserv_offset, part_size);
 			if (ret)
 				goto err_adjust_vm_reserv;
@@ -723,6 +745,15 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 
 	pmemset_config_event_callback(set_config, set, &ctx);
 
+	if (sds != NULL) {
+		ret = pmemset_sds_register_record(sds, set_source, pmem2_map);
+		ASSERTeq(ret, 0);
+
+		ret = pmemset_sds_fire_sds_update_event(set, sds, set_config,
+				set_source);
+		ASSERTeq(ret, 0);
+	}
+
 	return 0;
 
 err_p2map_delete:
@@ -780,6 +811,10 @@ pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **pmap_ptr)
 				pmap->refcount);
 		return PMEMSET_E_PART_MAP_POSSIBLE_USE_AFTER_DROP;
 	}
+
+	void *addr = pmap->desc.addr;
+	size_t len = pmap->desc.size;
+	pmemset_deep_flush(set, addr, len);
 
 	util_rwlock_wrlock(&set->shared_state.lock);
 
@@ -940,7 +975,7 @@ pmemset_remove_part_map_range_cb(struct pmemset *set,
 
 		struct pmemset_part_map *new_pmap;
 		/* part map was severed into two part maps */
-		ret = pmemset_part_map_new(&new_pmap, pmem2_reserv,
+		ret = pmemset_part_map_new(&new_pmap, set, pmem2_reserv,
 				new_pmap_offset, new_pmap_size);
 		if (ret)
 			return ret;
@@ -974,6 +1009,8 @@ pmemset_remove_range(struct pmemset *set, void *addr, size_t len)
 	struct pmap_remove_range_arg arg;
 	arg.addr = (size_t)addr;
 	arg.size = len;
+
+	pmemset_deep_flush(set, addr, len);
 
 	util_rwlock_wrlock(&set->shared_state.lock);
 	int ret = pmemset_iterate(set, addr, len,
@@ -1214,6 +1251,35 @@ deep_flush_pmem2_maps_from_rsv(struct pmem2_vm_reservation *rsv,
 }
 
 /*
+ * pmemset_get_pmemset_config -- get pmemset config
+ */
+struct pmemset_config *
+pmemset_get_pmemset_config(struct pmemset *set)
+{
+	LOG(3, "set %p", set);
+	return set->set_config;
+}
+
+/*
+ * pmemset_part_map_access -- gains access to the part mapping
+ */
+static void
+pmemset_part_map_access(struct pmemset_part_map *pmap)
+{
+	pmap->refcount += 1;
+}
+
+/*
+ * pmemset_part_map_access_drop -- drops the access to the part mapping
+ */
+static void
+pmemset_part_map_access_drop(struct pmemset_part_map *pmap)
+{
+	pmap->refcount -= 1;
+	ASSERT(pmap->refcount >= 0);
+}
+
+/*
  * pmemset_deep_flush -- perform deep flush operation
  */
 int
@@ -1251,10 +1317,14 @@ pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size)
 
 		ret = deep_flush_pmem2_maps_from_rsv(rsv, (char *)ptr,
 				range_end, &end);
-		if (ret || end)
+		if (ret || end) {
+			pmemset_part_map_drop(&pmap);
 			break;
+		}
 
 		pmemset_next_part_map(set, pmap, &next_pmap);
+		pmemset_part_map_drop(&pmap);
+		pmap = next_pmap;
 		if (next_pmap == NULL)
 			break;
 
@@ -1262,35 +1332,6 @@ pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size)
 	}
 
 	return ret;
-}
-
-/*
- * pmemset_get_pmemset_config -- get pmemset config
- */
-struct pmemset_config *
-pmemset_get_pmemset_config(struct pmemset *set)
-{
-	LOG(3, "%p", set);
-	return set->set_config;
-}
-
-/*
- * pmemset_part_map_access -- gains access to the part mapping
- */
-static void
-pmemset_part_map_access(struct pmemset_part_map *pmap)
-{
-	pmap->refcount += 1;
-}
-
-/*
- * pmemset_part_map_access_drop -- drops the access to the part mapping
- */
-static void
-pmemset_part_map_access_drop(struct pmemset_part_map *pmap)
-{
-	pmap->refcount -= 1;
-	ASSERT(pmap->refcount >= 0);
 }
 
 /*

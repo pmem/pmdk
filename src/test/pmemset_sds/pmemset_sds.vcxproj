@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E2788189-C17F-4D37-B36B-BBD6C2FC9960}</ProjectGuid>
-    <RootNamespace>pmemset_perror</RootNamespace>
+    <RootNamespace>pmemset_sds</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <ProjectGuid>{AC473952-81CA-4DAE-9F88-FCA258DCDC60}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -50,7 +50,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>PMDK_UTF8_API;SDS_ENABLED;NTDDI_VERSION=NTDDI_WIN10_RS1;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemset;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmemset;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -60,7 +60,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemset;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmemset;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -68,25 +68,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmemset\config.c" />
-    <ClCompile Include="..\..\libpmemset\errormsg.c" />
-    <ClCompile Include="..\..\libpmemset\file.c" />
-    <ClCompile Include="..\..\libpmemset\file_windows.c" />
-    <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
-    <ClCompile Include="..\..\libpmemset\sds.c" />
-    <ClCompile Include="..\..\libpmemset\source.c" />
-    <ClCompile Include="pmemset_perror.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="test0.log.match" />
-    <None Include="test1.log.match" />
-    <None Include="test2.log.match" />
-    <None Include="test3.log.match" />
-    <None Include="TESTS.py" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
       <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\libpmemcore.vcxproj">
+      <Project>{2fa3155b-6f26-4d15-ac03-9d82d48dbc42}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\libpmem2\libpmem2.vcxproj">
+      <Project>{f596c36c-5c96-4f08-b420-8908af500954}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\libpmemset\libpmemset.vcxproj">
       <Project>{fbaefc34-d221-4203-8bf6-162de1a5be1c}</Project>
@@ -94,6 +83,23 @@
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TESTS.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\core\ravl.c" />
+    <ClCompile Include="..\..\libpmemset\config.c" />
+    <ClCompile Include="..\..\libpmemset\file.c" />
+    <ClCompile Include="..\..\libpmemset\file_windows.c" />
+    <ClCompile Include="..\..\libpmemset\libpmemset.c" />
+    <ClCompile Include="..\..\libpmemset\part.c" />
+    <ClCompile Include="..\..\libpmemset\pmemset.c" />
+    <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
+    <ClCompile Include="..\..\libpmemset\sds.c" />
+    <ClCompile Include="..\..\libpmemset\source.c" />
+    <ClCompile Include="..\unittest\ut_pmemset_utils.c" />
+    <ClCompile Include="pmemset_sds.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
