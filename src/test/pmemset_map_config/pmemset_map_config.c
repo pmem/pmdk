@@ -283,3 +283,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmemset_init)
+MSVC_DESTR(libpmemset_fini)
+#endif

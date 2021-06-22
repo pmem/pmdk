@@ -270,13 +270,15 @@ test_part_map_enomem(const struct test_case *tc, int argc,
 	ret = pmemset_map(src, map_cfg, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
 
-	ret = pmemset_source_delete(&src);
+	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_map_config_delete(&map_cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	return 1;
@@ -355,7 +357,7 @@ test_part_map_descriptor(const struct test_case *tc, int argc,
 	struct pmemset_config *cfg;
 	struct pmemset_map_config *map_cfg;
 	struct pmemset_part_descriptor desc;
-	struct pmemset_part_map *first_pmap = NULL;
+	struct pmemset_part_map *pmap = NULL;
 	struct pmemset_source *src;
 	size_t part_size = 64 * 1024;
 
@@ -377,10 +379,10 @@ test_part_map_descriptor(const struct test_case *tc, int argc,
 	ret = pmemset_map(src, map_cfg, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	pmemset_first_part_map(set, &first_pmap);
-	UT_ASSERTne(first_pmap, NULL);
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTne(pmap, NULL);
 
-	desc = pmemset_descriptor_part_map(first_pmap);
+	desc = pmemset_descriptor_part_map(pmap);
 	UT_ASSERTne(desc.addr, NULL);
 	UT_ASSERTeq(desc.size, part_size);
 
@@ -2643,3 +2645,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmemset_init)
+MSVC_DESTR(libpmemset_fini)
+#endif

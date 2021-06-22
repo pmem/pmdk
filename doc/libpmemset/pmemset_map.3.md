@@ -106,7 +106,18 @@ temporary file created in *dir* cannot be truncated for the defined part size an
 of *struct pmemset_part_map*.
 
 * **PMEMSET_E_CANNOT_FIT_PART_MAP** - in case of pmemset created from config with a
-reservation set, provided reservation has no space for a new part mapping
+reservation set, provided reservation has no space for a new part mapping.
+
+* **PMEMSET_E_UNDESIRABLE_PART_STATE** - determined state of the part to be mapped does not
+match any of the acceptable states set in the SDS structure. For more information please see
+**pmemset_sds_new**(3).
+
+* **PMEMSET_ENOSUPP** - device that stores the data described by the *struct pmemset_source*
+does not support SDS feature. To avoid this error user should not reference the
+*struct pmemset_sds* in *struct pmemset_extras* when setting it in the source using
+**pmemset_source_set_extras**(3) function.
+
+It can also return **libpmem2**(7) errors from the underlying functions.
 
 # SEE ALSO #
 
@@ -114,5 +125,6 @@ reservation set, provided reservation has no space for a new part mapping
 **pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
 **pmemset_set_contiguous_part_coalescing**(3),
 **pmemset_source_from_file**(3), **pmemset_source_from_pmem2**(3),
-**pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
-**libpmemset**(7), **libpmem2**(7) and **<http://pmem.io>**
+**pmemset_source_from_temporary**(3), **pmemset_source_set_extras**(3),
+**pmemset_xsource_from_file**(3),**libpmem2**(7),
+**libpmemset**(7) and **<http://pmem.io>**
