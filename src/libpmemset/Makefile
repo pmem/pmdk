@@ -21,6 +21,7 @@ SOURCE =\
 	part.c\
 	pmemset.c\
 	pmemset_utils.c\
+	sds.c\
 	source.c
 
 include ../core/pmemcore.inc

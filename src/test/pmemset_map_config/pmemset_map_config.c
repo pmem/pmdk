@@ -91,7 +91,7 @@ test_map_config_new_valid_source_file(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(src, map_cfg, NULL, NULL);
+	ret = pmemset_map(src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_source_delete(&src);
@@ -143,7 +143,7 @@ test_map_config_new_valid_source_pmem2(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(src, map_cfg, NULL, NULL);
+	ret = pmemset_map(src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_source_delete(&src);
@@ -184,7 +184,7 @@ test_map_config_new_invalid_source(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(NULL, map_cfg, NULL, NULL);
+	ret = pmemset_map(NULL, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_SOURCE_TYPE);
 
 	ret = pmemset_map_config_delete(&map_cfg);
@@ -283,3 +283,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmemset_init)
+MSVC_DESTR(libpmemset_fini)
+#endif

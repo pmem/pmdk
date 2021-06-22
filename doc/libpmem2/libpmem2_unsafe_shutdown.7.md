@@ -7,7 +7,7 @@ header: PMDK
 date: pmem2 API version 1.0
 ...
 
-[comment]: <> (SPDX-License-Identifier: BSD-3-Clause
+[comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2020, Intel Corporation)
 
 [comment]: <> (libpmem2_unsafe_shutdown.7 -- man page for libpmem2 unsafe shutdown)

@@ -311,6 +311,7 @@ PMEMSET_TESTS = \
 	pmemset_part\
 	pmemset_perror\
 	pmemset_persist\
+	pmemset_sds\
 	pmemset_source
 
 LOCAL_TESTS = \
