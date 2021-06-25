@@ -1,4 +1,4 @@
-Wed Jun 8 2021 Piotr Balcer <piotr.balcer@intel.com>
+Fri 25 8 2021 Piotr Balcer <piotr.balcer@intel.com>
 
 	* Version 1.11.0
 
@@ -13,7 +13,7 @@ Wed Jun 8 2021 Piotr Balcer <piotr.balcer@intel.com>
 	- Introduces a new API in libpmemobj to globally change the method of
 	assigning arenas to threads. The default is to rely on a OS per-thread
 	key to store arena information, and this release introduces an option
-	to have avoid the use of thread-local keys by simply using one global
+	to avoid the use of thread-local keys by simply using one global
 	arena for all threads in a pool.
 
 	Other changes and notable bug fixes:
