@@ -300,6 +300,7 @@ PMREORDER_TESTS = \
 PMEMSET_TESTS = \
 	pmemset_config\
 	pmemset_deep_flush\
+	pmemset_event\
 	pmemset_file\
 	pmemset_include\
 	pmemset_memcpy\
