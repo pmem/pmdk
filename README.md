@@ -396,6 +396,16 @@ are not ported yet and may not get built on ARM cores.
 The support for ARM processors is highly experimental. The libraries
 are only validated to "early access" quality with Cortex-A53 processor.
 
+### PowerPC support
+
+PowerPC support is ppc64le only and includes all libraries. They should build
+and pass all tests.
+
+The on-media pool layout is tightly attached to the page size
+of 64KiB used by default on ppc64le, so it is not interchangeable with
+different page sizes, includes those on other architectures. For more
+information on this port, contact Lucas Magalhães (lamm@linux.ibm.com).
+
 ## Contact Us
 
 For more information on this library, contact
