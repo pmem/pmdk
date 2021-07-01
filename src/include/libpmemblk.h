@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * libpmemblk.h -- definitions of libpmemblk entry points
@@ -72,7 +72,8 @@ const wchar_t *pmemblk_check_versionW(unsigned major_required,
 /* XXX - unify minimum pool size for both OS-es */
 
 #ifndef _WIN32
-#if defined(__x86_64__) || defined(__M_X64__) || defined(__aarch64__)
+#if defined(__x86_64__) || defined(__M_X64__) || defined(__aarch64__) || \
+	defined(__riscv)
 /* minimum pool size: 16MiB + 4KiB (minimum BTT size + mmap alignment) */
 #define PMEMBLK_MIN_POOL ((size_t)((1u << 20) * 16 + (1u << 10) * 8))
 #elif defined(__PPC64__)
