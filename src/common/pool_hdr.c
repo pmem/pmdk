@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * pool_hdr.c -- pool header utilities
@@ -26,6 +26,10 @@
 
 #elif defined(__PPC64__)
 #define PMDK_MACHINE PMDK_MACHINE_PPC64
+#define PMDK_MACHINE_CLASS PMDK_MACHINE_CLASS_64
+
+#elif defined(__riscv) && defined(_LP64)
+#define PMDK_MACHINE PMDK_MACHINE_RISCV64
 #define PMDK_MACHINE_CLASS PMDK_MACHINE_CLASS_64
 
 #else

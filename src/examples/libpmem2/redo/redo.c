@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * redo.c -- Implementation of simple persistent memory located redo log.
@@ -22,7 +22,8 @@
 #endif
 #include <libpmem2.h>
 
-#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__)
+#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || \
+	defined(__riscv)
 #define CACHELINE 64ULL
 #elif defined(__PPC64__)
 #define CACHELINE 128ULL

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2021, Intel Corporation
 
 #
 # src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
@@ -18,6 +18,9 @@ OBJS = pmem_is_pmem_posix.o\
 	memops_generic.o
 
 ifeq ($(ARCH), aarch64)
+OBJS += init.o
+endif
+ifeq ($(ARCH), riscv64)
 OBJS += init.o
 endif
 ifeq ($(ARCH), x86_64)
