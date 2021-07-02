@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 /*
  * ARM inline assembly to flush and invalidate caches
  * clwb => dc cvac
@@ -11,8 +11,9 @@
 /*
  * Cache instructions on ARM:
  * ARMv8.0-a    DC CVAC  - cache clean to Point of Coherency
- *                         Meant for thread synchronization, usually implies
- *                         real memory flush but may mean less.
+ *                         Meant for thread synchronization, before 8.2 may or
+ *                         may not flush memory, on 8.2+ the following is
+ *                         needed:
  * ARMv8.2-a    DC CVAP  - cache clean to Point of Persistency
  *                         Meant exactly for our use.
  * ARMv8.5-a    DC CVADP - cache clean to Point of Deep Persistency
@@ -52,6 +53,12 @@ static inline void
 arm_clean_va_to_poc(void const *p __attribute__((unused)))
 {
 	asm volatile("dc cvac, %0" : : "r" (p) : "memory");
+}
+
+static inline void
+arm_clean_va_to_pop(void const *p __attribute__((unused)))
+{
+	asm volatile(".arch armv8.2-a\n dc cvap, %0" : : "r" (p) : "memory");
 }
 
 static inline void

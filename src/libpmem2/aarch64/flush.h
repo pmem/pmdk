@@ -11,10 +11,10 @@
 #define FLUSH_ALIGN ((uintptr_t)64)
 
 /*
- * flush_dcache_nolog -- flush the CPU cache, using DC CVAC
+ * flush_poc_nolog -- flush the CPU cache, using DC CVAC
  */
 static force_inline void
-flush_dcache_nolog(const void *addr, size_t len)
+flush_poc_nolog(const void *addr, size_t len)
 {
 	uintptr_t uptr;
 
@@ -25,6 +25,24 @@ flush_dcache_nolog(const void *addr, size_t len)
 	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
 		arm_clean_va_to_poc((char *)uptr);
+	}
+}
+
+/*
+ * flush_pop_nolog -- flush the CPU cache, using DC CVAP
+ */
+static force_inline void
+flush_pop_nolog(const void *addr, size_t len)
+{
+	uintptr_t uptr;
+
+	/*
+	 * Loop through cache-line-size (typically 64B) aligned chunks
+	 * covering the given range.
+	 */
+	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
+		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
+		arm_clean_va_to_pop((char *)uptr);
 	}
 }
 
