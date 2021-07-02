@@ -33,6 +33,8 @@ struct pmemset_event_context {
 	union {
 		char _data[PMEMSET_EVENT_CONTEXT_SIZE];
 		struct pmemset_event_copy copy;
+		struct pmemset_event_move move;
+		struct pmemset_event_set set;
 		struct pmemset_event_flush flush;
 		struct pmemset_event_drain drain;
 		struct pmemset_event_persist persist;
@@ -78,6 +80,52 @@ The **pmemset_config_set_event_callback**() returns no value.
 
 * **PMEMSET_EVENT_PART_ADD** - occurs for each new part added to the pmemset
 using **pmemset_part_map**(3) function.
+
+```c
+struct pmemset_event_flush {
+	void *addr;
+	size_t len;
+};
+```
+**PMEMSET_EVENT_FLUSH** is fired before **pmemset_flush**(3) or **pmemset_persist**(3) completes its work.
+The *flush* field in *data* union contains *addr* and *len* passed to those functions.
+This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
+
+**PMEMSET_EVENT_DRAIN** is fired after **pmemset_drain**(3) or **pmemset_persist**(3) completes its work.
+In case of **pmemset_persist**(3) this event is fired after **PMEMSET_EVENT_FLUSH**.
+This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
+
+```c
+struct pmemset_event_copy {
+	void *src;
+	void *dest;
+	size_t len;
+	unsigned flags;
+};
+
+struct pmemset_event_move {
+	void *src;
+	void *dest;
+	size_t len;
+	unsigned flags;
+};
+
+struct pmemset_event_set {
+	void *dest;
+	int value;
+	size_t len;
+	unsigned flags;
+};
+```
+**PMEMSET_EVENT_COPY**, **PMEMSET_EVENT_MOVE**, **PMEMSET_EVENT_SET** are fired, respectively,
+before **pmemset_memcpy**(3), **pmemset_memmove**(3), **pmemset_memset**(3) completed its work.
+Similarly, *copy*, *move*, or *set* fields in the *data* union contain all arguments passed to these functions.
+If **PMEMSET_F_MEM_NODRAIN** flag is **not** passed to these functions, a single **PMEMSET_EVENT_DRAIN**
+will be fired on the end of opperation.
+During these functions "flush" and "drain" operations are performed,
+but they will not trigger any additional events.
+**PMEMSET_EVENT_FLUSH** and **PMEMSET_EVENT_DRAIN**
+This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
 
 # SEE ALSO #
 
