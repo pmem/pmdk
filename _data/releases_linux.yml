@@ -434,7 +434,7 @@
         pmemset_source_from_temporary.3
         pmemset_xsource_from_file.3
 
-- tag: "1.10"
+- tag: "1.11"
   libs:
     daxio
     libpmem
