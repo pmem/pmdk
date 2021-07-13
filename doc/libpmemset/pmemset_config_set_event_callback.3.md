@@ -79,7 +79,7 @@ The **pmemset_config_set_event_callback**() returns no value.
 # EVENTS #
 
 * **PMEMSET_EVENT_PART_ADD** - occurs for each new part added to the pmemset
-using **pmemset_part_map**(3) function.
+using **pmemset_map**(3) function.
 
 ```c
 struct pmemset_event_flush {
@@ -129,5 +129,5 @@ This event doesn't support error handling, which means that the value returned b
 
 # SEE ALSO #
 
-**pmemset_part_map**, **libpmem2**(7),
+**pmemset_map**, **libpmem2**(7),
 **libpmemset**(7) and **<http://pmem.io>**
