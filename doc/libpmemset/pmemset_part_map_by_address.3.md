@@ -46,7 +46,7 @@ or a negative error code on failure.
 
 # ERRORS #
 
-The **pmemset_part_new**() can fail with the following errors:
+The **pmemset_part_map_by_address**() can fail with the following errors:
 
 * **PMEMSET_E_CANNOT_FIND_PART_MAP** - *set* does not contain part map at address *addr*.
 

@@ -38,7 +38,7 @@ The **pmemset_config_set_required_store_granularity**() sets maximum permitted g
 requested for entire pmemset object.
 
 Each part has to have the same effective granularity of mapped parts - detected and
-initialized during **pmemset_part_map(3)**.
+initialized during **pmemset_map(3)**.
 It means that the user cannot use *parts* with a different effective granularity within one *pmemset*.
 To read effective granularity of the *pmemset* after mapping the first, use **pmemset_get_store_granularity**(3).
 
@@ -69,4 +69,4 @@ The **pmemset_config_set_required_store_granularity**() can fail with the follow
 # SEE ALSO #
 
 **pmem2_config_set_required_store_graularity**(3), **pmemset_get_store_granularity**(3),
-**pmemset_part_map(3)**, **libpmem2**(7), **libpmemset**(7) and **<http://pmem.io>**
+**pmemset_map(3)**, **libpmem2**(7), **libpmemset**(7) and **<http://pmem.io>**
