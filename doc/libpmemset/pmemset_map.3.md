@@ -1,16 +1,16 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEMSET_PART_MAP, 3)
+title: _MP(PMEMSET_MAP, 3)
 collection: libpmemset
 header: PMDK
 date: pmemset API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2021, Intel Corporation)
 
-[comment]: <> (pmemset_part_map.3 -- man page for libpmemset pmemset_part_map operation)
+[comment]: <> (pmemset_map.3 -- man page for libpmemset pmemset_map operation)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -21,7 +21,7 @@ date: pmemset API version 1.0
 
 # NAME #
 
-**pmemset_part_map**() - creates a part mapping
+**pmemset_map**() - creates a part mapping
 
 # SYNOPSIS #
 
@@ -29,24 +29,31 @@ date: pmemset API version 1.0
 #include <libpmemset.h>
 
 struct pmemset_extras;
-struct pmemset_part;
+struct pmemset_map_config;
 struct pmemset_part_descriptor;
 struct pmemset_source;
-int pmemset_part_map(struct pmemset_part **part_ptr,
+int pmemset_map(struct pmemset_source *src,
+		struct pmemset_map_config *map_cfg,
 		struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc);
 ```
 
 # DESCRIPTION #
 
-The **pmemset_part_map**() function creates new part mapping in the virtual address space
+The **pmemset_map**() function creates new mapping in the virtual address space
 of the calling process and adds structure describing this mapping to the pmemset. It requires
-an address of a pointer to initialized part provided in the *part_ptr* parameter. A part can be created using
-**pmemset_part_new**(3) function. The mapping can later be retrieved using **pmemset_first_part_map**(3),
+an address of a pointer to initialized map configuration provided in the *map_cfg* parameter.
+A map configuration should be created using **pmemset_map_config_new**(3) function.
+The mapping can later be retrieved using **pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3) and **pmemset_part_map_by_address**(3) functions.
 
-Optionally **pmemset_part_map**() function can take a part descriptor object passed via *desc* parameter.
-If an optional descriptor was provided then address and size of the part mapping are stored in the
+New mapping is created based on the source specified in the *\*src* pointer.
+For the operation to succeed the *src* structure cannot be a *NULL* value and must be
+created from a valid data source. See **pmemset_source_from_file**(3) and
+**pmemset_source_from_pmem2**(3) for possible sources.
+
+Optionally **pmemset_map**() function can take a part descriptor object passed via *desc* parameter.
+If an optional descriptor was provided then address and size of the mapping are stored in the
 descriptor when this function succeeds.
 
 Before the initialization of pmemset, a virtual memory reservation can be set in its configuration.
@@ -56,20 +63,17 @@ For more information about this configuration please see **pmemset_config_set_re
 
 During the lifespan of initialized pmemset, a contiguous part coalescing feature value can
 be set using **pmemset_set_contiguous_part_coalescing**() function, modifying the default behavior of
-part mapping. With contiguous part coalescing feature enabled, **pmemset_part_map**() function tries to map each
+part mapping. With contiguous part coalescing feature enabled, **pmemset_map**() function tries to map each
 new part at the virtual memory region that is situated right after the previous mapped part memory range.
-
-When the **pmemset_part_map**() function succeeds it consumes the part thereby deleting it and
-the variable pointed by *part_ptr* is set to NULL.
 
 # RETURN VALUE #
 
-The **pmemset_part_map**() function returns 0 on success
+The **pmemset_map**() function returns 0 on success
 or a negative error code on failure.
 
 # ERRORS #
 
-The **pmemset_part_map**() can fail with the following errors:
+The **pmemset_map**() can fail with the following errors:
 
 * **PMEMSET_E_CANNOT_ALLOCATE_INTERNAL_STRUCTURE** - an internal structure
 needed by the function cannot be allocated.
@@ -78,12 +82,14 @@ needed by the function cannot be allocated.
 is invalid. Offset value is bigger than INT64_MAX.
 
 * **PMEMSET_E_GRANULARITY_NOT_SUPPORTED** - the granularity stored in the
-provided part *part_ptr* is invalid. The concept of granularity is explained
+provided *map_cfg* defined in *set* is invalid. The concept of granularity is explained
 in **libpmem2**(7) manpage.
 
 * **PMEMSET_E_INVALID_PMEM2_MAP** - the pmem2 mapping that pmemset mapping relies on
 cannot be created. The error code of **libpmem2**(7) error is printed in the logs and
 can be checked for further information.
+
+* **PMEMSET_E_INVALID_SOURCE_TYPE** - source *src* is not a valid value.
 
 * **PMEMSET_E_LENGTH_UNALIGNED** - the length of the part to be mapped is not aligned
 to the allocation granularity.
@@ -106,6 +112,7 @@ reservation set, provided reservation has no space for a new part mapping
 
 **pmemset_config_set_reservation**(3),**pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
-**pmemset_part_new**(3), **pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_source_from_file**(3), **pmemset_source_from_pmem2**(3),
 **pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
 **libpmemset**(7), **libpmem2**(7) and **<http://pmem.io>**

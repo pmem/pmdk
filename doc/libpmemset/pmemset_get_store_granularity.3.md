@@ -8,7 +8,7 @@ date: pmemset API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2021, Intel Corporation)
 
 [comment]: <> (pmemset_get_store_granularity.3 -- man page for pmemset_get_store_granularity)
 
@@ -35,7 +35,7 @@ int pmemset_get_store_granularity(struct pmemset *set, enum pmem2_granularity *g
 
 The **pmemset_get_store_granularity**() function reads effective granularity of the *set* object and puts it in the *\*g*;
 
-The *set* object has to contain at least one mapped part using **pmemset_part_map**(3) function,
+The *set* object has to contain at least one mapped part using **pmemset_map**(3) function,
 otherwise reading granularity value is pointless and function **pmemset_get_store_granularity**(3) will fail.
 
 Concept of the granularity is described in **libpmem2**(7).
@@ -53,4 +53,4 @@ The **pmemset_get_store_granularity**() function returns 0 on success or a negat
 # SEE ALSO #
 
 **pmemset_config_set_required_store_graularity**(3),
-**pmemset_part_map(3)**, libpmem2**(7), **libpmemset**(7) and **<http://pmem.io>**
+**pmemset_map(3)**, libpmem2**(7), **libpmemset**(7) and **<http://pmem.io>**

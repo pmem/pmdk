@@ -39,9 +39,9 @@ entire pmemset object.
 
 Setting the reservation in pmemset configuration limits the future part mappings to the virtual
 address space spanned by the provided reservation. Every part mapping is made to the provided
-reservation, instead of the virtual address space of the process calling **pmemset_part_map**(3).
+reservation, instead of the virtual address space of the process calling **pmemset_map**(3).
 For more information about part mapping behavior and virtual memory reservation creation please see
-**pmemset_part_map**(3) and **pmem2_vm_reservation_new**(3), respectively.
+**pmemset_map**(3) and **pmem2_vm_reservation_new**(3), respectively.
 
 # RETURN VALUE
 
@@ -49,5 +49,5 @@ The **pmemset_config_set_reservation**() does not return any value.
 
 # SEE ALSO #
 
-**pmem2_vm_reservation_new**(3), **pmemset_new**(3),
-**pmemset_part_map**(3), **libpmemset**(7) and **<http://pmem.io>**
+**pmem2_vm_reservation_new**(3),**pmemset_map**(3),
+**pmemset_new**(3), **libpmemset**(7) and **<http://pmem.io>**
