@@ -163,5 +163,5 @@ that is removed from the set as a result of the removed range.
 
 # SEE ALSO #
 
-**pmemset_part_map**, **libpmem2**(7),
+**pmemset_map**, **libpmem2**(7),
 **libpmemset**(7) and **<http://pmem.io>**
