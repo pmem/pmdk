@@ -10,6 +10,10 @@
 #include "out.h"
 #include "pmem2_arch.h"
 
+#ifndef HWCAP_DCPOP
+#define HWCAP_DCPOP (1 << 16)
+#endif
+
 /*
  * memory_barrier -- (internal) issue the fence instruction
  */
