@@ -100,6 +100,10 @@ function fatal() {
 	exit 1
 }
 
+function is_arch {
+    [[ "$(uname -m)" == "$1" ]]
+}
+
 if [ -z "${UNITTEST_NAME}" ]; then
 	CURDIR=$(basename $(pwd))
 	SCRIPTNAME=$(basename $0)
@@ -152,7 +156,11 @@ NODES_MAX=-1
 SIZE_4KB=4096
 SIZE_2MB=2097152
 readonly PAGE_SIZE=$(getconf PAGESIZE)
-readonly CACHELINE_SIZE=$(cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size 2>/dev/null || echo 64)
+if is_arch "aarch64"; then
+	readonly CACHELINE_SIZE=$(getconf LEVEL1_DCACHE_LINESIZE)
+else
+	readonly CACHELINE_SIZE=$(cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size)
+fi
 
 # PMEMOBJ limitations
 PMEMOBJ_MAX_ALLOC_SIZE=17177771968
