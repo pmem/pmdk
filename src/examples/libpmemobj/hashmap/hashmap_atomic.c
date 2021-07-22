@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /* integer hash set implementation which uses only atomic APIs */
 
@@ -112,13 +112,13 @@ create_hashmap(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 	size_t sz = sizeof(struct buckets) +
 			len * sizeof(struct entries_head);
 
+	pmemobj_persist(pop, D_RW(hashmap), sizeof(*D_RW(hashmap)));
+
 	if (POBJ_ALLOC(pop, &D_RW(hashmap)->buckets, struct buckets, sz,
 			create_buckets, &len)) {
 		fprintf(stderr, "root alloc failed: %s\n", pmemobj_errormsg());
 		abort();
 	}
-
-	pmemobj_persist(pop, D_RW(hashmap), sizeof(*D_RW(hashmap)));
 }
 
 /*
@@ -423,6 +423,11 @@ int
 hm_atomic_init(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap)
 {
 	srand(D_RO(hashmap)->seed);
+
+	/* needed in recovery */
+	if (TOID_IS_NULL(D_RO(hashmap)->buckets)) {
+		create_hashmap(pop, hashmap, D_RO(hashmap)->seed);
+	}
 
 	/* handle rebuild interruption */
 	if (!TOID_IS_NULL(D_RO(hashmap)->buckets_tmp)) {
