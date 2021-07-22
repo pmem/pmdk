@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 
 """
@@ -26,6 +26,7 @@ from inspect import ismethod
 import configurator
 import futils
 from poolset import _Poolset
+from python_gdb import GdbProcess
 from tools import Tools
 from consts import KiB, MiB, HEADER_SIZE
 
@@ -278,7 +279,7 @@ class Context(ContextBase):
         return _Poolset(path, self)
 
     def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None,
-             stdout_file=None):
+             stdout_file=None, std_input=None):
         """
         Execute binary in the current test context as a separate process.
 
@@ -296,11 +297,12 @@ class Context(ContextBase):
                 stored. Stored in a string if None. Defaults to None.
             stdout_file (str): path to file in which stdout output is
                 stored. Stored in a string if None. Defaults to None.
+            std_input (list): list of strings given to process as an input.
+                Defaults to None.
 
             If neither stderr_file nor stdout_file are set, both outputs
             are merged into single stdout output and stored in a string.
         """
-
         tmp = self._env.copy()
         futils.add_env_common(tmp, os.environ.copy())
 
@@ -339,7 +341,15 @@ class Context(ContextBase):
                 'universal_newlines': True,
                 'stderr': sp.STDOUT if stderr_file is None else f}
 
-            proc = sp.run(cmd, **run_kwargs)
+            if std_input is not None:
+                proc_input = ''
+                for input in std_input:
+                    if not input.endswith('\n'):
+                        input = ''.join([input, '\n'])
+                    proc_input = ''.join([proc_input, input])
+                proc = sp.run(cmd, **run_kwargs, input=proc_input)
+            else:
+                proc = sp.run(cmd, **run_kwargs)
 
             if stderr_file:
                 f.close()
@@ -412,6 +422,12 @@ class Context(ContextBase):
             os.makedirs(dirpath, exist_ok=True)
         else:
             os.makedirs(dirpath, mode, exist_ok=True)
+
+    def gdb(self, testnum, path_to_exec, args_to_exec='',
+            gdb_options='', timeout=15):
+        """Get gdb process"""
+        return GdbProcess(self.env, self.cwd, testnum, path_to_exec,
+                          args_to_exec, gdb_options, timeout)
 
 
 class CtxType(type):

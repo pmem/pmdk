@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * map_btree.c -- common interface for maps
@@ -162,11 +162,21 @@ map_btree_is_empty(PMEMobjpool *pop, TOID(struct map) map)
 	return btree_map_is_empty(pop, btree_map);
 }
 
+/*
+ * map_btree_init -- recovers map state
+ * Since there is no need for recovery for btree, function is dummy.
+ */
+static int
+map_btree_init(PMEMobjpool *pop, TOID(struct map) map)
+{
+	return 0;
+}
+
 struct map_ops btree_map_ops = {
 	/* .check	= */ map_btree_check,
 	/* .create	= */ map_btree_create,
 	/* .destroy	= */ map_btree_destroy,
-	/* .init	= */ NULL,
+	/* .init	= */ map_btree_init,
 	/* .insert	= */ map_btree_insert,
 	/* .insert_new	= */ map_btree_insert_new,
 	/* .remove	= */ map_btree_remove,
