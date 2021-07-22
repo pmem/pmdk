@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 
 """
@@ -278,7 +278,7 @@ class Context(ContextBase):
         return _Poolset(path, self)
 
     def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None,
-             stdout_file=None):
+             stdout_file=None, std_input=None):
         """
         Execute binary in the current test context as a separate process.
 
@@ -296,6 +296,8 @@ class Context(ContextBase):
                 stored. Stored in a string if None. Defaults to None.
             stdout_file (str): path to file in which stdout output is
                 stored. Stored in a string if None. Defaults to None.
+            std_input (list): list of strings given to process as an input.
+                Defaults to None.
 
             If neither stderr_file nor stdout_file are set, both outputs
             are merged into single stdout output and stored in a string.
@@ -339,7 +341,15 @@ class Context(ContextBase):
                 'universal_newlines': True,
                 'stderr': sp.STDOUT if stderr_file is None else f}
 
-            proc = sp.run(cmd, **run_kwargs)
+            if std_input is not None:
+                proc_input = ""
+                for input in std_input:
+                    if not input.endswith("\n"):
+                        input = ''.join([input, "\n"])
+                    proc_input = ''.join([proc_input, input])
+                proc = sp.run(cmd, **run_kwargs, input=proc_input)
+            else:
+                proc = sp.run(cmd, **run_kwargs)
 
             if stderr_file:
                 f.close()

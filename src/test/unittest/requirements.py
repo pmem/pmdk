@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 """Various requirements"""
 
@@ -8,6 +8,7 @@ import subprocess as sp
 import ctypes
 import sys
 import os
+from shutil import which
 
 import configurator as conf
 import context as ctx
@@ -109,3 +110,14 @@ def require_admin(tc):
     """
     ctx.add_requirement(tc, 'require_admin', True)
     return tc
+
+
+def require_command(command):
+    """
+    Disable test if given command is not provided
+    """
+    def wrapped(tc):
+        if which(command) is None:
+            tc.enabled = False
+        return tc
+    return wrapped
