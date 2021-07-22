@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * map.c -- common interface for maps
@@ -71,7 +71,6 @@ map_destroy(struct map_ctx *mapc, TOID(struct map) *map)
 int
 map_init(struct map_ctx *mapc, TOID(struct map) map)
 {
-	ABORT_NOT_IMPLEMENTED(mapc, init);
 	return mapc->ops->init(mapc->pop, map);
 }
 

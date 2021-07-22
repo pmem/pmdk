@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2021, Intel Corporation
+
+#
+# src/test/ex_libpmemobj/TEST26 -- unit test for libpmemobj examples
+#
+
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+require_build_type debug
+require_command gdb
+
+setup
+
+EX_PATH=../../examples/libpmemobj/map
+
+declare -A maps_array
+maps_array[hashmap_tx]=create_hashmap
+maps_array[hashmap_atomic]=create_hashmap
+maps_array[hashmap_rp]=hashmap_create
+maps_array[ctree]=ctree_map_create
+maps_array[btree]=btree_map_create
+maps_array[rtree]=rtree_map_create
+maps_array[rbtree]=rbtree_map_create
+maps_array[skiplist]=skiplist_map_create
+
+# Test for exit before POBJ_ZNEW
+echo "set width 0
+	  set height 0
+	  set verbose off
+	  set confirm off
+	  set breakpoint pending on
+
+	  b map_create
+	  run
+	  quit" > $DIR/trip_on_create_maps.gdb
+
+for i in "${!maps_array[@]}"; do
+gdb --batch \
+	--command=$DIR/trip_on_create_maps.gdb \
+	--args $EX_PATH/mapcli $i $DIR/testfile1 > /dev/null 2>&1
+
+expect_normal_exit $EX_PATH/mapcli $i $DIR/testfile1 << EOF
+i 3
+q
+EOF
+rm -f $DIR/testfile1
+done
+
+# Test for exit after POBJ_ZNEW
+for i in "${!maps_array[@]}"; do
+echo "set width 0
+	  set height 0
+	  set verbose off
+	  set confirm off
+	  set breakpoint pending on
+
+	  b ${maps_array[$i]}
+	  run
+	  quit" > $DIR/trip_on_create_maps.gdb
+
+gdb --batch \
+	--command=$DIR/trip_on_create_maps.gdb \
+	--args $EX_PATH/mapcli $i $DIR/testfile1 > /dev/null 2>&1
+
+expect_normal_exit $EX_PATH/mapcli $i $DIR/testfile1 << EOF
+i 3
+q
+EOF
+rm -f $DIR/testfile1
+done
+
+pass
