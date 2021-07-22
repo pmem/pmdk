@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * map_skiplist.c -- common interface for maps
@@ -162,11 +162,21 @@ map_skiplist_is_empty(PMEMobjpool *pop, TOID(struct map) map)
 	return skiplist_map_is_empty(pop, skiplist_map);
 }
 
+/*
+ * map_skiplist_init -- recovers map state
+ * Since there is no need for recovery for skiplist, function is dummy.
+ */
+static int
+map_skiplist_init(PMEMobjpool *pop, TOID(struct map) map)
+{
+	return 0;
+}
+
 struct map_ops skiplist_map_ops = {
 	/* .check	= */ map_skiplist_check,
 	/* .create	= */ map_skiplist_create,
 	/* .destroy	= */ map_skiplist_destroy,
-	/* .init	= */ NULL,
+	/* .init	= */ map_skiplist_init,
 	/* .insert	= */ map_skiplist_insert,
 	/* .insert_new	= */ map_skiplist_insert_new,
 	/* .remove	= */ map_skiplist_remove,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 #include <ex_common.h>
 #include <fcntl.h>
@@ -207,6 +207,14 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
+	struct hashmap_args args;
+
+	if (argc > 3)
+		args.seed = atoi(argv[3]);
+	else
+		args.seed = (uint32_t)time(NULL);
+	srand(args.seed);
+
 	if (file_exists(path) != 0) {
 		pop = pmemobj_create(path, POBJ_LAYOUT_NAME(map),
 			PM_HASHSET_POOL_SIZE, CREATE_MODE_RW);
@@ -216,14 +224,6 @@ main(int argc, char *argv[])
 					pmemobj_errormsg());
 			return 1;
 		}
-
-		struct hashmap_args args;
-
-		if (argc > 3)
-			args.seed = atoi(argv[3]);
-		else
-			args.seed = (uint32_t)time(NULL);
-		srand(args.seed);
 
 		mapc = map_ctx_init(ops, pop);
 		if (!mapc) {
@@ -235,9 +235,6 @@ main(int argc, char *argv[])
 		root = POBJ_ROOT(pop, struct root);
 
 		printf("seed: %u\n", args.seed);
-		map_create(mapc, &D_RW(root)->map, &args);
-
-		map = D_RO(root)->map;
 	} else {
 		pop = pmemobj_open(path, POBJ_LAYOUT_NAME(map));
 		if (pop == NULL) {
@@ -252,8 +249,19 @@ main(int argc, char *argv[])
 			perror("map_ctx_init");
 			return 1;
 		}
+
 		root = POBJ_ROOT(pop, struct root);
 		map = D_RO(root)->map;
+	}
+
+	if (TOID_IS_NULL(map)) {
+		map_create(mapc, &D_RW(root)->map, &args);
+		map = D_RO(root)->map;
+	}
+
+	/* Manual recovery */
+	if (ops) {
+		map_init(mapc, D_RW(root)->map);
 	}
 
 	char buf[INPUT_BUF_LEN];

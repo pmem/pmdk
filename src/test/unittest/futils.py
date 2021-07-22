@@ -38,13 +38,15 @@ def get_lib_dir(ctx):
         return c.RELEASE_LIBDIR
 
 
-def get_example_path(ctx, libname, name):
+def get_example_path(ctx, libname, name, dirname=None):
     """
     Get the path to the example binary.
     Paths to examples differ on Windows and Unix systems. On Windows,
     the example binaries have a specific name: ex_libname_name.
     On Unix systems, the example binaries are located in the catalog
     "lib + libname/name" and have the same name as .c file.
+    If that is not the case, dirname optional argument can be used to
+    specify different catalog for the example binary- "lib + libname/dirname".
     """
     if sys.platform == 'win32':
         binname = '_'.join(['ex', libname, name])
@@ -53,8 +55,10 @@ def get_example_path(ctx, libname, name):
         else:
             return abspath(join(c.WIN_RELEASE_BUILDDIR, 'examples', binname))
     else:
+        if dirname is None:
+            dirname = name
         return abspath(join(c.ROOTDIR, '..', 'examples', 'lib' + libname,
-                            name, name))
+                            dirname, name))
 
 
 def tail(file, n):
