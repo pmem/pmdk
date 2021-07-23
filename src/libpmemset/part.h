@@ -54,4 +54,7 @@ struct pmemset_file *pmemset_part_get_file(struct pmemset_part *part);
 int pmemset_part_file_try_ensure_size(struct pmemset_part *part,
 		size_t source_size);
 
+int pmemset_part_map_find(struct pmemset_part_map *pmap, size_t offset,
+		size_t size, struct pmem2_map **p2map);
+
 #endif /* PMEMSET_PART_H */
