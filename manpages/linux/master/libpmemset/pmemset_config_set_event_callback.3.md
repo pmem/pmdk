@@ -78,9 +78,6 @@ The **pmemset_config_set_event_callback**() returns no value.
 
 # EVENTS #
 
-* **PMEMSET_EVENT_PART_ADD** - occurs for each new part added to the pmemset
-using **pmemset_part_map**(3) function.
-
 ```c
 struct pmemset_event_flush {
 	void *addr;
@@ -126,6 +123,43 @@ During these functions "flush" and "drain" operations are performed,
 but they will not trigger any additional events.
 **PMEMSET_EVENT_FLUSH** and **PMEMSET_EVENT_DRAIN**
 This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
+
+```c
+struct pmemset_event_part_add {
+	void *addr;
+	size_t len;
+	struct pmem2_source *src;
+};
+```
+
+**PMEMSET_EVENT_PART_ADD** is fired for each new part added to the pmemset,
+after **pmemset_part_map**(3) completes its work. The *part_add* field in *data* union
+contains address *addr* and length *len* of the new part and a source *src* from which
+it was created.
+
+```c
+struct pmemset_event_part_remove {
+	void *addr;
+	size_t len;
+};
+```
+
+**PMEMSET_EVENT_PART_REMOVE** is fired for each part mapping removed from the
+pmemset, before **pmemset_remove_part_map**(3) function completes its work. The *part_remove*
+field in *data* union contains *addr* and *len* of the part to be removed.
+
+```c
+struct pmemset_event_remove_range {
+	void *addr;
+	size_t len;
+};
+```
+
+**PMEMSET_EVENT_REMOVE_RANGE** is fired for each range removed from the pmemset,
+before **pmemset_remove_range**(3) function completes its work. The *remove_range*
+field in *data* union contains *addr* and *len* of the range to be removed.
+This event can trigger **PMEMSET_EVENT_PART_REMOVE** for each whole part mapping
+that is removed from the set as a result of the removed range.
 
 # SEE ALSO #
 
