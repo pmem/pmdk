@@ -50,7 +50,7 @@
     <ClCompile Include="..\..\libpmemset\pmemset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pmemset_persist.c">
+    <ClCompile Include="pmemset_map_config.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemset\map_config.c">

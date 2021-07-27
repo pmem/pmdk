@@ -12,77 +12,13 @@
 #include "file.h"
 #include "libpmemset.h"
 #include "libpmem2.h"
+#include "map_config.h"
 #include "os.h"
 #include "part.h"
 #include "pmemset.h"
 #include "pmemset_utils.h"
 #include "ravl_interval.h"
 #include "source.h"
-
-struct pmemset_part {
-	struct pmemset *set;
-	size_t offset;
-	size_t length;
-	struct pmemset_file *file;
-};
-
-/*
- * pmemset_part_new -- creates a new part for the provided set
- */
-int
-pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
-		struct pmemset_source *src, size_t offset, size_t length)
-{
-	LOG(3, "part %p set %p src %p offset %zu length %zu",
-			part, set, src, offset, length);
-	PMEMSET_ERR_CLR();
-
-	int ret;
-	struct pmemset_part *partp;
-	*part = NULL;
-
-	ret = pmemset_source_validate(src);
-	if (ret)
-		return ret;
-
-	partp = pmemset_malloc(sizeof(*partp), &ret);
-	if (ret)
-		return ret;
-
-	ASSERTne(partp, NULL);
-
-	partp->set = set;
-	partp->offset = offset;
-	partp->length = length;
-	partp->file = pmemset_source_get_set_file(src);
-	*part = partp;
-
-	return ret;
-}
-
-/*
- * pmemset_part_delete -- deletes pmemset part
- */
-int
-pmemset_part_delete(struct pmemset_part **part)
-{
-	LOG(3, "part %p", part);
-	PMEMSET_ERR_CLR();
-
-	Free(*part);
-	*part = NULL;
-
-	return 0;
-}
-
-/*
- * pmemset_part_get_pmemset -- return set assigned to the part
- */
-struct pmemset *
-pmemset_part_get_pmemset(struct pmemset_part *part)
-{
-	return part->set;
-}
 
 /*
  * pmemset_part_map_init -- initialize the part map structure
@@ -221,45 +157,18 @@ pmemset_part_map_remove_range(struct pmemset_part_map *pmap, size_t offset,
 }
 
 /*
- * pmemset_part_get_size -- returns part size
- */
-size_t
-pmemset_part_get_size(struct pmemset_part *part)
-{
-	return part->length;
-}
-
-/*
- * pmemset_part_get_offset -- returns part offset
- */
-size_t
-pmemset_part_get_offset(struct pmemset_part *part)
-{
-	return part->offset;
-}
-
-/*
- * pmemset_part_get_offset -- returns file associated with part
- */
-struct pmemset_file *
-pmemset_part_get_file(struct pmemset_part *part)
-{
-	return part->file;
-}
-
-/*
  * pmemset_part_file_try_ensure_size -- truncate part file if source
  * is from a temp file and if required
  */
 int
-pmemset_part_file_try_ensure_size(struct pmemset_part *part, size_t source_size)
+pmemset_part_file_try_ensure_size(struct pmemset_file *f, size_t len,
+		size_t off, size_t source_size)
 {
-	struct pmemset_file *f = part->file;
 	bool truncate = pmemset_file_get_truncate(f);
 
-	size_t size = part->offset + part->length;
-	if (truncate && (size > source_size))
-		return pmemset_file_truncate(f, size);
+	size_t s = off + len;
+	if (truncate && (s > source_size))
+		return pmemset_file_truncate(f, s);
 
 	return 0;
 }
