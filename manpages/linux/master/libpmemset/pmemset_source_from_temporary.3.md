@@ -37,7 +37,7 @@ int pmemset_source_from_temporary(struct pmemset_source **src, const char const 
 describing the data source and creates a unnamed temporary file in the provided directory *dir*.
 The temporary file is always created with mode 0600, and the *dir* must specify an existing
 directory name. The created file has size 0 and is extended dynamically based on required
-part size during **pmemset_part_map**(3).
+map size during **pmemset_map**(3).
 
 In case of source from temporary file the **pmemset_source_delete**(3) function
 frees *\*src* and sets *\*src* to NULL and closes the temporary file as a result
@@ -62,5 +62,5 @@ of *struct pmemset_source*.
 
 # SEE ALSO #
 
-**pmemset_part_map**(3), **pmemset_source_delete**(3),
+**pmemset_map**(3), **pmemset_source_delete**(3),
 **libpmemset**(7) and **<http://pmem.io>**

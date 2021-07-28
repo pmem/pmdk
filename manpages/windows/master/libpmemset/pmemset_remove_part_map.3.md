@@ -45,7 +45,7 @@ previously retrieved part mapping can be dropped using **pmemset_part_map_drop**
 Note that a retrieved part mapping could be coalesced from multiple parts
 therefore removing it also removes each part making up this part mapping.
 For more information see **pmemset_set_contiguous_part_coalescing**(3) and
-**pmemset_part_map**(3).
+**pmemset_map**(3).
 
 When the **pmemset_remove_part_map**() function succeeds it the part mapping
 and sets the pointer passed via *pmap_ptr* variable to *NULL*.
@@ -63,7 +63,7 @@ The **pmemset_remove_part_map**() can fail with the following errors:
 
 # SEE ALSO #
 
-**pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
-**pmemset_part_map**(3), **pmemset_part_map_by_address**(3),
+**pmemset_first_part_map**(3), **pmemset_map**(3),
+**pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
 **pmemset_part_map_drop**(3), **pmemset_set_contiguous_part_coalescing**(3),
 **libpmemset**(7) and **<http://pmem.io>**
