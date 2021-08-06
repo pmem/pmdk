@@ -37,6 +37,8 @@
 enum pobj_arenas_assignment_type Default_arenas_assignment_type =
 	POBJ_ARENAS_ASSIGNMENT_THREAD_KEY;
 
+ssize_t Default_arenas_max = -1;
+
 struct arenas_thread_assignment {
 	enum pobj_arenas_assignment_type type;
 	union {
@@ -1435,7 +1437,7 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 /*
  * heap_get_procs -- (internal) returns the number of arenas to create
  */
-static unsigned
+unsigned
 heap_get_procs(void)
 {
 	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -1625,7 +1627,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_alloc_classes_new;
 	}
 
-	unsigned narenas_default = heap_get_procs();
+	unsigned narenas_default = Default_arenas_max == -1 ?
+		heap_get_procs() : (unsigned)Default_arenas_max;
 
 	if (heap_arenas_init(&h->arenas) != 0) {
 		err = errno;
