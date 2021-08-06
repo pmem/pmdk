@@ -692,8 +692,18 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 		STATS_INC(heap->stats, transient, heap_run_allocated,
 			(c->rdsc.nallocs - e.free_space) * run->hdr.block_size);
 	}
+	struct recycler **recyclerp = &heap->rt->recyclers[c->id];
 
-	if (recycler_put(heap->rt->recyclers[c->id], m, e) < 0)
+	if (*recyclerp == NULL) {
+		*recyclerp = recycler_new(heap, c->rdsc.nallocs,
+			&heap->rt->arenas.nactive);
+		if (*recyclerp == NULL) {
+				ERR("lost runtime tracking info of %u run due to OOM",
+					c->id);
+		}
+	}
+
+	if (recycler_put(*recyclerp, m, e) < 0)
 		ERR("lost runtime tracking info of %u run due to OOM", c->id);
 
 	return 0;
@@ -922,13 +932,24 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.size_idx = units;
 
-	struct recycler *r = heap->rt->recyclers[b->aclass->id];
-	if (!force && recycler_get(r, &m) == 0)
+	struct recycler **rp = &heap->rt->recyclers[b->aclass->id];
+
+	if (*rp == NULL) {
+		*rp = recycler_new(heap, b->aclass->rdsc.nallocs,
+			&heap->rt->arenas.nactive);
+		if (*rp == NULL) {
+				ERR("lost runtime tracking info of %u run due to OOM",
+					b->aclass->id);
+				return ENOMEM;
+		}
+	}
+
+	if (!force && recycler_get(*rp, &m) == 0)
 		return heap_run_reuse(heap, b, &m);
 
-	heap_recycle_unused(heap, r, NULL, force);
+	heap_recycle_unused(heap, *rp, NULL, force);
 
-	if (recycler_get(r, &m) == 0)
+	if (recycler_get(*rp, &m) == 0)
 		return heap_run_reuse(heap, b, &m);
 
 	return ENOMEM;
@@ -1033,7 +1054,18 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 	if (c == NULL)
 		return;
 
-	recycler_inc_unaccounted(heap->rt->recyclers[c->id], m);
+	struct recycler **rp = &heap->rt->recyclers[c->id];
+	if (*rp == NULL) {
+		*rp = recycler_new(heap, c->rdsc.nallocs,
+			&heap->rt->arenas.nactive);
+		if (*rp == NULL) {
+				ERR("lost runtime tracking info of %u run due to OOM",
+					c->id);
+		}
+	}
+
+	if (*rp != NULL)
+		recycler_inc_unaccounted(*rp, m);
 }
 
 /*
@@ -1410,13 +1442,6 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 {
 	struct heap_rt *h = heap->rt;
 
-	if (c->type == CLASS_RUN) {
-		h->recyclers[c->id] = recycler_new(heap, c->rdsc.nallocs,
-			&heap->rt->arenas.nactive);
-		if (h->recyclers[c->id] == NULL)
-			goto error_recycler_new;
-	}
-
 	size_t i;
 	struct arena *arena;
 	VEC_FOREACH_BY_POS(i, &h->arenas.vec) {
@@ -1431,12 +1456,9 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 	return 0;
 
 error_cache_bucket_new:
-	recycler_delete(h->recyclers[c->id]);
-
 	for (; i != 0; --i)
 		bucket_delete(VEC_ARR(&h->arenas.vec)[i - 1]->buckets[c->id]);
 
-error_recycler_new:
 	return -1;
 }
 
