@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 extern enum pobj_arenas_assignment_type Default_arenas_assignment_type;
+extern ssize_t Default_arenas_max;
 
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\
@@ -105,6 +106,8 @@ int heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 		int automatic);
 
 void heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id);
+
+unsigned heap_get_procs(void);
 
 void heap_vg_open(struct palloc_heap *heap, object_callback cb,
 		void *arg, int objects);
