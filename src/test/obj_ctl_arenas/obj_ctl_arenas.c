@@ -16,7 +16,7 @@
  *
  * obj_ctl_arenas <file> f - test for POBJ_ARENA_ID flag,
  *
- * obj_ctl_arenas <file> q - test for POBJ_ARENA_ID with
+ * obj_ctl_arenas <file> g - test for POBJ_ARENA_ID with
  * non-exists arena id
  *
  * obj_ctl_arenas <file> q - test for programmatic change of
@@ -27,6 +27,9 @@
  *
  * obj_ctl_arenas <file> d - test for config change of
  *	heap.arenas_assignment_type for thread key type (RW)
+ *
+ * obj_ctl_arenas <file> b - test for config change of
+ *	heap.arenas_default_max
  */
 
 #include <sched.h>
@@ -256,7 +259,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_ctl_arenas");
 
 	if (argc != 3)
-		UT_FATAL("usage: %s poolset [n|s|c|f|q|m|a|g|p|d]", argv[0]);
+		UT_FATAL("usage: %s poolset [n|s|c|f|q|m|a|g|p|d|b]", argv[0]);
 
 	const char *path = argv[1];
 	char t = argv[2][0];
@@ -264,6 +267,7 @@ main(int argc, char *argv[])
 	int ret = 0;
 
 	int keys_created = 0;
+	size_t target_narenas = 0;
 	if (t == 'g') {
 		os_tls_key_t *keys = MALLOC(sizeof(os_tls_key_t) * MAX_KEYS);
 		int i;
@@ -290,6 +294,17 @@ main(int argc, char *argv[])
 
 		ret = pmemobj_ctl_set(NULL,
 			"heap.arenas_assignment_type", &atype);
+		UT_ASSERTeq(ret, 0);
+	} else if (t == 'b') {
+		size_t narenas = 0;
+		ret = pmemobj_ctl_get(pop,
+			"heap.arenas_default_max", &narenas);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTne(narenas, 0);
+
+		target_narenas = narenas + 1;
+		ret = pmemobj_ctl_set(pop,
+			"heap.arenas_default_max", &target_narenas);
 		UT_ASSERTeq(ret, 0);
 	}
 
@@ -529,6 +544,11 @@ main(int argc, char *argv[])
 			"heap.arenas_assignment_type", &atype);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(atype, POBJ_ARENAS_ASSIGNMENT_THREAD_KEY);
+	} else if (t == 'b') {
+		unsigned narenas = 0;
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(narenas, target_narenas);
 	} else {
 		UT_ASSERT(0);
 	}

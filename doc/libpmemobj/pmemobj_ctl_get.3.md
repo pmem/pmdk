@@ -207,6 +207,14 @@ The argument for this CTL is an enum with the following types:
 Changing this value has no impact on already open pools. It should typically be
 set at the beginning of the application, before any pools are opened or created.
 
+heap.arenas_default_max | rw- | global | unsigned | unsigned | - | integer
+
+Reads or writes the number of arenas that are created by default on startup of
+the heap's runtime state.
+This value by default is equal to the number of online CPUs available on the
+platform, but can be decreased or increased depending on application's
+scalability requirements.
+
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 

@@ -860,8 +860,48 @@ static const struct ctl_argument CTL_ARG(arenas_assignment_type) = {
 	}
 };
 
+/*
+ * CTL_READ_HANDLER(arenas_default_max) -- reads a max number of arenas
+ *	created by default at startup
+ */
+static int
+CTL_READ_HANDLER(arenas_default_max)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *max = arg;
+
+	*max = Default_arenas_max == -1 ?
+		heap_get_procs() : (unsigned)Default_arenas_max;
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(arenas_default_max) -- writes a max number of arenas
+ *	created by default at startup
+ */
+static int
+CTL_WRITE_HANDLER(arenas_default_max)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	unsigned size = *(unsigned *)arg;
+
+	if (size == 0) {
+		LOG(1, "number of default arenas can't be 0");
+		return -1;
+	}
+
+	Default_arenas_max = size;
+
+	return 0;
+}
+
+static const struct ctl_argument CTL_ARG(arenas_default_max) =
+	CTL_ARG_LONG_LONG;
+
 static const struct ctl_node CTL_NODE(heap_global)[] = {
 	CTL_LEAF_RW(arenas_assignment_type),
+	CTL_LEAF_RW(arenas_default_max),
 
 	CTL_NODE_END
 };
