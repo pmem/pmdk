@@ -195,8 +195,6 @@ static struct command commands[] = {
 	},
 };
 
-static struct pmem_context ctx;
-
 /*
  * outv_err -- print error message
  */
@@ -553,6 +551,7 @@ main(int ac, char *av[])
 	int nargs;
 	char *line;
 	struct command *cmdp = NULL;
+	struct pmem_context ctx;
 
 	while ((opt = getopt_long(ac, av, "h",
 			    long_options, &option_index)) != -1) {
