@@ -347,7 +347,7 @@ read_cb(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf)
  * connection_cb -- async incoming client request
  */
 static void
-connection_cb(uv_stream_t *server, int status)
+connection_cb(uv_stream_t *_server, int status)
 {
 	if (status != 0) {
 		printf("client connect error\n");
@@ -362,7 +362,7 @@ connection_cb(uv_stream_t *server, int status)
 
 	uv_tcp_init(loop, client);
 
-	if (uv_accept(server, (uv_stream_t *)client) == 0) {
+	if (uv_accept(_server, (uv_stream_t *)client) == 0) {
 		uv_read_start((uv_stream_t *)client, get_read_buf_cb, read_cb);
 	} else {
 		uv_close((uv_handle_t *)client, client_close_cb);
