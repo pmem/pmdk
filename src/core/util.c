@@ -395,14 +395,24 @@ util_concat_str(const char *s1, const char *s2)
  * in such cases.
  */
 struct tm *
-util_localtime(const time_t *timep)
+util_localtime(const time_t *timep, struct tm *tm)
 {
+#ifdef _WIN32
+	/* C11 has localtime_s(), but Microsoft's version reverses the args */
+	int err = localtime_s(tm, timep);
+	if (err) {
+		errno = err;
+		return NULL;
+	} else {
+		return tm;
+	}
+#else
 	int oerrno = errno;
-	struct tm *tm = localtime(timep);
+	tm = localtime_r(timep, tm);
 	if (tm != NULL)
 		errno = oerrno;
-
 	return tm;
+#endif
 }
 
 /*
