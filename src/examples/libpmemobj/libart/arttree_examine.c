@@ -71,8 +71,6 @@ struct examine_ctx {
     int32_t  hexdump;
 };
 
-static struct examine_ctx *ex_ctx = NULL;
-
 struct examine {
 	const char *name;
 	const char *brief;
@@ -209,6 +207,8 @@ arttree_examine_func(char *appname, struct pmem_context *ctx,
 	if (ctx == NULL) {
 		return -1;
 	}
+
+	static struct examine_ctx *ex_ctx;
 
 	if (ex_ctx == NULL) {
 		ex_ctx = (struct examine_ctx *)
