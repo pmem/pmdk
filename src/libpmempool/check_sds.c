@@ -153,7 +153,7 @@ static const struct step steps[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static int
-step_exe(PMEMpoolcheck *ppc, const struct step *steps, location *loc)
+step_exe(PMEMpoolcheck *ppc, location *loc)
 {
 	const struct step *step = &steps[loc->step++];
 
@@ -272,7 +272,7 @@ check_sds(PMEMpoolcheck *ppc)
 
 		while (CHECK_NOT_COMPLETE(loc, steps)) {
 			ASSERT(loc->step < ARRAY_SIZE(steps));
-			if (step_exe(ppc, steps, loc))
+			if (step_exe(ppc, loc))
 				return;
 		}
 
