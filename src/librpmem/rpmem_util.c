@@ -209,8 +209,7 @@ rpmem_util_get_env_uint(const char *env, unsigned *pval)
 		long val = strtol(env_val, &endptr, 10);
 
 		if (endptr[0] != '\0' || val <= 0 ||
-			(errno == ERANGE &&
-			(val == LONG_MAX || val == LONG_MIN))) {
+			(errno == ERANGE && val == LONG_MAX)) {
 			RPMEM_LOG(ERR, "%s variable must be a positive integer",
 					env);
 		} else {
