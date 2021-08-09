@@ -373,18 +373,6 @@ If you want to build/install experimental packages run:
 	$ make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
 
-### The librpmem and rpmemd packages
-
-**NOTE:**
-The **libfabric** package required to build the **librpmem** and **rpmemd** is
-not yet available on stable Debian-based distributions. This makes it
-impossible to create Debian packages.
-
-If you want to build Debian packages of **librpmem** and **rpmemd** run:
-```
-	$ make RPMEM_DPKG=y dpkg
-```
-
 ### Experimental Support for 64-bit ARM
 
 There is an initial support for 64-bit ARM processors provided,

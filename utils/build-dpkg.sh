@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 
 #
 # build-dpkg.sh - Script for building deb packages
@@ -849,7 +849,7 @@ new-package-should-close-itp-bug
 EOF
 
 # librpmem & rpmemd
-if [ "${BUILD_RPMEM}" = "y" -a "${RPMEM_DPKG}" = "y" ]
+if [ "${BUILD_RPMEM}" = "y" ]
 then
 	append_rpmem_control;
 	rpmem_install_triggers_overrides;
