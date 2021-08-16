@@ -70,8 +70,6 @@ struct search_ctx {
     int32_t  hexdump;
 };
 
-static struct search_ctx *s_ctx = NULL;
-
 struct search {
 	const char *name;
 	const char *brief;
@@ -148,19 +146,14 @@ arttree_search_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 	int errors = 0;
 	struct search *s;
 	char *value;
+	struct search_ctx s_ctx;
 
 	value = NULL;
 	if (ctx == NULL) {
 		return -1;
 	}
 
-	if (s_ctx == NULL) {
-		s_ctx = (struct search_ctx *)malloc(sizeof(struct search_ctx));
-		if (s_ctx == NULL) {
-		    return -1;
-		}
-		memset(s_ctx, 0, sizeof(struct search_ctx));
-	}
+	memset(&s_ctx, 0, sizeof(struct search_ctx));
 
 	if (ctx->art_tree_root_offset == 0) {
 		fprintf(stderr, "search functions require knowledge"
@@ -171,9 +164,9 @@ arttree_search_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 		errors++;
 	}
 
-	s_ctx->pmem_ctx = ctx;
+	s_ctx.pmem_ctx = ctx;
 
-	if (search_parse_args(appname, ac, av, s_ctx) != 0) {
+	if (search_parse_args(appname, ac, av, &s_ctx) != 0) {
 		fprintf(stderr, "%s::%s: error parsing arguments\n",
 		    appname, __FUNCTION__);
 		errors++;
@@ -182,20 +175,18 @@ arttree_search_func(char *appname, struct pmem_context *ctx, int ac, char *av[])
 	if (!errors) {
 		s = get_search("key");
 		if (s != NULL) {
-			value = s->func(appname, s_ctx);
+			value = s->func(appname, &s_ctx);
 		}
 		if (value != NULL) {
 			printf("key [%s] found, value [%s]\n",
-			    s_ctx->search_key, value);
+			    s_ctx.search_key, value);
 		} else {
-			printf("key [%s] not found\n", s_ctx->search_key);
+			printf("key [%s] not found\n", s_ctx.search_key);
 		}
 	}
 
-	if (s_ctx->search_key != NULL) {
-		free(s_ctx->search_key);
-	}
-	free(s_ctx);
+	if (s_ctx.search_key != NULL)
+		free(s_ctx.search_key);
 
 	return errors;
 }
