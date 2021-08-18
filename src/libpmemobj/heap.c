@@ -11,6 +11,7 @@
 #include <float.h>
 
 #include "libpmemobj/ctl.h"
+#include "palloc.h"
 #include "queue.h"
 #include "heap.h"
 #include "out.h"
@@ -35,6 +36,8 @@
 
 enum pobj_arenas_assignment_type Default_arenas_assignment_type =
 	POBJ_ARENAS_ASSIGNMENT_THREAD_KEY;
+
+ssize_t Default_arenas_max = -1;
 
 struct arenas_thread_assignment {
 	enum pobj_arenas_assignment_type type;
@@ -92,6 +95,37 @@ struct heap_rt {
 	unsigned nzones;
 	unsigned zones_exhausted;
 };
+
+/*
+ * heap_get_recycler - (internal) retrieves the recycler instance with
+ *	the corresponding class id. Initializes the recycler if needed.
+ *
+ */
+static struct recycler *
+heap_get_recycler(struct palloc_heap *heap, size_t id, size_t nallocs)
+{
+	struct recycler *r;
+	util_atomic_load_explicit64(&heap->rt->recyclers[id], &r,
+		memory_order_acquire);
+
+	if (r != NULL)
+		return r;
+
+	r = recycler_new(heap, nallocs,
+		&heap->rt->arenas.nactive);
+	if (r && !util_bool_compare_and_swap64(&heap->rt->recyclers[id],
+		NULL, r)) {
+		/*
+		 * If a different thread succeeded in assigning the recycler
+		 * first, the recycler this thread created needs to be deleted.
+		 */
+		recycler_delete(r);
+
+		return heap_get_recycler(heap, id, nallocs);
+	}
+
+	return r;
+}
 
 /*
  * heap_arenas_init - (internal) initialize generic arenas info
@@ -692,8 +726,14 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 		STATS_INC(heap->stats, transient, heap_run_allocated,
 			(c->rdsc.nallocs - e.free_space) * run->hdr.block_size);
 	}
+	struct recycler *recycler = heap_get_recycler(heap, c->id,
+		c->rdsc.nallocs);
+	if (recycler == NULL) {
+		ERR("lost runtime tracking info of %u run due to OOM",
+			c->id);
+	}
 
-	if (recycler_put(heap->rt->recyclers[c->id], m, e) < 0)
+	if (recycler_put(recycler, m, e) < 0)
 		ERR("lost runtime tracking info of %u run due to OOM", c->id);
 
 	return 0;
@@ -922,13 +962,19 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.size_idx = units;
 
-	struct recycler *r = heap->rt->recyclers[b->aclass->id];
-	if (!force && recycler_get(r, &m) == 0)
+	struct recycler *recycler = heap_get_recycler(heap, b->aclass->id,
+		b->aclass->rdsc.nallocs);
+	if (recycler == NULL) {
+		ERR("lost runtime tracking info of %u run due to OOM",
+			b->aclass->id);
+	}
+
+	if (!force && recycler_get(recycler, &m) == 0)
 		return heap_run_reuse(heap, b, &m);
 
-	heap_recycle_unused(heap, r, NULL, force);
+	heap_recycle_unused(heap, recycler, NULL, force);
 
-	if (recycler_get(r, &m) == 0)
+	if (recycler_get(recycler, &m) == 0)
 		return heap_run_reuse(heap, b, &m);
 
 	return ENOMEM;
@@ -1033,7 +1079,15 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 	if (c == NULL)
 		return;
 
-	recycler_inc_unaccounted(heap->rt->recyclers[c->id], m);
+	struct recycler *recycler = heap_get_recycler(heap, c->id,
+		c->rdsc.nallocs);
+	if (recycler == NULL) {
+		ERR("lost runtime tracking info of %u run due to OOM",
+			c->id);
+	}
+
+	if (recycler != NULL)
+		recycler_inc_unaccounted(recycler, m);
 }
 
 /*
@@ -1385,9 +1439,9 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 }
 
 /*
- * heap_get_procs -- (internal) returns the number of arenas to create
+ * heap_get_procs -- returns the number of arenas to create
  */
-static unsigned
+unsigned
 heap_get_procs(void)
 {
 	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
@@ -1410,13 +1464,6 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 {
 	struct heap_rt *h = heap->rt;
 
-	if (c->type == CLASS_RUN) {
-		h->recyclers[c->id] = recycler_new(heap, c->rdsc.nallocs,
-			&heap->rt->arenas.nactive);
-		if (h->recyclers[c->id] == NULL)
-			goto error_recycler_new;
-	}
-
 	size_t i;
 	struct arena *arena;
 	VEC_FOREACH_BY_POS(i, &h->arenas.vec) {
@@ -1431,12 +1478,9 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 	return 0;
 
 error_cache_bucket_new:
-	recycler_delete(h->recyclers[c->id]);
-
 	for (; i != 0; --i)
 		bucket_delete(VEC_ARR(&h->arenas.vec)[i - 1]->buckets[c->id]);
 
-error_recycler_new:
 	return -1;
 }
 
@@ -1587,7 +1631,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_alloc_classes_new;
 	}
 
-	unsigned narenas_default = heap_get_procs();
+	unsigned narenas_default = Default_arenas_max == -1 ?
+		heap_get_procs() : (unsigned)Default_arenas_max;
 
 	if (heap_arenas_init(&h->arenas) != 0) {
 		err = errno;
