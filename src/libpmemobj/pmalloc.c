@@ -924,7 +924,7 @@ CTL_READ_HANDLER(arenas_default_max)(void *ctx,
 
 	unsigned *max = arg;
 
-	*max = Default_arenas_max == -1 ?
+	*max = Default_arenas_max == 0 ?
 		heap_get_procs() : (unsigned)Default_arenas_max;
 
 	return 0;

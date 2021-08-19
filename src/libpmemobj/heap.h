@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 extern enum pobj_arenas_assignment_type Default_arenas_assignment_type;
-extern ssize_t Default_arenas_max;
+extern size_t Default_arenas_max;
 
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\
