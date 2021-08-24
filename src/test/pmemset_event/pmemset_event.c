@@ -11,6 +11,7 @@
 #endif
 
 #include "fault_injection.h"
+#include "source.h"
 #include "unittest.h"
 #include "ut_pmemset_utils.h"
 
@@ -22,7 +23,7 @@ static void map(struct pmemset *set, struct pmemset_source *src,
 {
 	struct pmemset_map_config *map_cfg;
 	ut_create_map_config(&map_cfg, set, 0, 0);
-	int ret = pmemset_map(src, map_cfg, NULL, desc);
+	int ret = pmemset_map(src, map_cfg, desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -497,6 +498,97 @@ test_pmemset_remove_range_event(const struct test_case *tc, int argc,
 	return 1;
 }
 
+struct sds_update_args {
+	size_t count;
+};
+
+/*
+ * sds_update_callback -- callback used in pmemset_sds_update test
+ */
+static int
+sds_update_callback(struct pmemset *set, struct pmemset_event_context *ctx,
+		void *arg)
+{
+	struct sds_update_args *args = arg;
+
+	if (ctx->type == PMEMSET_EVENT_SDS_UPDATE) {
+		UT_ASSERTne(ctx->data.sds_update.sds, NULL);
+		UT_ASSERTne(ctx->data.sds_update.src, NULL);
+		args->count++;
+	}
+
+	return 0;
+}
+
+/*
+ * test_pmemset_sds_update_event -- test PMEMSET_EVENT_SDS_UPDATE event
+ */
+static int
+test_pmemset_sds_update_event(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_pmemset_sds_update_event <file>");
+
+	char *file = argv[0];
+
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_map_config *map_cfg;
+	struct pmemset_part_map *pmap;
+	struct pmemset_sds sds = PMEMSET_SDS_INITIALIZE();
+	struct pmemset_sds *sds_copy;
+	struct pmemset_source *src;
+	struct sds_update_args args;
+	args.count = 0;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ut_create_set_config(&cfg);
+	pmemset_config_set_event_callback(cfg, &sds_update_callback, &args);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_source_set_sds(src, &sds, NULL);
+
+	ut_create_map_config(&map_cfg, set, 0, 0);
+
+	ret = pmemset_map(src, map_cfg, NULL);
+	if (ret == PMEMSET_E_SDS_ENOSUPP)
+		goto cleanup;
+	UT_ASSERTeq(args.count, 1); /* sds updated, sds refcount raised */
+
+	/* get duplicated SDS (internal function) */
+	sds_copy = pmemset_source_get_sds(src);
+	/* refcount should be raised */
+	UT_ASSERTeq(sds_copy->refcount, 1);
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTne(pmap, NULL);
+
+	ret = pmemset_remove_part_map(set, &pmap);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(pmap, NULL);
+	UT_ASSERTeq(args.count, 2); /* sds updated, sds refcount lowered */
+
+	/* refcount should be lowered */
+	UT_ASSERTeq(sds_copy->refcount, 0);
+
+cleanup:
+	ret = pmemset_map_config_delete(&map_cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	cleanup(set, cfg, src, pmem2_src, fd);
+	return 1;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -506,6 +598,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_pmemset_part_add_event),
 	TEST_CASE(test_pmemset_part_remove_event),
 	TEST_CASE(test_pmemset_remove_range_event),
+	TEST_CASE(test_pmemset_sds_update_event),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
@@ -519,3 +612,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmemset_init)
+MSVC_DESTR(libpmemset_fini)
+#endif

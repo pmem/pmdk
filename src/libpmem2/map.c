@@ -184,6 +184,8 @@ pmem2_map_fini(void)
 	util_rwlock_wrlock(&State.range_map_lock);
 	ravl_interval_delete(State.range_map);
 	util_rwlock_unlock(&State.range_map_lock);
+
+	util_rwlock_destroy(&State.range_map_lock);
 }
 
 /*

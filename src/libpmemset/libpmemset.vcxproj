@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -29,6 +29,7 @@
     <ClCompile Include="part.c" />
     <ClCompile Include="pmemset.c" />
     <ClCompile Include="pmemset_utils.c" />
+    <ClCompile Include="sds.c" />
     <ClCompile Include="source.c" />
   </ItemGroup>
   <ItemGroup>
@@ -49,6 +50,7 @@
     <ClInclude Include="part.h" />
     <ClInclude Include="pmemset.h" />
     <ClInclude Include="pmemset_utils.h" />
+    <ClInclude Include="sds.h" />
     <ClInclude Include="source.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

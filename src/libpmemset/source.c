@@ -16,8 +16,12 @@
 #include "alloc.h"
 #include "file.h"
 #include "os.h"
+#include "os_thread.h"
 #include "pmemset_utils.h"
+#include "ravl.h"
+#include "sds.h"
 #include "source.h"
+#include "sys_util.h"
 
 struct pmemset_source {
 	enum pmemset_source_type type;
@@ -33,6 +37,12 @@ struct pmemset_source {
 		} temp;
 	};
 	struct pmemset_file *file_set;
+	struct {
+		struct pmemset_sds *sds;
+		enum pmemset_part_state *state;
+		struct pmemset_badblock *bb;
+		int use_count;
+	} extras;
 };
 
 /*
@@ -81,6 +91,10 @@ pmemset_source_from_pmem2(struct pmemset_source **src,
 
 	srcp->type = PMEMSET_SOURCE_PMEM2;
 	srcp->pmem2.src = pmem2_src;
+	srcp->extras.sds = NULL;
+	srcp->extras.bb = NULL;
+	srcp->extras.state = NULL;
+	srcp->extras.use_count = 0;
 
 	ret = pmemset_source_open_file(srcp, 0);
 	if (ret)
@@ -128,6 +142,10 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 
 	srcp->type = PMEMSET_SOURCE_FILE;
 	srcp->file.path = Strdup(file);
+	srcp->extras.sds = NULL;
+	srcp->extras.bb = NULL;
+	srcp->extras.state = NULL;
+	srcp->extras.use_count = 0;
 
 	if (srcp->file.path == NULL) {
 		ERR("!strdup");
@@ -189,6 +207,10 @@ pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir)
 
 	srcp->type = PMEMSET_SOURCE_TEMP;
 	srcp->temp.dir = Strdup(dir);
+	srcp->extras.sds = NULL;
+	srcp->extras.bb = NULL;
+	srcp->extras.state = NULL;
+	srcp->extras.use_count = 0;
 
 	if (srcp->temp.dir == NULL) {
 		ERR("!strdup");
@@ -395,13 +417,20 @@ pmemset_source_delete(struct pmemset_source **src)
 	if (*src == NULL)
 		return 0;
 
-	enum pmemset_source_type type = (*src)->type;
+	struct pmemset_source *source = *src;
+
+	enum pmemset_source_type type = source->type;
 	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
 
-	struct pmemset_file *f = pmemset_source_get_set_file(*src);
+	struct pmemset_file *f = pmemset_source_get_set_file(source);
 	pmemset_file_delete(&f);
 
 	pmemset_source_ops[type].destroy(src);
+
+	if (source->extras.sds) {
+		int ret = pmemset_sds_delete(&source->extras.sds);
+		ASSERTeq(ret, 0);
+	}
 
 	Free(*src);
 	*src = NULL;
@@ -442,4 +471,77 @@ struct pmemset_file *
 pmemset_source_get_set_file(struct pmemset_source *src)
 {
 	return src->file_set;
+}
+
+/*
+ * pmemset_source_set_sds -- sets SDS in the source structure
+ */
+int
+pmemset_source_set_sds(struct pmemset_source *src, struct pmemset_sds *sds,
+		enum pmemset_part_state *state_ptr)
+{
+	LOG(3, "src %p sds %p state %p", src, sds, state_ptr);
+
+	if (src->extras.sds) {
+		ERR("sds %p is already set in the source %p", sds, src);
+		return PMEMSET_E_SDS_ALREADY_SET;
+	}
+
+	struct pmemset_sds *sds_copy = NULL;
+	int ret = pmemset_sds_duplicate(&sds_copy, sds);
+	if (ret)
+		return ret;
+
+	src->extras.sds = sds_copy;
+	src->extras.state = state_ptr;
+
+	return 0;
+}
+
+/*
+ * pmemset_source_get_sds -- gets SDS from the source structure
+ */
+struct pmemset_sds *
+pmemset_source_get_sds(struct pmemset_source *src)
+{
+	return src->extras.sds;
+}
+
+/*
+ * pmemset_source_get_use_count -- retrieve current use count (number of parts
+ *                                 mapped from this source currenly in use)
+ */
+int
+pmemset_source_get_use_count(struct pmemset_source *src)
+{
+	return src->extras.use_count;
+}
+
+/*
+ * pmemset_source_increment_use_count -- increment source use count by 1
+ */
+void
+pmemset_source_increment_use_count(struct pmemset_source *src)
+{
+	src->extras.use_count++;
+}
+
+/*
+ * pmemset_source_decrement_use_count -- decrement source use count by 1
+ */
+void
+pmemset_source_decrement_use_count(struct pmemset_source *src)
+{
+	ASSERTne(src->extras.use_count, 0);
+	src->extras.use_count--;
+}
+
+/*
+ * pmemset_source_get_state_ptr -- gets part state pointer from the source
+ *                                 structure
+ */
+enum pmemset_part_state *
+pmemset_source_get_part_state_ptr(struct pmemset_source *src)
+{
+	return src->extras.state;
 }

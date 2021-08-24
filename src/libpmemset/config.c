@@ -13,6 +13,12 @@
 #include "out.h"
 #include "pmemset_utils.h"
 
+#define PMEMSET_PART_VALID_STATES (uint64_t)(PMEMSET_PART_STATE_INDETERMINATE |\
+		PMEMSET_PART_STATE_OK | \
+		PMEMSET_PART_STATE_OK_BUT_ALREADY_OPEN | \
+		PMEMSET_PART_STATE_OK_BUT_INTERRUPTED | \
+		PMEMSET_PART_STATE_CORRUPTED)
+
 /*
  * pmemset_config -- pmemset configuration structure.
  */
@@ -23,6 +29,7 @@ struct pmemset_config {
 	pmemset_event_callback *callback;
 	void *arg;
 	struct pmem2_vm_reservation *set_reservation;
+	uint64_t acceptable_states; /* default value  PMEMSET_PART_STATE_OK */
 };
 
 /*
@@ -36,6 +43,8 @@ pmemset_config_init(struct pmemset_config *cfg)
 	cfg->callback = NULL;
 	cfg->arg = NULL;
 	cfg->set_reservation = NULL;
+	cfg->acceptable_states = (PMEMSET_PART_STATE_OK |
+			PMEMSET_PART_STATE_OK_BUT_ALREADY_OPEN);
 }
 
 /*
@@ -206,6 +215,42 @@ pmemset_config_duplicate(struct pmemset_config **cfg_dst,
 	(*cfg_dst)->set_reservation = cfg_src->set_reservation;
 	(*cfg_dst)->callback = cfg_src->callback;
 	(*cfg_dst)->arg = cfg_src->arg;
+	(*cfg_dst)->acceptable_states = cfg_src->acceptable_states;
+
+	return 0;
+}
+
+/*
+ * pmemset_config_set_acceptable_states -- sets acceptable part states that
+ * should not return an error during mapping of a part.
+ */
+int
+pmemset_config_set_acceptable_states(struct pmemset_config *cfg,
+		uint64_t states)
+{
+	LOG(3, "config %p states %lu", cfg, states);
+	PMEMSET_ERR_CLR();
+
+	if (states & ~PMEMSET_PART_VALID_STATES)
+		return PMEMSET_E_INVALID_PART_STATES;
+
+	cfg->acceptable_states = states;
+
+	return 0;
+}
+
+/*
+ * pmemset_config_validate_state -- check if provided state is acceptable
+ */
+int
+pmemset_config_validate_state(struct pmemset_config *cfg,
+		enum pmemset_part_state state)
+{
+	if (state & ~cfg->acceptable_states) {
+		ERR("part state %u doesn't match any acceptable state "\
+				"set in config %p", state, cfg);
+		return PMEMSET_E_UNDESIRABLE_PART_STATE;
+	}
 
 	return 0;
 }

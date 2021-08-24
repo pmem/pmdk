@@ -74,10 +74,12 @@
     <ClCompile Include="..\..\libpmemset\errormsg.c" />
     <ClCompile Include="..\..\libpmemset\file.c" />
     <ClCompile Include="..\..\libpmemset\file_windows.c" />
+    <ClCompile Include="..\..\libpmemset\libpmemset.c" />
     <ClCompile Include="..\..\libpmemset\map_config.c" />
     <ClCompile Include="..\..\libpmemset\part.c" />
     <ClCompile Include="..\..\libpmemset\pmemset.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
+    <ClCompile Include="..\..\libpmemset\sds.c" />
     <ClCompile Include="..\..\libpmemset\source.c" />
     <ClCompile Include="..\unittest\ut_pmemset_utils.c" />
     <ClCompile Include="pmemset_persist.c" />

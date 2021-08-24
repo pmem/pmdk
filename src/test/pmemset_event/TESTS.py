@@ -35,3 +35,7 @@ class TEST4(PmemsetEvent):
 
 class TEST5(PmemsetEvent):
     test_case = "test_pmemset_remove_range_event"
+
+
+class TEST6(PmemsetEvent):
+    test_case = "test_pmemset_sds_update_event"

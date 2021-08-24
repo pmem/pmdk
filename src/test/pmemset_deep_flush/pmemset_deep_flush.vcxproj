@@ -29,6 +29,7 @@
     <ClCompile Include="..\..\libpmemset\part.c" />
     <ClCompile Include="..\..\libpmemset\pmemset.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
+    <ClCompile Include="..\..\libpmemset\sds.c" />
     <ClCompile Include="..\..\libpmemset\source.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="..\unittest\ut_pmemset_utils.c" />

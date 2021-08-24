@@ -16,14 +16,21 @@ int pmemset_config_duplicate(struct pmemset_config **cfg_out,
 				struct pmemset_config *cfg_in);
 enum pmem2_granularity pmemset_get_config_granularity(
 	struct pmemset_config *cfg);
+
 bool pmemset_get_config_granularity_valid(
 	struct pmemset_config *cfg);
+
 void pmemset_config_set_contiguous_part_coalescing(
 		struct pmemset_config *cfg, bool value);
+
 bool pmemset_config_get_contiguous_part_coalescing(
 		struct pmemset_config *cfg);
+
 int pmemset_config_event_callback(struct pmemset_config *cfg,
 	struct pmemset *set, struct pmemset_event_context *ctx);
 struct pmem2_vm_reservation *pmemset_config_get_reservation(
 		struct pmemset_config *config);
+
+int pmemset_config_validate_state(struct pmemset_config *cfg,
+		enum pmemset_part_state state);
 #endif /* PMEMSET_CONFIG_H */

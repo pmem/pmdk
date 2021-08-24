@@ -46,7 +46,7 @@ and sets *\*set* to NULL. If *\*set* is NULL, no operation is performed.
 # RETURN VALUE #
 
 The **pmemset_new**() function returns 0 on success or a negative error code on failure.
-**pmemset_new**() does set *\*set* to NULL on failure.
+**pmemset_new**() sets *\*set* variable to NULL on failure.
 
 The **pmemset_delete**() function always returns 0.
 
