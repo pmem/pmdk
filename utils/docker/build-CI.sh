@@ -99,6 +99,7 @@ SCRIPTSDIR=$WORKDIR/utils/docker
 #   want that and just to make sure we add the usually default rw,relatime just
 #   in case docker change the defaults.
 docker run --rm --name=$containerName -i $TTY \
+	--cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
 	$DNS_SETTING \
 	$ci_env \
 	--env http_proxy=$http_proxy \

@@ -89,6 +89,7 @@ echo Building ${OS}-${OS_VER}
 #   want that and just to make sure we add the usually default rw,relatime just
 #   in case docker change the defaults.
 docker run --name=$containerName -ti \
+    --cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
 	$RM_SETTING \
 	$DNS_SETTING \
 	--env http_proxy=$http_proxy \
