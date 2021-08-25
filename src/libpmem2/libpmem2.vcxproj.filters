@@ -138,6 +138,9 @@
     <ClCompile Include="..\core\ravl_interval.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mcsafe_ops_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\core\os_thread.h">

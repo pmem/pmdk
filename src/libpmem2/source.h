@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2021, Intel Corporation */
 
 #ifndef PMEM2_SOURCE_H
 #define PMEM2_SOURCE_H
@@ -12,6 +12,8 @@ enum pmem2_file_type {
 	PMEM2_FTYPE_REG = 1,
 	PMEM2_FTYPE_DEVDAX = 2,
 	PMEM2_FTYPE_DIR = 3,
+
+	MAX_PMEM2_FILE_TYPE = 4,
 };
 
 enum pmem2_source_type {
