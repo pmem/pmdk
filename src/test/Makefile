@@ -199,6 +199,7 @@ PMEM_TESTS = \
 PMEM2_TESTS = \
 	pmem2_api\
 	pmem2_compat\
+	pmem2_badblock\
 	pmem2_config\
 	pmem2_source\
 	pmem2_source_alignment\

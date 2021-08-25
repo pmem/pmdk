@@ -92,7 +92,7 @@ class Ndctl:
         try:
             out = json.loads(proc.stdout)
         except json.JSONDecodeError:
-            raise futils.Fail('Invalid "{}" output (could '
+            raise futils.Fail('invalid "{}" output (could '
                               'not read as JSON): {}'.format(cmd_as_str,
                                                              proc.stdout))
         else:
@@ -207,7 +207,8 @@ class Ndctl:
         return self._get_dev_param(dev_path, 'dev')
 
     def get_dev_bb_count(self, dev_path):
-        return self._get_dev_param(dev_path, 'badblock_count')
+        result = self._get_dev_param(dev_path, 'badblock_count')
+        return result
 
     def is_devdax(self, dev_path):
         return self.get_dev_mode(dev_path) == 'devdax'

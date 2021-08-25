@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2021, Intel Corporation
 #
 """Bad block utilities"""
 
@@ -60,7 +60,7 @@ class BadBlock:
         self.tool.inject_bad_block(file, offset)
 
     def get_count(self, file):
-        self.tool.get_bad_blocks_count(file)
+        return self.tool.get_bad_blocks_count(file)
 
     def clear_all(self, file):
         self.tool.clear_all_bad_blocks(file)
@@ -76,7 +76,7 @@ class NdctlBB(tools.Ndctl, BBTool):
     def _get_file_device(self, file):
         blockdev = futils.run_command("df -P {} | tail -n 1 | cut -f 1 -d ' '"
                                       .format(file)).strip().decode('UTF8')
-        if blockdev == "dev":
+        if blockdev == "devtmpfs":
             device = file  # devdax
         else:
             device = blockdev  # fsdax
@@ -86,31 +86,24 @@ class NdctlBB(tools.Ndctl, BBTool):
     def inject_bad_block(self, file, offset):
         device = self._get_file_device(file)
         namespace = self.get_dev_namespace(device)
-        sector_size = self.get_dev_sector_size(device)
 
         count = 1
 
         if self.is_devdax(device):
-            # devdax maps data linearly, all we need to do is translate
-            # offset into a sector number
-            block = offset / sector_size
+            # for testing purposes devdax is treated as a file itself,
+            # therefore the offset is a physical offset on the device
+            block = offset
         else:
             # fsdax relies on the fs for block allocation, so a virtual
             # offset must be translated into a physical one with a tool
             proc = self.util_tools.extents("-l {}".format(offset), file)
             if proc.returncode != 0:
                 raise futils.Fail('unable to translate bad blocks')
-            block = proc.stdout.strip() / sector_size
+            block = int(proc.stdout.strip())
 
         futils.run_command("sudo ndctl inject-error --block={} --count={} {}"
                            .format(block, count, namespace),
                            "injecting bad block failed")
-
-        # bad blocks might now show up until address range scrub is performed
-        futils.run_command("sudo ndctl start-scrub",
-                           "start scrub failed")
-        futils.run_command("sudo ndctl wait-scrub",
-                           "wait scrub failed")
 
     def get_bad_blocks_count(self, file):
         device = self._get_file_device(file)
@@ -120,5 +113,19 @@ class NdctlBB(tools.Ndctl, BBTool):
         device = self._get_file_device(file)
         namespace = self.get_dev_namespace(device)
 
-        futils.run_command("sudo ndctl clear-errors {}".format(namespace),
-                           "failed to clear bad blocks")
+        if self.is_devdax(device):
+            futils.run_command("sudo ndctl clear-errors {}".format(namespace),
+                               "failed to clear bad blocks")
+        else:
+            out = futils.run_command("mount | grep {}".format(device),
+                                     "querying mount points failed")
+            mount = out.strip().decode('UTF8').split()[2]
+
+            futils.run_command("sudo umount {}".format(mount),
+                               "unmounting device failed")
+
+            futils.run_command("sudo ndctl clear-errors {}".format(namespace),
+                               "clearing bad blocks failed")
+
+            futils.run_command("sudo mount -o dax {} {}".format(device, mount),
+                               "mounting device failed")

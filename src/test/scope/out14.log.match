@@ -38,6 +38,8 @@ pmem2_source_from_fd
 pmem2_source_from_handle
 pmem2_source_get_handle
 pmem2_source_numa_node
+pmem2_source_pread_mcsafe
+pmem2_source_pwrite_mcsafe
 pmem2_source_size
 pmem2_vm_reservation_delete
 pmem2_vm_reservation_extend
