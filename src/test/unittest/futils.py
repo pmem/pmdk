@@ -95,6 +95,15 @@ def run_command(cmd, errormsg=""):
     return out[0]
 
 
+def run_command_with_timeout(cmd, timeout, errormsg=""):
+    proc = sp.Popen(cmd, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
+    out = proc.communicate(timeout=timeout)
+
+    if proc.returncode != 0:
+        raise Fail("failed to execute command {}: {}".format(cmd, errormsg))
+    return out[0]
+
+
 class Color:
     """
     Set the font color. This functionality relies on ANSI escape sequences

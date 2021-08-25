@@ -1,7 +1,7 @@
 #!../env.py
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 
 import testframework as t
 from testframework import granularity as g
@@ -118,3 +118,13 @@ class TEST14(PMEM2_SOURCE_NO_DIR):
 class TEST15(PMEM2_SOURCE_NO_DIR):
     """get file descriptor from the invalid source type"""
     test_case = "test_get_fd_inval_type"
+
+
+class TEST16(PMEM2_SOURCE):
+    """test mcsafe read operation"""
+    test_case = "test_pmem2_src_mcsafe_read"
+
+
+class TEST17(PMEM2_SOURCE):
+    """test mcsafe write operation"""
+    test_case = "test_pmem2_src_mcsafe_write"
