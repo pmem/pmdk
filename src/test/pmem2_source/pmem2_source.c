@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * pmem2_source.c -- pmem2_source unittests
@@ -181,6 +181,64 @@ test_delete_null_config(const struct test_case *tc, int argc,
 	UT_ASSERTeq(src, NULL);
 
 	return 0;
+}
+
+/*
+ * test_pmem2_src_mcsafe_read -- test mcsafe read operation
+ */
+static int
+test_pmem2_src_mcsafe_read(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+			"usage: test_pmem2_src_mcsafe_read <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_fd(&src, fd);
+	UT_ASSERTeq(ret, 0);
+
+	size_t bufsize = 4096;
+	void *buf = MALLOC(bufsize);
+	ret = pmem2_source_pread_mcsafe(src, buf, bufsize, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_pmem2_src_mcsafe_write -- test mcsafe write operation
+ */
+static int
+test_pmem2_src_mcsafe_write(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+			"usage: test_pmem2_src_mcsafe_write <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_fd(&src, fd);
+	UT_ASSERTeq(ret, 0);
+
+	size_t bufsize = 4096;
+	void *buf = MALLOC(bufsize);
+	ret = pmem2_source_pwrite_mcsafe(src, buf, bufsize, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
 }
 
 #ifdef WIN32
@@ -422,6 +480,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_wronly_fd),
 	TEST_CASE(test_alloc_src_enomem),
 	TEST_CASE(test_delete_null_config),
+	TEST_CASE(test_pmem2_src_mcsafe_write),
+	TEST_CASE(test_pmem2_src_mcsafe_read),
 #ifdef _WIN32
 	TEST_CASE(test_set_handle),
 	TEST_CASE(test_set_null_handle),
