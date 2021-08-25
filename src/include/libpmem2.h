@@ -71,6 +71,8 @@ extern "C" {
 #define PMEM2_E_VM_RESERVATION_NOT_EMPTY	(-100033)
 #define PMEM2_E_MAP_EXISTS			(-100034)
 #define PMEM2_E_FILE_DESCRIPTOR_NOT_SET		(-100035)
+#define PMEM2_E_SOURCE_TYPE_NOT_SUPPORTED	(-100036)
+#define PMEM2_E_IO_FAIL				(-100037)
 
 /* source setup */
 
@@ -91,6 +93,12 @@ int pmem2_source_alignment(const struct pmem2_source *src,
 		size_t *alignment);
 
 int pmem2_source_delete(struct pmem2_source **src);
+
+int pmem2_source_pread_mcsafe(struct pmem2_source *src, void *buf, size_t size,
+		size_t offset);
+
+int pmem2_source_pwrite_mcsafe(struct pmem2_source *src, void *buf, size_t size,
+		size_t offset);
 
 /* vm reservation setup */
 

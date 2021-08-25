@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * source_windows.c -- windows specific pmem2_source implementation
@@ -9,6 +9,7 @@
 #include "config.h"
 #include "libpmem2.h"
 #include "config.h"
+#include "os.h"
 #include "out.h"
 #include "pmem2_utils.h"
 #include "source.h"
@@ -92,6 +93,16 @@ pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle)
 	if (ret)
 		return ret;
 
+	enum pmem2_file_type ftype;
+	DWORD fileAttrbs = file_info.dwFileAttributes;
+	if ((file_info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+		ERR("cannot set fd/handle to directory in pmem2_source_from_fd"
+				" or in pmem2_source_from_handle");
+		return PMEM2_E_INVALID_FILE_TYPE;
+	} else {
+		ftype = PMEM2_FTYPE_REG;
+	}
+
 	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
 
 	struct pmem2_source *srcp = pmem2_malloc(sizeof(**src), &ret);
@@ -102,6 +113,7 @@ pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle)
 	ASSERTne(srcp, NULL);
 
 	srcp->type = PMEM2_SOURCE_HANDLE;
+	srcp->value.ftype = ftype;
 	srcp->value.handle = handle;
 	*src = srcp;
 

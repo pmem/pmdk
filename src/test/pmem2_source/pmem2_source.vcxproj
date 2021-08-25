@@ -77,6 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libpmem2\config.c" />
+    <ClCompile Include="..\..\libpmem2\mcsafe_ops_windows.c" />
     <ClCompile Include="..\..\libpmem2\source.c" />
     <ClCompile Include="..\..\libpmem2\source_windows.c" />
     <ClCompile Include="..\..\libpmem2\errormsg.c" />

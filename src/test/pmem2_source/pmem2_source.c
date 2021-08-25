@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * pmem2_source.c -- pmem2_source unittests
  */
 #include "fault_injection.h"
+#include "file.h"
 #include "libpmem2.h"
 #include "unittest.h"
 #include "ut_pmem2_utils.h"
@@ -181,6 +182,86 @@ test_delete_null_config(const struct test_case *tc, int argc,
 	UT_ASSERTeq(src, NULL);
 
 	return 0;
+}
+
+/*
+ * test_pmem2_src_mcsafe_read -- test mcsafe read operation
+ */
+static int
+test_pmem2_src_mcsafe_read(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+			"usage: test_pmem2_src_mcsafe_read <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	/* set file content */
+	char *write_buf = "Write content";
+	size_t bufsize = strlen(write_buf);
+	WRITE(fd, write_buf, bufsize);
+
+	/* flushing the buffers, os_fsync doesn't work here */
+	CLOSE(fd);
+
+	fd = OPEN(file, O_RDWR);
+
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_fd(&src, fd);
+	UT_ASSERTeq(ret, 0);
+
+	char *read_buf = MALLOC(bufsize);
+	ret = pmem2_source_pread_mcsafe(src, read_buf, bufsize, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	ret = strncmp(write_buf, read_buf, bufsize);
+	ASSERTeq(ret, 0);
+
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_pmem2_src_mcsafe_write -- test mcsafe write operation
+ */
+static int
+test_pmem2_src_mcsafe_write(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+			"usage: test_pmem2_src_mcsafe_write <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_fd(&src, fd);
+	UT_ASSERTeq(ret, 0);
+
+	char *write_buf = "Write content";
+	size_t bufsize = strlen(write_buf);
+	ret = pmem2_source_pwrite_mcsafe(src, write_buf, bufsize, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_source_delete(&src);
+
+	/* flushing the buffers, os_fsync doesn't work here */
+	CLOSE(fd);
+
+	fd = OPEN(file, O_RDWR);
+
+	/* check if file content was changed */
+	char *read_buf = MALLOC(bufsize);
+	util_read(fd, read_buf, bufsize);
+	ASSERTeq(strncmp(write_buf, read_buf, bufsize), 0);
+
+	CLOSE(fd);
+
+	return 1;
 }
 
 #ifdef WIN32
@@ -422,6 +503,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_wronly_fd),
 	TEST_CASE(test_alloc_src_enomem),
 	TEST_CASE(test_delete_null_config),
+	TEST_CASE(test_pmem2_src_mcsafe_read),
+	TEST_CASE(test_pmem2_src_mcsafe_write),
 #ifdef _WIN32
 	TEST_CASE(test_set_handle),
 	TEST_CASE(test_set_null_handle),
