@@ -208,6 +208,7 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/errormsg.o\
 	$(TOP)/src/debug/libpmem2/libpmem2.o\
 	$(TOP)/src/debug/libpmem2/map.o\
+	$(TOP)/src/debug/libpmem2/mcsafe_ops_posix.o\
 	$(TOP)/src/debug/libpmem2/map_posix.o\
 	$(TOP)/src/debug/libpmem2/memops_generic.o\
 	$(TOP)/src/debug/libpmem2/persist.o\
@@ -264,6 +265,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/source_posix.o\
 	$(TOP)/src/nondebug/libpmem2/errormsg.o\
 	$(TOP)/src/nondebug/libpmem2/map.o\
+	$(TOP)/src/nondebug/libpmem2/mcsafe_ops_posix.o\
 	$(TOP)/src/nondebug/libpmem2/map_posix.o\
 	$(TOP)/src/nondebug/libpmem2/memops_generic.o\
 	$(TOP)/src/nondebug/libpmem2/persist.o\
