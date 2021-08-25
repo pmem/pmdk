@@ -9,6 +9,7 @@
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="pmem2_source.c" />
+    <ClCompile Include="..\..\libpmem2\mcsafe_ops_windows.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmem2\config.h" />

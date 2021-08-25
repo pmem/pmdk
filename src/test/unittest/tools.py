@@ -183,6 +183,8 @@ class Ndctl:
         p = None
         dev = self._get_dev_info(dev_path)
 
+        print("param {}".format(param))
+
         try:
             p = dev[param]
         except KeyError:
@@ -207,7 +209,8 @@ class Ndctl:
         return self._get_dev_param(dev_path, 'dev')
 
     def get_dev_bb_count(self, dev_path):
-        return self._get_dev_param(dev_path, 'badblock_count')
+        result = self._get_dev_param(dev_path, 'badblock_count')
+        return result
 
     def is_devdax(self, dev_path):
         return self.get_dev_mode(dev_path) == 'devdax'
