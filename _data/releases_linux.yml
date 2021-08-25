@@ -402,6 +402,7 @@
     libpmemset:
         pmemset_config_delete.3
         pmemset_config_new.3
+        pmemset_config_set_acceptable_states.3
         pmemset_config_set_event_callback.3
         pmemset_config_set_reservation.3
         pmemset_config_set_required_store_granularity.3
@@ -432,6 +433,7 @@
         pmemset_source_from_file.3
         pmemset_source_from_pmem2.3
         pmemset_source_from_temporary.3
+        pmemset_source_set_sds.3
         pmemset_xsource_from_file.3
 
 - tag: "1.11"
