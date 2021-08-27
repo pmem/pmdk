@@ -1,6 +1,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 #
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -152,7 +152,6 @@ NODES_MAX=-1
 SIZE_4KB=4096
 SIZE_2MB=2097152
 readonly PAGE_SIZE=$(getconf PAGESIZE)
-readonly CACHELINE_SIZE=$(cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size 2>/dev/null || echo 64)
 
 # PMEMOBJ limitations
 PMEMOBJ_MAX_ALLOC_SIZE=17177771968

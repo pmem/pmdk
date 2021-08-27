@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 
 #
 # src/test/rpmem_basic/TEST22 -- unit test for mixed workloads
@@ -14,6 +14,11 @@ require_test_type medium
 . setup.sh
 
 setup
+
+case `uname -m` in
+ppc64*)	CACHELINE_SIZE=128 ;;
+*)	CACHELINE_SIZE=64 ;;
+esac
 
 create_poolset $DIR/pool0.set 8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
 # Pool set file with the SINGLEHDR option
