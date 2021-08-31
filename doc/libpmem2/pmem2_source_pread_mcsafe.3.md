@@ -71,9 +71,6 @@ offset *offset* goes beyond the file length.
 provided source, only sources created with **pmem2_source_from_fd**(3) and
 **pmem2_source_from_handle**(3) are supported.
 
-* **PMEM2_E_NOSUPP** - read/write operation doesn't support devdax source yet.
->Note: Devdax support will be added in the furture.
-
 Those operations can also return all errors from the underlying **pread**(2),
 **pwrite**(2) functions on POSIX systems and **ReadFile**(), **WriteFile**()
 functions on Windows.
