@@ -10,6 +10,17 @@
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="pmem2_source.c" />
     <ClCompile Include="..\..\libpmem2\mcsafe_ops_windows.c" />
+    <ClCompile Include="..\..\libpmem2\map.c" />
+    <ClCompile Include="..\..\libpmem2\map_windows.c" />
+    <ClCompile Include="..\..\libpmem2\persist.c" />
+    <ClCompile Include="..\..\libpmem2\vm_reservation.c" />
+    <ClCompile Include="..\..\libpmem2\vm_reservation_windows.c" />
+    <ClCompile Include="..\..\libpmem2\memops_generic.c" />
+    <ClCompile Include="..\..\libpmem2\x86_64\init.c" />
+    <ClCompile Include="..\..\libpmem2\deep_flush_windows.c" />
+    <ClCompile Include="..\..\libpmem2\persist_windows.c" />
+    <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
+    <ClCompile Include="..\..\libpmem2\libpmem2.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmem2\config.h" />

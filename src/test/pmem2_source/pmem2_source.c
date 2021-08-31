@@ -196,28 +196,49 @@ test_pmem2_src_mcsafe_read(const struct test_case *tc, int argc,
 			"usage: test_pmem2_src_mcsafe_read <file>");
 
 	char *file = argv[0];
-	int fd = OPEN(file, O_RDWR);
-
-	/* set file content */
-	char *write_buf = "Write content";
-	size_t bufsize = strlen(write_buf);
-	WRITE(fd, write_buf, bufsize);
-
-	/* flushing the buffers, os_fsync doesn't work here */
-	CLOSE(fd);
+	int fd;
+	struct pmem2_config *cfg;
+	struct pmem2_map *map;
+	struct pmem2_source *src;
 
 	fd = OPEN(file, O_RDWR);
+	UT_ASSERTne(fd, -1);
 
-	struct pmem2_source *src;
 	int ret = pmem2_source_from_fd(&src, fd);
-	UT_ASSERTeq(ret, 0);
-
-	char *read_buf = MALLOC(bufsize);
-	ret = pmem2_source_pread_mcsafe(src, read_buf, bufsize, 0);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	ret = strncmp(write_buf, read_buf, bufsize);
+
+	/* set file content */
+	ret = pmem2_config_new(&cfg);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_set_required_store_granularity(cfg,
+			PMEM2_GRANULARITY_PAGE);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_map_new(&map, cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	void *addr = pmem2_map_get_address(map);
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+
+	char *writebuf = "Write content";
+	size_t bufsize = strlen(writebuf);
+	memcpy_fn(addr, writebuf, bufsize, 0);
+
+	ret = pmem2_map_delete(&map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_delete(&cfg);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	/* verify read content */
+	char *readbuf = MALLOC(bufsize);
+	ret = pmem2_source_pread_mcsafe(src, readbuf, bufsize, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	ret = strncmp(writebuf, readbuf, bufsize);
 	ASSERTeq(ret, 0);
 
+	FREE(readbuf);
 	pmem2_source_delete(&src);
 	CLOSE(fd);
 
@@ -236,29 +257,50 @@ test_pmem2_src_mcsafe_write(const struct test_case *tc, int argc,
 			"usage: test_pmem2_src_mcsafe_write <file>");
 
 	char *file = argv[0];
-	int fd = OPEN(file, O_RDWR);
-
+	int fd;
+	struct pmem2_config *cfg;
+	struct pmem2_map *map;
 	struct pmem2_source *src;
-	int ret = pmem2_source_from_fd(&src, fd);
-	UT_ASSERTeq(ret, 0);
-
-	char *write_buf = "Write content";
-	size_t bufsize = strlen(write_buf);
-	ret = pmem2_source_pwrite_mcsafe(src, write_buf, bufsize, 0);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-
-	pmem2_source_delete(&src);
-
-	/* flushing the buffers, os_fsync doesn't work here */
-	CLOSE(fd);
 
 	fd = OPEN(file, O_RDWR);
+	UT_ASSERTne(fd, -1);
 
-	/* check if file content was changed */
-	char *read_buf = MALLOC(bufsize);
-	util_read(fd, read_buf, bufsize);
-	ASSERTeq(strncmp(write_buf, read_buf, bufsize), 0);
+	int ret = pmem2_source_from_fd(&src, fd);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
+	/* set file content */
+	char *writebuf = "Write content";
+	size_t bufsize = strlen(writebuf);
+	ret = pmem2_source_pwrite_mcsafe(src, writebuf, bufsize, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	/* verify read content */
+	ret = pmem2_config_new(&cfg);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_set_required_store_granularity(cfg,
+			PMEM2_GRANULARITY_PAGE);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_map_new(&map, cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	void *addr = pmem2_map_get_address(map);
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+
+	char *readbuf = MALLOC(bufsize);
+	memcpy_fn(readbuf, addr, bufsize, 0);
+	ret = strncmp(writebuf, readbuf, bufsize);
+	ASSERTeq(ret, 0);
+
+	ret = pmem2_map_delete(&map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_delete(&cfg);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	FREE(readbuf);
+	pmem2_source_delete(&src);
 	CLOSE(fd);
 
 	return 1;
@@ -531,3 +573,8 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmem2_init)
+MSVC_DESTR(libpmem2_fini)
+#endif
