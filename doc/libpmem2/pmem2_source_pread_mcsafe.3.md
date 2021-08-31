@@ -45,8 +45,9 @@ to the source *src* starting at the offset *offset*.
 
 Above functions are capable of detecting bad blocks and handling the *SIGBUS* signal thrown
 when accessing a bad block. When a bad block is encountered, **pmem2_source_pread_mcsafe**()
-and **pmem2_source_pwrite_mcsafe**() functions return corresponding error. This capability
-is limited to POSIX systems.
+and **pmem2_source_pwrite_mcsafe**() functions return corresponding error. A signal handler
+for *SIGBUS* signal is registered using **sigaction**(2) for the running time of those operations.
+This capability is limited to POSIX systems.
 
 For bad block detection and clearing, see **pmem2_badblock_context_new**(3),
 **pmem2_badblock_next**(3) and **pmem2_badblock_clear**(3).
@@ -71,12 +72,9 @@ offset *offset* goes beyond the file length.
 provided source, only sources created with **pmem2_source_from_fd**(3) and
 **pmem2_source_from_handle**(3) are supported.
 
-* **PMEM2_E_NOSUPP** - read/write operation doesn't support devdax source yet.
->Note: Devdax support will be added in the furture.
-
 Those operations can also return all errors from the underlying **pread**(2),
-**pwrite**(2) functions on POSIX systems and **ReadFile**(), **WriteFile**()
-functions on Windows.
+**pwrite**(2), **sigaction**(2) functions on POSIX systems and **ReadFile**(),
+**WriteFile**() functions on Windows.
 
 # SEE ALSO #
 
