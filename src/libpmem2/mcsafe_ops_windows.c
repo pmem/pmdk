@@ -15,6 +15,25 @@ enum mcsafe_op {
 	MAX_MCSAFE_OP,
 };
 
+static const struct {
+	BOOL (*op)(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytes,
+			LPDWORD lpNumberOfBytes, LPOVERLAPPED lpOverlapped);
+	char op_str[5];
+	char op_err_str[11];
+} mcsafe_op_args[MAX_MCSAFE_OP] = {
+	[MCSAFE_OP_READ] = {
+		.op = ReadFile,
+		.op_str = "read",
+		.op_err_str = "!!ReadFile",
+	},
+
+	[MCSAFE_OP_WRITE] = {
+		.op = WriteFile,
+		.op_str = "write",
+		.op_err_str = "!!WriteFile",
+	}
+};
+
 /*
  * pmem2_source_mcsafe_operation -- execute operation in a safe manner
  *                                  (detect badblocks)
@@ -43,15 +62,9 @@ pmem2_source_mcsafe_operation(struct pmem2_source *src, void *buf, size_t size,
 
 	size_t max_size = (size_t)(file_size - offset);
 	if (size > max_size) {
-		if (op_type == MCSAFE_OP_READ)
-			ERR("size of read %zu from offset %zu goes beyond " \
-				"the file length %zu",
-				size, offset, max_size);
-		else if (op_type == MCSAFE_OP_WRITE)
-			ERR("size of write %zu from offset %zu goes beyond " \
-				"the file length %zu",
-				size, offset, max_size);
-
+		ERR("size of %s %zu from offset %zu goes beyond the file " \
+			"length %zu", mcsafe_op_args[op_type].op_str, size,
+			offset, max_size);
 		return PMEM2_E_LENGTH_OUT_OF_RANGE;
 	}
 
@@ -66,17 +79,10 @@ pmem2_source_mcsafe_operation(struct pmem2_source *src, void *buf, size_t size,
 
 	/* fsdax read/write relies on pread/pwrite */
 	if (ftype == PMEM2_FTYPE_REG) {
-		if (op_type == MCSAFE_OP_READ)
-			ret = ReadFile(fh, buf, (DWORD)size, NULL, NULL);
-		else if (op_type == MCSAFE_OP_WRITE)
-			ret = WriteFile(fh, buf, (DWORD)size, NULL, NULL);
-
+		ret = mcsafe_op_args[op_type].op(fh, buf, (DWORD)size, NULL,
+				NULL);
 		if (ret == 0) {
-			if (op_type == MCSAFE_OP_READ)
-				ERR("!!ReadFile");
-			else if (op_type == MCSAFE_OP_WRITE)
-				ERR("!!WriteFile");
-
+			ERR("%s", mcsafe_op_args[op_type].op_err_str);
 			return pmem2_lasterror_to_err();
 		}
 
