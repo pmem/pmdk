@@ -98,8 +98,9 @@ test_pmem2_src_mcsafe_badblock_write(const struct test_case *tc, int argc,
 
 	size_t bufsize = 4096;
 	void *buf = MALLOC(bufsize);
+	memset(buf, '6', bufsize);
 	ret = pmem2_source_pwrite_mcsafe(src, buf, bufsize, 0);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_IO_FAIL);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	pmem2_source_delete(&src);
 	CLOSE(fd);

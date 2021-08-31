@@ -10,9 +10,10 @@ import re
 
 
 @t.linux_only
-@t.require_ndctl(require_namespace=True)
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
+@t.require_ndctl(require_namespace=True)
+@t.windows_exclude
 class PMEM2_BADBLOCK_COUNT(t.Test):
     test_type = t.Short
 
@@ -39,9 +40,10 @@ class PMEM2_BADBLOCK_COUNT(t.Test):
 
 
 @t.linux_only
-@t.require_ndctl(require_namespace=True)
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
+@t.require_ndctl(require_namespace=True)
+@t.windows_exclude
 class PMEM2_BADBLOCK(t.Test):
     test_type = t.Short
 
@@ -94,3 +96,23 @@ class TEST3(PMEM2_BADBLOCK):
     def run(self, ctx):
         filepath = ctx.create_holey_file(4 * t.KiB, 'testfile')
         self.run_test(ctx, filepath)
+
+
+@t.require_devdax(t.DevDax('devdax1'))
+class TEST4(PMEM2_BADBLOCK):
+    """test mcsafe read operation with encountered badblock on devdax"""
+    test_case = "test_pmem2_src_mcsafe_badblock_read"
+
+    def run(self, ctx):
+        ddpath = ctx.devdaxes.devdax1.path
+        self.run_test(ctx, ddpath)
+
+
+@t.require_devdax(t.DevDax('devdax1'))
+class TEST5(PMEM2_BADBLOCK):
+    """test mcsafe write operation with encountered badblock on devdax"""
+    test_case = "test_pmem2_src_mcsafe_badblock_write"
+
+    def run(self, ctx):
+        ddpath = ctx.devdaxes.devdax1.path
+        self.run_test(ctx, ddpath)

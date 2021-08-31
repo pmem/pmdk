@@ -2,6 +2,7 @@
 /* Copyright 2021, Intel Corporation */
 
 #include <errno.h>
+#include <setjmp.h>
 
 #include "libpmem2.h"
 #include "out.h"
@@ -14,6 +15,17 @@ enum mcsafe_op {
 
 	MAX_MCSAFE_OP,
 };
+
+static sigjmp_buf *Mcsafe_jmp;
+
+/*
+ * signal_handler -- called on SIGBUS
+ */
+static void
+signal_handler(int sig)
+{
+	siglongjmp(*Mcsafe_jmp, 1);
+}
 
 /*
  * pmem2_source_mcsafe_operation -- execute operation in a safe manner
@@ -87,12 +99,60 @@ pmem2_source_mcsafe_operation(struct pmem2_source *src, void *buf, size_t size,
 		return 0;
 	}
 
-	/* TODO: devdax implementation of this function */
-	if (ftype == PMEM2_FTYPE_DEVDAX) {
-		ERR("operation doesn't supported devdax file type yet");
-		return PMEM2_E_NOSUPP;
+	/* devdax requires a mapping and sigbus handler (badblock error) */
+	struct pmem2_config *cfg;
+	ret = pmem2_config_new(&cfg);
+	if (ret)
+		return ret;
+
+	ret = pmem2_config_set_required_store_granularity(cfg,
+			PMEM2_GRANULARITY_PAGE);
+	if (ret)
+		goto err_cfg_delete;
+
+	struct pmem2_map *map;
+	ret = pmem2_map_new(&map, cfg, src);
+	if (ret)
+		goto err_cfg_delete;
+
+	void *addr = pmem2_map_get_address(map);
+
+	struct sigaction act;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	act.sa_handler = signal_handler;
+
+	struct sigaction cur_act;
+	/* register a custom signal handler */
+	sigaction(SIGBUS, &act, &cur_act);
+
+	/* set the global jmp pointer to the jmp on stack */
+	sigjmp_buf mcsafe_jmp_buf;
+	Mcsafe_jmp = &mcsafe_jmp_buf;
+
+	/* sigsetjmp returns nonzero only when returning from siglongjmp */
+	if (sigsetjmp(*Mcsafe_jmp, 1)) {
+		sigaction(SIGBUS, &cur_act, NULL);
+
+		pmem2_map_delete(&map);
+		pmem2_config_delete(&cfg);
+
+		ERR("physical I/O error occured, possible bad block");
+		return PMEM2_E_IO_FAIL;
 	}
 
+	if (op_type == MCSAFE_OP_READ)
+		memcpy(buf, ADDR_SUM(addr, offset), size);
+	else if (op_type == MCSAFE_OP_WRITE)
+		memcpy(ADDR_SUM(addr, offset), buf, size);
+
+	/* restore the previous signal handler */
+	sigaction(SIGBUS, &cur_act, NULL);
+
+	ret = pmem2_map_delete(&map);
+
+err_cfg_delete:
+	pmem2_config_delete(&cfg);
 	return ret;
 }
 
