@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2021, Intel Corporation */
 
 #include <immintrin.h>
 #include <stddef.h>
@@ -22,7 +22,7 @@ static force_inline void
 mm256_stream_si256(char *dest, unsigned idx, __m256i src)
 {
 	_mm256_stream_si256((__m256i *)dest + idx, src);
-	barrier();
+	compiler_barrier();
 }
 
 static force_inline void
