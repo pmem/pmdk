@@ -8,6 +8,7 @@
 #include <libpmem2.h>
 #include <windows.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "alloc.h"
 #include "file.h"
@@ -106,7 +107,7 @@ err:
  */
 int
 pmemset_file_create_pmem2_src(struct pmem2_source **pmem2_src, char *path,
-		unsigned flags)
+		uint64_t flags)
 {
 	/* config doesn't have information about open parameters for now */
 	DWORD access = GENERIC_READ | GENERIC_WRITE;
