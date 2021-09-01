@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2021, Intel Corporation */
 
 #include <immintrin.h>
 #include <stddef.h>
@@ -21,7 +21,7 @@ static force_inline void
 mm_stream_si128(char *dest, unsigned idx, __m128i src)
 {
 	_mm_stream_si128((__m128i *)dest + idx, src);
-	barrier();
+	compiler_barrier();
 }
 
 static force_inline void
