@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2021, Intel Corporation */
 
 #include <immintrin.h>
 #include <stddef.h>
@@ -22,7 +22,7 @@ static force_inline void
 mm512_stream_si512(char *dest, unsigned idx, __m512i src)
 {
 	_mm512_stream_si512((__m512i *)dest + idx, src);
-	barrier();
+	compiler_barrier();
 }
 
 static force_inline void
