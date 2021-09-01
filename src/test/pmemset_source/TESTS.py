@@ -114,3 +114,59 @@ class TEST13(PMEMSET_SOURCE):
     """test source creation with no existing file and do_not_grow flag set"""
     test_case = "test_src_from_file_with_do_not_grow"
     create_file = False
+
+
+@t.windows_exclude
+class TEST14(PMEMSET_SOURCE):
+    """test source creation with rusr file mode"""
+    test_case = "test_src_from_file_with_rusr_mode"
+    create_file = False
+
+
+@t.windows_exclude
+class TEST15(PMEMSET_SOURCE):
+    """test source creation with rwxu file mode"""
+    test_case = "test_src_from_file_with_rwxu_mode"
+    create_file = False
+
+
+@t.windows_exclude
+class TEST16(PMEMSET_SOURCE):
+    """test source creation with numeric file mode"""
+    test_case = "test_src_from_file_with_num_mode"
+    create_file = False
+
+
+@t.windows_exclude
+class TEST17(PMEMSET_SOURCE):
+    """test source creation with inval file mode"""
+    test_case = "test_src_from_file_with_inval_mode"
+    create_file = False
+
+
+@t.windows_exclude
+class TEST18(PMEMSET_SOURCE):
+    """test source creation with only file mode"""
+    test_case = "test_src_from_file_only_mode"
+    create_file = False
+
+
+@t.windows_only
+class TEST19(PMEMSET_SOURCE):
+    """test source creation with inval file mode on Windows"""
+    test_case = "test_src_from_file_with_inval_win_mode"
+    create_file = False
+
+
+@t.windows_exclude
+class TEST20(PMEMSET_SOURCE):
+    """test source creation with rusr file mode if needed"""
+    test_case = "test_src_from_file_with_rusr_mode_if_needed"
+    create_file = False
+
+
+@t.windows_exclude
+class TEST21(PMEMSET_SOURCE):
+    """test source creation with rwxu file mode if needed, created file"""
+    test_case = "test_src_from_file_with_rwxu_mode_if_needed_created"
+    create_file = True

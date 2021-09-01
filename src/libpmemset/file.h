@@ -15,7 +15,7 @@
 struct pmemset_file;
 
 int pmemset_file_from_file(struct pmemset_file **file, char *path,
-		unsigned flags);
+		uint64_t flags);
 
 int pmemset_file_from_pmem2(struct pmemset_file **file,
 		struct pmem2_source *pmem2_src);
@@ -27,7 +27,7 @@ void pmemset_file_delete(struct pmemset_file **file);
 struct pmem2_source *pmemset_file_get_pmem2_source(struct pmemset_file *file);
 
 int pmemset_file_create_pmem2_src(struct pmem2_source **pmem2_src, char *path,
-		unsigned flags);
+		uint64_t flags);
 
 int pmemset_file_create_pmem2_src_from_temp(struct pmem2_source **pmem2_src,
 		char *dir);
