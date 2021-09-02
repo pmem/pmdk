@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * pool.h -- internal definitions for pool processing functions
@@ -146,6 +146,9 @@ static inline void
 pmempool_inject_fault_at(enum pmem_allocation_type type, int nth,
 						const char *at)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(type, nth, at);
+
 	abort();
 }
 

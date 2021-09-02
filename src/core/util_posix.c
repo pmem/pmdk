@@ -29,6 +29,8 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 void
 util_strwinerror(unsigned long err, char *buff, size_t bufflen)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(err, buff, bufflen);
 	abort();
 }
 

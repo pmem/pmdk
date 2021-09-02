@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * check_btt_map_flog.c -- check BTT Map and Flog
@@ -178,6 +178,9 @@ list_free(struct list *list)
 static int
 cleanup(PMEMpoolcheck *ppc, location *loc)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(ppc);
+
 	LOG(3, NULL);
 
 	if (loc->list_unmap)

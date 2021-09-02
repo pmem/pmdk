@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -3089,6 +3089,9 @@ err:
 static int
 util_print_bad_files_cb(struct part_file *pf, void *arg)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(arg);
+
 	if (!pf->is_remote && pf->part && pf->part->has_bad_blocks)
 		ERR("file contains bad blocks -- '%s'", pf->part->path);
 
