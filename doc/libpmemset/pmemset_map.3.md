@@ -92,13 +92,17 @@ can be checked for further information.
 * **PMEMSET_E_LENGTH_UNALIGNED** - the length of the part to be mapped is not aligned
 to the allocation granularity.
 
+* **PMEMSET_E_MAP_LENGTH_UNSET** - the length of the map is unset and equals zero.
+
 * **PMEMSET_E_CANNOT_COALESCE_PARTS** - new part couldn't be coalesced with previously
 mapped part in the pmemset. The memory range after the ending address of previous
 mapped part is occupied.
 
-* **PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE** - in case of **pmemset_source_from_temporary**(3)
-or **pmemset_xsource_from_file**(3) *PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED* flag,
-temporary file created in *dir* cannot be truncated for the defined part size and offset.
+* **PMEMSET_E_CANNOT_GROW_SOURCE_FILE** - in case of **pmemset_source_from_temporary**(3)
+or **pmemset_xsource_from_file**(3), temporary file created in *dir* cannot
+be extended for the defined part size and offset.
+
+* **PMEMSET_E_SOURCE_FILE_IS_EMPTY** - the size of the source file could not be extended and equals zero.
 
 * **-ENOMEM** in case of insufficient memory to allocate an instance
 of *struct pmemset_part_map*.

@@ -111,6 +111,6 @@ class TEST12(PMEMSET_SOURCE_DIR_ONLY):
 
 
 class TEST13(PMEMSET_SOURCE):
-    """test source creation with no existing file and truncate flag set"""
-    test_case = "test_src_from_file_with_truncate"
+    """test source creation with no existing file and do_not_grow flag set"""
+    test_case = "test_src_from_file_with_do_not_grow"
     create_file = False

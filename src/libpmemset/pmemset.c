@@ -589,9 +589,6 @@ pmemset_map(struct pmemset_source *src,
 	ret = pmemset_part_file_try_ensure_size(part_file, part_size,
 			part_offset, source_size);
 	if (ret) {
-		ERR("cannot truncate source from the part file %p",
-			part_file);
-		ret = PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE;
 		return ret;
 	}
 

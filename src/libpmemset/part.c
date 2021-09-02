@@ -175,18 +175,34 @@ pmemset_part_map_remove_range(struct pmemset_part_map *pmap, size_t offset,
 }
 
 /*
- * pmemset_part_file_try_ensure_size -- truncate part file if source
- * is from a temp file and if required
+ * pmemset_part_file_try_ensure_size -- grow part file if source
+ * is from a temp file and by default, if not specified otherwise
  */
 int
 pmemset_part_file_try_ensure_size(struct pmemset_file *f, size_t len,
 		size_t off, size_t source_size)
 {
-	bool truncate = pmemset_file_get_truncate(f);
+	int ret = 0;
+	bool grow = pmemset_file_get_grow(f);
+
+	if (!len && !source_size) {
+		ERR("both map length and file size equals 0");
+		return PMEMSET_E_MAP_LENGTH_UNSET;
+	}
+
+	if (!grow && !source_size) {
+		ERR("file cannot be extended but its size equals 0");
+		return PMEMSET_E_SOURCE_FILE_IS_EMPTY;
+	}
 
 	size_t s = off + len;
-	if (truncate && (s > source_size))
-		return pmemset_file_truncate(f, s);
+	if (grow && (s > source_size))
+		ret = pmemset_file_grow(f, s);
+
+	if (ret) {
+		ERR("cannot extend source from the part file %p", f);
+		return PMEMSET_E_CANNOT_GROW_SOURCE_FILE;
+	}
 
 	return 0;
 }
