@@ -139,6 +139,9 @@ static int
 pmemset_pmem2_map_delete_cb(struct pmemset_part_map *pmap,
 		struct pmem2_map *p2map, void *arg)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(arg);
+
 	struct pmemset *set = pmap->set;
 	struct pmemset_sds_record *sds_record = pmemset_sds_find_record(p2map,
 			set);

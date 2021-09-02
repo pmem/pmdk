@@ -138,6 +138,9 @@ ravl_empty(struct ravl *ravl)
 static void
 ravl_node_insert_constructor(void *data, size_t data_size, const void *arg)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(data_size);
+
 	/* copy only the 'arg' pointer */
 	memcpy(data, &arg, sizeof(arg));
 }
@@ -486,6 +489,9 @@ static int
 ravl_predicate_holds(struct ravl *ravl, int result, struct ravl_node **ret,
 	struct ravl_node *n, const void *data, enum ravl_predicate flags)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(ravl, data);
+
 	if (flags & RAVL_PREDICATE_EQUAL) {
 		if (result == 0) {
 			*ret = n;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * check_pool_hdr.c -- pool header check
@@ -210,6 +210,9 @@ static int
 pool_hdr_default_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);
@@ -261,6 +264,9 @@ pool_hdr_default_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 static int
 pool_hdr_quick_check(PMEMpoolcheck *ppc, location *loc)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(ppc);
+
 	LOG(3, NULL);
 	if (pool_hdr_valid(loc->hdrp))
 		loc->step = CHECK_STEP_COMPLETE;
@@ -318,6 +324,9 @@ static int
 pool_hdr_nondefault_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);
@@ -477,6 +486,9 @@ static int
 pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);
@@ -605,6 +617,9 @@ static int
 pool_hdr_uuid_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);
@@ -690,6 +705,9 @@ static int
 pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);
@@ -762,6 +780,9 @@ static int
 pool_hdr_checksum_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);
@@ -846,6 +867,9 @@ static int
 step_exe(PMEMpoolcheck *ppc, const struct step *steps, location *loc,
 	struct pool_replica *rep, unsigned nreplicas)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(nreplicas);
+
 	const struct step *step = &steps[loc->step++];
 
 	if (!step->fix)

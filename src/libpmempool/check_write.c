@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * check_write.c -- write fixed data back
@@ -26,6 +26,9 @@ enum questions {
 static int
 log_write(PMEMpoolcheck *ppc, location *loc)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(loc);
+
 	LOG(3, NULL);
 
 	if (CHECK_WITHOUT_FIXING(ppc))
@@ -108,6 +111,9 @@ blk_write_map(PMEMpoolcheck *ppc, struct arena *arenap)
 static int
 blk_write(PMEMpoolcheck *ppc, location *loc)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(loc);
+
 	LOG(3, NULL);
 
 	if (CHECK_WITHOUT_FIXING(ppc))
@@ -132,6 +138,9 @@ blk_write(PMEMpoolcheck *ppc, location *loc)
 static int
 btt_data_write(PMEMpoolcheck *ppc, location *loc)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(loc);
+
 	LOG(3, NULL);
 
 	struct arena *arenap;

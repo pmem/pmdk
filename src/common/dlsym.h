@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * dlsym.h -- dynamic linking utilities with library-specific implementation
@@ -64,6 +64,9 @@ util_dlclose(void *handle)
 static inline void *
 util_dlopen(const char *filename)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(filename);
+
 	errno = ENOSYS;
 	return NULL;
 }
@@ -84,6 +87,9 @@ util_dlerror(void)
 static inline void *
 util_dlsym(void *handle, const char *symbol)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(handle, symbol);
+
 	errno = ENOSYS;
 	return NULL;
 }
@@ -94,6 +100,9 @@ util_dlsym(void *handle, const char *symbol)
 static inline int
 util_dlclose(void *handle)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(handle);
+
 	errno = ENOSYS;
 	return 0;
 }
