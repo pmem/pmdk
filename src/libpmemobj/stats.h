@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2021, Intel Corporation */
 
 /*
  * stats.h -- definitions of statistics
@@ -89,6 +89,9 @@ NULL, NULL}
 static int CTL_READ_HANDLER(type##_##name)(void *ctx,\
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)\
 {\
+	/* suppress unused-parameter errors */\
+	SUPPRESS_UNUSED(source, indexes);\
+\
 	PMEMobjpool *pop = ctx;\
 	uint64_t *argv = arg;\
 	util_atomic_load_explicit64(&pop->stats->type->varname,\

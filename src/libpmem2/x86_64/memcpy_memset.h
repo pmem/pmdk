@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 #ifndef MEMCPY_MEMSET_H
 #define MEMCPY_MEMSET_H
@@ -34,12 +34,16 @@ static inline void
 noflush(const void *addr, size_t len)
 {
 	/* NOP, not even pmemcheck annotation */
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(addr, len);
 }
 
 static inline void
 noflush64b(const void *addr)
 {
 	/* NOP, not even pmemcheck annotation */
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(addr);
 }
 
 typedef void perf_barrier_fn(void);

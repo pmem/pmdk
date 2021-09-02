@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * ctl_sds.c -- implementation of the sds CTL namespace
@@ -14,6 +14,9 @@ static int
 CTL_READ_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(ctx, source, indexes);
+
 	int *arg_out = arg;
 	*arg_out = SDS_at_create;
 
@@ -24,6 +27,9 @@ static int
 CTL_WRITE_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(ctx, source, indexes);
+
 	int arg_in = *(int *)arg;
 
 	SDS_at_create = arg_in;

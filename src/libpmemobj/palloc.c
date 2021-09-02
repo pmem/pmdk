@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * palloc.c -- implementation of pmalloc POSIX-like API
@@ -85,6 +85,9 @@ void
 palloc_set_value(struct palloc_heap *heap, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(heap);
+
 	act->type = POBJ_ACTION_TYPE_MEM;
 
 	struct pobj_action_internal *actp = (struct pobj_action_internal *)act;
@@ -262,6 +265,9 @@ palloc_heap_action_exec(struct palloc_heap *heap,
 	const struct pobj_action_internal *act,
 	struct operation_context *ctx)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(heap);
+
 #ifdef DEBUG
 	if (act->m.m_ops->get_state(&act->m) == act->new_state) {
 		ERR("invalid operation or heap corruption");
@@ -310,7 +316,8 @@ static void
 palloc_mem_action_noop(struct palloc_heap *heap,
 	struct pobj_action_internal *act)
 {
-
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(heap, act);
 }
 
 /*
@@ -450,6 +457,9 @@ palloc_mem_action_exec(struct palloc_heap *heap,
 	const struct pobj_action_internal *act,
 	struct operation_context *ctx)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(heap);
+
 	operation_add_entry(ctx, act->ptr, act->value, ULOG_OPERATION_SET);
 }
 

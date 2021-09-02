@@ -111,6 +111,9 @@ static int
 map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
 		const struct pmem2_config *cfg)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(cfg);
+
 	ASSERTne(reserv, NULL);
 
 	size_t dlength = len + alignment; /* dummy length */

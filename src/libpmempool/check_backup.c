@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * check_backup.c -- pre-check backup
@@ -81,6 +81,9 @@ static int
 backup_nonpoolset_overwrite(PMEMpoolcheck *ppc, location *loc,
 	uint32_t question, void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);
@@ -243,6 +246,9 @@ static int
 backup_poolset_overwrite(PMEMpoolcheck *ppc, location *loc,
 	uint32_t question, void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	ASSERTne(loc, NULL);

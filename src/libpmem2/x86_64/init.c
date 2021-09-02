@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 #include <string.h>
 #include <xmmintrin.h>
@@ -69,6 +69,9 @@ static void *\
 memmove_nodrain_##isa##_##flush##perfbarrier(void *dest, const void *src, \
 		size_t len, unsigned flags, flush_func flushf)\
 {\
+	/* suppress unused-parameter errors */\
+	SUPPRESS_UNUSED(flushf);\
+\
 	if (len == 0 || src == dest)\
 		return dest;\
 \
@@ -91,6 +94,9 @@ static void *\
 memmove_nodrain_##isa##_eadr##perfbarrier(void *dest, const void *src, \
 		size_t len, unsigned flags, flush_func flushf)\
 {\
+	/* suppress unused-parameter errors */\
+	SUPPRESS_UNUSED(flushf);\
+\
 	if (len == 0 || src == dest)\
 		return dest;\
 \
@@ -109,6 +115,9 @@ static void *\
 memset_nodrain_##isa##_##flush##perfbarrier(void *dest, int c, size_t len, \
 		unsigned flags, flush_func flushf)\
 {\
+	/* suppress unused-parameter errors */\
+	SUPPRESS_UNUSED(flushf);\
+\
 	if (len == 0)\
 		return dest;\
 \
@@ -131,6 +140,9 @@ static void *\
 memset_nodrain_##isa##_eadr##perfbarrier(void *dest, int c, size_t len, \
 		unsigned flags, flush_func flushf)\
 {\
+	/* suppress unused-parameter errors */\
+	SUPPRESS_UNUSED(flushf);\
+\
 	if (len == 0)\
 		return dest;\
 \

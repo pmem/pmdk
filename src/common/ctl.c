@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * ctl.c -- implementation of the interface for examination and modification of
@@ -189,6 +189,9 @@ static void
 ctl_query_cleanup_real_args(const struct ctl_node *n, void *real_arg,
 	enum ctl_query_source source)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(n);
+
 	switch (source) {
 		case CTL_QUERY_CONFIG_INPUT:
 			Free(real_arg);
@@ -514,6 +517,9 @@ ctl_parse_ll(const char *str)
 int
 ctl_arg_boolean(const void *arg, void *dest, size_t dest_size)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(dest_size);
+
 	int *intp = dest;
 	char in = ((char *)arg)[0];
 

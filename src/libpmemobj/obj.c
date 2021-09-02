@@ -464,6 +464,9 @@ obj_norep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
 static int
 obj_norep_persist(void *ctx, const void *addr, size_t len, unsigned flags)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(flags);
+
 	PMEMobjpool *pop = ctx;
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
@@ -478,6 +481,9 @@ obj_norep_persist(void *ctx, const void *addr, size_t len, unsigned flags)
 static int
 obj_norep_flush(void *ctx, const void *addr, size_t len, unsigned flags)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(flags);
+
 	PMEMobjpool *pop = ctx;
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
@@ -1036,6 +1042,9 @@ static int
 obj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
 				unsigned repidx, int create)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(create);
+
 	LOG(3, "rep %p set %p repidx %u", rep, set, repidx);
 
 	struct pool_replica *repset = set->replica[repidx];
@@ -3429,6 +3438,9 @@ pmemobj_ctl_execW(PMEMobjpool *pop, const wchar_t *name, void *arg)
 void
 _pobj_debug_notice(const char *api_name, const char *file, int line)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(api_name, file, line);
+
 #ifdef DEBUG
 	if (pmemobj_tx_stage() != TX_STAGE_NONE) {
 		if (file)

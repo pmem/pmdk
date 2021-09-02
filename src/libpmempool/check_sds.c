@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * check_shutdown_state.c -- shutdown state check
@@ -117,6 +117,9 @@ static int
 sds_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *context)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(context);
+
 	LOG(3, NULL);
 
 	switch (question) {

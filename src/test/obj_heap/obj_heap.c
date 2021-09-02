@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * obj_heap.c -- unit test for heap
@@ -511,10 +511,10 @@ test_recycler(void)
 	memblock_rebuild_state(&pop->heap, &mrun);
 	memblock_rebuild_state(&pop->heap, &mrun2);
 
-	ret = recycler_put(r, &mrun,
+	ret = recycler_put(r,
 		recycler_element_new(&pop->heap, &mrun));
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_put(r, &mrun2,
+	ret = recycler_put(r,
 		recycler_element_new(&pop->heap, &mrun2));
 	UT_ASSERTeq(ret, 0);
 
@@ -549,16 +549,16 @@ test_recycler(void)
 	struct memory_block mrun4_ret = MEMORY_BLOCK_NONE;
 	mrun4_ret.size_idx = 1;
 
-	ret = recycler_put(r, &mrun,
+	ret = recycler_put(r,
 		recycler_element_new(&pop->heap, &mrun));
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_put(r, &mrun2,
+	ret = recycler_put(r,
 		recycler_element_new(&pop->heap, &mrun2));
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_put(r, &mrun3,
+	ret = recycler_put(r,
 		recycler_element_new(&pop->heap, &mrun3));
 	UT_ASSERTeq(ret, 0);
-	ret = recycler_put(r, &mrun4,
+	ret = recycler_put(r,
 		recycler_element_new(&pop->heap, &mrun4));
 	UT_ASSERTeq(ret, 0);
 
@@ -579,7 +579,7 @@ test_recycler(void)
 	struct memory_block mrun5 = {1, 0, 1, 0};
 	memblock_rebuild_state(&pop->heap, &mrun5);
 
-	ret = recycler_put(r, &mrun5,
+	ret = recycler_put(r,
 		recycler_element_new(&pop->heap, &mrun5));
 	UT_ASSERTeq(ret, 0);
 

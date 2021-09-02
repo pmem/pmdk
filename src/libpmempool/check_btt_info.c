@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * check_btt_info.c -- check BTT Info
@@ -307,6 +307,9 @@ static int
 btt_info_checksum_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *ctx)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(ppc);
+
 	LOG(3, NULL);
 
 	ASSERTeq(ctx, NULL);
