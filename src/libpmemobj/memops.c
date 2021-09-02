@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * memops.c -- aggregated memory operations helper implementation
@@ -132,6 +132,10 @@ static int
 operation_transient_clean(void *base, const void *addr, size_t len,
 	unsigned flags)
 {
+	/* suppress unused-parameter errors */
+	(void) base;
+	(void) flags;
+
 	VALGRIND_SET_CLEAN(addr, len);
 
 	return 0;
@@ -143,6 +147,8 @@ operation_transient_clean(void *base, const void *addr, size_t len,
 static void
 operation_transient_drain(void *base)
 {
+	/* suppress unused-parameter errors */
+	(void) base;
 }
 
 /*
@@ -152,6 +158,10 @@ static void *
 operation_transient_memcpy(void *base, void *dest, const void *src, size_t len,
 	unsigned flags)
 {
+	/* suppress unused-parameter errors */
+	(void) base;
+	(void) flags;
+
 	return memcpy(dest, src, len);
 }
 

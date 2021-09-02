@@ -215,6 +215,9 @@ static int
 CTL_WRITE_HANDLER(desc)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+
 	PMEMobjpool *pop = ctx;
 	uint8_t id;
 	struct alloc_class_collection *ac = heap_alloc_classes(&pop->heap);
@@ -344,6 +347,9 @@ static int
 CTL_READ_HANDLER(desc)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+
 	PMEMobjpool *pop = ctx;
 	uint8_t id;
 
@@ -434,6 +440,10 @@ static int
 CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 
 	ssize_t arg_in = *(ssize_t *)arg;
@@ -462,6 +472,10 @@ static int
 CTL_READ_HANDLER(granularity)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 
 	ssize_t *arg_out = arg;
@@ -478,6 +492,10 @@ static int
 CTL_WRITE_HANDLER(granularity)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 
 	ssize_t arg_in = *(int *)arg;
@@ -501,6 +519,10 @@ static int
 CTL_READ_HANDLER(total)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	unsigned *narenas = arg;
 
@@ -516,6 +538,10 @@ static int
 CTL_READ_HANDLER(max)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	unsigned *max = arg;
 
@@ -531,6 +557,11 @@ static int
 CTL_WRITE_HANDLER(max)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	unsigned size = *(unsigned *)arg;
 
@@ -552,6 +583,10 @@ static int
 CTL_READ_HANDLER(automatic, narenas)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	unsigned *narenas = arg;
 
@@ -568,6 +603,10 @@ static int
 CTL_READ_HANDLER(arena_id)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	unsigned *arena_id = arg;
 
@@ -583,6 +622,10 @@ static int
 CTL_WRITE_HANDLER(arena_id)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	unsigned arena_id = *(unsigned *)arg;
 
@@ -613,6 +656,9 @@ static int
 CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 		void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+
 	PMEMobjpool *pop = ctx;
 	int arg_in = *(int *)arg;
 	unsigned arena_id;
@@ -649,6 +695,9 @@ static int
 CTL_READ_HANDLER(automatic)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+
 	PMEMobjpool *pop = ctx;
 	int *arg_out = arg;
 	unsigned arena_id;
@@ -691,6 +740,9 @@ static int
 CTL_READ_HANDLER(size)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+
 	PMEMobjpool *pop = ctx;
 	unsigned arena_id;
 	unsigned narenas;
@@ -738,6 +790,11 @@ static int
 CTL_RUNNABLE_HANDLER(create)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	unsigned *arena_id = arg;
 	struct palloc_heap *heap = &pop->heap;
@@ -806,6 +863,11 @@ static int
 CTL_WRITE_HANDLER(arenas_assignment_type)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	enum pobj_arenas_assignment_type *src = arg;
 
 	Default_arenas_assignment_type = *src;
@@ -821,6 +883,11 @@ static int
 CTL_READ_HANDLER(arenas_assignment_type)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	enum pobj_arenas_assignment_type *dest = arg;
 
 	*dest = Default_arenas_assignment_type;
@@ -868,6 +935,11 @@ static int
 CTL_READ_HANDLER(arenas_default_max)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	unsigned *max = arg;
 
 	*max = Default_arenas_max == -1 ?
@@ -884,6 +956,11 @@ static int
 CTL_WRITE_HANDLER(arenas_default_max)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	unsigned size = *(unsigned *)arg;
 
 	if (size == 0) {

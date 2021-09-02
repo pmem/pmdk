@@ -1167,6 +1167,9 @@ static inline int
 rpmem_fip_post_resp(struct rpmem_fip *fip,
 	struct rpmem_fip_plane *lanep)
 {
+	/* suppress unused-parameter errors */
+	(void) fip;
+
 	int ret = rpmem_fip_recvmsg(lanep->base.ep, &lanep->recv);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "posting recv buffer");

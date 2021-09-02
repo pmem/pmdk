@@ -497,6 +497,9 @@ out:
 void
 heap_bucket_release(struct palloc_heap *heap, struct bucket *b)
 {
+	/* suppress unused-parameter errors */
+	(void) heap;
+
 	util_mutex_unlock(&b->lock);
 }
 
@@ -611,6 +614,9 @@ static int
 heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 	const struct memory_block *m)
 {
+	/* suppress unused-parameter errors */
+	(void) heap;
+
 	int ret = 0;
 
 	ASSERTeq(m->type, MEMORY_BLOCK_RUN);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * ctl_prefault.c -- implementation of the prefault CTL namespace
@@ -14,6 +14,11 @@ static int
 CTL_READ_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	int *arg_out = arg;
 	*arg_out = Prefault_at_create;
 
@@ -24,6 +29,11 @@ static int
 CTL_WRITE_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	int arg_in = *(int *)arg;
 
 	Prefault_at_create = arg_in;
@@ -35,6 +45,11 @@ static int
 CTL_READ_HANDLER(at_open)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	int *arg_out = arg;
 	*arg_out = Prefault_at_open;
 
@@ -45,6 +60,11 @@ static int
 CTL_WRITE_HANDLER(at_open)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	int arg_in = *(int *)arg;
 
 	Prefault_at_open = arg_in;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2021, Intel Corporation */
 
 /*
  * stats.c -- implementation of statistics
@@ -29,6 +29,10 @@ CTL_READ_HANDLER(enabled)(void *ctx,
 	enum ctl_query_source source, void *arg,
 	struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 
 	enum pobj_stats_enabled *arg_out = arg;
@@ -80,6 +84,10 @@ CTL_WRITE_HANDLER(enabled)(void *ctx,
 	enum ctl_query_source source, void *arg,
 	struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 
 	pop->stats->enabled = *(enum pobj_stats_enabled *)arg;

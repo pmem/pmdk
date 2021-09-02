@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * ctl_cow.c -- implementation of the CTL copy on write namespace
@@ -17,6 +17,11 @@ static int
 CTL_READ_HANDLER(at_open)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	int *arg_out = arg;
 	*arg_out = COW_at_open;
 	return 0;
@@ -28,6 +33,11 @@ static int
 CTL_WRITE_HANDLER(at_open)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) ctx;
+	(void) source;
+	(void) indexes;
+
 	int arg_in = *(int *)arg;
 	COW_at_open = arg_in;
 	return 0;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * ctl_debug.c -- implementation of the debug CTL namespace
@@ -16,6 +16,10 @@ static int
 CTL_WRITE_HANDLER(alloc_pattern)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	int arg_in = *(int *)arg;
 
@@ -30,6 +34,10 @@ static int
 CTL_READ_HANDLER(alloc_pattern)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	/* suppress unused-parameter errors */
+	(void) source;
+	(void) indexes;
+
 	PMEMobjpool *pop = ctx;
 	int *arg_out = arg;
 
