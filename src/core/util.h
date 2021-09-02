@@ -96,7 +96,7 @@ int util_compare_file_inodes(const char *path1, const char *path2);
 int util_tmpfile(const char *dir, const char *templ, int flags);
 void *util_aligned_malloc(size_t alignment, size_t size);
 void util_aligned_free(void *ptr);
-struct tm *util_localtime(const time_t *timep);
+struct tm *util_localtime(const time_t *timep, struct tm *tm);
 int util_safe_strcpy(char *dst, const char *src, size_t max_length);
 void util_emit_log(const char *lib, const char *func, int order);
 char *util_readline(FILE *fh);
@@ -134,12 +134,23 @@ void util_set_alloc_funcs(
 #ifdef _MSC_VER
 #define force_inline inline __forceinline
 #define NORETURN __declspec(noreturn)
-#define barrier() _ReadWriteBarrier()
 #else
 #define force_inline __attribute__((always_inline)) inline
 #define NORETURN __attribute__((noreturn))
-#define barrier() asm volatile("" ::: "memory")
 #endif
+
+/*
+ * compiler_barrier -- issues a compiler barrier
+ */
+static force_inline void
+compiler_barrier(void)
+{
+#ifdef _MSC_VER
+	_ReadWriteBarrier();
+#else
+	asm volatile("" ::: "memory");
+#endif
+}
 
 #ifdef _MSC_VER
 typedef UNALIGNED uint64_t ua_uint64_t;

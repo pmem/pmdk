@@ -628,10 +628,10 @@ const char *
 check_get_time_str(time_t time)
 {
 	static char str_buff[STR_MAX] = {0, };
-	struct tm *tm = util_localtime(&time);
+	struct tm tm;
 
-	if (tm)
-		strftime(str_buff, STR_MAX, TIME_STR_FMT, tm);
+	if (util_localtime(&time, &tm))
+		strftime(str_buff, STR_MAX, TIME_STR_FMT, &tm);
 	else {
 		int ret = util_snprintf(str_buff, STR_MAX, "unknown");
 		if (ret < 0) {

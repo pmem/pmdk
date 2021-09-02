@@ -48,12 +48,12 @@ struct pi {
  * pi_task_construct -- task constructor
  */
 static int
-pi_task_construct(PMEMobjpool *pop, void *ptr, void *arg)
+pi_task_construct(PMEMobjpool *_pop, void *ptr, void *arg)
 {
 	struct pi_task *t = (struct pi_task *)ptr;
 	struct pi_task_proto *p = (struct pi_task_proto *)arg;
 	t->proto = *p;
-	pmemobj_persist(pop, t, sizeof(*t));
+	pmemobj_persist(_pop, t, sizeof(*t));
 
 	return 0;
 }
