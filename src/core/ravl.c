@@ -138,6 +138,9 @@ ravl_empty(struct ravl *ravl)
 static void
 ravl_node_insert_constructor(void *data, size_t data_size, const void *arg)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(data_size);
+
 	/* copy only the 'arg' pointer */
 	memcpy(data, &arg, sizeof(arg));
 }
@@ -483,8 +486,8 @@ ravl_node_predecessor(struct ravl_node *n)
  * derived from it, returns 1. Otherwise returns 0.
  */
 static int
-ravl_predicate_holds(struct ravl *ravl, int result, struct ravl_node **ret,
-	struct ravl_node *n, const void *data, enum ravl_predicate flags)
+ravl_predicate_holds(int result, struct ravl_node **ret,
+	struct ravl_node *n, enum ravl_predicate flags)
 {
 	if (flags & RAVL_PREDICATE_EQUAL) {
 		if (result == 0) {
@@ -526,7 +529,7 @@ ravl_find(struct ravl *ravl, const void *data, enum ravl_predicate flags)
 	struct ravl_node *n = ravl->root;
 	while (n) {
 		int result = ravl->compare(data, ravl_data(n));
-		if (ravl_predicate_holds(ravl, result, &r, n, data, flags))
+		if (ravl_predicate_holds(result, &r, n, flags))
 			return r;
 
 		n = n->slots[result > 0];

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * recycler.c -- implementation of run recycler
@@ -121,6 +121,9 @@ recycler_delete(struct recycler *r)
 struct recycler_element
 recycler_element_new(struct palloc_heap *heap, const struct memory_block *m)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(heap);
+
 	/*
 	 * Counting of the clear bits can race with a concurrent deallocation
 	 * that operates on the same run. This race is benign and has absolutely
@@ -148,8 +151,7 @@ recycler_element_new(struct palloc_heap *heap, const struct memory_block *m)
  * recycler_put -- inserts new run into the recycler
  */
 int
-recycler_put(struct recycler *r, const struct memory_block *m,
-	struct recycler_element element)
+recycler_put(struct recycler *r, struct recycler_element element)
 {
 	int ret = 0;
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * ulog.c -- unified log implementation
@@ -591,6 +591,9 @@ static int
 ulog_process_entry(struct ulog_entry_base *e, void *arg,
 	const struct pmem_ops *p_ops)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(arg);
+
 	ulog_entry_apply(e, 0, p_ops);
 
 	return 0;
@@ -708,7 +711,6 @@ ulog_clobber(struct ulog *dest, struct ulog_next *next,
  */
 int
 ulog_clobber_data(struct ulog *ulog_first,
-	size_t nbytes, size_t ulog_base_nbytes,
 	struct ulog_next *next, ulog_free_fn ulog_free,
 	ulog_rm_user_buffer_fn user_buff_remove,
 	const struct pmem_ops *p_ops, unsigned flags)
@@ -784,6 +786,9 @@ void
 ulog_process(struct ulog *ulog, ulog_check_offset_fn check,
 	const struct pmem_ops *p_ops)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(check);
+
 	LOG(15, "ulog %p", ulog);
 
 #ifdef DEBUG

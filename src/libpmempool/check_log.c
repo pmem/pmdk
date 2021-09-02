@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * check_log.c -- check pmemlog
@@ -55,6 +55,9 @@ log_read(PMEMpoolcheck *ppc)
 static int
 log_hdr_check(PMEMpoolcheck *ppc, location *loc)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(loc);
+
 	LOG(3, NULL);
 
 	CHECK_INFO(ppc, "checking pmemlog header");
@@ -115,6 +118,9 @@ error:
 static int
 log_hdr_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question, void *ctx)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(loc, ctx);
+
 	LOG(3, NULL);
 
 	uint64_t d_start_offset;

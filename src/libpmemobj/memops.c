@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * memops.c -- aggregated memory operations helper implementation
@@ -132,6 +132,9 @@ static int
 operation_transient_clean(void *base, const void *addr, size_t len,
 	unsigned flags)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(base, flags);
+
 	VALGRIND_SET_CLEAN(addr, len);
 
 	return 0;
@@ -143,6 +146,8 @@ operation_transient_clean(void *base, const void *addr, size_t len,
 static void
 operation_transient_drain(void *base)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(base);
 }
 
 /*
@@ -152,6 +157,9 @@ static void *
 operation_transient_memcpy(void *base, void *dest, const void *src, size_t len,
 	unsigned flags)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(base, flags);
+
 	return memcpy(dest, src, len);
 }
 
@@ -812,7 +820,6 @@ operation_finish(struct operation_context *ctx, unsigned flags)
 
 	if (ctx->type == LOG_TYPE_UNDO) {
 		int ret = ulog_clobber_data(ctx->ulog,
-			ctx->total_logged, ctx->ulog_base_nbytes,
 			&ctx->next, ctx->ulog_free,
 			operation_user_buffer_remove,
 			ctx->p_ops, flags);

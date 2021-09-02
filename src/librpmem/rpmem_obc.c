@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * rpmem_obc.c -- rpmem out-of-band connection client source file
@@ -267,6 +267,9 @@ static struct rpmem_msg_open *
 rpmem_obc_alloc_open_msg(const struct rpmem_req_attr *req,
 	const struct rpmem_pool_attr *pool_attr, size_t *msg_sizep)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(pool_attr);
+
 	size_t pool_desc_size = strlen(req->pool_desc) + 1;
 	size_t msg_size = sizeof(struct rpmem_msg_open) + pool_desc_size;
 	struct rpmem_msg_open *msg = malloc(msg_size);
