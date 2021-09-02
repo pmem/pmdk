@@ -36,9 +36,9 @@ int pmemset_file_dispose_pmem2_src(struct pmem2_source **pmem2_src);
 
 int pmemset_file_close(struct pmem2_source *pmem2_src);
 
-bool pmemset_file_get_truncate(struct pmemset_file *file);
+bool pmemset_file_get_grow(struct pmemset_file *file);
 
-int pmemset_file_truncate(struct pmemset_file *file, size_t len);
+int pmemset_file_grow(struct pmemset_file *file, size_t len);
 
 #ifndef _WIN32
 int pmemset_file_get_fd(struct pmemset_file *file);

@@ -108,10 +108,10 @@ pmemset_file_dispose_pmem2_src(struct pmem2_source **pmem2_src)
 }
 
 /*
- * pmemset_file_truncate -- truncate file from pmemset_file to a specified len
+ * pmemset_file_grow -- grow file from pmemset_file to a specified len
  */
 int
-pmemset_file_truncate(struct pmemset_file *file, size_t len)
+pmemset_file_grow(struct pmemset_file *file, size_t len)
 {
 	int fd = pmemset_file_get_fd(file);
 	int ret = os_ftruncate(fd, (os_off_t)len);

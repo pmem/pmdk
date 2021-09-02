@@ -195,13 +195,36 @@ class TEST23(PMEMSET_PART):
 
 
 class TEST24(PMEMSET_PART):
-    """create a new part from a file source with truncate flag and map it"""
-    test_case = "test_part_map_source_truncate"
+    """
+    Create a new part from a file source with do_not_grow flag set
+    and map it.
+    """
+    test_case = "test_part_map_source_do_not_grow"
     path_only = True
     create_file = False
 
 
 class TEST25(PMEMSET_PART):
+    """
+    Create a new part from a file source with do_not_grow flag set
+    and pmemset_map_config_length unset and map it.
+    """
+    test_case = "test_part_map_source_do_not_grow_len_unset"
+    path_only = True
+    create_file = False
+
+
+class TEST26(PMEMSET_PART):
+    """
+    Create a new part from a file source with do_not_grow flag unset
+    and pmemset_map_config_length unset and map it.
+    """
+    test_case = "test_part_map_source_len_unset"
+    path_only = True
+    create_file = False
+
+
+class TEST27(PMEMSET_PART):
     """
     Map two parts to the pmemset, iterate over the set to get mappings'
     regions. Select a region that encrouches on both of those mappings with
@@ -210,7 +233,7 @@ class TEST25(PMEMSET_PART):
     test_case = "test_remove_two_ranges"
 
 
-class TEST26(PMEMSET_PART):
+class TEST28(PMEMSET_PART):
     """
     Create two coalesced mappings, each composed of two parts, iterate over the
     set to get mappings' regions. Select a region that encrouches on both of
@@ -219,7 +242,7 @@ class TEST26(PMEMSET_PART):
     test_case = "test_remove_coalesced_two_ranges"
 
 
-class TEST27(PMEMSET_PART):
+class TEST29(PMEMSET_PART):
     """
     Create coalesced mapping composed of three parts, iterate over the set
     to get mapping's region. Select a region that encrouches only on the part
@@ -228,14 +251,14 @@ class TEST27(PMEMSET_PART):
     test_case = "test_remove_coalesced_middle_range"
 
 
-class TEST28(PMEMSET_PART_ASYNC):
+class TEST30(PMEMSET_PART_ASYNC):
     """asynchronously map new and remove multiple parts to the pmemset"""
     test_case = "test_pmemset_async_map_remove_multiple_part_maps"
     threads = 32
     ops_per_thread = 1000
 
 
-class TEST29(PMEMSET_PART):
+class TEST31(PMEMSET_PART):
     """
     create coalesced mapping composed of five parts, remove pmemset range two
     times to divide initial mapping into three mappings, remove all three
@@ -244,7 +267,7 @@ class TEST29(PMEMSET_PART):
     test_case = "test_divide_coalesced_remove_obtained_pmaps"
 
 
-class TEST30(PMEMSET_PART):
+class TEST32(PMEMSET_PART):
     """
     create a pmem2 vm reservation with the size of three files and set it in
     the pmemset config, map three files to the pmemset
@@ -252,7 +275,7 @@ class TEST30(PMEMSET_PART):
     test_case = "test_part_map_with_set_reservation"
 
 
-class TEST31(PMEMSET_PART):
+class TEST33(PMEMSET_PART):
     """
     create a pmem2 vm reservation with the size of three files and set it in
     the pmemset config, turn on full coalescing and map three files to the
@@ -261,7 +284,7 @@ class TEST31(PMEMSET_PART):
     test_case = "test_part_map_coalesce_with_set_reservation"
 
 
-class TEST32(PMEMSET_PART):
+class TEST34(PMEMSET_PART):
     """
     create a pmem2 vm reservation with half the size of one file and set it in
     the pmemset config, try to map a part to the pmemset
@@ -269,7 +292,7 @@ class TEST32(PMEMSET_PART):
     test_case = "test_part_map_with_set_reservation_too_small"
 
 
-class TEST33(PMEMSET_PART):
+class TEST35(PMEMSET_PART):
     """
     create a pmem2 vm reservation with the size of three files and set it in
     the pmemset config, map six parts with half the size of one file, remove

@@ -1623,7 +1623,7 @@ test_part_map_invalid_source_temp(const struct test_case *tc, int argc,
 	ut_create_map_config(&map_cfg, set, 0, SIZE_MAX);
 
 	ret = pmemset_map(src, map_cfg, NULL);
-	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_GROW_SOURCE_FILE);
 
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -1638,15 +1638,15 @@ test_part_map_invalid_source_temp(const struct test_case *tc, int argc,
 }
 
 /*
- * test_part_map_source_truncate - create a new part from a file source
- *                                    with truncate flag
+ * test_part_map_source_do_not_grow - create a new part from a file source
+ *                                    with do_not_grow flag
  */
 static int
-test_part_map_source_truncate(const struct test_case *tc, int argc,
+test_part_map_source_do_not_grow(const struct test_case *tc, int argc,
 		char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: test_part_map_source_truncate <file>");
+		UT_FATAL("usage: test_part_map_source_do_not_grow <file>");
 
 	const char *file = argv[0];
 	struct pmemset_map_config *map_cfg;
@@ -1660,7 +1660,8 @@ test_part_map_source_truncate(const struct test_case *tc, int argc,
 	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	unsigned flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED;
+	unsigned flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED | \
+		PMEMSET_SOURCE_FILE_DO_NOT_GROW;
 	ret = pmemset_xsource_from_file(&src, file, flags);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
@@ -1672,24 +1673,32 @@ test_part_map_source_truncate(const struct test_case *tc, int argc,
 	ret = os_stat(file, &st);
 	UT_ASSERTeq(ret, 0);
 
+	/* the source file is empty */
 	os_off_t size = st.st_size;
 	UT_ASSERT(size == 0);
 
 	ut_create_map_config(&map_cfg, set, 0, part_size);
 
-	/* is should failed - size of file is too small  */
+	/* it should fail - size of file equals zero and cannot grow */
 	ret = pmemset_map(src, map_cfg, NULL);
-	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_PMEM2_MAP);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL);
 
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-
 	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	/* try the same with truncate option */
-	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED | \
-		PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED;
+	/* try the same without do_not_grow option */
+	ut_create_set_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED;
 	ret = pmemset_xsource_from_file(&src, file, flags);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
@@ -1701,9 +1710,13 @@ test_part_map_source_truncate(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ASSERTeq(desc.size, part_size);
 
+	ret = os_access(file, F_OK);
+	UT_ASSERTeq(ret, 0);
+
 	ret = os_stat(file, &st);
 	UT_ASSERTeq(ret, 0);
 
+	/* the size of file has grown */
 	size = st.st_size;
 	UT_ASSERT(size == part_size);
 
@@ -1721,6 +1734,155 @@ test_part_map_source_truncate(const struct test_case *tc, int argc,
 
 	size = st.st_size;
 	UT_ASSERT(size == part_size * 2);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_map_config_delete(&map_cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* try the same with do_not_grow set again and a larger part_size */
+	ut_create_set_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED | \
+		PMEMSET_SOURCE_FILE_DO_NOT_GROW;
+	ret = pmemset_xsource_from_file(&src, file, flags);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	ret = os_access(file, F_OK);
+	UT_ASSERTeq(ret, 0);
+
+	ret = os_stat(file, &st);
+	UT_ASSERTeq(ret, 0);
+
+	size = st.st_size;
+	UT_ASSERT(size == part_size * 2);
+
+	ut_create_map_config(&map_cfg, set, 0, part_size * 4);
+
+	/* it should fail - file is not empty but its size is too small */
+	ret = pmemset_map(src, map_cfg, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_map_config_delete(&map_cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
+/*
+ * test_part_map_source_do_not_grow_len_unset - create a new part from
+ * a file source with do_not_grow flag set and pmemset_map_config_length unset.
+ */
+static int
+test_part_map_source_do_not_grow_len_unset(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_source_do_not_grow_len_unset \
+		         <file>");
+
+	const char *file = argv[0];
+	struct pmemset_map_config *map_cfg;
+	struct pmemset_source *src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	unsigned flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED | \
+		PMEMSET_SOURCE_FILE_DO_NOT_GROW;
+
+	ut_create_set_config(&cfg);
+
+	int ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_xsource_from_file(&src, file, flags);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	ret = os_access(file, F_OK);
+	UT_ASSERTeq(ret, 0);
+
+	os_stat_t st;
+	ret = os_stat(file, &st);
+	UT_ASSERTeq(ret, 0);
+
+	os_off_t size = st.st_size;
+	UT_ASSERT(size == 0);
+
+	ut_create_map_config(&map_cfg, set, 0, 0);
+
+	/* it should fail - map config length is unset */
+	ret = pmemset_map(src, map_cfg, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_MAP_LENGTH_UNSET);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_map_config_delete(&map_cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
+/*
+ * test_part_map_source_len_unset - create a new part from
+ * file source with do_not_grow flag unset and pmemset_map_config_length unset.
+ */
+static int
+test_part_map_source_len_unset(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_source_do_not_grow_len_unset \
+		         <file>");
+
+	const char *file = argv[0];
+	struct pmemset_map_config *map_cfg;
+	struct pmemset_source *src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	unsigned flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED;
+
+	ut_create_set_config(&cfg);
+
+	int ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_xsource_from_file(&src, file, flags);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	ret = os_access(file, F_OK);
+	UT_ASSERTeq(ret, 0);
+
+	os_stat_t st;
+	ret = os_stat(file, &st);
+	UT_ASSERTeq(ret, 0);
+
+	os_off_t size = st.st_size;
+	UT_ASSERT(size == 0);
+
+	ut_create_map_config(&map_cfg, set, 0, 0);
+
+	/* it should fail - map config length is unset */
+	ret = pmemset_map(src, map_cfg, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_MAP_LENGTH_UNSET);
 
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -2616,7 +2778,9 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_remove_multiple_part_maps),
 	TEST_CASE(test_part_map_valid_source_temp),
 	TEST_CASE(test_part_map_invalid_source_temp),
-	TEST_CASE(test_part_map_source_truncate),
+	TEST_CASE(test_part_map_source_do_not_grow),
+	TEST_CASE(test_part_map_source_do_not_grow_len_unset),
+	TEST_CASE(test_part_map_source_len_unset),
 	TEST_CASE(test_remove_two_ranges),
 	TEST_CASE(test_remove_coalesced_two_ranges),
 	TEST_CASE(test_remove_coalesced_middle_range),
