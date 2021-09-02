@@ -398,15 +398,15 @@ test_src_from_temporary_no_del(const struct test_case *tc, int argc,
 }
 
 /*
- * test_src_from_file_with_truncate - test source creation with
- * PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED flag.
+ * test_src_from_file_with_do_not_grow - test source creation with
+ * PMEMSET_SOURCE_FILE_DO_NOT_GROW flag.
  */
 static int
-test_src_from_file_with_truncate(const struct test_case *tc, int argc,
+test_src_from_file_with_do_not_grow(const struct test_case *tc, int argc,
 		char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: test_src_from_file_with_truncate "
+		UT_FATAL("usage: test_src_from_file_with_do_not_grow "
 			"<path>");
 
 	const char *file = argv[0];
@@ -416,7 +416,7 @@ test_src_from_file_with_truncate(const struct test_case *tc, int argc,
 	os_stat_t st;
 
 	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED | \
-		PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED;
+		PMEMSET_SOURCE_FILE_DO_NOT_GROW;
 	int ret = pmemset_xsource_from_file(&src, file, flags);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
@@ -453,7 +453,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_src_from_temporary_valid),
 	TEST_CASE(test_src_from_temporary_inval_dir),
 	TEST_CASE(test_src_from_temporary_no_del),
-	TEST_CASE(test_src_from_file_with_truncate),
+	TEST_CASE(test_src_from_file_with_do_not_grow),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
