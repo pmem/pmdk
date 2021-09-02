@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * out.c -- support for logging, tracing, and assertion output
@@ -142,6 +142,9 @@ out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(log_level_var, log_file_var);
+
 	static int once;
 
 	/* only need to initialize the out module once */
@@ -474,6 +477,9 @@ out_error(const char *file, int line, const char *func,
 
 		Print(buf);
 	}
+#else
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(file, line, func, suffix);
 #endif
 
 end:

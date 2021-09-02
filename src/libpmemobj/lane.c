@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * lane.c -- lane implementation
@@ -87,6 +87,9 @@ lane_info_ht_boot(void)
 static inline void
 lane_info_ht_destroy(void *ht)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(ht);
+
 	lane_info_delete();
 }
 
@@ -242,6 +245,9 @@ error_internal_new:
 static void
 lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(pop);
+
 	operation_delete(lane->undo);
 	operation_delete(lane->internal);
 	operation_delete(lane->external);

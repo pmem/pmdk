@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * check_blk.c -- check pmemblk
@@ -105,6 +105,9 @@ blk_bsize_valid(uint32_t bsize, uint64_t fsize)
 static int
 blk_hdr_check(PMEMpoolcheck *ppc, location *loc)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(loc);
+
 	LOG(3, NULL);
 
 	CHECK_INFO(ppc, "checking pmemblk header");
@@ -150,6 +153,9 @@ blk_hdr_check(PMEMpoolcheck *ppc, location *loc)
 static int
 blk_hdr_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question, void *ctx)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(loc, ctx);
+
 	LOG(3, NULL);
 
 	uint32_t btt_bsize;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * feature.c -- implementation of pmempool_feature_(enable|disable|query)()
@@ -370,6 +370,9 @@ unsupported_feature(features_t feature)
 static int
 enable_singlehdr(const char *path)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(path);
+
 	return unsupported_feature(f_singlehdr);
 }
 
@@ -379,6 +382,9 @@ enable_singlehdr(const char *path)
 static int
 disable_singlehdr(const char *path)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(path);
+
 	return unsupported_feature(f_singlehdr);
 }
 
