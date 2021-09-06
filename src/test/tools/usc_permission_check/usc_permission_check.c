@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 	}
 
 	uint64_t usc;
-	int fd = os_open(argv[0], O_RDONLY);
+	int fd = os_open(argv[1], O_RDONLY);
 
 	if (fd < 0) {
 		perror("open");

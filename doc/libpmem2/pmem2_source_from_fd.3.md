@@ -55,7 +55,7 @@ If *fd* is invalid, then the function fails.
 
 The **pmem2_source_from_handle**() function validates the handle and instantiates
 a new *struct pmem2_source** object describing the data source.
-If *handle* is INVALID_HANDLE_VALUE, then the function fails.
+If *handle* is *INVALID_HANDLE_VALUE*, then the function fails.
 The handle has to be created with an access mode of *GENERIC_READ* or
 *(GENERIC_READ | GENERIC_WRITE)*. For details please see the **CreateFile**()
 documentation.
@@ -64,10 +64,14 @@ The **pmem2_source_delete**() function frees *\*src* returned by **pmem2_source_
 
 # RETURN VALUE #
 
-**pmem2_source_from_fd**() and **pmem2_source_from_handle**() functions return 0 on success or one of the error values listed in the next section.
+The **pmem2_source_from_fd**() and **pmem2_source_from_handle**() functions return 0 on success
+or a negative error code on failure.
+
+The **pmem2_source_delete**() function always returns 0.
 
 # ERRORS #
-The **pmem2_source_from_fd**() function can return the following errors:
+
+The **pmem2_source_from_[fd|handle]**() function can fail with the following errors:
 
  * **PMEM2_E_INVALID_FILE_HANDLE** - *fd* is not an open and valid file descriptor. On Windows the function can **abort**() on this failure based on CRT's abort() behavior.
 
@@ -101,5 +105,5 @@ On non-DAX Windows volumes, *fd*/*handle* must remain open while the mapping
 is in use.
 
 # SEE ALSO #
-**errno**(3), **pmem2_map**(3), **libpmem2**(7)
+**errno**(3), **pmem2_map_new**(3), **libpmem2**(7)
 and **<http://pmem.io>**

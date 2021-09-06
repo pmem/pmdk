@@ -4,20 +4,20 @@
 
 #
 # build-local.sh - runs a Docker container from a Docker image with environment
-#                  prepared for building PMDK project and starts building PMDK
+#                  prepared for building PMDK project and starts building PMDK.
 #
-# this script is for building PMDK locally (not on Travis)
+# This script is for building PMDK locally (not on CI).
 #
 # Notes:
 # - run this script from its location or set the variable 'HOST_WORKDIR' to
-#   where the root of the PMDK project is on the host machine,
+#   where the root of the PMDK project is on the host machine.
 # - set variables 'OS' and 'OS_VER' properly to a system you want to build PMDK
 #   on (for proper values take a look on the list of Dockerfiles at the
 #   utils/docker/images directory), eg. OS=ubuntu, OS_VER=16.04.
 # - set 'KEEP_TEST_CONFIG' variable to 1 if you do not want the tests to be
-#   reconfigured (your current test configuration will be preserved and used)
+#   reconfigured (your current test configuration will be preserved and used).
 # - tests with Device Dax are not supported by pcheck yet, so do not provide
-#   these devices in your configuration
+#   these devices in your configuration.
 #
 
 set -e
@@ -51,7 +51,7 @@ if [[ "$KEEP_CONTAINER" != "1" ]]; then
 	RM_SETTING=" --rm"
 fi
 
-imageName=${DOCKERHUB_REPO}:1.9-${OS}-${OS_VER}-${CI_CPU_ARCH}
+imageName=${DOCKERHUB_REPO}:1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 1 ]] ; then

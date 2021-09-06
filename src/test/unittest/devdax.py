@@ -17,7 +17,19 @@ import tools
 
 class DevDax():
     """
-    Class representing dax device and its parameters
+    Class representing dax device and its parameters.
+
+    Attributes:
+        name (str): name of the DevDax object by which it is
+            accessible from DaxDevices class
+        path (str): path to device
+        _req_alignment (int): required dax device alignment
+        _req_min_size (int): required dax device minimal size
+        _req_max_size (int): required dax device maximal size
+        assigned (bool): True, if object was successfully assigned
+            to real dax device that fulfills its requirements,
+            False otherwise
+
     """
     def __init__(self, name, alignment=None, min_size=None, max_size=None):
         self.name = name
@@ -58,8 +70,15 @@ class DevDax():
 
 class DevDaxes():
     """
-    Dax device context class representing a set of dax devices required
-    for test
+    Dax device context element class representing a set of dax devices required
+    for the test.
+
+    Attributes:
+        dax_devices (tuple): set of dax devices (DevDax objects)
+            which are required by the test.
+            Each DevDax is accessible from DaxDevices
+            as an attribute through its name
+
     """
     check_fs_exec = False
 
@@ -91,7 +110,21 @@ class DevDaxes():
 
     @classmethod
     def filter(cls, config, msg, tc):
+        """
+        Initialize DevDaxes class for the test to be run
+        based on configuration and test requirements.
 
+        Args:
+            config: configuration as returned by Configurator class
+            msg (Message): level based logger class instance
+            tc (BaseTest): test case, from which the dax device run
+                requirements are obtained
+
+        Returns:
+            Initialized DevDaxes class as single element list for type
+            compliance
+
+        """
         dax_devices, _ = ctx.get_requirement(tc, 'devdax', ())
         cls.check_fs_exec, kwargs = ctx.get_requirement(tc, 'require_fs_exec',
                                                         None)
@@ -121,7 +154,7 @@ class DevDaxes():
             raise futils.Skip('Dax devices in test configuration do not '
                               'meet test requirements')
 
-        return [DevDaxes(*assigned), ]
+        return [DevDaxes(*assigned)]
 
 
 def _try_assign_by_requirements(configured, required):
@@ -155,6 +188,15 @@ def _try_assign_by_requirements(configured, required):
 
 
 def require_devdax(*dax_devices, **kwargs):
+    """
+    Add requirement to run test on specified dax devices.
+
+    Used as a test class decorator.
+
+    Args:
+        dax_devices: variable length list of initialized DevDax objects
+        kwargs: optional keyword arguments
+    """
     def wrapped(tc):
         ctx.add_requirement(tc, 'devdax', tuple(dax_devices), **kwargs)
         return tc

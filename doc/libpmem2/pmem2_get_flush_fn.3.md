@@ -63,12 +63,12 @@ those mappings.
 
 The **pmem2_get_flush_fn**() function never returns NULL.
 
-**pmem2_get_flush_fn**() for the same *map* always returns the same function.
+The **pmem2_get_flush_fn**() for the same *map* always returns the same function.
 This means that it's safe to cache its return value. However, this function
 is very cheap (because it returns a precomputed value), so caching may not
 be necessary.
 
 # SEE ALSO #
 
-**pmem2_get_drain_fn**(3), **pmem2_get_persist_fn**(3), **pmem2_map**(3),
+**pmem2_get_drain_fn**(3), **pmem2_get_persist_fn**(3), **pmem2_map_new**(3),
 **libpmem2**(7) and **<http://pmem.io>**

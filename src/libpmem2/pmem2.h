@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * pmem2.h -- internal definitions for libpmem2

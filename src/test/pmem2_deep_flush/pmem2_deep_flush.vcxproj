@@ -77,9 +77,14 @@
   <ItemGroup>
     <ClCompile Include="..\..\libpmem2\deep_flush.c" />
     <ClCompile Include="..\..\libpmem2\deep_flush_windows.c" />
+    <ClCompile Include="..\..\libpmem2\errormsg.c" />
     <ClCompile Include="..\..\libpmem2\memops_generic.c" />
     <ClCompile Include="..\..\libpmem2\persist.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="pmem2_deep_flush.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\unittest\ut_pmem2_utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

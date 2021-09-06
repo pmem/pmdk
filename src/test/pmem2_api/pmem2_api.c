@@ -16,7 +16,7 @@ static struct pmem2_map *
 map_valid(struct pmem2_config *cfg, struct pmem2_source *src, size_t size)
 {
 	struct pmem2_map *map = NULL;
-	PMEM2_MAP(cfg, src, &map);
+	pmem2_map_new(&map, cfg, src);
 	UT_ASSERTeq(pmem2_map_get_size(map), size);
 
 	return map;
@@ -62,7 +62,7 @@ test_pmem2_api_logs(const struct test_case *tc, int argc,
 	UT_ASSERTeq(strcmp(addr, word3), 0);
 
 	/* cleanup after the test */
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
 	CLOSE(fd);

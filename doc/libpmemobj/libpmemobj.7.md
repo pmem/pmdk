@@ -8,7 +8,7 @@ date: pmemobj API version 2.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2019, Intel Corporation)
+[comment]: <> (Copyright 2016-2020, Intel Corporation)
 
 [comment]: <> (libpmemobj.7 -- man page for libpmemobj)
 
@@ -16,7 +16,7 @@ date: pmemobj API version 2.3
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
-[MANAGING LIBRARY BEHAVIOR](#managing-library-behavior)<br />
+[MANAGING LIBRARY BEHAVIOR](#managing-library-behavior-1)<br />
 [DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />

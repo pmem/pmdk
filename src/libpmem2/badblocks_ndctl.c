@@ -8,6 +8,7 @@
 
 #include <sys/types.h>
 #include <libgen.h>
+#include <linux/falloc.h>
 #include <limits.h>
 #include <string.h>
 #include <stdio.h>
@@ -246,10 +247,11 @@ out_ars_cap:
  * pmem2_badblock_context_new -- allocate and create a new bad block context
  */
 int
-pmem2_badblock_context_new(const struct pmem2_source *src,
-	struct pmem2_badblock_context **bbctx)
+pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
+	const struct pmem2_source *src)
 {
 	LOG(3, "src %p bbctx %p", src, bbctx);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bbctx, NULL);
 
@@ -361,6 +363,7 @@ void
 pmem2_badblock_context_delete(struct pmem2_badblock_context **bbctx)
 {
 	LOG(3, "bbctx %p", bbctx);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bbctx, NULL);
 
@@ -528,6 +531,7 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 			struct pmem2_badblock *bb)
 {
 	LOG(3, "bbctx %p bb %p", bbctx, bb);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bbctx, NULL);
 	ASSERTne(bb, NULL);
@@ -537,13 +541,13 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	unsigned long long bb_end;
 	unsigned long long bb_len;
 	unsigned long long bb_off;
-	unsigned long long ext_beg;
-	unsigned long long ext_end;
+	unsigned long long ext_beg = 0; /* placate compiler warnings */
+	unsigned long long ext_end = -1ULL;
 	unsigned e;
 	int ret;
 
 	if (bbctx->rgn.region == NULL && bbctx->ndns == NULL) {
-		/* did not found any matching device */
+		ERR("Cannot find any matching device, no bad blocks found");
 		return PMEM2_E_NO_BAD_BLOCK_FOUND;
 	}
 
@@ -673,6 +677,7 @@ static int
 pmem2_badblock_clear_fsdax(int fd, const struct pmem2_badblock *bb)
 {
 	LOG(3, "fd %i badblock %p", fd, bb);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bb, NULL);
 
@@ -752,6 +757,7 @@ pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 			const struct pmem2_badblock *bb)
 {
 	LOG(3, "bbctx %p badblock %p", bbctx, bb);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bbctx, NULL);
 	ASSERTne(bb, NULL);

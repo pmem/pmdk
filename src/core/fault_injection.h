@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2019-2020, Intel Corporation */
 
 #ifndef CORE_FAULT_INJECTION

@@ -32,7 +32,7 @@ test_cfg_create_and_delete_valid(const struct test_case *tc, int argc,
 }
 
 /*
- * test_cfg_alloc_enomem - test pmem2_config allocation with error injection
+ * test_alloc_cfg_enomem - test pmem2_config allocation with error injection
  */
 static int
 test_alloc_cfg_enomem(const struct test_case *tc, int argc, char *argv[])
@@ -144,7 +144,7 @@ test_set_offset_success(const struct test_case *tc, int argc, char *argv[])
 	/* let's try to successfully set the offset */
 	size_t offset = Ut_mmap_align;
 	int ret = pmem2_config_set_offset(&cfg, offset);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(cfg.offset, offset);
 
 	return 0;
@@ -161,7 +161,7 @@ test_set_length_success(const struct test_case *tc, int argc, char *argv[])
 	/* let's try to successfully set the length, can be any length */
 	size_t length = Ut_mmap_align;
 	int ret = pmem2_config_set_length(&cfg, length);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(cfg.length, length);
 
 	return 0;
@@ -178,7 +178,7 @@ test_set_offset_max(const struct test_case *tc, int argc, char *argv[])
 	/* let's try to successfully set maximum possible offset */
 	size_t offset = (INT64_MAX / Ut_mmap_align) * Ut_mmap_align;
 	int ret = pmem2_config_set_offset(&cfg, offset);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	return 0;
 }
@@ -196,7 +196,7 @@ test_set_sharing_valid(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(cfg.sharing, PMEM2_SHARED);
 
 	int ret = pmem2_config_set_sharing(&cfg, PMEM2_PRIVATE);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(cfg.sharing, PMEM2_PRIVATE);
 
 	return 0;
@@ -212,99 +212,7 @@ test_set_sharing_invalid(const struct test_case *tc, int argc, char *argv[])
 
 	unsigned invalid_sharing = 777;
 	int ret = pmem2_config_set_sharing(&cfg, invalid_sharing);
-	UT_ASSERTeq(ret, PMEM2_E_INVALID_SHARING_VALUE);
-
-	return 0;
-}
-
-/*
- * test_validate_unaligned_addr - setting unaligned addr and validating it
- */
-static int
-test_validate_unaligned_addr(const struct test_case *tc, int argc,
-		char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_validate_unaligned_addr <file>");
-
-	/* needed for source alignment */
-	char *file = argv[0];
-	int fd = OPEN(file, O_RDWR);
-
-	struct pmem2_source *src;
-	PMEM2_SOURCE_FROM_FD(&src, fd);
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-
-	/* let's set addr which is unaligned */
-	cfg.addr = (char *)1;
-
-	int ret = pmem2_config_validate_addr_alignment(&cfg, src);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_ADDRESS_UNALIGNED);
-
-	PMEM2_SOURCE_DELETE(&src);
-	CLOSE(fd);
-
-	return 1;
-}
-
-/*
- * test_set_wrong_addr_req_type - setting wrong addr request type
- */
-static int
-test_set_wrong_addr_req_type(const struct test_case *tc, int argc,
-		char *argv[])
-{
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-
-	/* "randomly" chosen invalid addr request type */
-	enum pmem2_address_request_type request_type = 999;
-	int ret = pmem2_config_set_address(&cfg, NULL, request_type);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE);
-
-	return 0;
-}
-
-/*
- * test_null_addr_noreplace - setting null addr when request type
- * PMEM2_ADDRESS_FIXED_NOREPLACE is used
- */
-static int
-test_null_addr_noreplace(const struct test_case *tc, int argc,
-		char *argv[])
-{
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-
-	int ret = pmem2_config_set_address(
-			&cfg, NULL, PMEM2_ADDRESS_FIXED_NOREPLACE);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_ADDRESS_NULL);
-
-	return 0;
-}
-
-/*
- * test_clear_address - using pmem2_config_clear_address func
- */
-static int
-test_clear_address(const struct test_case *tc, int argc,
-		char *argv[])
-{
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-
-	/* "randomly" chosen value of address and addr request type */
-	void *addr = (void *)(1024 * 1024);
-	int ret = pmem2_config_set_address(
-			&cfg, addr, PMEM2_ADDRESS_FIXED_NOREPLACE);
-	UT_ASSERTeq(ret, 0);
-	UT_ASSERTne(cfg.addr, NULL);
-	UT_ASSERTne(cfg.addr_request, PMEM2_ADDRESS_ANY);
-
-	pmem2_config_clear_address(&cfg);
-	UT_ASSERTeq(cfg.addr, NULL);
-	UT_ASSERTeq(cfg.addr_request, PMEM2_ADDRESS_ANY);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_SHARING_VALUE);
 
 	return 0;
 }
@@ -320,20 +228,20 @@ test_set_valid_prot_flag(const struct test_case *tc, int argc,
 	pmem2_config_init(&cfg);
 
 	int ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_READ);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_WRITE);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_EXEC);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_NONE);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_config_set_protection(&cfg,
 			PMEM2_PROT_WRITE | PMEM2_PROT_READ | PMEM2_PROT_EXEC);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	return 0;
 }
@@ -370,10 +278,6 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_offset_max),
 	TEST_CASE(test_set_sharing_valid),
 	TEST_CASE(test_set_sharing_invalid),
-	TEST_CASE(test_validate_unaligned_addr),
-	TEST_CASE(test_set_wrong_addr_req_type),
-	TEST_CASE(test_null_addr_noreplace),
-	TEST_CASE(test_clear_address),
 	TEST_CASE(test_set_valid_prot_flag),
 	TEST_CASE(test_set_invalid_prot_flag),
 };

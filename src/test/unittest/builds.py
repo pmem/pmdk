@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 """Build context classes"""
 
@@ -7,6 +7,7 @@ import sys
 
 import context as ctx
 import futils
+import consts as c
 
 
 class Build(metaclass=ctx.CtxType):
@@ -39,8 +40,8 @@ class Debug(Build):
 
     def __init__(self):
         if sys.platform == 'win32':
-            self.exedir = futils.WIN_DEBUG_EXEDIR
-        self.libdir = futils.DEBUG_LIBDIR
+            self.exedir = c.WIN_DEBUG_EXEDIR
+        self.libdir = c.DEBUG_LIBDIR
         self.set_env_common()
 
 
@@ -50,8 +51,8 @@ class Release(Build):
 
     def __init__(self):
         if sys.platform == 'win32':
-            self.exedir = futils.WIN_RELEASE_EXEDIR
-        self.libdir = futils.RELEASE_LIBDIR
+            self.exedir = c.WIN_RELEASE_EXEDIR
+        self.libdir = c.RELEASE_LIBDIR
         self.set_env_common()
 
 
@@ -62,14 +63,14 @@ if sys.platform != 'win32':
 
         def __init__(self):
             self.exesuffix = '.static-debug'
-            self.libdir = futils.DEBUG_LIBDIR
+            self.libdir = c.DEBUG_LIBDIR
 
     class Static_Release(Build):
         """Set this context for a static_release build"""
 
         def __init__(self):
             self.exesuffix = '.static-nondebug'
-            self.libdir = futils.RELEASE_LIBDIR
+            self.libdir = c.RELEASE_LIBDIR
 
 
 def require_build(build, **kwargs):

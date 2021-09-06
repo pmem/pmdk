@@ -92,7 +92,7 @@ poolset_close(struct pool_set *set)
  * features_check -- (internal) check if features are correct
  */
 static int
-features_check(features_t *features, struct pool_hdr *hdrp)
+features_check(features_t *f, struct pool_hdr *hdrp)
 {
 	static char msg[FEATURE_MAXPRINT];
 
@@ -100,16 +100,16 @@ features_check(features_t *features, struct pool_hdr *hdrp)
 	memcpy(&hdr, hdrp, sizeof(hdr));
 	util_convert2h_hdr_nocheck(&hdr);
 
-	/* (features != f_invlaid) <=> features is set */
-	if (!util_feature_cmp(*features, f_invalid)) {
+	/* (f != f_invlaid) <=> features is set */
+	if (!util_feature_cmp(*f, f_invalid)) {
 		/* features from current and previous headers have to match */
-		if (!util_feature_cmp(*features, hdr.features)) {
+		if (!util_feature_cmp(*f, hdr.features)) {
 			size_t pos = 0;
 			if (buff_concat_features(msg, &pos, hdr.features))
 				goto err;
 			if (buff_concat(msg, &pos, "%s", " != "))
 				goto err;
-			if (buff_concat_features(msg, &pos, *features))
+			if (buff_concat_features(msg, &pos, *f))
 				goto err;
 			ERR("features mismatch detected: %s", msg);
 			return -1;
@@ -123,7 +123,7 @@ features_check(features_t *features, struct pool_hdr *hdrp)
 
 	/* all features are known */
 	if (util_feature_is_zero(unknown)) {
-		memcpy(features, &hdr.features, sizeof(*features));
+		memcpy(f, &hdr.features, sizeof(*f));
 		return 0;
 	}
 
@@ -168,7 +168,7 @@ static struct pool_set *
 poolset_open(const char *path, int rdonly)
 {
 	struct pool_set *set;
-	features_t features = FEAT_INVALID;
+	features_t f = FEAT_INVALID;
 
 	/* read poolset */
 	int ret = util_poolset_create_set(&set, path, 0, 0, true);
@@ -200,7 +200,7 @@ poolset_open(const char *path, int rdonly)
 				goto err_map_hdr;
 			}
 
-			if (features_check(&features, HDR(rep, p))) {
+			if (features_check(&f, HDR(rep, p))) {
 				ERR(
 					"invalid features - replica #%d part #%d",
 					r, p);

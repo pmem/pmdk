@@ -39,6 +39,7 @@ for details. The *\length* must be a multiple of the alignment required for the 
 source which will be used for mapping alongside the config.
 To retrieve the alignment required for specific instance of *pmem2_source** use
 **pmem2_source_alignment**(3).
+By default, the length is equal to the size of the file that is being mapped.
 
 # RETURN VALUE #
 
@@ -46,5 +47,5 @@ The **pmem2_config_set_length**() function always returns 0.
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_map**(3), **pmem2_source_alignment**(3),
+**libpmem2**(7), **pmem2_map_new**(3), **pmem2_source_alignment**(3),
 **pmem2_config_new**(3), **sysconf**(3) and **<http://pmem.io>**

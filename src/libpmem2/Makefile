@@ -28,6 +28,7 @@ SOURCE =\
 	source.c\
 	source_posix.c\
 	vm_reservation.c\
+	vm_reservation_posix.c\
 	ravl_interval.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)

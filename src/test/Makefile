@@ -207,6 +207,7 @@ PMEM2_TESTS = \
 	pmem2_integration\
 	pmem2_granularity_detection\
 	pmem2_map\
+	pmem2_map_from_existing\
 	pmem2_map_prot\
 	pmem2_persist\
 	pmem2_persist_valgrind\
@@ -217,7 +218,8 @@ PMEM2_TESTS = \
 	pmem2_movnt\
 	pmem2_movnt_align\
 	pmem2_mem_ext\
-	pmem2_deep_flush
+	pmem2_deep_flush\
+	pmem2_vm_reservation
 
 ifeq ($(OS_DIMM),ndctl)
 PMEM2_TESTS += \

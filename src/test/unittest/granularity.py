@@ -14,6 +14,27 @@ import futils
 
 
 class Granularity(metaclass=ctx.CtxType):
+    """
+    Represents file system granularity context element.
+
+    Attributes:
+        gran_detecto_arg (str): argument of gran_detecto tool
+            that checks test directory for this granularity
+            type compliance
+        config_dir_field (str): name of the field in testconfig
+            that represents the test directory with this
+            granularity type
+        config_force_field (str): name of the field in testconfig
+            that represent the 'force' argument for this
+            granularity type
+        force_env (str): value of PMEM2_FORCE_GRANULARITY environment
+            variable for this granularity type
+        pmem_force_env (str): value for legacy PMEM_IS_PMEM_FORCE
+            environment variable that corresponds to this granularity
+            type
+
+    """
+
     gran_detecto_arg = None
     config_dir_field = None
     config_force_field = None
@@ -71,8 +92,18 @@ class Granularity(metaclass=ctx.CtxType):
     @classmethod
     def filter(cls, config, msg, tc):
         """
-        Acquire file system granularity for the test to be run
-        based on configuration and test requirements
+        Initialize granularity classes for the test to be run
+        based on configuration and test requirements.
+
+        Args:
+            config: configuration as returned by Configurator class
+            msg (Message): level based logger class instance
+            tc (BaseTest): test case, from which the granularity
+                requirements are obtained
+
+        Returns:
+            list of granularities on which the test should be run
+
         """
         req_gran, kwargs = ctx.get_requirement(tc, 'granularity', None)
 

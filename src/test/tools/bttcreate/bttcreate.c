@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 /*
  * bttcreate.c -- tool for generating BTT layout
  */
@@ -24,7 +24,7 @@
 #include "util.h"
 #include "page_size.h"
 
-#define BTT_CREATE_DEF_SIZE	(20 * 1UL << 20) /* 20 MB */
+#define BTT_CREATE_DEF_SIZE	(20 * (1UL << 20)) /* 20 MB */
 #define BTT_CREATE_DEF_BLK_SIZE	512UL
 #define BTT_CREATE_DEF_OFFSET_SIZE	PMEM_PAGESIZE
 

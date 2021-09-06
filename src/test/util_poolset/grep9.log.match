@@ -8,6 +8,16 @@ $(OPT)compiled with support for Valgrind drd
 $(OPT)compiled with support for shutdown state
 $(OPT)compiled with libndctl 63+
 open "$(nW)/testset0": No such file or directory
+$(OPT)Cannot read device usc - ndctl is not available
+$(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
+$(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
+$(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
+$(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
+$(OPT)Unsafe shutdown count is not supported for this source
 size 1000000 smaller than 2097152
 size 1000000 smaller than 2097152
 open "$(nW)/nodir/testfile62": No such file or directory

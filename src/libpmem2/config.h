@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2019-2020, Intel Corporation */
 
 /*
@@ -22,14 +22,13 @@ struct pmem2_config {
 	enum pmem2_granularity requested_max_granularity;
 	enum pmem2_sharing_type sharing; /* the way the file will be mapped */
 	unsigned protection_flag;
+	struct pmem2_vm_reservation *reserv;
+	size_t reserv_offset;
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);
 
 int pmem2_config_validate_length(const struct pmem2_config *cfg,
 		size_t file_len, size_t alignment);
-
-int pmem2_config_validate_addr_alignment(const struct pmem2_config *cfg,
-		const struct pmem2_source *src);
 
 #endif /* PMEM2_CONFIG_H */

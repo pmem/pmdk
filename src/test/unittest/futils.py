@@ -1,56 +1,41 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2019-2021, Intel Corporation
 
-"""Test framework utilities"""
+"""Test framework utilities."""
 
-from os.path import join, abspath, dirname
+from os.path import join, abspath
 import os
 import sys
 
+import consts as c
 import configurator
-
-# Constant paths to repository elements
-ROOTDIR = abspath(join(dirname(__file__), '..'))
-
-WIN_DEBUG_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Debug'))
-WIN_DEBUG_EXEDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'tests'))
-
-WIN_RELEASE_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Release'))
-WIN_RELEASE_EXEDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'tests'))
-
-if sys.platform == 'win32':
-    DEBUG_LIBDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'libs'))
-    RELEASE_LIBDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'libs'))
-else:
-    DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
-    RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
 
 def get_tool_path(ctx, name):
     if sys.platform == 'win32':
         if str(ctx.build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'libs', name))
+            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'libs', name))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'libs', name))
+            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'libs', name))
     else:
-        return abspath(join(ROOTDIR, '..', 'tools', name, name))
+        return abspath(join(c.ROOTDIR, '..', 'tools', name, name))
 
 
 def get_test_tool_path(build, name):
     if sys.platform == 'win32':
         if str(build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'tests', name))
+            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'tests', name))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'tests', name))
+            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'tests', name))
     else:
-        return abspath(join(ROOTDIR, 'tools', name, name))
+        return abspath(join(c.ROOTDIR, 'tools', name, name))
 
 
 def get_lib_dir(ctx):
     if str(ctx.build) == 'debug':
-        return DEBUG_LIBDIR
+        return c.DEBUG_LIBDIR
     else:
-        return RELEASE_LIBDIR
+        return c.RELEASE_LIBDIR
 
 
 def get_example_path(ctx, libname, name):
@@ -64,11 +49,11 @@ def get_example_path(ctx, libname, name):
     if sys.platform == 'win32':
         binname = '_'.join(['ex', libname, name])
         if str(ctx.build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'examples', binname))
+            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'examples', binname))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'examples', binname))
+            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'examples', binname))
     else:
-        return abspath(join(ROOTDIR, '..', 'examples', 'lib' + libname,
+        return abspath(join(c.ROOTDIR, '..', 'examples', 'lib' + libname,
                             name, name))
 
 
@@ -110,7 +95,7 @@ class Color:
 
 
 class Message:
-    """Simple level based logger"""
+    """Simple level based logger."""
 
     def __init__(self, level):
         self.level = level
@@ -125,7 +110,7 @@ class Message:
 
 
 class Fail(Exception):
-    """Thrown when test fails"""
+    """Thrown when the test fails."""
 
     def __init__(self, msg):
         super().__init__(msg)
@@ -144,7 +129,7 @@ def fail(msg, exit_code=None):
 
 
 class Skip(Exception):
-    """Thrown when test should be skipped"""
+    """Thrown when the test should be skipped."""
 
     def __init__(self, msg):
         super().__init__(msg)
@@ -165,6 +150,10 @@ def skip(msg):
 
 
 def set_kwargs_attrs(cls, kwargs):
+    """
+    Translate provided keyword arguments into
+    class attributes.
+    """
     for k, v in kwargs.items():
         setattr(cls, '{}'.format(k), v)
 

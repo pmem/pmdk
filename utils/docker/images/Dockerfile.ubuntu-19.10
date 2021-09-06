@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
@@ -11,6 +11,9 @@ FROM ubuntu:19.10
 MAINTAINER piotr.balcer@intel.com
 
 ENV DEBIAN_FRONTEND noninteractive
+
+# Additional parameters to build docker without building components
+ARG SKIP_SCRIPTS_DOWNLOAD
 
 # libfabric (optional if libfabric-dev >= 1.4.2 is installed)
 ENV FABRIC_DEPS "autoconf \
@@ -77,6 +80,11 @@ COPY install-valgrind.sh install-valgrind.sh
 # Copy install libfabric script
 COPY install-libfabric.sh install-libfabric.sh
 
+# Copy codecov patch and script to download scripts required in run-*.sh
+COPY download-scripts.sh download-scripts.sh
+COPY 0001-fix-generating-gcov-files-and-turn-off-verbose-log.patch \
+	0001-fix-generating-gcov-files-and-turn-off-verbose-log.patch
+
 # Update the Apt cache and install basic tools
 RUN apt-get update && apt-get dist-upgrade -y \
 	&& apt-get install -y --no-install-recommends \
@@ -93,6 +101,7 @@ RUN apt-get update && apt-get dist-upgrade -y \
 	$MISC_DEPS \
 	&& ./install-valgrind.sh ubuntu \
 	&& ./install-libfabric.sh \
+	&& ./download-scripts.sh \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Add user

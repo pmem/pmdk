@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 	PMEM2_SOURCE_FROM_FD(&psrc, fd);
 	PMEM2_CONFIG_SET_GRANULARITY(cfg, PMEM2_GRANULARITY_PAGE);
 
-	int ret = pmem2_map(cfg, psrc, &map);
+	int ret = pmem2_map_new(&map, cfg, psrc);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	PMEM2_CONFIG_DELETE(&cfg);
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 			bytes, persist, memmove_fn);
 	}
 
-	ret = pmem2_unmap(&map);
+	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
 
 	CLOSE(fd);

@@ -202,7 +202,7 @@ clo_parse_single_uint(struct benchmark_clo *clo, const char *arg, void *ptr)
 		return -1;
 	}
 
-	uint64_t tmax = ~0 >> (64 - 8 * clo->type_uint.size);
+	uint64_t tmax = ~0ULL >> (64 - 8 * clo->type_uint.size);
 	uint64_t tmin = 0;
 
 	tmax = min(tmax, clo->type_uint.max);

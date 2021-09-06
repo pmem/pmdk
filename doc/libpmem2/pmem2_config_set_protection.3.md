@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -60,12 +61,16 @@ It is either PROT_NONE or the bitwise OR of one or more of the following flags:
 
 # RETURN VALUE #
 
-When **pmem2_config_set_protection**() succeeds it returns 0.
-Otherwise, it returns one of the following error value:
+The **pmem2_config_set_protection**() function returns 0 on success
+or a negative error code on failure.
+
+# ERRORS #
+
+The **pmem2_config_set_protection**() can fail with the following errors:
 
 * **PMEM2_E_INVALID_PROT_FLAG** - some or all of the provided flags are not valid.
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_config_new**(3), **pmem2_map**(3)
+**libpmem2**(7), **pmem2_config_new**(3), **pmem2_map_new**(3)
 and **<http://pmem.io>**

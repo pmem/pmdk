@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
- * pmem2_map.c -- pmem2_get_[flush|drain|persist]_fn unittests
+ * pmem2_persist.c -- pmem2_get_[flush|drain|persist]_fn unittests
  */
 
 #include "mmap.h"

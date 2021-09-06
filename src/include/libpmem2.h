@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2019-2020, Intel Corporation */
 
 /*
- * libpmem2.h -- definitions of libpmem2 entry points (EXPERIMENTAL)
+ * libpmem2.h -- definitions of libpmem2 entry points
  *
  * This library provides support for programming with persistent memory (pmem).
  *
@@ -68,6 +68,9 @@ extern "C" {
 #define PMEM2_E_LENGTH_OUT_OF_RANGE		(-100030)
 #define PMEM2_E_INVALID_PROT_FLAG		(-100031)
 #define PMEM2_E_NO_ACCESS			(-100032)
+#define PMEM2_E_VM_RESERVATION_NOT_EMPTY	(-100033)
+#define PMEM2_E_MAP_EXISTS			(-100034)
+#define PMEM2_E_FILE_DESCRIPTOR_NOT_SET		(-100035)
 
 /* source setup */
 
@@ -77,6 +80,9 @@ int pmem2_source_from_fd(struct pmem2_source **src, int fd);
 int pmem2_source_from_anon(struct pmem2_source **src, size_t size);
 #ifdef _WIN32
 int pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle);
+int pmem2_source_get_handle(const struct pmem2_source *src, HANDLE *h);
+#else
+int pmem2_source_get_fd(const struct pmem2_source *src, int *fd);
 #endif
 
 int pmem2_source_size(const struct pmem2_source *src, size_t *size);
@@ -90,10 +96,14 @@ int pmem2_source_delete(struct pmem2_source **src);
 
 struct pmem2_vm_reservation;
 
-int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv,
-		size_t size, void *address);
+void *pmem2_vm_reservation_get_address(struct pmem2_vm_reservation *rsv);
 
-int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv);
+size_t pmem2_vm_reservation_get_size(struct pmem2_vm_reservation *rsv);
+
+int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
+		void *addr, size_t size);
+
+int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr);
 
 /* config setup */
 
@@ -132,27 +142,20 @@ int pmem2_config_set_sharing(struct pmem2_config *cfg,
 int pmem2_config_set_protection(struct pmem2_config *cfg,
 				unsigned prot);
 
-enum pmem2_address_request_type {
-	PMEM2_ADDRESS_FIXED_REPLACE = 1,
-	PMEM2_ADDRESS_FIXED_NOREPLACE = 2,
-};
-
-int pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
-		enum pmem2_address_request_type request_type);
-
 int pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 		struct pmem2_vm_reservation *rsv, size_t offset);
-
-void pmem2_config_clear_address(struct pmem2_config *cfg);
 
 /* mapping */
 
 struct pmem2_map;
+int pmem2_map_from_existing(struct pmem2_map **map,
+	const struct pmem2_source *src, void *addr, size_t len,
+	enum pmem2_granularity gran);
 
-int pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
-	struct pmem2_map **map_ptr);
+int pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
+		const struct pmem2_source *src);
 
-int pmem2_unmap(struct pmem2_map **map_ptr);
+int pmem2_map_delete(struct pmem2_map **map_ptr);
 
 void *pmem2_map_get_address(struct pmem2_map *map);
 
@@ -230,8 +233,8 @@ struct pmem2_badblock {
 	size_t length;
 };
 
-int pmem2_badblock_context_new(const struct pmem2_source *src,
-		struct pmem2_badblock_context **bbctx);
+int pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
+		const struct pmem2_source *src);
 
 int pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 		struct pmem2_badblock *bb);

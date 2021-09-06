@@ -94,26 +94,27 @@ MANPAGES_1_DUMMY_EXP =
 # libpmem2
 MANPAGES_7_MD_PMEM2 = libpmem2/libpmem2.7.md libpmem2/libpmem2_unsafe_shutdown.7.md
 MANPAGES_5_MD_PMEM2 =
-MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.md libpmem2/pmem2_map.3.md \
-		libpmem2/pmem2_unmap.3.md libpmem2/pmem2_map_get_address.3.md libpmem2/pmem2_map_get_size.3.md \
+MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.md libpmem2/pmem2_map_new.3.md \
+		libpmem2/pmem2_map_delete.3.md libpmem2/pmem2_map_get_address.3.md libpmem2/pmem2_map_get_size.3.md \
 		libpmem2/pmem2_source_from_fd.3.md libpmem2/pmem2_config_set_required_store_granularity.3.md \
 		libpmem2/pmem2_source_size.3.md libpmem2/pmem2_source_alignment.3.md \
 		libpmem2/pmem2_config_set_length.3.md libpmem2/pmem2_config_set_offset.3.md \
 		libpmem2/pmem2_map_get_store_granularity.3.md libpmem2/pmem2_get_flush_fn.3.md \
 		libpmem2/pmem2_get_drain_fn.3.md libpmem2/pmem2_get_persist_fn.3.md \
 		libpmem2/pmem2_perror.3.md libpmem2/pmem2_get_memmove_fn.3.md libpmem2/pmem2_config_set_sharing.3.md \
-		libpmem2/pmem2_config_set_address.3.md libpmem2/pmem2_config_clear_address.3.md \
 		libpmem2/pmem2_config_set_vm_reservation.3.md libpmem2/pmem2_vm_reservation_new.3.md \
+		libpmem2/pmem2_vm_reservation_get_address.3.md libpmem2/pmem2_vm_reservation_get_size.3.md \
 		libpmem2/pmem2_badblock_context_new.3.md libpmem2/pmem2_badblock_next.3.md \
 		libpmem2/pmem2_badblock_clear.3.md libpmem2/pmem2_config_set_protection.3.md \
 		libpmem2/pmem2_deep_flush.3.md libpmem2/pmem2_source_from_anon.3.md \
-		libpmem2/pmem2_source_device_id.3.md libpmem2/pmem2_source_device_usc.3.md
+		libpmem2/pmem2_source_device_id.3.md libpmem2/pmem2_source_device_usc.3.md \
+		libpmem2/pmem2_map_from_existing.3.md libpmem2/pmem2_source_get_fd.3.md \
+		libpmem2/pmem2_source_get_handle.3.md
+
 MANPAGES_1_MD_PMEM2 =
-ifeq ($(PMEM2_INSTALL),y)
 MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3 \
 	libpmem2/pmem2_get_memset_fn.3 libpmem2/pmem2_get_memcpy_fn.3 libpmem2/pmem2_vm_reservation_delete.3 \
 	libpmem2/pmem2_badblock_context_delete.3
-endif
 
 ifeq ($(BUILD_RPMEM),y)
 MANPAGES_7_MD += librpmem/librpmem.7.md
@@ -157,17 +158,10 @@ MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_EXP)
 MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_EXP)
 endif
 
-ifeq ($(PMEM2_INSTALL),y)
 MANPAGES_7_GROFF += $(MANPAGES_7_GROFF_PMEM2)
 MANPAGES_5_GROFF += $(MANPAGES_5_GROFF_PMEM2)
 MANPAGES_3_GROFF += $(MANPAGES_3_GROFF_PMEM2)
 MANPAGES_1_GROFF += $(MANPAGES_1_GROFF_PMEM2)
-else
-MANPAGES_7_NOINSTALL += $(MANPAGES_7_GROFF_PMEM2)
-MANPAGES_5_NOINSTALL += $(MANPAGES_5_GROFF_PMEM2)
-MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_PMEM2)
-MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_PMEM2)
-endif
 
 MANPAGES_7_MD_WEB = $(MANPAGES_7_MD_PMEM2) + $(MANPAGES_7_MD)
 MANPAGES_5_MD_WEB = $(MANPAGES_5_MD_PMEM2) + $(MANPAGES_5_MD)

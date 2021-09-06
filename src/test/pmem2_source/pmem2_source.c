@@ -293,6 +293,54 @@ test_set_mutex_handle(const struct test_case *tc, int argc, char *argv[])
 
 	return 0;
 }
+
+/*
+ * test_get_handle - test getting handle value
+ */
+static int
+test_get_handle(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_get_handle <file>");
+
+	char *file = argv[0];
+	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
+		0, NULL, OPEN_ALWAYS, 0, NULL);
+	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
+
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_handle(&src, h);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	HANDLE handle_from_pmem2;
+	ret = pmem2_source_get_handle(src, &handle_from_pmem2);
+	UT_ASSERTeq(handle_from_pmem2, h);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	CloseHandle(h);
+	pmem2_source_delete(&src);
+
+	return 1;
+}
+
+/*
+ * test_get_handle_inval_type - test getting handle value from invalid type
+ */
+static int
+test_get_handle_inval_type(const struct test_case *tc, int argc, char *argv[])
+{
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_anon(&src, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	HANDLE handle_from_pmem2;
+	ret = pmem2_source_get_handle(src, &handle_from_pmem2);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_HANDLE_NOT_SET);
+
+	pmem2_source_delete(&src);
+
+	return 0;
+}
 #else
 /*
  * test_set_directory_handle - test setting directory's fd
@@ -315,6 +363,53 @@ test_set_directory_fd(const struct test_case *tc, int argc, char *argv[])
 
 	return 1;
 }
+
+/*
+ * test_get_fd - test getting file descriptor value
+ */
+static int
+test_get_fd(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_get_fd <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDONLY);
+	UT_ASSERTne(fd, -1);
+
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_fd(&src, fd);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	int fd_from_pmem2;
+	ret = pmem2_source_get_fd(src, &fd_from_pmem2);
+	UT_ASSERTeq(fd_from_pmem2, fd);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	CLOSE(fd);
+	pmem2_source_delete(&src);
+
+	return 1;
+}
+
+/*
+ * test_get_fd_inval_type - test getting fd value from invalid type
+ */
+static int
+test_get_fd_inval_type(const struct test_case *tc, int argc, char *argv[])
+{
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_anon(&src, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	int fd_from_pmem2;
+	ret = pmem2_source_get_fd(src, &fd_from_pmem2);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_DESCRIPTOR_NOT_SET);
+
+	pmem2_source_delete(&src);
+
+	return 0;
+}
 #endif
 
 /*
@@ -333,8 +428,12 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_invalid_handle),
 	TEST_CASE(test_set_directory_handle),
 	TEST_CASE(test_set_mutex_handle),
+	TEST_CASE(test_get_handle),
+	TEST_CASE(test_get_handle_inval_type),
 #else
 	TEST_CASE(test_set_directory_fd),
+	TEST_CASE(test_get_fd),
+	TEST_CASE(test_get_fd_inval_type),
 #endif
 };
 

@@ -714,24 +714,23 @@ main(int argc, char *argv[])
 
 	test_ctl_global_namespace(NULL);
 
-	struct pool *pop = malloc(sizeof(pop));
+	struct pool pop;
 
-	pop->ctl = ctl_new();
+	pop.ctl = ctl_new();
 
 	test_ctl_global_namespace(NULL);
 
-	CTL_REGISTER_MODULE(pop->ctl, debug);
+	CTL_REGISTER_MODULE(pop.ctl, debug);
 
-	test_ctl_global_namespace(pop);
+	test_ctl_global_namespace(&pop);
 
-	test_fault_injection(pop);
-	test_ctl_parser(pop);
-	test_string_config(pop);
-	test_file_config(pop);
+	test_fault_injection(&pop);
+	test_ctl_parser(&pop);
+	test_string_config(&pop);
+	test_file_config(&pop);
 	test_ctl_arg_parsers();
 
-	ctl_delete(pop->ctl);
-	free(pop);
+	ctl_delete(pop.ctl);
 
 	common_fini();
 

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2019-2020, Intel Corporation */
 
 /*
@@ -27,6 +27,17 @@ pmem2_assert_errno(void)
 }
 
 #define PMEM2_E_ERRNO (pmem2_assert_errno())
+
+#ifdef DEBUG
+#define PMEM2_ERR_CLR() \
+{\
+	errno = 0;\
+	char *errormsg = (char *)out_get_errormsg();\
+	strcpy(errormsg, "\0");\
+}
+#else
+#define PMEM2_ERR_CLR()
+#endif
 
 void *pmem2_malloc(size_t size, int *err);
 void *pmem2_zalloc(size_t size, int *err);

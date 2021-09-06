@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2014-2021, Intel Corporation */
 /*
  * Copyright (c) 2016-2020, Microsoft Corporation. All rights reserved.
@@ -95,7 +95,7 @@ char *util_part_realpath(const char *path);
 int util_compare_file_inodes(const char *path1, const char *path2);
 void *util_aligned_malloc(size_t alignment, size_t size);
 void util_aligned_free(void *ptr);
-struct tm *util_localtime(const time_t *timep);
+struct tm *util_localtime(const time_t *timep, struct tm *tm);
 int util_safe_strcpy(char *dst, const char *src, size_t max_length);
 void util_emit_log(const char *lib, const char *func, int order);
 char *util_readline(FILE *fh);

@@ -354,9 +354,7 @@ get_rel_wait(const struct timespec *abstime)
 	time_t ms = (time_t)(abstime->tv_sec * 1000 +
 		abstime->tv_nsec / 1000000);
 
-	DWORD rel_wait = (DWORD)(ms - now_ms);
-
-	return rel_wait < 0 ? 0 : rel_wait;
+	return (DWORD)(ms - now_ms);
 }
 
 /*

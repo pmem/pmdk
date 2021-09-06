@@ -4,16 +4,15 @@
 
 #
 # build-CI.sh - runs a Docker container from a Docker image with environment
-#                   prepared for building PMDK project and starts building PMDK
+#                   prepared for building PMDK project and starts building PMDK.
 #
-# this script is used for building PMDK on Travis and GitHub Actions CIs
+# This script is used for building PMDK on Travis and GitHub Actions CIs.
 #
 
 set -e
 
 source $(dirname $0)/set-ci-vars.sh
 source $(dirname $0)/set-vars.sh
-source $(dirname $0)/valid-branches.sh
 
 if [[ "$CI_EVENT_TYPE" != "cron" && "$CI_BRANCH" != "coverity_scan" \
 	&& "$COVERITY" -eq 1 ]]; then
@@ -45,7 +44,7 @@ if [[ -z "$TEST_BUILD" ]]; then
 	TEST_BUILD=all
 fi
 
-imageName=${DOCKERHUB_REPO}:1.9-${OS}-${OS_VER}-${CI_CPU_ARCH}
+imageName=${DOCKERHUB_REPO}:1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
@@ -62,8 +61,8 @@ if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUIL
 if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_ENABLE=$NDCTL_ENABLE"; fi
 if [[ $UBSAN -eq 1 ]]; then for x in C CPP LD; do declare EXTRA_${x}FLAGS=-fsanitize=undefined; done; fi
 
-# Only run doc update on $GITHUB_REPO master or stable branch
-if [[ -z "${CI_BRANCH}" || -z "${TARGET_BRANCHES[${CI_BRANCH}]}" || "$CI_EVENT_TYPE" == "pull_request" || "$CI_REPO_SLUG" != "${GITHUB_REPO}" ]]; then
+# Only run auto doc update on push events on "upstream" repo
+if [[ "${CI_EVENT_TYPE}" != "push" || "${CI_REPO_SLUG}" != "${GITHUB_REPO}" ]]; then
 	AUTO_DOC_UPDATE=0
 fi
 
@@ -125,7 +124,7 @@ docker run --rm --name=$containerName -i $TTY \
 	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
 	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
 	--env FAULT_INJECTION=$FAULT_INJECTION \
-	--env GITHUB_ACTION=$GITHUB_ACTION \
+	--env GITHUB_ACTIONS=$GITHUB_ACTIONS \
 	--env GITHUB_HEAD_REF=$GITHUB_HEAD_REF \
 	--env GITHUB_REPO=$GITHUB_REPO \
 	--env GITHUB_REPOSITORY=$GITHUB_REPOSITORY \

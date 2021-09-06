@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * endian.h -- convert values between host and big-/little-endian byte order

@@ -11,6 +11,8 @@
 int
 pmem2_source_from_anon(struct pmem2_source **src, size_t size)
 {
+	PMEM2_ERR_CLR();
+
 	int ret;
 	struct pmem2_source *srcp = pmem2_malloc(sizeof(**src), &ret);
 	if (ret)
@@ -27,6 +29,8 @@ pmem2_source_from_anon(struct pmem2_source **src, size_t size)
 int
 pmem2_source_delete(struct pmem2_source **src)
 {
+	/* we do not need to clear err because this function cannot fail */
+
 	Free(*src);
 	*src = NULL;
 	return 0;

@@ -2,8 +2,18 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2019-2021, Intel Corporation
 
-"""Main script for unit tests execution"""
+"""Main script for unit tests execution.
 
+Contains the implementation of the TestRunner class, which is a main
+test execution manager class and it's also used by TESTS.py scripts if run
+individually.
+
+TestRunner run_tests() method requires special attention
+as it implements the fundamental test run workflow.
+
+"""
+
+# modules from unittest directory are visible from this script
 import sys
 import os
 from os import path
@@ -17,12 +27,23 @@ import importlib.util as importutil  # noqa E402
 import subprocess as sp  # noqa E402
 
 import futils  # noqa E402
+from consts import ROOTDIR # noqa E402
 from basetest import get_testcases  # noqa E402
 from configurator import Configurator  # noqa E402
 from ctx_filter import CtxFilter  # noqa E402
 
 
 class TestRunner:
+    """
+    Main script utility for managing tests execution.
+
+    Attributes:
+        testcases (list): BaseTest objects that are test
+            cases to be run during execution.
+        config: config object as returned by Configurator
+        msg (Message) level based logger
+
+    """
     def __init__(self, config, testcases):
         self.testcases = testcases
         self.config = config
@@ -55,7 +76,15 @@ class TestRunner:
         """XXX add a similar check for Windows"""
 
     def run_tests(self):
-        """Run selected testcases"""
+        """Run selected testcases.
+
+        Implementation of this method is crucial as a general
+        tests execution workflow.
+
+        Returns:
+            main script exit code denoting the execution result.
+
+        """
         ret = 0
         for tc in self.testcases:
 
@@ -127,8 +156,16 @@ def _import_testfiles():
     Traverse through "src/test" directory, find all "TESTS.py" files and
     import them as modules. Set imported module name to
     file directory path.
+
+    Importing these files serves two purposes:
+        - makes test classes residing in them visible
+          and usable by the RUNTESTS script.
+        - triggers basetest._TestType metaclass which initializes and
+          registers them as actual test case classes - they are
+          therefore available through basetest.get_testfiles() function
+
     """
-    for root, _, files in os.walk(futils.ROOTDIR):
+    for root, _, files in os.walk(ROOTDIR):
         for name in files:
             if name == 'TESTS.py':
                 testfile = path.join(root, name)

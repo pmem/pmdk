@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 
 import os
@@ -112,8 +112,6 @@ class TEST12(PMEM2_MAP_DEVDAX):
     test_case = "test_unmap_valid"
 
 
-# UnmapViewOfFile does not use length
-@t.windows_exclude
 class TEST13(PMEM2_MAP):
     """unmap a pmem2 mapping with an invalid length"""
     test_case = "test_unmap_zero_length"
@@ -220,33 +218,17 @@ class TEST28(PMEM2_MAP_DEVDAX):
     with_size = False
 
 
+@t.linux_only
+@t.require_architectures('x86_64')
 class TEST29(PMEM2_MAP):
-    """
-    map a file to the desired addr with request type
-    PMEM2_ADDRESS_FIXED_NOREPLACE
-    """
-    test_case = "test_map_fixed_noreplace_valid"
+    """map alignment test for huge pages"""
+    test_case = "test_map_huge_alignment"
+    filesize = 16 * t.MiB
 
 
+@t.linux_only
+@t.require_architectures('x86_64')
 class TEST30(PMEM2_MAP):
-    """
-    map a file and overlap whole other existing mapping with the request type
-    PMEM2_ADDRESS_FIXED_NOREPLACE
-    """
-    test_case = "test_map_fixed_noreplace_full_overlap"
-
-
-class TEST31(PMEM2_MAP):
-    """
-    map a file in a middle of other existing mapping with the request type
-    PMEM2_ADDRESS_FIXED_NOREPLACE
-    """
-    test_case = "test_map_fixed_noreplace_partial_overlap"
-
-
-class TEST32(PMEM2_MAP):
-    """
-    map a file which starts in a middle and ends above of other
-    existing mapping with request type PMEM2_ADDRESS_FIXED_NOREPLACE
-    """
-    test_case = "test_map_fixed_noreplace_partial_above_overlap"
+    """map alignment test for small pages"""
+    test_case = "test_map_huge_alignment"
+    filesize = 16 * t.KiB

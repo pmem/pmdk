@@ -83,6 +83,19 @@ pmem2_deep_flush_dax(struct pmem2_map *map, void *ptr, size_t size)
 	enum pmem2_file_type type = map->source.value.ftype;
 
 	if (type == PMEM2_FTYPE_REG) {
+		/*
+		 * Flushing using OS-provided mechanisms requires that
+		 * the address be a multiple of the page size.
+		 * Align address down and change len so that [addr, addr + len)
+		 * still contains the initial range.
+		 */
+
+		/* round address down to page boundary */
+		uintptr_t new_addr = ALIGN_DOWN((uintptr_t)ptr, Pagesize);
+		/* increase len by the amount we gain when we round addr down */
+		size += (uintptr_t)ptr - new_addr;
+		ptr = (void *)new_addr;
+
 		ret = pmem2_flush_file_buffers_os(map, ptr, size, 0);
 		if (ret) {
 			LOG(1, "cannot flush buffers addr %p len %zu",

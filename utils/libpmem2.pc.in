@@ -1,7 +1,7 @@
 includedir=${prefix}/include
 
 Name: libpmem2
-Description: libpmem2 library from PMDK project (EXPERIMENTAL)
+Description: libpmem2 library from PMDK project
 Version: ${version}
 URL: https://pmem.io/pmdk
 Requires:

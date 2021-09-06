@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019, Intel Corporation)
+[comment]: <> (Copyright 2020, Intel Corporation)
 
 [comment]: <> (pmem2_config_set_offset.3 -- man page for libpmem2 config API)
 
@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -39,10 +40,16 @@ already initialized, please see **pmem2_config_new**(3) for details. The *\offse
 must be a multiple of the alignment required for the config. The alignment
 requirements are specific to a data source. To retrieve the alignment
 required for specific instance of *pmem2_source** use **pmem2_source_alignment**(3).
+By default, the offset is 0.
 
 # RETURN VALUE #
 
-The **pmem2_config_set_offset**() function returns 0 on success. Otherwise, it returns:
+The **pmem2_config_set_offset**() function returns 0 on success
+or a negative error code on failure.
+
+# ERRORS #
+
+The **pmem2_config_set_offset**() can fail with the following errors:
 
 * **PMEM2_E_OFFSET_OUT_OF_RANGE** - argument out of range, offset is greater than
 **INT64_MAX**
@@ -50,4 +57,4 @@ The **pmem2_config_set_offset**() function returns 0 on success. Otherwise, it r
 # SEE ALSO #
 
 **libpmem2**(7), **pmem2_source_alignment**(3), **pmem2_config_new**(3),
-**pmem2_map**(3), **sysconf**(3) and **<http://pmem.io>**
+**pmem2_map_new**(3), **sysconf**(3) and **<http://pmem.io>**

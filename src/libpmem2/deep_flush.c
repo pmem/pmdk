@@ -10,6 +10,7 @@
 #include "libpmem2.h"
 #include "deep_flush.h"
 #include "out.h"
+#include "pmem2_utils.h"
 
 /*
  * pmem2_deep_flush -- performs deep flush operation
@@ -18,6 +19,7 @@ int
 pmem2_deep_flush(struct pmem2_map *map, void *ptr, size_t size)
 {
 	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
+	PMEM2_ERR_CLR();
 
 	uintptr_t map_addr = (uintptr_t)map->addr;
 	uintptr_t map_end = map_addr + map->content_length;

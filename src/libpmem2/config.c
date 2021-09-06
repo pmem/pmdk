@@ -21,11 +21,11 @@ pmem2_config_init(struct pmem2_config *cfg)
 {
 	cfg->offset = 0;
 	cfg->length = 0;
-	cfg->addr = NULL;
-	cfg->addr_request = PMEM2_ADDRESS_ANY;
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
 	cfg->sharing = PMEM2_SHARED;
 	cfg->protection_flag = PMEM2_PROT_READ | PMEM2_PROT_WRITE;
+	cfg->reserv = NULL;
+	cfg->reserv_offset = 0;
 }
 
 /*
@@ -34,6 +34,8 @@ pmem2_config_init(struct pmem2_config *cfg)
 int
 pmem2_config_new(struct pmem2_config **cfg)
 {
+	PMEM2_ERR_CLR();
+
 	int ret;
 	*cfg = pmem2_malloc(sizeof(**cfg), &ret);
 
@@ -52,6 +54,8 @@ pmem2_config_new(struct pmem2_config **cfg)
 int
 pmem2_config_delete(struct pmem2_config **cfg)
 {
+	/* we do not need to clear err because this function cannot fail */
+
 	Free(*cfg);
 	*cfg = NULL;
 	return 0;
@@ -65,6 +69,8 @@ int
 pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 		enum pmem2_granularity g)
 {
+	PMEM2_ERR_CLR();
+
 	switch (g) {
 		case PMEM2_GRANULARITY_BYTE:
 		case PMEM2_GRANULARITY_CACHE_LINE:
@@ -86,6 +92,8 @@ pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 int
 pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 {
+	PMEM2_ERR_CLR();
+
 	/* mmap func takes offset as a type of off_t */
 	if (offset > (size_t)INT64_MAX) {
 		ERR("offset is greater than INT64_MAX");
@@ -103,6 +111,8 @@ pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 int
 pmem2_config_set_length(struct pmem2_config *cfg, size_t length)
 {
+	PMEM2_ERR_CLR();
+
 	cfg->length = length;
 
 	return 0;
@@ -150,11 +160,13 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 }
 
 /*
- * pmem2_config_set_sharing -- set the way pmem2_map will map the file
+ * pmem2_config_set_sharing -- set the way pmem2_map_new will map the file
  */
 int
 pmem2_config_set_sharing(struct pmem2_config *cfg, enum pmem2_sharing_type type)
 {
+	PMEM2_ERR_CLR();
+
 	switch (type) {
 		case PMEM2_SHARED:
 		case PMEM2_PRIVATE:
@@ -169,59 +181,6 @@ pmem2_config_set_sharing(struct pmem2_config *cfg, enum pmem2_sharing_type type)
 }
 
 /*
- * pmem2_config_validate_addr_alignment -- validate that addr in the
- * pmem2_config structure is a multiple of the alignment required for
- * specific cfg
- */
-int
-pmem2_config_validate_addr_alignment(const struct pmem2_config *cfg,
-		const struct pmem2_source *src)
-{
-	/* cannot NULL % alignment, NULL is valid */
-	if (!cfg->addr)
-		return 0;
-
-	size_t alignment;
-	int ret = pmem2_source_alignment(src, &alignment);
-	if (ret)
-		return ret;
-
-	ASSERTne(alignment, 0);
-	if ((size_t)cfg->addr % alignment) {
-		ERR("address %p is not a multiple of %lu", cfg->addr,
-				alignment);
-		return PMEM2_E_ADDRESS_UNALIGNED;
-	}
-
-	return 0;
-}
-
-/*
- * pmem2_config_set_address -- set addr and addr_request in the config
- * struct
- */
-int
-pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
-		enum pmem2_address_request_type request_type)
-{
-	if (request_type != PMEM2_ADDRESS_FIXED_NOREPLACE) {
-		ERR("invalid address request_type 0x%x", request_type);
-		return PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE;
-	}
-
-	if (request_type == PMEM2_ADDRESS_FIXED_NOREPLACE && !addr) {
-		ERR(
-			"cannot use address request type PMEM2_ADDRESS_FIXED_NOREPLACE with addr being NULL");
-		return PMEM2_E_ADDRESS_NULL;
-	}
-
-	cfg->addr = addr;
-	cfg->addr_request = (int)request_type;
-
-	return 0;
-}
-
-/*
  * pmem2_config_set_vm_reservation -- set vm_reservation in the
  *                                    pmem2_config structure
  */
@@ -229,18 +188,12 @@ int
 pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 		struct pmem2_vm_reservation *rsv, size_t offset)
 {
-	return PMEM2_E_NOSUPP;
-}
+	PMEM2_ERR_CLR();
 
-/*
- * pmem2_config_clear_address -- reset addr and addr_request in the config
- * to the default values
- */
-void
-pmem2_config_clear_address(struct pmem2_config *cfg)
-{
-	cfg->addr = NULL;
-	cfg->addr_request = PMEM2_ADDRESS_ANY;
+	cfg->reserv = rsv;
+	cfg->reserv_offset = offset;
+
+	return 0;
 }
 
 /*
@@ -251,6 +204,8 @@ int
 pmem2_config_set_protection(struct pmem2_config *cfg,
 		unsigned prot)
 {
+	PMEM2_ERR_CLR();
+
 	unsigned unknown_prot = prot & ~(PMEM2_PROT_READ | PMEM2_PROT_WRITE |
 	PMEM2_PROT_EXEC | PMEM2_PROT_NONE);
 	if (unknown_prot) {

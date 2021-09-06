@@ -1328,7 +1328,7 @@ static int
 update_remote_headers(struct pool_set *set)
 {
 	LOG(3, "set %p", set);
-	for (unsigned r = 0; r < set->nreplicas; ++ r) {
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		/* skip local or just created replicas */
 		if (REP(set, r)->remote == NULL ||
 				PART(REP(set, r), 0)->created == 1)

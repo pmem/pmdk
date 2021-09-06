@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * rpmemd_fip.c -- rpmemd libfabric provider module source file
@@ -818,13 +818,13 @@ rpmemd_fip_set_attr(struct rpmemd_fip *fip, struct rpmemd_fip_attr *attr)
 		fip->nthreads = rpmemd_fip_get_def_nthreads(fip);
 	}
 
+	RPMEMD_ASSERT(fip->persist_method < MAX_RPMEM_PM);
+
 	fip->lanes_per_thread = (fip->nlanes - 1) / fip->nthreads + 1;
 	size_t cq_size_per_lane = rpmem_fip_cq_size(fip->persist_method,
 			RPMEM_FIP_NODE_SERVER);
 
 	fip->cq_size = fip->lanes_per_thread * cq_size_per_lane;
-
-	RPMEMD_ASSERT(fip->persist_method < MAX_RPMEM_PM);
 }
 
 /*

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2019-2020, Intel Corporation */
 
 /*
@@ -12,6 +12,7 @@
 #include "libpmem2.h"
 #include "os.h"
 #include "source.h"
+#include "vm_reservation.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -41,6 +42,7 @@ struct pmem2_map {
 	pmem2_memset_fn memset_fn;
 
 	struct pmem2_source source;
+	struct pmem2_vm_reservation *reserv;
 };
 
 enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem,

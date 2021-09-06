@@ -18,6 +18,8 @@
 int
 pmem2_source_from_fd(struct pmem2_source **src, int fd)
 {
+	PMEM2_ERR_CLR();
+
 	*src = NULL;
 
 	if (fd < 0)
@@ -39,9 +41,10 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 
 	/*
 	 * XXX Files with FS_APPEND_FL attribute should also generate an error.
-	 * If it is possible to filter them out pmem2_map would not generate
-	 * -EACCESS trying to map them. Please update pmem2_map.3 when it will
-	 * be fixed. For details please see the ioctl_iflags(2) manual page.
+	 * If it is possible to filter them out pmem2_map_new would not generate
+	 * -EACCESS trying to map them. Please update pmem2_map_new.3 when it
+	 * will be fixed.
+	 * For details please see the ioctl_iflags(2) manual page.
 	 */
 
 	os_stat_t st;
@@ -87,6 +90,7 @@ int
 pmem2_source_size(const struct pmem2_source *src, size_t *size)
 {
 	LOG(3, "type %d", src->type);
+	PMEM2_ERR_CLR();
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		*size = src->value.size;
@@ -137,6 +141,7 @@ int
 pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 {
 	LOG(3, "type %d", src->type);
+	PMEM2_ERR_CLR();
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		*alignment = Pagesize;
@@ -166,6 +171,26 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 	}
 
 	LOG(4, "alignment %zu", *alignment);
+
+	return 0;
+}
+
+/*
+ * pmem2_source_get_fd -- get file descriptor from provided source
+ */
+int
+pmem2_source_get_fd(const struct pmem2_source *src, int *fd)
+{
+	LOG(3, "src type %d", src->type);
+	PMEM2_ERR_CLR();
+
+	if (src->type == PMEM2_SOURCE_FD) {
+		*fd = src->value.fd;
+	} else {
+		ERR(
+			"File descriptor is not set, source type does not support fd");
+		return PMEM2_E_FILE_DESCRIPTOR_NOT_SET;
+	}
 
 	return 0;
 }

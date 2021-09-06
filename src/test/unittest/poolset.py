@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 """Tools which allows to easily create poolset files"""
 
@@ -8,7 +8,7 @@ from enum import Enum, unique
 import os
 
 import futils
-from utils import KiB, MiB, GiB
+from consts import KiB, MiB, GiB
 
 POOL_MIN_SIZE = 8 * MiB
 PART_MIN_SIZE = 2 * MiB

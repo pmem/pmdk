@@ -14,8 +14,8 @@
  * pmem2_badblock_context_new -- allocate and create a new bad block context
  */
 int
-pmem2_badblock_context_new(const struct pmem2_source *src,
-	struct pmem2_badblock_context **bbctx)
+pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
+	const struct pmem2_source *src)
 {
 	return PMEM2_E_NOSUPP;
 }

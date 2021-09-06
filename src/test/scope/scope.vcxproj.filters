@@ -30,5 +30,8 @@
     <None Include="TESTS.py">
       <Filter>Test Scripts</Filter>
     </None>
+    <None Include="out14.log.match">
+      <Filter>Match Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
