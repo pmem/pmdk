@@ -24,6 +24,17 @@ class PMEMSET_SOURCE(t.Test):
             os.remove(filepath)
 
 
+@t.windows_exclude
+@t.require_devdax(t.DevDax('devdax1'))
+class PMEMSET_SOURCE_DEVDAX(t.Test):
+    test_type = t.Short
+    create_file = True
+
+    def run(self, ctx):
+        ddpath = ctx.devdaxes.devdax1.path
+        ctx.exec('pmemset_source', self.test_case, ddpath)
+
+
 @g.no_testdir()
 class PMEMSET_SOURCE_NO_DIR(t.Test):
     test_type = t.Short
@@ -170,3 +181,25 @@ class TEST21(PMEMSET_SOURCE):
     """test source creation with rwxu file mode if needed, created file"""
     test_case = "test_src_from_file_with_rwxu_mode_if_needed_created"
     create_file = True
+
+
+class TEST22(PMEMSET_SOURCE):
+    """test mcsafe read operation"""
+    test_case = "test_src_mcsafe_read"
+    create_file = True
+
+
+class TEST23(PMEMSET_SOURCE):
+    """test mcsafe write operation"""
+    test_case = "test_src_mcsafe_write"
+    create_file = True
+
+
+class TEST24(PMEMSET_SOURCE_DEVDAX):
+    """test mcsafe read operation on devdax"""
+    test_case = "test_src_mcsafe_read"
+
+
+class TEST25(PMEMSET_SOURCE_DEVDAX):
+    """test mcsafe write operation on devdax"""
+    test_case = "test_src_mcsafe_write"
