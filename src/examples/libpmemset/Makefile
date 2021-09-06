@@ -5,6 +5,6 @@
 # examples/libpmemset/Makefile -- build the libpmemset examples
 #
 
-DIRS = basic
+DIRS = basic log
 
 include ../Makefile.inc

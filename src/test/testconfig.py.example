@@ -42,7 +42,7 @@ config = {
     # available on your system.
     #
 
-    # 'cacheline_fs_dir': '/mnt/pmem',
+    'cacheline_fs_dir': '/dev/shm',
 
     #
     # Enforce that the library will act in accordance with
@@ -50,7 +50,7 @@ config = {
     # cache line granular.
     #
 
-    'force_cacheline': False,
+    'force_cacheline': True,
 
     #
     # For tests that require filesystem with byte granularity, set
