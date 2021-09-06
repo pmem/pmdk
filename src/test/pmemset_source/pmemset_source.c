@@ -436,6 +436,105 @@ test_src_from_file_with_truncate(const struct test_case *tc, int argc,
 	return 1;
 }
 
+enum test_src_op_type {
+	TEST_SRC_OP_READ,
+	TEST_SRC_OP_WRITE
+};
+
+/*
+ * test_src_mcsafe_op -- test machine safe operation
+ */
+static void
+test_src_mcsafe_op(char *file, enum test_src_op_type op_type)
+{
+	UT_ASSERT(op_type >= TEST_SRC_OP_READ && op_type <= TEST_SRC_OP_WRITE);
+
+	struct pmem2_source *p2src;
+	struct pmemset_source *src;
+
+	size_t bufsize = 4096;
+	void *buf = MALLOC(bufsize);
+
+	/* source from file */
+	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	if (op_type == TEST_SRC_OP_READ)
+		ret = pmemset_source_pread_mcsafe(src, buf, bufsize, 0);
+	else
+		ret = pmemset_source_pwrite_mcsafe(src, buf, bufsize, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_source_delete(&src);
+
+	/* source from pmem2 */
+	int fd = OPEN(file, O_RDWR);
+	ret = pmem2_source_from_fd(&p2src, fd);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, p2src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	if (op_type == TEST_SRC_OP_READ)
+		ret = pmemset_source_pread_mcsafe(src, buf, bufsize, 0);
+	else
+		ret = pmemset_source_pwrite_mcsafe(src, buf, bufsize, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_source_delete(&src);
+	CLOSE(fd);
+
+	/* source from temporary */
+	for (int i = (int)strlen(file) - 1; i > 0; i--) {
+		/* change file path into directory path */
+		if (file[i] == '/' || file[i] == '\\') {
+			file[i + 1] = '\0';
+			break;
+		}
+	}
+
+	ret = pmemset_source_from_temporary(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	if (op_type == TEST_SRC_OP_READ)
+		ret = pmemset_source_pread_mcsafe(src, buf, bufsize, 0);
+	else
+		ret = pmemset_source_pwrite_mcsafe(src, buf, bufsize, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_LENGTH_OUT_OF_RANGE);
+
+	pmemset_source_delete(&src);
+}
+
+/*
+ * test_src_mcsafe_read -- test mcsafe read operation
+ */
+static int
+test_src_mcsafe_read(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_src_mcsafe_read <file>");
+
+	char *file = argv[0];
+	test_src_mcsafe_op(file, TEST_SRC_OP_READ);
+
+	return 1;
+}
+
+/*
+ * test_src_mcsafe_write -- test mcsafe write operation
+ */
+static int
+test_src_mcsafe_write(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_src_mcsafe_write <file>");
+
+	char *file = argv[0];
+	test_src_mcsafe_op(file, TEST_SRC_OP_WRITE);
+
+	return 1;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -454,6 +553,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_src_from_temporary_inval_dir),
 	TEST_CASE(test_src_from_temporary_no_del),
 	TEST_CASE(test_src_from_file_with_truncate),
+	TEST_CASE(test_src_mcsafe_read),
+	TEST_CASE(test_src_mcsafe_write),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

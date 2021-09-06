@@ -24,6 +24,17 @@ class PMEMSET_SOURCE(t.Test):
             os.remove(filepath)
 
 
+@t.windows_exclude
+@t.require_devdax(t.DevDax('devdax1'))
+class PMEMSET_SOURCE_DEVDAX(t.Test):
+    test_type = t.Short
+    create_file = True
+
+    def run(self, ctx):
+        ddpath = ctx.devdaxes.devdax1.path
+        ctx.exec('pmemset_source', self.test_case, ddpath)
+
+
 @g.no_testdir()
 class PMEMSET_SOURCE_NO_DIR(t.Test):
     test_type = t.Short
@@ -114,3 +125,25 @@ class TEST13(PMEMSET_SOURCE):
     """test source creation with no existing file and truncate flag set"""
     test_case = "test_src_from_file_with_truncate"
     create_file = False
+
+
+class TEST14(PMEMSET_SOURCE):
+    """test mcsafe read operation"""
+    test_case = "test_src_mcsafe_read"
+    create_file = True
+
+
+class TEST15(PMEMSET_SOURCE):
+    """test mcsafe write operation"""
+    test_case = "test_src_mcsafe_write"
+    create_file = True
+
+
+class TEST16(PMEMSET_SOURCE_DEVDAX):
+    """test mcsafe read operation on devdax"""
+    test_case = "test_src_mcsafe_read"
+
+
+class TEST17(PMEMSET_SOURCE_DEVDAX):
+    """test mcsafe write operation on devdax"""
+    test_case = "test_src_mcsafe_write"
