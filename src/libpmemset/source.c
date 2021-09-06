@@ -554,3 +554,75 @@ pmemset_source_get_part_state_ptr(struct pmemset_source *src)
 {
 	return src->extras.state;
 }
+
+/*
+ * pmemset_source_pread_mcsafe -- read from the source in a safe manner
+ *                                (detect badblocks)
+ */
+int
+pmemset_source_pread_mcsafe(struct pmemset_source *src, void *buf,
+		size_t size, size_t offset)
+{
+	LOG(3, "source %p buf %p size %zu offset %zu", src, buf, size, offset);
+	PMEMSET_ERR_CLR();
+
+	struct pmem2_source *p2src =
+			pmemset_file_get_pmem2_source(src->file_set);
+
+	int ret = pmem2_source_pread_mcsafe(p2src, buf, size, offset);
+	if (ret) {
+		ERR("!pmem2_source_pread_mcsafe");
+		switch (ret) {
+			case PMEM2_E_SOURCE_TYPE_NOT_SUPPORTED:
+				/*
+				 * unreachable, libpmemset sources always use
+				 * libpmem2 sources from fd/handle underneath
+				 */
+				ASSERT(0);
+			case PMEM2_E_LENGTH_OUT_OF_RANGE:
+				return PMEMSET_E_LENGTH_OUT_OF_RANGE;
+			case PMEM2_E_IO_FAIL:
+				return PMEMSET_E_IO_FAIL;
+			default:
+				return ret;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * pmemset_source_pwrite_mcsafe -- write from the source in a safe manner
+ *                                 (detect badblocks)
+ */
+int
+pmemset_source_pwrite_mcsafe(struct pmemset_source *src, void *buf,
+		size_t size, size_t offset)
+{
+	LOG(3, "source %p buf %p size %zu offset %zu", src, buf, size, offset);
+	PMEMSET_ERR_CLR();
+
+	struct pmem2_source *p2src =
+			pmemset_file_get_pmem2_source(src->file_set);
+
+	int ret = pmem2_source_pwrite_mcsafe(p2src, buf, size, offset);
+	if (ret) {
+		ERR("!pmem2_source_pwrite_mcsafe");
+		switch (ret) {
+			case PMEM2_E_SOURCE_TYPE_NOT_SUPPORTED:
+				/*
+				 * unreachable, libpmemset sources always use
+				 * libpmem2 sources from fd/handle underneath
+				 */
+				ASSERT(0);
+			case PMEM2_E_LENGTH_OUT_OF_RANGE:
+				return PMEMSET_E_LENGTH_OUT_OF_RANGE;
+			case PMEM2_E_IO_FAIL:
+				return PMEMSET_E_IO_FAIL;
+			default:
+				return ret;
+		}
+	}
+
+	return 0;
+}
