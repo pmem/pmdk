@@ -432,6 +432,7 @@ class Context(ContextBase):
             os.makedirs(dirpath, exist_ok=True)
         else:
             os.makedirs(dirpath, mode, exist_ok=True)
+        return dirpath
 
     def gdb(self, testnum, path_to_exec, args_to_exec='',
             gdb_options='', timeout=15):

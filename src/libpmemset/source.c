@@ -491,6 +491,11 @@ pmemset_source_set_sds(struct pmemset_source *src, struct pmemset_sds *sds,
 {
 	LOG(3, "src %p sds %p state %p", src, sds, state_ptr);
 
+	if (sds == NULL) {
+		pmemset_sds_delete(&src->extras.sds);
+		return 0;
+	}
+
 	if (src->extras.sds) {
 		ERR("sds %p is already set in the source %p", sds, src);
 		return PMEMSET_E_SDS_ALREADY_SET;
