@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 
 #
 # pkg-common.sh - common functions and variables for building packages
@@ -45,7 +45,7 @@ function get_os() {
 	then
 		local OS=$(cat /etc/os-release | grep -m1 -o -P '(?<=NAME=).*($)')
 		[[ "$OS" =~ SLES|openSUSE ]] && echo -n "SLES_like" ||
-		([[ "$OS" =~ "Fedora"|"Red Hat"|"CentOS" ]] && echo -n "RHEL_like" || echo 1)
+		([[ "$OS" =~ "Fedora"|"Red Hat"|"CentOS"|"AlmaLinux"|"Rocky Linux" ]] && echo -n "RHEL_like" || echo 1)
 	else
 		echo 1
 	fi
