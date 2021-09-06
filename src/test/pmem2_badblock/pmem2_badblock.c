@@ -1,4 +1,3 @@
-#include "source.h"
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2021, Intel Corporation */
 
@@ -73,6 +72,8 @@ test_pmem2_src_mcsafe_badblock_read(const struct test_case *tc, int argc,
 	ret = pmem2_source_pread_mcsafe(src, buf, bufsize, 0);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_IO_FAIL);
 
+	FREE(buf);
+
 	ret = pmem2_source_delete(&src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	CLOSE(fd);
@@ -117,6 +118,8 @@ test_pmem2_src_mcsafe_badblock_write(const struct test_case *tc, int argc,
 		UT_PMEM2_EXPECT_RETURN(ret, 0);
 	else /* should be unreachable */
 		UT_ASSERT(0);
+
+	FREE(buf);
 
 	ret = pmem2_source_delete(&src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);

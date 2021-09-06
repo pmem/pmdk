@@ -300,6 +300,7 @@ PMREORDER_TESTS = \
 	pmreorder_stack
 
 PMEMSET_TESTS = \
+	pmemset_badblock\
 	pmemset_config\
 	pmemset_deep_flush\
 	pmemset_event\
