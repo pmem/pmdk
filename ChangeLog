@@ -1,6 +1,6 @@
-Mon Sep 20 2021 Łukasz Plewa <lukasz.plewa@intel.com>
+Fri Sep 24 2021 Łukasz Plewa <lukasz.plewa@intel.com>
 
-	* Version 1.9.3-rc2
+	* Version 1.9.3
 	This release fixes a missing sfence in non-temporal
 	version of memcpy function
 	(https://github.com/pmem/pmdk/issues/5292),
