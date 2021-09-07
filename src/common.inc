@@ -373,11 +373,11 @@ ifeq ($(NDCTL_ENABLE),y)
         ifeq ($(HAS_NDCTL),y)
             OS_DIMM_CFLAG=-DNDCTL_ENABLED=1
         else
-            $(error Please install libndctl-dev/libndctl-devel >= $(NDCTL_MIN_VERSION))
+            $(error Please install libndctl-dev/libndctl-devel/ndctl-devel >= $(NDCTL_MIN_VERSION))
         endif
         HAS_DAXCTL := $(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION))
         ifeq ($(HAS_DAXCTL),n)
-            $(error Please install libdaxctl-dev/libdaxctl-devel >= $(NDCTL_MIN_VERSION))
+            $(error Please install libdaxctl-dev/libdaxctl-devel/daxctl-devel >= $(NDCTL_MIN_VERSION))
         endif
         LIBNDCTL_PKG_CONFIG_DEPS := libndctl libdaxctl
         LIBNDCTL_PKG_CONFIG_DEPS_VAR := ,libndctl,libdaxctl
