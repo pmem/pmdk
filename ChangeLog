@@ -1,5 +1,27 @@
 Thu Sep 09 2021 Łukasz Plewa <lukasz.plewa@intel.com>
 
+	* Version 1.11.1-rc1
+
+	This release fixes a missing sfence in non-temporal
+	version of memcpy function
+	(https://github.com/pmem/pmdk/issues/5292),
+	and fixes a number of smaller bugs.
+
+	Detailed list of bug fixes:
+	- doc: remove exprimental moniker from libpmem2(7)
+	- common: fix missing sfence in non-temporal memcpy
+	- common: fix a mismatch between prototype and body
+	- common: the yearly spellchecker run
+	- common: force no LTO for rpm build
+	- common: fix mismatched function args
+	- obj: rename vars clashing with those of a containing block
+	- pmem2: don't force smaller alignment for fsdax mappings
+	- pool: don't trample upon users of localtime()
+	- rpmem: Fix RPMEM_RAW_BUFF_SIZE and LANE_ALIGN_SIZE for powerpc64le
+	- rpmem: drop a redundant check
+
+Wed Sep 08 2020 Łukasz Plewa <lukasz.plewa@intel.com>
+
 	* Version 1.10.1-rc1
 
 	This release fixes a missing sfence in non-temporal
