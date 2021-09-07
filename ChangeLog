@@ -1,6 +1,6 @@
-	Thu Sep 09 2021 Łukasz Plewa <lukasz.plewa@intel.com>
-	
-	* Version 1.10.1-rc1
+Mon Sep 20 2021 Łukasz Plewa <lukasz.plewa@intel.com>
+
+	* Version 1.10.1-rc2
 
 	This release fixes a missing sfence in non-temporal
 	version of memcpy function
@@ -8,6 +8,7 @@
 	and fixes a number of smaller bugs.
 
 	Detailed list of bug fixes:
+	- common: add disable lto to cflags
 	- doc: remove exprimental moniker from libpmem2(7)
 	- common: fix missing sfence in non-temporal memcpy
 	- common: fix a mismatch between prototype and body
