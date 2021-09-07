@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * memblock.c -- implementation of memory block
@@ -784,7 +784,10 @@ huge_ensure_header_type(const struct memory_block *m,
 	if ((hdr->flags & header_type_to_flag[t]) == 0) {
 		VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
 		uint16_t f = ((uint16_t)header_type_to_flag[t]);
-		hdr->flags |= f;
+		uint64_t nhdr = chunk_get_chunk_hdr_value(hdr->type,
+			hdr->flags | f, hdr->size_idx);
+		util_atomic_store_explicit64((uint64_t *)hdr,
+			nhdr, memory_order_relaxed);
 		pmemops_persist(&m->heap->p_ops, hdr, sizeof(*hdr));
 		VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
 	}
@@ -1299,18 +1302,15 @@ memblock_huge_init(struct palloc_heap *heap,
 	m.size_idx = size_idx;
 	m.heap = heap;
 
-	struct chunk_header nhdr = {
-		.type = CHUNK_TYPE_FREE,
-		.flags = 0,
-		.size_idx = size_idx
-	};
-
 	struct chunk_header *hdr = heap_get_chunk_hdr(heap, &m);
 
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
 	VALGRIND_ANNOTATE_NEW_MEMORY(hdr, sizeof(*hdr));
 
-	*hdr = nhdr; /* write the entire header (8 bytes) at once */
+	uint64_t nhdr = chunk_get_chunk_hdr_value(CHUNK_TYPE_FREE,
+		0, size_idx);
+	util_atomic_store_explicit64((uint64_t *)hdr,
+		nhdr, memory_order_relaxed);
 
 	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
 
@@ -1394,11 +1394,10 @@ memblock_run_init(struct palloc_heap *heap,
 
 	VALGRIND_ANNOTATE_NEW_MEMORY(hdr, sizeof(*hdr));
 
-	struct chunk_header run_hdr;
-	run_hdr.size_idx = hdr->size_idx;
-	run_hdr.type = CHUNK_TYPE_RUN;
-	run_hdr.flags = rdsc->flags;
-	*hdr = run_hdr;
+	uint64_t run_hdr = chunk_get_chunk_hdr_value(CHUNK_TYPE_RUN,
+		rdsc->flags, hdr->size_idx);
+	util_atomic_store_explicit64((uint64_t *)hdr,
+		run_hdr, memory_order_relaxed);
 	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
 
 	VALGRIND_REMOVE_FROM_TX(&z->chunk_headers[chunk_id],
