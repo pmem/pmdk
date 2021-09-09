@@ -30,20 +30,14 @@ jobs:
 
       # Building PMDK
       - name: Build PMDK
-        run: |
-          cd pmdk
-          make
+        run: make
 
       # Installing PMDK
       - name: Installing PMDK
-        run: |
-          cd pmdk
-          sudo make install
+        run: sudo make install
 
       - name: Copy config file
-        run: cp pmdk/src/test/testconfig.sh.example pmdk/src/test/testconfig.sh
+        run: cp `pwd`/src/test/testconfig.sh.example `pwd`/src/test/testconfig.sh
 
       - name: Run example tests
-        run: |
-          cd pmdk
-          make check
+        run: make check
