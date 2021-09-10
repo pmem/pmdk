@@ -38,6 +38,9 @@ jobs:
 
       - name: Copy config file
         run: cp `pwd`/testconfig.sh `pwd`/src/test/testconfig.sh
+        
+      - name: Set permissions for PMEM directory
+        run: sudo chown -R llesniax /pmem/
 
       - name: Run example tests
         run: make check
