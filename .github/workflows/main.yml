@@ -37,7 +37,7 @@ jobs:
         run: sudo make install
 
       - name: Copy config file
-        run: cp `pwd`/src/test/testconfig.sh.example `pwd`/src/test/testconfig.sh
+        run: cp `pwd`/testconfig.sh `pwd`/src/test/testconfig.sh
 
       - name: Run example tests
         run: make check
