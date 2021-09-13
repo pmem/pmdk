@@ -49,7 +49,7 @@ jobs:
         run: cp `pwd`/testconfig.sh `pwd`/src/test/testconfig.sh
         
       - name: Set permissions for PMEM directory
-        run: sudo chown -R llesniax /pmem/
+        run: sudo chown -R test-user /pmem/
 
       - name: Run example tests
         run: make check
