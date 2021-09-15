@@ -35,7 +35,7 @@ int pmemset_source_get_pmem2_map_from_src(const struct pmemset_source *src,
 		struct pmem2_config *cfg, struct pmem2_map **map);
 
 int pmemset_source_create_pmemset_file(struct pmemset_source *src,
-		struct pmemset_file **file, unsigned flags);
+		struct pmemset_file **file, uint64_t flags);
 
 struct pmemset_sds *pmemset_source_get_sds(struct pmemset_source *src);
 

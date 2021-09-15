@@ -30,7 +30,7 @@ _UW(pmemset_source_from_file)
 #include <libpmemset.h>
 
 _UWFUNCR20(int, pmemset_source_from_file, struct pmemset_source **src, *file)
-_UWFUNCR2(int, pmemset_xsource_from_file, struct pmemset_source **src, *file, unsigned flags)
+_UWFUNCR2(int, pmemset_xsource_from_file, struct pmemset_source **src, *file, uint64_t flags)
 int pmemset_source_delete(struct pmemset_source **src);
 
 ```
@@ -48,6 +48,52 @@ additional *flags* argument that is a bitmask of the following values:
 
 * **PMEMSET_SOURCE_FILE_DO_NOT_GROW** - the specified file will not be extended during **pmemset_map**(3). The file is extended to
 designated part size and offset by default.
+
+* **PMEMSET_SOURCE_FILE_CREATE_MODE(mode)** - the *mode* argument specifies the file mode to be
+        applied when a new file is created. This macro should be applied using bitwise OR operator with the above create *flags*.
+        The following *mode* values are available:
+        * **PMEMSET_SOURCE_FILE_RWXU_MODE** - user has read, write, and execute permission
+        * **PMEMSET_SOURCE_FILE_RWU_MODE** - user has read, write permission
+        * **PMEMSET_SOURCE_FILE_RUSR_MODE** - user has read permission
+        * **PMEMSET_SOURCE_FILE_WUSR_MODE** - user has write permission
+        * **PMEMSET_SOURCE_FILE_XUSR_MODE** - user has execute permission
+        * **PMEMSET_SOURCE_FILE_RWXG_MODE** - group has read, write, and execute permission
+        * **PMEMSET_SOURCE_FILE_RWG_MODE** - group has read, write permission
+        * **PMEMSET_SOURCE_FILE_RGRP_MODE** - group has read permission
+        * **PMEMSET_SOURCE_FILE_WGRP_MODE** - group has write permission
+        * **PMEMSET_SOURCE_FILE_XGRP_MODE** - group has execute permission
+        * **PMEMSET_SOURCE_FILE_RWXO_MODE** - others have read, write, and execute permission
+        * **PMEMSET_SOURCE_FILE_RWXO_MODE** - others have read, write permission
+        * **PMEMSET_SOURCE_FILE_ROTH_MODE** - others have read permission
+        * **PMEMSET_SOURCE_FILE_WOTH_MODE** - others have write permission
+        * **PMEMSET_SOURCE_FILE_XOTH_MODE** - others have execute permission
+
+The *mode* value can also be passed as an octal number.
+
+If *PMEMSET_SOURCE_FILE_CREATE_MODE(mode)* is not specified then the default file mode is set
+to RW for user and R for group and others.
+
+* **PMEMSET_SOURCE_FILE_CREATE_ALWAYS_MODE(mode)** - simplified version of PMEMSET_SOURCE_FILE_CREATE_MODE and
+        PMEMSET_SOURCE_FILE_CREATE_ALWAYS flag.
+
+For example:
+```
+    /* bitwise OR flag with mode values */
+	uint64_t flags = PMEMSET_SOURCE_FILE_CREATE_ALWAYS | \
+		PMEMSET_SOURCE_FILE_CREATE_MODE(PMEMSET_SOURCE_FILE_WUSR_MODE);
+	pmemset_xsource_from_file(&src, file, flags);
+
+    /* or simplified version */
+    flags = PMEMSET_SOURCE_FILE_CREATE_ALWAYS_MODE(PMEMSET_SOURCE_FILE_WUSR_MODE);
+    pmemset_xsource_from_file(&src, file, flags);
+
+    /* or version with numeric octal mode value*/
+    flags = PMEMSET_SOURCE_FILE_CREATE_ALWAYS_MODE(00200);
+    pmemset_xsource_from_file(&src, file, flags);
+```
+
+>NOTE: The *mode* argument is not supported on Windows.
+Using *mode* values with *PMEMSET_SOURCE_FILE_CREATE_MODE(mode)* has no effects.
 
 Obtained source is ready to be passed on to the **pmemset_map_config_new**() function.
 See **pmemset_map_config_new**(3) for details.
@@ -73,7 +119,7 @@ of *struct pmemset_source*.
 
 The _UW(pmemset_xsource_from_file) can also fail with the error:
 
-* **PMEMSET_E_INVALID_SOURCE_FILE_CREATE_FLAGS** - in case of invalid *flags*
+* **PMEMSET_E_INVALID_SOURCE_FILE_CREATE_FLAGS** - in case of invalid *flags* or *mode*
 parameter.
 
 # SEE ALSO #

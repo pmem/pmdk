@@ -7,6 +7,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <libpmem2.h>
 #include <string.h>
 
@@ -49,7 +50,7 @@ struct pmemset_source {
  * pmemset_source_open_file -- validate and create source from file
  */
 static int
-pmemset_source_open_file(struct pmemset_source *srcp, unsigned flags)
+pmemset_source_open_file(struct pmemset_source *srcp, uint64_t flags)
 {
 	int ret;
 
@@ -118,9 +119,9 @@ static inline
 #endif
 int
 pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
-				unsigned flags)
+				uint64_t flags)
 {
-	LOG(3, "src %p file %s flags %u", src, file, flags);
+	LOG(3, "src %p file %s flags 0x%" PRIx64, src, file, flags);
 	PMEMSET_ERR_CLR();
 
 	*src = NULL;
@@ -131,7 +132,8 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 	}
 
 	if (flags & ~PMEMSET_SOURCE_FILE_CREATE_VALID_FLAGS) {
-		ERR("pmemset_xsource_from_fileU invalid flags 0x%x", flags);
+		ERR("pmemset_xsource_from_fileU invalid flags 0x%" PRIx64,
+			flags);
 		return PMEMSET_E_INVALID_SOURCE_FILE_CREATE_FLAGS;
 	}
 
@@ -248,7 +250,7 @@ pmemset_source_from_file(struct pmemset_source **src, const char *file)
  */
 int
 pmemset_xsource_from_file(struct pmemset_source **src, const char *file,
-			unsigned flags)
+			uint64_t flags)
 {
 	return pmemset_xsource_from_fileU(src, file, flags);
 }
@@ -303,7 +305,7 @@ pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir)
  */
 static int
 pmemset_source_create_file_from_file(struct pmemset_source *src,
-		struct pmemset_file **file, unsigned flags)
+		struct pmemset_file **file, uint64_t flags)
 {
 	return pmemset_file_from_file(file, src->file.path, flags);
 }
@@ -314,7 +316,7 @@ pmemset_source_create_file_from_file(struct pmemset_source *src,
  */
 static int
 pmemset_source_create_file_from_pmem2(struct pmemset_source *src,
-		struct pmemset_file **file, unsigned flags)
+		struct pmemset_file **file, uint64_t flags)
 {
 	return pmemset_file_from_pmem2(file, src->pmem2.src);
 }
@@ -325,7 +327,7 @@ pmemset_source_create_file_from_pmem2(struct pmemset_source *src,
  */
 static int
 pmemset_source_create_file_from_temp(struct pmemset_source *src,
-		struct pmemset_file **file, unsigned flags)
+		struct pmemset_file **file, uint64_t flags)
 {
 	return pmemset_file_from_dir(file, src->temp.dir);
 }
@@ -385,7 +387,7 @@ pmemset_source_pmem2_validate(const struct pmemset_source *src)
 
 static const struct {
 	int (*create_file)(struct pmemset_source *src,
-			struct pmemset_file **file, unsigned flags);
+			struct pmemset_file **file, uint64_t flags);
 	void (*destroy)(struct pmemset_source **src);
 	int (*validate)(const struct pmemset_source *src);
 } pmemset_source_ops[MAX_PMEMSET_SOURCE_TYPE] = {
@@ -455,7 +457,7 @@ pmemset_source_validate(const struct pmemset_source *src)
  */
 int
 pmemset_source_create_pmemset_file(struct pmemset_source *src,
-		struct pmemset_file **file, unsigned flags)
+		struct pmemset_file **file, uint64_t flags)
 {
 	enum pmemset_source_type type = src->type;
 	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);

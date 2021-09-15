@@ -92,7 +92,7 @@ pmemset_file_init(struct pmemset_file *file, struct pmem2_source *pmem2_src)
  */
 int
 pmemset_file_from_file(struct pmemset_file **file, char *path,
-		unsigned flags)
+		uint64_t flags)
 {
 	*file = NULL;
 
