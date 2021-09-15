@@ -45,9 +45,6 @@
     <ClCompile Include="..\..\libpmemset\libpmemset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemset\map_config.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemset\errormsg.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -33,8 +33,6 @@ struct pmemset_part_shutdown_state_data {
 	const char data[1024];
 };
 
-struct pmemset *pmemset_map_config_get_set(struct pmemset_map_config *map_cfg);
-
 int pmemset_part_map_new(struct pmemset_part_map **pmap_ptr,
 		struct pmemset *set, struct pmemset_source *src,
 		struct pmem2_vm_reservation *pmem2_reserv, size_t offset,

@@ -38,6 +38,8 @@ struct pmemset_source {
 		} temp;
 	};
 	struct pmemset_file *file_set;
+	size_t length;
+	size_t offset;
 	struct {
 		struct pmemset_sds *sds;
 		enum pmemset_part_state *state;
@@ -92,6 +94,8 @@ pmemset_source_from_pmem2(struct pmemset_source **src,
 
 	srcp->type = PMEMSET_SOURCE_PMEM2;
 	srcp->pmem2.src = pmem2_src;
+	srcp->length = 0;
+	srcp->offset = 0;
 	srcp->extras.sds = NULL;
 	srcp->extras.bb = NULL;
 	srcp->extras.state = NULL;
@@ -144,6 +148,8 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 
 	srcp->type = PMEMSET_SOURCE_FILE;
 	srcp->file.path = Strdup(file);
+	srcp->length = 0;
+	srcp->offset = 0;
 	srcp->extras.sds = NULL;
 	srcp->extras.bb = NULL;
 	srcp->extras.state = NULL;
@@ -209,6 +215,8 @@ pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir)
 
 	srcp->type = PMEMSET_SOURCE_TEMP;
 	srcp->temp.dir = Strdup(dir);
+	srcp->length = 0;
+	srcp->offset = 0;
 	srcp->extras.sds = NULL;
 	srcp->extras.bb = NULL;
 	srcp->extras.state = NULL;
@@ -466,6 +474,39 @@ pmemset_source_create_pmemset_file(struct pmemset_source *src,
 }
 
 /*
+ * pmemset_source_set_offset -- sets offset in the pmemset source struct
+ */
+int
+pmemset_source_set_offset(struct pmemset_source *src,
+	size_t offset)
+{
+	LOG(3, "src %p offset %zu", src, offset);
+	PMEMSET_ERR_CLR();
+
+	/* mmap func takes offset as a type of off_t */
+	if (offset > (size_t)INT64_MAX) {
+		ERR("offset is greater than INT64_MAX");
+		return PMEMSET_E_OFFSET_OUT_OF_RANGE;
+	}
+
+	src->offset = offset;
+
+	return 0;
+}
+
+/*
+ * pmemset_source_set_length -- sets length in the pmemset source struct
+ */
+void
+pmemset_source_set_length(struct pmemset_source *src,
+	size_t length)
+{
+	LOG(3, "src %p length %zu", src, length);
+
+	src->length = length;
+}
+
+/*
  * pmemset_source_get_set_file -- returns pointer to pmemset_file from
  * pmemset_source structure
  */
@@ -473,6 +514,24 @@ struct pmemset_file *
 pmemset_source_get_set_file(struct pmemset_source *src)
 {
 	return src->file_set;
+}
+
+/*
+ * pmemset_source_get_length -- return length assigned to the source
+ */
+size_t
+pmemset_source_get_length(struct pmemset_source *src)
+{
+	return src->length;
+}
+
+/*
+ * pmemset_source_get_offset -- return offset assigned to the source
+ */
+size_t
+pmemset_source_get_offset(struct pmemset_source *src)
+{
+	return src->offset;
 }
 
 /*

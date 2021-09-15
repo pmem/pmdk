@@ -207,7 +207,7 @@ class TEST24(PMEMSET_PART):
 class TEST25(PMEMSET_PART):
     """
     Create a new part from a file source with do_not_grow flag set
-    and pmemset_map_config_length unset and map it.
+    and pmemset source length unset and map it.
     """
     test_case = "test_part_map_source_do_not_grow_len_unset"
     path_only = True
@@ -217,7 +217,7 @@ class TEST25(PMEMSET_PART):
 class TEST26(PMEMSET_PART):
     """
     Create a new part from a file source with do_not_grow flag unset
-    and pmemset_map_config_length unset and map it.
+    and pmemset source length unset and map it.
     """
     test_case = "test_part_map_source_len_unset"
     path_only = True
