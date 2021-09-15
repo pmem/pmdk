@@ -23,10 +23,6 @@ LIBPMEMSET_1.0 {
 		pmemset_flush;
 		pmemset_get_store_granularity;
 		pmemset_map;
-		pmemset_map_config_delete;
-		pmemset_map_config_new;
-		pmemset_map_config_set_length;
-		pmemset_map_config_set_offset;
 		pmemset_memcpy;
 		pmemset_memmove;
 		pmemset_memset;
@@ -44,6 +40,8 @@ LIBPMEMSET_1.0 {
 		pmemset_source_from_file;
 		pmemset_source_from_pmem2;
 		pmemset_source_from_temporary;
+		pmemset_source_set_length;
+		pmemset_source_set_offset;
 		pmemset_source_set_sds;
 		pmemset_xsource_from_file;
 	local:

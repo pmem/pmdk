@@ -56,7 +56,6 @@ main(int argc, char *argv[])
 	struct pmemset_source *ssrc;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_part_descriptor desc;
 
 	int ret = pmemset_source_from_file(&ssrc, argv[1]);
@@ -74,10 +73,9 @@ main(int argc, char *argv[])
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 4 * 1024 * 1024);
-	UT_ASSERTne(map_cfg, NULL);
+	ut_setup_source(&ssrc, 0, 4 * 1024 * 1024);
 
-	ret = pmemset_map(ssrc, map_cfg, &desc);
+	ret = pmemset_map(set, ssrc, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	mapped_len = desc.size;
@@ -151,8 +149,6 @@ main(int argc, char *argv[])
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&ssrc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);

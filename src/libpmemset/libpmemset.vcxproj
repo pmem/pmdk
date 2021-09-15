@@ -25,7 +25,6 @@
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="libpmemset.c" />
     <ClCompile Include="libpmemset_main.c" />
-    <ClCompile Include="map_config.c" />
     <ClCompile Include="part.c" />
     <ClCompile Include="pmemset.c" />
     <ClCompile Include="pmemset_utils.c" />

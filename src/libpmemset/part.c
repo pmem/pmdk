@@ -12,7 +12,6 @@
 #include "file.h"
 #include "libpmemset.h"
 #include "libpmem2.h"
-#include "map_config.h"
 #include "os.h"
 #include "part.h"
 #include "pmemset.h"
