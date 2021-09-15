@@ -46,8 +46,8 @@ additional *flags* argument that is a bitmask of the following values:
 
 * **PMEMSET_SOURCE_FILE_CREATE_ALWAYS** - always a new file will be created. If the specified file exists, the file will be overwritten,
 
-* **PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED** - the specified file will be truncated during **pmemset_map**(3) to
-designated part size and offset.
+* **PMEMSET_SOURCE_FILE_DO_NOT_GROW** - the specified file will not be extended during **pmemset_map**(3). The file is extended to
+designated part size and offset by default.
 
 Obtained source is ready to be passed on to the **pmemset_map_config_new**() function.
 See **pmemset_map_config_new**(3) for details.
@@ -57,7 +57,7 @@ The **pmemset_source_delete**() function frees *\*src* and sets *\*src* to NULL.
 # RETURN VALUE #
 
 The _UW(pmemset_source_from_file) and _UW(pmemset_xsource_from_file) functions
-return 0 on success or  negative error code on failure.
+return 0 on success or negative error code on failure.
 
 The **pmemset_source_delete**() function always returns 0.
 

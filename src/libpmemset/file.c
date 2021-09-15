@@ -13,7 +13,7 @@
 
 struct pmemset_file {
 	bool close;
-	bool truncate;
+	bool grow;
 	struct pmem2_source *pmem2_src;
 #ifdef _WIN32
 		HANDLE handle;
@@ -32,12 +32,12 @@ pmemset_file_get_pmem2_source(struct pmemset_file *file)
 }
 
 /*
- * pmemset_file_get_truncate -- returns information if truncate is required
+ * pmemset_file_get_grow -- returns information if file should grow
  */
 bool
-pmemset_file_get_truncate(struct pmemset_file *file)
+pmemset_file_get_grow(struct pmemset_file *file)
 {
-	return file->truncate;
+	return file->grow;
 }
 
 #ifndef _WIN32
@@ -81,7 +81,7 @@ pmemset_file_init(struct pmemset_file *file, struct pmem2_source *pmem2_src)
 		return ret;
 
 	file->pmem2_src = pmem2_src;
-	file->truncate = false;
+	file->grow = true;
 
 	return 0;
 }
@@ -112,8 +112,8 @@ pmemset_file_from_file(struct pmemset_file **file, char *path,
 
 	f->close = true;
 
-	if (flags & PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED)
-		f->truncate = true;
+	if (flags & PMEMSET_SOURCE_FILE_DO_NOT_GROW)
+		f->grow = false;
 
 	*file = f;
 
@@ -150,7 +150,7 @@ pmemset_file_from_dir(struct pmemset_file **file, char *dir)
 		goto err_delete_pmem2_src;
 
 	f->close = true;
-	f->truncate = true;
+	f->grow = true;
 
 	*file = f;
 
