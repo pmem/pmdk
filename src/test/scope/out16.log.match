@@ -15,10 +15,6 @@ pmemset_first_part_map
 pmemset_flush
 pmemset_get_store_granularity
 pmemset_map
-pmemset_map_config_delete
-pmemset_map_config_new
-pmemset_map_config_set_length
-pmemset_map_config_set_offset
 pmemset_memcpy
 pmemset_memmove
 pmemset_memset
@@ -38,6 +34,8 @@ pmemset_source_from_fileW
 pmemset_source_from_pmem2
 pmemset_source_from_temporaryU
 pmemset_source_from_temporaryW
+pmemset_source_set_length
+pmemset_source_set_offset
 pmemset_source_set_sds
 pmemset_xsource_from_fileU
 pmemset_xsource_from_fileW

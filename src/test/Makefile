@@ -303,7 +303,6 @@ PMEMSET_TESTS = \
 	pmemset_event\
 	pmemset_file\
 	pmemset_include\
-	pmemset_map_config\
 	pmemset_memcpy\
 	pmemset_memmove\
 	pmemset_memset\

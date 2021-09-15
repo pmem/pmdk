@@ -45,9 +45,6 @@
     <ClCompile Include="..\..\libpmemset\part.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemset\map_config.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TESTS.py">

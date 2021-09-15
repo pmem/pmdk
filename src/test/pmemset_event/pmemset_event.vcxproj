@@ -89,7 +89,6 @@
     <ClCompile Include="..\..\libpmemset\file.c" />
     <ClCompile Include="..\..\libpmemset\file_windows.c" />
     <ClCompile Include="..\..\libpmemset\libpmemset.c" />
-    <ClCompile Include="..\..\libpmemset\map_config.c" />
     <ClCompile Include="..\..\libpmemset\part.c" />
     <ClCompile Include="..\..\libpmemset\pmemset.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />

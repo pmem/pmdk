@@ -32,7 +32,6 @@ test_deep_flush_single(const struct test_case *tc, int argc,
 	struct pmemset_source *src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 
 	int ret = pmemset_source_from_file(&src, file);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -42,11 +41,10 @@ test_deep_flush_single(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 64 * 1024);
-	UT_ASSERTne(map_cfg, NULL);
+	ut_setup_source(&src, 0, 64 * 1024);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_map(src, map_cfg, &desc);
+	ret = pmemset_map(set, src, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* flush single part map */
@@ -76,8 +74,6 @@ test_deep_flush_single(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
@@ -99,7 +95,6 @@ test_deep_flush_multiple_coal(const struct test_case *tc, int argc,
 	struct pmemset_source *src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	size_t part_size = 64 * 1024;
 	const size_t num_of_parts = 8;
 
@@ -117,11 +112,10 @@ test_deep_flush_multiple_coal(const struct test_case *tc, int argc,
 			PMEMSET_COALESCING_FULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
-	UT_ASSERTne(map_cfg, NULL);
+	ut_setup_source(&src, 0, part_size);
 
 	for (int i = 0; i < num_of_parts; i++) {
-		ret = pmemset_map(src, map_cfg, &desc);
+		ret = pmemset_map(set, src, &desc);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 			goto end;
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -185,8 +179,6 @@ end:
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
@@ -208,7 +200,6 @@ test_deep_flush_multiple(const struct test_case *tc, int argc,
 	struct pmemset_source *src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_part_map *first_pmap = NULL;
 	struct pmemset_part_map *second_pmap = NULL;
 	struct pmemset_part_descriptor first_desc;
@@ -223,13 +214,12 @@ test_deep_flush_multiple(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
-	UT_ASSERTne(map_cfg, NULL);
+	ut_setup_source(&src, 0, part_size);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -252,8 +242,6 @@ test_deep_flush_multiple(const struct test_case *tc, int argc,
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);

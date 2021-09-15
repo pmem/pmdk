@@ -28,11 +28,11 @@ date: pmemset API version 1.0
 ```c
 #include <libpmemset.h>
 
-struct pmemset_map_config;
-struct pmemset_part_descriptor;
+struct pmemset;
 struct pmemset_source;
-int pmemset_map(struct pmemset_source *src,
-		struct pmemset_map_config *map_cfg,
+struct pmemset_part_descriptor;
+
+int pmemset_map(struct pmemset *set, struct pmemset_source *src,
 		struct pmemset_part_descriptor *desc);
 ```
 
@@ -40,15 +40,15 @@ int pmemset_map(struct pmemset_source *src,
 
 The **pmemset_map**() function creates new mapping in the virtual address space
 of the calling process and adds structure describing this mapping to the pmemset. It requires
-an address of a pointer to initialized map configuration provided in the *map_cfg* parameter.
-A map configuration should be created using **pmemset_map_config_new**(3) function.
+an address of a pointer to initialized set provided in the *set* parameter.
+A new *set* should be created using **pmemset_new**(3) function.
 The mapping can later be retrieved using **pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3) and **pmemset_part_map_by_address**(3) functions.
 
 New mapping is created based on the source specified in the *\*src* pointer.
 For the operation to succeed the *src* structure cannot be a *NULL* value and must be
-created from a valid data source. See **pmemset_source_from_file**(3) and
-**pmemset_source_from_pmem2**(3) for possible sources.
+created from a valid data source. See **pmemset_source_from_file**(3),
+**pmemset_source_from_pmem2**(3) and **pmemset_source_from_temporary**(3) for possible sources.
 
 Optionally **pmemset_map**() function can take a part descriptor object passed via *desc* parameter.
 If an optional descriptor was provided then address and size of the mapping are stored in the
@@ -128,8 +128,8 @@ It can also return **libpmem2**(7) errors from the underlying functions.
 
 **pmemset_config_set_acceptable_states**(3),
 **pmemset_config_set_reservation**(3),**pmemset_first_part_map**(3),
-**pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
-**pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_new**(3), **pmemset_next_part_map**(3),
+**pmemset_part_map_by_address**(3), **pmemset_set_contiguous_part_coalescing**(3),
 **pmemset_source_from_file**(3), **pmemset_source_from_pmem2**(3),
 **pmemset_source_from_temporary**(3), **pmemset_source_set_sds**(3),
 **pmemset_xsource_from_file**(3),**libpmem2**(7),

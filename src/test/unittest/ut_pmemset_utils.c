@@ -48,15 +48,11 @@ void ut_create_set_config(struct pmemset_config **cfg) {
 }
 
 /*
- * ut_create_map_config -- create pmemset map config using test args
+ * ut_setup_source -- set pmemset source using test args
  */
-void ut_create_map_config(struct pmemset_map_config **map_cfg,
-		struct pmemset *set, size_t offset, size_t length) {
-	int ret = pmemset_map_config_new(map_cfg, set);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(map_cfg, NULL);
-
-	pmemset_map_config_set_offset(*map_cfg, offset);
-	pmemset_map_config_set_length(*map_cfg, length);
-	UT_ASSERTne(map_cfg, NULL);
+void ut_setup_source(struct pmemset_source **src,
+		size_t offset, size_t length) {
+	UT_ASSERTne(src, NULL);
+	pmemset_source_set_offset(*src, offset);
+	pmemset_source_set_length(*src, length);
 }

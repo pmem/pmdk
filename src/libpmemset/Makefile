@@ -17,7 +17,6 @@ SOURCE =\
 	file.c\
 	file_posix.c\
 	libpmemset.c\
-	map_config.c\
 	part.c\
 	pmemset.c\
 	pmemset_utils.c\

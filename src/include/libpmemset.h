@@ -81,7 +81,6 @@ enum pmemset_coalescing {
 struct pmemset;
 struct pmemset_config;
 struct pmemset_part_map;
-struct pmemset_map_config;
 
 struct pmemset_part_descriptor {
 	void *addr;
@@ -411,6 +410,10 @@ int pmemset_source_from_temporaryW(struct pmemset_source **src,
 
 int pmemset_source_delete(struct pmemset_source **src);
 
+int pmemset_source_set_offset(struct pmemset_source *src, size_t offset);
+
+void pmemset_source_set_length(struct pmemset_source *src, size_t length);
+
 int pmemset_source_set_sds(struct pmemset_source *src, struct pmemset_sds *sds,
 		enum pmemset_part_state *state_ptr);
 
@@ -418,16 +421,7 @@ int pmemset_source_set_sds(struct pmemset_source *src, struct pmemset_sds *sds,
 
 struct pmemset_part_map;
 
-int pmemset_map_config_new(struct pmemset_map_config **map_cfg, struct
-		pmemset *set);
-int pmemset_map_config_set_offset(struct pmemset_map_config *map_cfg,
-	size_t offset);
-void pmemset_map_config_set_length(struct pmemset_map_config *map_cfg,
-	size_t length);
-int pmemset_map_config_delete(struct pmemset_map_config **map_cfg);
-
-int pmemset_map(struct pmemset_source *src,
-		struct pmemset_map_config *map_cfg,
+int pmemset_map(struct pmemset *set, struct pmemset_source *src,
 		struct pmemset_part_descriptor *desc);
 
 void pmemset_part_map_drop(struct pmemset_part_map **pmap);

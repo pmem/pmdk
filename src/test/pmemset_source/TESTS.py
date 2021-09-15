@@ -170,3 +170,13 @@ class TEST21(PMEMSET_SOURCE):
     """test source creation with rwxu file mode if needed, created file"""
     test_case = "test_src_from_file_with_rwxu_mode_if_needed_created"
     create_file = True
+
+
+class TEST22(PMEMSET_SOURCE):
+    """try to set invalid source to map"""
+    test_case = "test_map_invalid_source"
+
+
+class TEST23(PMEMSET_SOURCE):
+    """try to set invalid offset value in a source"""
+    test_case = "test_set_source_invalid_offset"

@@ -68,9 +68,6 @@
     <ClCompile Include="file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="map_config.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -100,6 +97,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

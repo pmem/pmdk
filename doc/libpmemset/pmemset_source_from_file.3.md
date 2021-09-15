@@ -95,8 +95,9 @@ For example:
 >NOTE: The *mode* argument is not supported on Windows.
 Using *mode* values with *PMEMSET_SOURCE_FILE_CREATE_MODE(mode)* has no effects.
 
-Obtained source is ready to be passed on to the **pmemset_map_config_new**() function.
-See **pmemset_map_config_new**(3) for details.
+There are also additional attributes that can be set for the source *src* like length or offset.
+See **pmemset_source_set_length**(3) and **pmemset_source_set_offset**(3) for details.
+Obtained source is ready to be passed on to the **pmemset_map**(3) function.
 
 The **pmemset_source_delete**() function frees *\*src* and sets *\*src* to NULL. If *\*src* is NULL, no operation is performed.
 
@@ -124,5 +125,5 @@ parameter.
 
 # SEE ALSO #
 
-**pmemset_map**(3), **pmemset_map_config_new**(3),
-**libpmemset**(7) and **<http://pmem.io>**
+**pmemset_map**(3), **pmemset_source_set_length**(3),
+**pmemset_source_set_offset**(3), **libpmemset**(7) and **<http://pmem.io>**

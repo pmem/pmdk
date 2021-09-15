@@ -84,7 +84,6 @@ save_sds(struct pmemset *set, struct pmemset_event_context *ctx,
 {
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_sds sds = PMEMSET_SDS_INITIALIZE();
 	struct pmemset_source *src;
 	const char *file = "somefile";
@@ -101,12 +100,10 @@ save_sds(struct pmemset *set, struct pmemset_event_context *ctx,
 
 	pmemset_new(&set, cfg);
 
-	pmemset_map_config_new(&map_cfg, set);
-
 	pmemset_source_from_file(&src, file);
 	pmemset_source_set_sds(src, &sds, &state);
 
-	pmemset_map(src, map_cfg, NULL);
+	pmemset_map(set, src, NULL);
 }
 ```
 
