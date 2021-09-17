@@ -1167,6 +1167,9 @@ static inline int
 rpmem_fip_post_resp(struct rpmem_fip *fip,
 	struct rpmem_fip_plane *lanep)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(fip);
+
 	int ret = rpmem_fip_recvmsg(lanep->base.ep, &lanep->recv);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "posting recv buffer");
@@ -1389,8 +1392,8 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 static int
 rpmem_fip_drain_nop(struct rpmem_fip *fip, unsigned lane)
 {
-	(void) fip;
-	(void) lane;
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(fip, lane);
 	return 0;
 }
 

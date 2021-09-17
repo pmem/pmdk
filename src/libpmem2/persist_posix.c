@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * persist_posix.c -- POSIX-specific part of persist implementation
@@ -22,6 +22,9 @@ int
 pmem2_flush_file_buffers_os(struct pmem2_map *map, const void *addr, size_t len,
 		int autorestart)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(map);
+
 	/*
 	 * msync accepts addresses aligned to the page boundary, so we may sync
 	 * more and part of it may have been marked as undefined/inaccessible.

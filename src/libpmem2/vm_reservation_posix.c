@@ -91,6 +91,9 @@ int
 vm_reservation_extend_memory(struct pmem2_vm_reservation *rsv,
 		void *rsv_end_addr, size_t size)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(rsv);
+
 	void *reserved_addr = NULL;
 	size_t reserved_size = 0;
 
@@ -112,5 +115,8 @@ int
 vm_reservation_shrink_memory(struct pmem2_vm_reservation *rsv,
 		void *rsv_release_addr, size_t size)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(rsv);
+
 	return vm_reservation_release_memory(rsv_release_addr, size);
 }

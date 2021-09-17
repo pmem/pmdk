@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * recycler.h -- internal definitions of run recycler
@@ -35,8 +35,7 @@ void recycler_delete(struct recycler *r);
 struct recycler_element recycler_element_new(struct palloc_heap *heap,
 	const struct memory_block *m);
 
-int recycler_put(struct recycler *r, const struct memory_block *m,
-	struct recycler_element element);
+int recycler_put(struct recycler *r, struct recycler_element element);
 
 int recycler_get(struct recycler *r, struct memory_block *m);
 

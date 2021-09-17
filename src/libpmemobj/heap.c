@@ -497,6 +497,9 @@ out:
 void
 heap_bucket_release(struct palloc_heap *heap, struct bucket *b)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(heap);
+
 	util_mutex_unlock(&b->lock);
 }
 
@@ -611,6 +614,9 @@ static int
 heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 	const struct memory_block *m)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(heap);
+
 	int ret = 0;
 
 	ASSERTeq(m->type, MEMORY_BLOCK_RUN);
@@ -733,7 +739,7 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 			c->id);
 	}
 
-	if (recycler_put(recycler, m, e) < 0)
+	if (recycler_put(recycler, e) < 0)
 		ERR("lost runtime tracking info of %u run due to OOM", c->id);
 
 	return 0;

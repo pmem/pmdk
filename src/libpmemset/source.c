@@ -318,6 +318,9 @@ static int
 pmemset_source_create_file_from_pmem2(struct pmemset_source *src,
 		struct pmemset_file **file, uint64_t flags)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(flags);
+
 	return pmemset_file_from_pmem2(file, src->pmem2.src);
 }
 
@@ -329,6 +332,9 @@ static int
 pmemset_source_create_file_from_temp(struct pmemset_source *src,
 		struct pmemset_file **file, uint64_t flags)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(flags);
+
 	return pmemset_file_from_dir(file, src->temp.dir);
 }
 
@@ -338,7 +344,8 @@ pmemset_source_create_file_from_temp(struct pmemset_source *src,
 static void
 pmemset_source_empty_destroy(struct pmemset_source **src)
 {
-	;
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(src);
 }
 
 /*

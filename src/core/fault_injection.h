@@ -1,10 +1,12 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 #ifndef CORE_FAULT_INJECTION
 #define CORE_FAULT_INJECTION
 
 #include <stdlib.h>
+
+#include "util.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +24,9 @@ int core_fault_injection_enabled(void);
 static inline void
 core_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(type, nth, at);
+
 	abort();
 }
 
