@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * rpmemd_db_test.c -- unit test for pool set database
@@ -50,7 +50,7 @@ fill_rand(void *addr, size_t len)
 
 	srand(time(NULL));
 	for (unsigned i = 0; i < len; i++)
-		buff[i] = (rand() % ('z' - 'a')) + 'a';
+		buff[i] = ((unsigned char)rand() % ('z' - 'a')) + 'a';
 
 }
 
