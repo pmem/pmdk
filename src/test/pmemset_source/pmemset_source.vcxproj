@@ -85,6 +85,7 @@
     <None Include="TESTS.py" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\libpmemset\badblock.c" />
     <ClCompile Include="..\..\libpmemset\config.c" />
     <ClCompile Include="..\..\libpmemset\errormsg.c" />
     <ClCompile Include="..\..\libpmemset\file.c" />
