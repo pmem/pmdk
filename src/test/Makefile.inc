@@ -134,6 +134,7 @@ ifeq ($(LIBPMEMSET), internal-debug)
 LIBPMEM2=y
 LIBPMEMCORE=internal-debug
 OBJS +=\
+	$(TOP)/src/debug/libpmemset/badblock.o\
 	$(TOP)/src/debug/libpmemset/config.o\
 	$(TOP)/src/debug/libpmemset/errormsg.o\
 	$(TOP)/src/debug/libpmemset/file.o\
@@ -153,6 +154,7 @@ ifeq ($(LIBPMEMSET), internal-nondebug)
 LIBPMEM2=y
 LIBPMEMCORE=internal-nondebug
 OBJS +=\
+	$(TOP)/src/nondebug/libpmemset/badblock.o\
 	$(TOP)/src/nondebug/libpmemset/config.o\
 	$(TOP)/src/nondebug/libpmemset/errormsg.o\
 	$(TOP)/src/nondebug/libpmemset/file.o\

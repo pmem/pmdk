@@ -105,7 +105,7 @@ test_sds_part_in_use_wrong_usc(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_map(set, src, NULL, NULL);
-	if (ret == PMEMSET_E_SDS_ENOSUPP)
+	if (ret == PMEMSET_E_SDS_NOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
@@ -173,7 +173,7 @@ test_sds_part_not_in_use_wrong_usc(const struct test_case *tc, int argc,
 
 	/* new SDS unsafe shutdown count doesn't match the old one */
 	ret = pmemset_map(set, src, NULL, NULL);
-	if (ret == PMEMSET_E_SDS_ENOSUPP)
+	if (ret == PMEMSET_E_SDS_NOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(state, PMEMSET_PART_STATE_OK);
@@ -227,7 +227,7 @@ test_sds_part_in_use_wrong_device_id(const struct test_case *tc, int argc,
 
 	/* no error, correct SDS values */
 	ret = pmemset_map(set, src, NULL, NULL);
-	if (ret == PMEMSET_E_SDS_ENOSUPP)
+	if (ret == PMEMSET_E_SDS_NOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
@@ -297,7 +297,7 @@ test_sds_part_not_in_use_wrong_device_id(const struct test_case *tc, int argc,
 
 	/* new SDS unsafe shutdown count doesn't match the old one */
 	ret = pmemset_map(set, src, NULL, NULL);
-	if (ret == PMEMSET_E_SDS_ENOSUPP)
+	if (ret == PMEMSET_E_SDS_NOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(state, PMEMSET_PART_STATE_OK);
@@ -347,7 +347,7 @@ test_sds_part_multiple_mappings(const struct test_case *tc, int argc,
 	pmemset_source_set_sds(src, &sds, &state);
 
 	ret = pmemset_map(set, src, NULL, NULL);
-	if (ret == PMEMSET_E_SDS_ENOSUPP)
+	if (ret == PMEMSET_E_SDS_NOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(state, PMEMSET_PART_STATE_OK);
