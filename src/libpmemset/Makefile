@@ -12,6 +12,7 @@ LIBRARY_NAME = pmemset
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
+	badblock.c\
 	config.c\
 	errormsg.c\
 	file.c\

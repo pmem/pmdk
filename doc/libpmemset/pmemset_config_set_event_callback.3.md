@@ -36,12 +36,13 @@ struct pmemset_event_context {
 		struct pmemset_event_move move;
 		struct pmemset_event_set set;
 		struct pmemset_event_flush flush;
-		struct pmemset_event_drain drain;
 		struct pmemset_event_persist persist;
-		struct pmemset_event_bad_block bad_block;
+		struct pmemset_event_remove_range remove_range;
 		struct pmemset_event_part_remove part_remove;
 		struct pmemset_event_part_add part_add;
-		struct pmemset_event_sds_update;
+		struct pmemset_event_sds_update sds_update;
+		struct pmemset_event_badblock badblock;
+		struct pmemset_event_badblocks_cleared badblocks_cleared;
 	} data;
 };
 
@@ -175,7 +176,27 @@ struct pmemset_event_sds_update {
 provided by the user.
 Fields *sds* and *src* correspond respectively to the SDS structure and a source it corresponds to.
 
+```c
+struct pmemset_event_badblock {
+	struct pmemset_badblock *bb;
+	struct pmemset_source *src;
+};
+```
+
+**PMEMSET_EVENT_BADBLOCK** is fired for each bad block detected in the source *src*. Bad block
+*bb* contains *offset* and *length* of the detected bad block.
+
+```c
+struct pmemset_event_badblocks_cleared {
+	struct pmemset_source *src;
+};
+```
+
+**PMEMSET_EVENT_BADBLOCKS_CLEARED** is fired when all bad blocks of given source *src* are
+cleared via event callback. Bad blocks can be cleared with **pmemset_badblock_clear**(3) function.
+
 # SEE ALSO #
 
-**pmemset_map**, **libpmem2**(7),
+**pmemset_badblock_clear**(3),
+**pmemset_map**(3), **libpmem2**(7),
 **libpmemset**(7) and **<http://pmem.io>**

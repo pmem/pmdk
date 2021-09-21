@@ -74,6 +74,9 @@
     <ClCompile Include="sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="badblock.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemset.def">
@@ -100,6 +103,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sds.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
