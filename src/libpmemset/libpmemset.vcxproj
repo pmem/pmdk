@@ -19,6 +19,7 @@
     <ClCompile Include="..\core\ravl_interval.c" />
     <ClCompile Include="..\core\util.c" />
     <ClCompile Include="..\core\util_windows.c" />
+    <ClCompile Include="badblock.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="errormsg.c" />
     <ClCompile Include="file.c" />

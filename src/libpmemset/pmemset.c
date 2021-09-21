@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #include "alloc.h"
+#include "badblock.h"
 #include "config.h"
 #include "file.h"
 #include "libpmem2.h"
@@ -566,6 +567,7 @@ pmemset_map(struct pmemset *set,
 	struct pmem2_source *pmem2_src =
 			pmemset_file_get_pmem2_source(part_file);
 	struct pmemset_sds *sds = pmemset_source_get_sds(src);
+	bool bb_detection = pmemset_source_get_badblock_detection(src);
 
 	if (sds != NULL) {
 		enum pmemset_part_state *out_state =
@@ -580,6 +582,12 @@ pmemset_map(struct pmemset *set,
 			*out_state = sds_state;
 
 		ret = pmemset_config_validate_state(set_config, sds_state);
+		if (ret)
+			return ret;
+	}
+
+	if (bb_detection) {
+		ret = pmemset_badblock_detect_check_if_cleared(set, src);
 		if (ret)
 			return ret;
 	}

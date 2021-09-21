@@ -67,13 +67,16 @@ extern "C" {
 #define PMEMSET_E_INVALID_PART_STATES			(-200025)
 #define PMEMSET_E_UNDESIRABLE_PART_STATE		(-200026)
 #define PMEMSET_E_SDS_ALREADY_SET			(-200027)
-#define PMEMSET_E_SDS_ENOSUPP				(-200028)
+#define PMEMSET_E_SDS_NOSUPP				(-200028)
 #define PMEMSET_E_SDS_DEVICE_ID_LEN_TOO_BIG		(-200029)
 #define PMEMSET_E_MAP_LENGTH_UNSET			(-200030)
 #define PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL		(-200031)
 #define PMEMSET_E_IO_FAIL				(-200032)
 #define PMEMSET_E_LENGTH_OUT_OF_RANGE			(-200033)
-#define PMEMSET_E_INVALID_ALIGNMENT_VALUE			(-200034)
+#define PMEMSET_E_INVALID_ALIGNMENT_VALUE		(-200035)
+#define PMEMSET_E_DAX_REGION_NOT_FOUND			(-200036)
+#define PMEMSET_E_CANNOT_READ_BOUNDS			(-200037)
+#define PMEMSET_E_BADBLOCK_NOSUPP			(-200038)
 
 struct pmemset;
 struct pmemset_config;
@@ -96,11 +99,12 @@ enum pmemset_event {
 	PMEMSET_EVENT_FLUSH,
 	PMEMSET_EVENT_DRAIN,
 	PMEMSET_EVENT_PERSIST,
-	PMEMSET_EVENT_BAD_BLOCK,
 	PMEMSET_EVENT_REMOVE_RANGE,
 	PMEMSET_EVENT_PART_ADD,
 	PMEMSET_EVENT_PART_REMOVE,
 	PMEMSET_EVENT_SDS_UPDATE,
+	PMEMSET_EVENT_BADBLOCK,
+	PMEMSET_EVENT_BADBLOCKS_CLEARED,
 };
 
 struct pmemset_event_copy {
@@ -134,11 +138,6 @@ struct pmemset_event_persist {
 	size_t len;
 };
 
-struct pmemset_event_bad_block {
-	void *addr;
-	size_t len;
-};
-
 struct pmemset_event_remove_range {
 	void *addr;
 	size_t len;
@@ -160,6 +159,15 @@ struct pmemset_event_sds_update {
 	struct pmemset_source *src;
 };
 
+struct pmemset_event_badblock {
+	struct pmemset_badblock *bb;
+	struct pmemset_source *src;
+};
+
+struct pmemset_event_badblocks_cleared {
+	struct pmemset_source *src;
+};
+
 #define PMEMSET_EVENT_CONTEXT_SIZE (64)
 
 struct pmemset_event_context {
@@ -171,11 +179,12 @@ struct pmemset_event_context {
 		struct pmemset_event_set set;
 		struct pmemset_event_flush flush;
 		struct pmemset_event_persist persist;
-		struct pmemset_event_bad_block bad_block;
 		struct pmemset_event_remove_range remove_range;
 		struct pmemset_event_part_remove part_remove;
 		struct pmemset_event_part_add part_add;
 		struct pmemset_event_sds_update sds_update;
+		struct pmemset_event_badblock badblock;
+		struct pmemset_event_badblocks_cleared badblocks_cleared;
 	} data;
 };
 
@@ -380,6 +389,9 @@ struct pmemset_sds {
 int pmemset_source_set_sds(struct pmemset_source *src, struct pmemset_sds *sds,
 		enum pmemset_part_state *state_ptr);
 
+void pmemset_source_set_badblock_detection(struct pmemset_source *src,
+		bool value);
+
 int pmemset_source_pread_mcsafe(struct pmemset_source *src, void *buf,
 		size_t size, size_t offset);
 
@@ -388,6 +400,14 @@ int pmemset_source_pwrite_mcsafe(struct pmemset_source *src, void *buf,
 
 int pmemset_source_alignment(struct pmemset_source *src,
 		size_t *alignment);
+
+struct pmemset_badblock {
+    size_t offset;
+    size_t length;
+};
+
+int pmemset_badblock_clear(struct pmemset_badblock *bb,
+		struct pmemset_source *src);
 
 /* map, unmap and part operations */
 
