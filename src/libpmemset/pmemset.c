@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #include "alloc.h"
+#include "badblock.h"
 #include "config.h"
 #include "file.h"
 #include "libpmem2.h"
@@ -600,6 +601,7 @@ pmemset_map(struct pmemset *set,
 	struct pmem2_source *pmem2_src =
 			pmemset_file_get_pmem2_source(part_file);
 	struct pmemset_sds *sds = pmemset_source_get_sds(src);
+	bool bb_detection = pmemset_source_get_badblock_detection(src);
 
 	if (sds != NULL) {
 		enum pmemset_part_state *out_state =
@@ -616,6 +618,33 @@ pmemset_map(struct pmemset *set,
 		ret = pmemset_config_validate_state(set_config, sds_state);
 		if (ret)
 			return ret;
+	}
+
+	if (bb_detection) {
+		size_t bb_count;
+		ret = pmemset_badblock_foreach(set, src,
+			pmemset_badblock_fire_badblock_event, &bb_count);
+		if (ret)
+			return ret;
+
+		/* check if user defined callbacks cleared badblocks */
+		if (bb_count != 0) {
+			ret = pmemset_badblock_foreach(set, src, NULL,
+					&bb_count);
+			if (ret)
+				return ret;
+
+			if (bb_count != 0) {
+				ERR("operation encountered %zu badblocks in "
+					"source %p", bb_count, src);
+				return PMEMSET_E_IO_FAIL;
+			}
+
+			struct pmemset_badblock bb;
+			bb.offset = 0;
+			bb.length = 0;
+			pmemset_badblock_fire_badblock_event(&bb, set, src);
+		}
 	}
 
 	size_t source_size;

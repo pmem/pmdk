@@ -558,7 +558,7 @@ test_pmemset_sds_update_event(const struct test_case *tc,
 	ut_create_map_config(&map_cfg, 0, 0);
 
 	ret = pmemset_map(set, src, map_cfg, NULL);
-	if (ret == PMEMSET_E_SDS_ENOSUPP)
+	if (ret == PMEMSET_E_SDS_NOSUPP)
 		goto cleanup;
 	UT_ASSERTeq(args.count, 1); /* sds updated, sds refcount raised */
 
