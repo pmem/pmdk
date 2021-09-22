@@ -37,4 +37,5 @@ from builds import *  # noqa: E402, F401, F403
 from devdax import *  # noqa: E402, F401, F403
 from test_types import *  # noqa: E402, F401, F403
 from requirements import *  # noqa: E402, F401, F403
+from unsafe_shutdown import *  # noqa: E402, F401, F403
 import granularity  # noqa: E402, F401

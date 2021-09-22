@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 #
 # src/libpmem2.link -- linker link file for libpmem2
@@ -42,6 +42,8 @@ LIBPMEM2_1.0 {
 		pmem2_source_from_handle;
 		pmem2_source_get_fd;
 		pmem2_source_numa_node;
+		pmem2_source_pread_mcsafe;
+		pmem2_source_pwrite_mcsafe;
 		pmem2_source_size;
 		pmem2_vm_reservation_delete;
 		pmem2_vm_reservation_extend;

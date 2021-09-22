@@ -199,6 +199,7 @@ PMEM_TESTS = \
 PMEM2_TESTS = \
 	pmem2_api\
 	pmem2_compat\
+	pmem2_badblock\
 	pmem2_config\
 	pmem2_source\
 	pmem2_source_alignment\
@@ -220,7 +221,8 @@ PMEM2_TESTS = \
 	pmem2_movnt_align\
 	pmem2_mem_ext\
 	pmem2_deep_flush\
-	pmem2_vm_reservation
+	pmem2_vm_reservation\
+	pmem2_usc
 
 ifeq ($(OS_DIMM),ndctl)
 PMEM2_TESTS += \

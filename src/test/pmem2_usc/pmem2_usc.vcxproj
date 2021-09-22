@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{34F31D9D-3D33-4C09-85A3-4749A8AB8EBB}</ProjectGuid>
-    <RootNamespace>pmem2_config</RootNamespace>
+    <ProjectGuid>{0DF30DE0-7F7D-43D3-940A-809EC27D3062}</ProjectGuid>
+    <RootNamespace>pmem2_usc</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -71,27 +71,19 @@
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
       <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\libpmem2\libpmem2.vcxproj">
+      <Project>{f596c36c-5c96-4f08-b420-8908af500954}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmem2\config.c" />
-    <ClCompile Include="..\..\libpmem2\mcsafe_ops_windows.c" />
-    <ClCompile Include="..\..\libpmem2\source.c" />
-    <ClCompile Include="..\..\libpmem2\source_windows.c" />
     <ClCompile Include="..\..\libpmem2\errormsg.c" />
-    <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
-    <ClCompile Include="..\unittest\ut_pmem2_config.c" />
-    <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
-    <ClCompile Include="pmem2_source.c" />
+    <ClCompile Include="pmem2_usc.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libpmem2\config.h" />
-    <ClInclude Include="..\..\libpmem2\pmem2.h" />
-    <ClInclude Include="..\..\libpmem2\pmem2_utils.h" />
-    <ClInclude Include="..\unittest\ut_pmem2_config.h" />
-    <ClInclude Include="..\unittest\ut_pmem2_utils.h" />
+    <None Include="TESTS.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
