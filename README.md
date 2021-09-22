@@ -374,16 +374,15 @@ If you want to build/install experimental packages run:
 	$ make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
 
-### Experimental Support for 64-bit ARM
+### Experimental Support for 64-bit ARM and RISC-V
 
-There is an initial support for 64-bit ARM processors provided,
-currently only for aarch64.  All the PMDK libraries except **librpmem**
-can be built for 64-bit ARM.  The examples, tools and benchmarks
-are not ported yet and may not get built on ARM cores.
+There is an initial support for 64-bit ARM and RISC-V processors provided.
+While PMDK's internal testsuite passes on DRAM-only systems, support for
+neither of these architectures has been validated on any persistent memory
+hardware, nor has the code received review from any person with professional
+knowledge of either of these platforms.
 
-**NOTE:**
-The support for ARM processors is highly experimental. The libraries
-are only validated to "early access" quality with Cortex-A53 processor.
+Thus, these architectures should not be used in a production environment.
 
 ### PowerPC support
 

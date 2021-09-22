@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2021, Intel Corporation
 
 #
 # src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
@@ -21,6 +21,9 @@ OBJS = pmem_deep_persist.o\
 	mocks_posix.o
 
 ifeq ($(ARCH), aarch64)
+OBJS += init.o
+endif
+ifeq ($(ARCH), riscv64)
 OBJS += init.o
 endif
 ifeq ($(ARCH), x86_64)
