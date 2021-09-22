@@ -37,6 +37,8 @@
 extern "C" {
 #endif
 
+/* pmemset errors */
+
 #define PMEMSET_E_UNKNOWN				(-200000)
 #define PMEMSET_E_NOSUPP				(-200001)
 #define PMEMSET_E_INVALID_PMEM2_SOURCE			(-200002)
@@ -70,23 +72,19 @@ extern "C" {
 #define PMEMSET_E_MAP_LENGTH_UNSET			(-200030)
 #define PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL  (-200031)
 
-/* pmemset setup */
-
-enum pmemset_coalescing {
-	PMEMSET_COALESCING_NONE, /* don't try coalescing, default behavior */
-	PMEMSET_COALESCING_OPPORTUNISTIC, /* try coalescing, dont fail */
-	PMEMSET_COALESCING_FULL, /* coalesce, fail when impossible */
-};
-
 struct pmemset;
 struct pmemset_config;
-struct pmemset_part_map;
 struct pmemset_map_config;
+struct pmem2_source;
+struct pmemset_source;
+struct pmemset_part_map;
 
 struct pmemset_part_descriptor {
 	void *addr;
 	size_t size;
 };
+
+/* pmemset event */
 
 enum pmemset_event {
 	PMEMSET_EVENT_COPY,
@@ -188,133 +186,49 @@ struct pmemset_event_context {
  * having multiple threads mutating the same region on the set.
  */
 typedef int pmemset_event_callback(struct pmemset *set,
-	struct pmemset_event_context *ctx, void *arg);
+		struct pmemset_event_context *ctx, void *arg);
+
+/* pmemset config setup */
+
+int pmemset_config_new(struct pmemset_config **cfg);
+
+void pmemset_config_set_reservation(struct pmemset_config *cfg,
+		struct pmem2_vm_reservation *rsv);
+
+int pmemset_config_set_acceptable_states(struct pmemset_config *cfg,
+		uint64_t states);
 
 void pmemset_config_set_event_callback(struct pmemset_config *config,
-	pmemset_event_callback *callback, void *arg);
+		pmemset_event_callback *callback, void *arg);
+
+int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
+		enum pmem2_granularity g);
+
+int pmemset_get_store_granularity(struct pmemset *set,
+		enum pmem2_granularity *g);
+
+int pmemset_config_delete(struct pmemset_config **cfg);
+
+/* pmemset new */
 
 int pmemset_new(struct pmemset **set, struct pmemset_config *cfg);
 
 int pmemset_delete(struct pmemset **set);
 
-int pmemset_remove_part_map(struct pmemset *set,
-		struct pmemset_part_map **part);
+/* map config setup */
 
-struct pmemset_part_descriptor pmemset_descriptor_part_map(
-		struct pmemset_part_map *pmap);
+int pmemset_map_config_new(struct pmemset_map_config **map_cfg, struct
+		pmemset *set);
 
-void pmemset_first_part_map(struct pmemset *set,
-		struct pmemset_part_map **pmap);
+int pmemset_map_config_set_offset(struct pmemset_map_config *map_cfg,
+		size_t offset);
 
-void pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
-		struct pmemset_part_map **next);
+void pmemset_map_config_set_length(struct pmemset_map_config *map_cfg,
+		size_t length);
 
-int pmemset_remove_range(struct pmemset *set, void *addr, size_t len);
+int pmemset_map_config_delete(struct pmemset_map_config **map_cfg);
 
-int pmemset_set_contiguous_part_coalescing(struct pmemset *set,
-		enum pmemset_coalescing value);
-
-int pmemset_persist(struct pmemset *set, void *ptr, size_t size);
-
-int pmemset_flush(struct pmemset *set, void *ptr, size_t size);
-
-int pmemset_drain(struct pmemset *set);
-
-int pmemset_get_store_granularity(struct pmemset *set,
-		enum pmem2_granularity *g);
-
-#define PMEMSET_F_MEM_NODRAIN		(1U << 0)
-#define PMEMSET_F_MEM_NONTEMPORAL	(1U << 1)
-#define PMEMSET_F_MEM_TEMPORAL		(1U << 2)
-#define PMEMSET_F_MEM_WC		(1U << 3)
-#define PMEMSET_F_MEM_WB		(1U << 4)
-#define PMEMSET_F_MEM_NOFLUSH		(1U << 5)
-
-#define PMEMSET_F_MEM_VALID_FLAGS (PMEMSET_F_MEM_NODRAIN | \
-		PMEMSET_F_MEM_NONTEMPORAL | \
-		PMEMSET_F_MEM_TEMPORAL | \
-		PMEMSET_F_MEM_WC | \
-		PMEMSET_F_MEM_WB | \
-		PMEMSET_F_MEM_NOFLUSH)
-
-void *pmemset_memmove(struct pmemset *set, void *pmemdest, void *src,
-		size_t len, unsigned flags);
-
-void *pmemset_memcpy(struct pmemset *set, void *pmemdest, void *src,
-		size_t len, unsigned flags);
-
-void *pmemset_memset(struct pmemset *set, void *pmemdest, int c, size_t len,
-		unsigned flags);
-
-int pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size);
-
-/* config setup */
-
-#define PMEMSET_SDS_DEVICE_ID_LEN ((size_t)512ULL)
-
-#define PMEMSET_SDS_INITIALIZE() { \
-	.id = {0}, \
-	.usc = 0, \
-	.refcount = 0 \
-}
-
-struct pmemset_sds {
-	char id[PMEMSET_SDS_DEVICE_ID_LEN]; /* DIMM device id */
-	uint64_t usc; /* unsafe shutdown count */
-	int refcount;
-};
-
-enum pmemset_part_state {
-	/*
-	 * The part state cannot be determined because of errors during
-	 * retrieval of device information.
-	 */
-	PMEMSET_PART_STATE_INDETERMINATE = (1 << 0),
-
-	/*
-	 * The part is internally consistent and was closed cleanly.
-	 * Application can assume that no custom recovery is needed.
-	 */
-	PMEMSET_PART_STATE_OK = (1 << 1),
-
-	/*
-	 * The part is internally consistent, but it is in use by the libpmemset
-	 * library. It is an expected state when creating multiple mappings from
-	 * the same source.
-	 */
-	PMEMSET_PART_STATE_OK_BUT_ALREADY_OPEN = (1 << 2),
-
-	/* The part is internally consistent, but it was not closed cleanly. */
-	PMEMSET_PART_STATE_OK_BUT_INTERRUPTED = (1 << 3),
-
-	/*
-	 * The part can contain invalid data as a result of hardware failure.
-	 * Reading the part is unsafe. Application might need to perform
-	 * consistency checking and custom recovery on user data.
-	 */
-	PMEMSET_PART_STATE_CORRUPTED = (1 << 4),
-};
-
-int pmemset_config_new(struct pmemset_config **cfg);
-
-int pmemset_config_delete(struct pmemset_config **cfg);
-
-void pmemset_config_set_reservation(struct pmemset_config *cfg,
-		struct pmem2_vm_reservation *rsv);
-
-int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
-		enum pmem2_granularity g);
-
-int pmemset_config_set_acceptable_states(struct pmemset_config *cfg,
-		uint64_t states);
-
-/* source setup */
-
-struct pmem2_source;
-struct pmemset_source;
-
-int pmemset_source_from_pmem2(struct pmemset_source **src,
-	struct pmem2_source *pmem2_src);
+/* source from file flags */
 
 #define PMEMSET_SOURCE_FILE_CREATE_ALWAYS		(1U << 0)
 #define PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED	(1U << 1)
@@ -383,24 +297,29 @@ int pmemset_source_from_pmem2(struct pmemset_source **src,
 		PMEMSET_SOURCE_FILE_WOTH_MODE | \
 		PMEMSET_SOURCE_FILE_XOTH_MODE) << 32)
 
+/* source setup */
+
+int pmemset_source_from_pmem2(struct pmemset_source **src,
+		struct pmem2_source *pmem2_src);
+
 #ifndef WIN32
 int pmemset_source_from_file(struct pmemset_source **src, const char *file);
 
 int pmemset_xsource_from_file(struct pmemset_source **src, const char *file,
-			uint64_t flags);
+		uint64_t flags);
 
 int pmemset_source_from_temporary(struct pmemset_source **src, const char *dir);
 #else
 int pmemset_source_from_fileU(struct pmemset_source **src, const char *file);
 
 int pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
-				uint64_t flags);
+		uint64_t flags);
 
 int pmemset_source_from_fileW(struct pmemset_source **src,
-				const wchar_t *file);
+		const wchar_t *file);
 
 int pmemset_xsource_from_fileW(struct pmemset_source **src, const wchar_t *file,
-				unsigned flags);
+		unsigned flags);
 
 int pmemset_source_from_temporaryU(struct pmemset_source **src,
 		const char *dir);
@@ -411,29 +330,122 @@ int pmemset_source_from_temporaryW(struct pmemset_source **src,
 
 int pmemset_source_delete(struct pmemset_source **src);
 
+enum pmemset_part_state {
+	/*
+	 * The part state cannot be determined because of errors during
+	 * retrieval of device information.
+	 */
+	PMEMSET_PART_STATE_INDETERMINATE = (1 << 0),
+
+	/*
+	 * The part is internally consistent and was closed cleanly.
+	 * Application can assume that no custom recovery is needed.
+	 */
+	PMEMSET_PART_STATE_OK = (1 << 1),
+
+	/*
+	 * The part is internally consistent, but it is in use by the libpmemset
+	 * library. It is an expected state when creating multiple mappings from
+	 * the same source.
+	 */
+	PMEMSET_PART_STATE_OK_BUT_ALREADY_OPEN = (1 << 2),
+
+	/* The part is internally consistent, but it was not closed cleanly. */
+	PMEMSET_PART_STATE_OK_BUT_INTERRUPTED = (1 << 3),
+
+	/*
+	 * The part can contain invalid data as a result of hardware failure.
+	 * Reading the part is unsafe. Application might need to perform
+	 * consistency checking and custom recovery on user data.
+	 */
+	PMEMSET_PART_STATE_CORRUPTED = (1 << 4),
+};
+
+#define PMEMSET_SDS_INITIALIZE() { \
+	.id = {0}, \
+	.usc = 0, \
+	.refcount = 0 \
+}
+
+#define PMEMSET_SDS_DEVICE_ID_LEN ((size_t)512ULL)
+
+struct pmemset_sds {
+	char id[PMEMSET_SDS_DEVICE_ID_LEN]; /* DIMM device id */
+	uint64_t usc; /* unsafe shutdown count */
+	int refcount;
+};
+
 int pmemset_source_set_sds(struct pmemset_source *src, struct pmemset_sds *sds,
 		enum pmemset_part_state *state_ptr);
 
-/* part setup */
-
-struct pmemset_part_map;
-
-int pmemset_map_config_new(struct pmemset_map_config **map_cfg, struct
-		pmemset *set);
-int pmemset_map_config_set_offset(struct pmemset_map_config *map_cfg,
-	size_t offset);
-void pmemset_map_config_set_length(struct pmemset_map_config *map_cfg,
-	size_t length);
-int pmemset_map_config_delete(struct pmemset_map_config **map_cfg);
+/* map, unmap and part operations */
 
 int pmemset_map(struct pmemset_source *src,
 		struct pmemset_map_config *map_cfg,
 		struct pmemset_part_descriptor *desc);
 
-void pmemset_part_map_drop(struct pmemset_part_map **pmap);
+struct pmemset_part_descriptor pmemset_descriptor_part_map(
+		struct pmemset_part_map *pmap);
+
+enum pmemset_coalescing {
+	PMEMSET_COALESCING_NONE, /* don't try coalescing, default behavior */
+	PMEMSET_COALESCING_OPPORTUNISTIC, /* try coalescing, dont fail */
+	PMEMSET_COALESCING_FULL, /* coalesce, fail when impossible */
+};
+
+int pmemset_set_contiguous_part_coalescing(struct pmemset *set,
+		enum pmemset_coalescing value);
 
 int pmemset_part_map_by_address(struct pmemset *set,
 		struct pmemset_part_map **pmap, void *addr);
+
+void pmemset_first_part_map(struct pmemset *set,
+		struct pmemset_part_map **pmap);
+
+void pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
+		struct pmemset_part_map **next);
+
+void pmemset_part_map_drop(struct pmemset_part_map **pmap);
+
+int pmemset_remove_part_map(struct pmemset *set,
+		struct pmemset_part_map **part);
+
+int pmemset_remove_range(struct pmemset *set, void *addr, size_t len);
+
+/* pmemset mem flags */
+
+#define PMEMSET_F_MEM_NODRAIN		(1U << 0)
+#define PMEMSET_F_MEM_NONTEMPORAL	(1U << 1)
+#define PMEMSET_F_MEM_TEMPORAL		(1U << 2)
+#define PMEMSET_F_MEM_WC			(1U << 3)
+#define PMEMSET_F_MEM_WB			(1U << 4)
+#define PMEMSET_F_MEM_NOFLUSH		(1U << 5)
+
+#define PMEMSET_F_MEM_VALID_FLAGS (PMEMSET_F_MEM_NODRAIN | \
+		PMEMSET_F_MEM_NONTEMPORAL | \
+		PMEMSET_F_MEM_TEMPORAL | \
+		PMEMSET_F_MEM_WC | \
+		PMEMSET_F_MEM_WB | \
+		PMEMSET_F_MEM_NOFLUSH)
+
+/* pmemset mem operations and persists */
+
+void *pmemset_memmove(struct pmemset *set, void *pmemdest, void *src,
+		size_t len, unsigned flags);
+
+void *pmemset_memcpy(struct pmemset *set, void *pmemdest, void *src,
+		size_t len, unsigned flags);
+
+void *pmemset_memset(struct pmemset *set, void *pmemdest, int c, size_t len,
+		unsigned flags);
+
+int pmemset_persist(struct pmemset *set, void *ptr, size_t size);
+
+int pmemset_flush(struct pmemset *set, void *ptr, size_t size);
+
+int pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size);
+
+int pmemset_drain(struct pmemset *set);
 
 /* error handling */
 
