@@ -37,7 +37,7 @@
 enum pobj_arenas_assignment_type Default_arenas_assignment_type =
 	POBJ_ARENAS_ASSIGNMENT_THREAD_KEY;
 
-ssize_t Default_arenas_max = -1;
+size_t Default_arenas_max = 0;
 
 struct arenas_thread_assignment {
 	enum pobj_arenas_assignment_type type;
@@ -734,12 +734,8 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 	}
 	struct recycler *recycler = heap_get_recycler(heap, c->id,
 		c->rdsc.nallocs);
-	if (recycler == NULL) {
-		ERR("lost runtime tracking info of %u run due to OOM",
-			c->id);
-	}
 
-	if (recycler_put(recycler, e) < 0)
+	if (recycler == NULL || recycler_put(recycler, e) < 0)
 		ERR("lost runtime tracking info of %u run due to OOM", c->id);
 
 	return 0;
@@ -973,6 +969,7 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 	if (recycler == NULL) {
 		ERR("lost runtime tracking info of %u run due to OOM",
 			b->aclass->id);
+		return 0;
 	}
 
 	if (!force && recycler_get(recycler, &m) == 0)
@@ -1090,10 +1087,9 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 	if (recycler == NULL) {
 		ERR("lost runtime tracking info of %u run due to OOM",
 			c->id);
-	}
-
-	if (recycler != NULL)
+	} else {
 		recycler_inc_unaccounted(recycler, m);
+	}
 }
 
 /*
@@ -1637,7 +1633,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_alloc_classes_new;
 	}
 
-	unsigned narenas_default = Default_arenas_max == -1 ?
+	unsigned narenas_default = Default_arenas_max == 0 ?
 		heap_get_procs() : (unsigned)Default_arenas_max;
 
 	if (heap_arenas_init(&h->arenas) != 0) {
