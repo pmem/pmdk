@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2021, Intel Corporation
 #
 #
 # libpmempool_bttdev/TEST3 -- test for checking btt
@@ -9,8 +9,8 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-
 require_fs_type any
+require_unlimited_vm
 
 # Valgrind cannot trace more than 32G which is required for this test
 configure_valgrind memcheck force-disable
