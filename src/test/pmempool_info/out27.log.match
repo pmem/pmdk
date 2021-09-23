@@ -21,6 +21,7 @@ Class                    : $(*)
 Data                     : $(*)
 $(OPT)Machine                  : AMD X86-64
 $(OPT)Machine                  : Aarch64
+$(OPT)Machine                  : RISCV
 $(OPX)Machine                  : PPC64
 Last shutdown            : clean
 Checksum                 : $(*) [OK]
