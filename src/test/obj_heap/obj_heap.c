@@ -345,7 +345,7 @@ test_heap(void)
 		heap_get_bestfit_block(heap, b_def, &blocks[i]);
 		UT_ASSERT(blocks[i].block_off == 0);
 	}
-	heap_bucket_release(heap, b_def);
+	heap_bucket_release(b_def);
 
 	struct memory_block old_run = {0, 0, 1, 0};
 	struct memory_block new_run = {0, 0, 0, 0};
@@ -367,7 +367,7 @@ test_heap(void)
 		UT_ASSERTne(new_run.size_idx, 0);
 	} while (old_run.block_off != new_run.block_off);
 
-	heap_bucket_release(heap, b_run);
+	heap_bucket_release(b_run);
 
 	stats_delete(pop, s);
 	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
@@ -439,7 +439,7 @@ test_heap_with_size()
 	VALGRIND_DO_MAKE_MEM_DEFINED(ptr, s);
 	memset(ptr, 0xc, s);
 
-	heap_bucket_release(heap, b_def);
+	heap_bucket_release(b_def);
 
 	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
 	heap_cleanup(heap);
@@ -490,7 +490,7 @@ test_recycler(void)
 		DEFAULT_ALLOC_CLASS_ID,
 		HEAP_ARENA_PER_THREAD);
 	UT_ASSERT(heap_get_bestfit_block(heap, b, &m) == 0);
-	heap_bucket_release(heap, b);
+	heap_bucket_release(b);
 
 	int ret;
 
