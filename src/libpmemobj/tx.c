@@ -1132,6 +1132,8 @@ pmemobj_tx_process(void)
 static void
 vg_verify_initialized(PMEMobjpool *pop, const struct tx_range_def *def)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(pop, def);
 #if VG_MEMCHECK_ENABLED
 	if (!On_memcheck)
 		return;
