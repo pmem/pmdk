@@ -1,6 +1,6 @@
-Wed Sep 08 2020 Łukasz Plewa <lukasz.plewa@intel.com>
+Fri Sep 24 2020 Łukasz Plewa <lukasz.plewa@intel.com>
 
-	* Version 1.11.1-rc1
+	* Version 1.11.1
 
 	This release fixes a missing sfence in non-temporal
 	version of memcpy function
