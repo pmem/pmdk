@@ -1,6 +1,4 @@
-Mon Sep 20 2021 Łukasz Plewa <lukasz.plewa@intel.com>
-
-	* Version 1.10.1-rc2
+Mon Sep 20 2021 Łukasz Plewa <lukasz.plewa@intel.com>	* Version 1.10.1-rc2
 
 	This release fixes a missing sfence in non-temporal
 	version of memcpy function
@@ -21,9 +19,9 @@ Mon Sep 20 2021 Łukasz Plewa <lukasz.plewa@intel.com>
 	- rpmem: Fix RPMEM_RAW_BUFF_SIZE and LANE_ALIGN_SIZE for powerpc64le
 	- rpmem: drop a redundant check
 
-Mon Sep 20 2021 Łukasz Plewa <lukasz.plewa@intel.com>
+Fri Sep 24 2021 Łukasz Plewa <lukasz.plewa@intel.com>
 
-	* Version 1.9.3-rc2
+	* Version 1.9.3
 
 	This release fixes a missing sfence in non-temporal
 	version of memcpy function
