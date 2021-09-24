@@ -1004,8 +1004,13 @@ function check_pools() {
 # This implies requirements for:
 # - overcommit_memory enabled (/proc/sys/vm/overcommit_memory is 0 or 1)
 # - unlimited virtual memory (ulimit -v is unlimited)
+# - big enough virtual memory (sv39 is too small)
 #
 function require_unlimited_vm() {
+	if grep -q "^mmu[[:blank:]]*: sv39" /proc/cpuinfo; then
+		msg "$UNITTEST_NAME: SKIP required: 4+ level virtual memory"
+		exit 0
+	fi
 	$VM_OVERCOMMIT && [ $(ulimit -v) = "unlimited" ] && return
 	msg "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
 	exit 0

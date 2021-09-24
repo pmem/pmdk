@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * output.c -- definitions of output printing related functions
@@ -726,6 +726,8 @@ out_get_arch_machine_str(uint16_t machine)
 		return "Aarch64";
 	case PMDK_MACHINE_PPC64:
 		return "PPC64";
+	case PMDK_MACHINE_RISCV64:
+		return "RISCV";
 	default:
 		break;
 	}

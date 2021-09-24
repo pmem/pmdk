@@ -21,6 +21,7 @@ memory_barrier(void)
 static void
 noop(const void *addr, size_t len)
 {
+	SUPPRESS_UNUSED(addr, len);
 }
 
 /*
