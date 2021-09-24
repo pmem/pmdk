@@ -1,4 +1,4 @@
-Thu Sep 09 2021 Łukasz Plewa <lukasz.plewa@intel.com>
+Wed Sep 08 2020 Łukasz Plewa <lukasz.plewa@intel.com>
 
 	* Version 1.11.1-rc1
 
@@ -20,9 +20,9 @@ Thu Sep 09 2021 Łukasz Plewa <lukasz.plewa@intel.com>
 	- rpmem: Fix RPMEM_RAW_BUFF_SIZE and LANE_ALIGN_SIZE for powerpc64le
 	- rpmem: drop a redundant check
 
-Wed Sep 08 2020 Łukasz Plewa <lukasz.plewa@intel.com>
+Mon Sep 24 2021 Łukasz Plewa <lukasz.plewa@intel.com>
 
-	* Version 1.10.1-rc1
+	* Version 1.10.1
 
 	This release fixes a missing sfence in non-temporal
 	version of memcpy function
@@ -30,6 +30,7 @@ Wed Sep 08 2020 Łukasz Plewa <lukasz.plewa@intel.com>
 	and fixes a number of smaller bugs.
 
 	Detailed list of bug fixes:
+	- common: add disable lto to cflags
 	- doc: remove exprimental moniker from libpmem2(7)
 	- common: fix missing sfence in non-temporal memcpy
 	- common: fix a mismatch between prototype and body
@@ -42,9 +43,9 @@ Wed Sep 08 2020 Łukasz Plewa <lukasz.plewa@intel.com>
 	- rpmem: Fix RPMEM_RAW_BUFF_SIZE and LANE_ALIGN_SIZE for powerpc64le
 	- rpmem: drop a redundant check
 
-Thu Sep 09 2021 Łukasz Plewa <lukasz.plewa@intel.com>
+Fri Sep 24 2021 Łukasz Plewa <lukasz.plewa@intel.com>
 
-	* Version 1.9.3-rc1
+	* Version 1.9.3
 
 	This release fixes a missing sfence in non-temporal
 	version of memcpy function
@@ -52,6 +53,7 @@ Thu Sep 09 2021 Łukasz Plewa <lukasz.plewa@intel.com>
 	and fixes a number of smaller bugs.
 
 	Detailed list of bug fixes:
+	- common: add disable lto to cflags
 	- common: fix missing sfence in non-temporal memcpy
 	- common: fix mismatched function args
 	- common: fix a mismatch between prototype and body
