@@ -30,14 +30,14 @@ date: pmemset API version 1.0
 
 struct pmemset;
 struct pmemset_map_config;
-int pmemset_map_config_new(struct pmemset_map_config **map_cfg, struct pmemset *set);
+int pmemset_map_config_new(struct pmemset_map_config **map_cfg);
 int pmemset_map_config_delete(struct pmemset_map_config **map_cfg);
 ```
 
 # DESCRIPTION #
 
 The **pmemset_map_config_new**() function instantiates a new (opaque) configuration structure,
-*pmemset_map_config*, which is used to create new *map* using **pmemset_map**(3) function,
+*pmemset_map_config*, which can be used to create new *map* using **pmemset_map**(3) function,
 and returns it through the pointer in *\*map_cfg*.
 
 The **pmemset_map_config_new**() creates a new map config which
@@ -65,5 +65,5 @@ of *struct pmemset_map_config*.
 
 # SEE ALSO #
 
-**pmemset_map_config_set_length**(3), **pmemset_map_config_set_offset**(3),
-**libpmemset**(7) and **<http://pmem.io>**
+**pmemset_map(3)**, **pmemset_map_config_set_length**(3),
+**pmemset_map_config_set_offset**(3), **libpmemset**(7) and **<http://pmem.io>**

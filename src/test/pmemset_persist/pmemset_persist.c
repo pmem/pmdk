@@ -33,11 +33,11 @@ test_persist_single_part(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 64 * 1024);
+	ut_create_map_config(&map_cfg, 0, 64 * 1024);
 	UT_ASSERTne(map_cfg, NULL);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_map(src, map_cfg, &desc);
+	ret = pmemset_map(set, src, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	memset(desc.addr, 1, desc.size);
@@ -85,16 +85,16 @@ test_persist_multiple_parts(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&first_map_cfg, set, 0, first_part_size);
+	ut_create_map_config(&first_map_cfg, 0, first_part_size);
 	UT_ASSERTne(first_map_cfg, NULL);
 
-	ret = pmemset_map(src, first_map_cfg, &first_desc);
+	ret = pmemset_map(set, src, first_map_cfg, &first_desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&second_map_cfg, set, 0, second_part_size);
+	ut_create_map_config(&second_map_cfg, 0, second_part_size);
 	UT_ASSERTne(second_map_cfg, NULL);
 
-	ret = pmemset_map(src, second_map_cfg, &second_desc);
+	ret = pmemset_map(set, src, second_map_cfg, &second_desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	memset(first_desc.addr, 1, first_desc.size);
@@ -143,10 +143,10 @@ test_persist_incomplete(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(src, map_cfg, &desc);
+	ret = pmemset_map(set, src, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	memset(desc.addr, 1, desc.size);
@@ -194,16 +194,16 @@ test_set_flush_drain(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&first_map_cfg, set, 0, first_part_size);
+	ut_create_map_config(&first_map_cfg, 0, first_part_size);
 	UT_ASSERTne(first_map_cfg, NULL);
 
-	ret = pmemset_map(src, first_map_cfg, &first_desc);
+	ret = pmemset_map(set, src, first_map_cfg, &first_desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&second_map_cfg, set, 0, second_part_size);
+	ut_create_map_config(&second_map_cfg, 0, second_part_size);
 	UT_ASSERTne(second_map_cfg, NULL);
 
-	ret = pmemset_map(src, second_map_cfg, &second_desc);
+	ret = pmemset_map(set, src, second_map_cfg, &second_desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	memset(first_desc.addr, 1, first_desc.size);

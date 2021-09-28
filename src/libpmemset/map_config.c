@@ -13,16 +13,15 @@
 #include "source.h"
 
 struct pmemset_map_config {
-	struct pmemset *set;
 	size_t offset;
 	size_t length;
 	struct pmemset_file *file;
 };
 
-int pmemset_map_config_new(struct pmemset_map_config **map_cfg,
-		struct pmemset *set)
+int
+pmemset_map_config_new(struct pmemset_map_config **map_cfg)
 {
-	LOG(3, "map_cfg %p set %p", map_cfg, set);
+	LOG(3, "map_cfg %p", map_cfg);
 	PMEMSET_ERR_CLR();
 
 	int ret;
@@ -35,7 +34,6 @@ int pmemset_map_config_new(struct pmemset_map_config **map_cfg,
 
 	ASSERTne(mapcfg, NULL);
 
-	mapcfg->set = set;
 	mapcfg->offset = 0;
 	mapcfg->length = 0;
 	*map_cfg = mapcfg;
@@ -89,15 +87,6 @@ pmemset_map_config_delete(struct pmemset_map_config **map_cfg)
 	*map_cfg = NULL;
 
 	return 0;
-}
-
-/*
- * pmemset_map_config_get_set -- return set assigned to the map config
- */
-struct pmemset *
-pmemset_map_config_get_set(struct pmemset_map_config *map_cfg)
-{
-	return map_cfg->set;
 }
 
 /*

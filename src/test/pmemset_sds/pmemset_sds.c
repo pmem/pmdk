@@ -83,7 +83,6 @@ test_sds_part_in_use_wrong_usc(const struct test_case *tc, int argc,
 	const char *file = argv[0];
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	enum pmemset_part_state state;
 	struct pmemset_sds sds = PMEMSET_SDS_INITIALIZE();
 	struct pmemset_sds *sds_copy;
@@ -105,9 +104,7 @@ test_sds_part_in_use_wrong_usc(const struct test_case *tc, int argc,
 	ret = pmemset_source_set_sds(src, &sds, &state);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	if (ret == PMEMSET_E_SDS_ENOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -118,7 +115,7 @@ test_sds_part_in_use_wrong_usc(const struct test_case *tc, int argc,
 	sds_copy->usc += 1;
 
 	/* new SDS unsafe shutdown count doesn't match the old one */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_UNDESIRABLE_PART_STATE);
 	UT_ASSERTeq(state, PMEMSET_PART_STATE_CORRUPTED);
 
@@ -126,8 +123,6 @@ err_cleanup:
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -149,7 +144,6 @@ test_sds_part_not_in_use_wrong_usc(const struct test_case *tc, int argc,
 	const char *file = argv[0];
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	enum pmemset_part_state state;
 	struct pmemset_sds sds = PMEMSET_SDS_INITIALIZE();
 	struct pmemset_sds *sds_copy;
@@ -177,10 +171,8 @@ test_sds_part_not_in_use_wrong_usc(const struct test_case *tc, int argc,
 	sds_copy->usc += 1;
 	uint64_t old_usc = sds_copy->usc;
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	/* new SDS unsafe shutdown count doesn't match the old one */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	if (ret == PMEMSET_E_SDS_ENOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -192,8 +184,6 @@ err_cleanup:
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -215,7 +205,6 @@ test_sds_part_in_use_wrong_device_id(const struct test_case *tc, int argc,
 	const char *file = argv[0];
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	enum pmemset_part_state state;
 	struct pmemset_sds sds = PMEMSET_SDS_INITIALIZE();
 	struct pmemset_sds *sds_copy;
@@ -236,10 +225,8 @@ test_sds_part_in_use_wrong_device_id(const struct test_case *tc, int argc,
 
 	pmemset_source_set_sds(src, &sds, &state);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	/* no error, correct SDS values */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	if (ret == PMEMSET_E_SDS_ENOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -250,7 +237,7 @@ test_sds_part_in_use_wrong_device_id(const struct test_case *tc, int argc,
 	sds_copy->id[0] += 1;
 
 	/* new SDS unsafe shutdown count doesn't match the old one */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_UNDESIRABLE_PART_STATE);
 	UT_ASSERTeq(state, PMEMSET_PART_STATE_INDETERMINATE);
 
@@ -258,8 +245,6 @@ err_cleanup:
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -282,7 +267,6 @@ test_sds_part_not_in_use_wrong_device_id(const struct test_case *tc, int argc,
 	const char *file = argv[0];
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	enum pmemset_part_state state;
 	struct pmemset_sds sds = PMEMSET_SDS_INITIALIZE();
 	struct pmemset_sds *sds_copy;
@@ -311,10 +295,8 @@ test_sds_part_not_in_use_wrong_device_id(const struct test_case *tc, int argc,
 	char old_device_id[PMEMSET_SDS_DEVICE_ID_LEN];
 	strncpy(old_device_id, sds_copy->id, PMEMSET_SDS_DEVICE_ID_LEN);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	/* new SDS unsafe shutdown count doesn't match the old one */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	if (ret == PMEMSET_E_SDS_ENOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -327,8 +309,6 @@ err_cleanup:
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -351,7 +331,6 @@ test_sds_part_multiple_mappings(const struct test_case *tc, int argc,
 	const char *file = argv[0];
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	enum pmemset_part_state state;
 	struct pmemset_sds sds = PMEMSET_SDS_INITIALIZE();
 	struct pmemset_source *src;
@@ -367,15 +346,13 @@ test_sds_part_multiple_mappings(const struct test_case *tc, int argc,
 
 	pmemset_source_set_sds(src, &sds, &state);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	if (ret == PMEMSET_E_SDS_ENOSUPP)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(state, PMEMSET_PART_STATE_OK);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	/*
 	 * SDS changes after first mapping, its in use, therefore every
@@ -383,7 +360,7 @@ test_sds_part_multiple_mappings(const struct test_case *tc, int argc,
 	 */
 	UT_ASSERTeq(state, PMEMSET_PART_STATE_OK_BUT_ALREADY_OPEN);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(state, PMEMSET_PART_STATE_OK_BUT_ALREADY_OPEN);
 
@@ -391,8 +368,6 @@ err_cleanup:
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);

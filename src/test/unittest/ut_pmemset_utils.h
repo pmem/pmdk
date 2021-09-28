@@ -21,4 +21,4 @@ void ut_pmemset_expect_return(const char *file, int line, const char *func,
 void ut_create_set_config(struct pmemset_config **cfg);
 
 void ut_create_map_config(struct pmemset_map_config **map_cfg,
-		struct pmemset *set, size_t offset, size_t length);
+		size_t offset, size_t length);

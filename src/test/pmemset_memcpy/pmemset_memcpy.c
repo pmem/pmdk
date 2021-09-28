@@ -80,10 +80,10 @@ main(int argc, char *argv[])
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 4 * 1024 * 1024);
+	ut_create_map_config(&map_cfg, 0, 4 * 1024 * 1024);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(ssrc, map_cfg, &desc);
+	ret = pmemset_map(set, ssrc, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* src > dst */

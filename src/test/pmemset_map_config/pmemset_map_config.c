@@ -47,7 +47,7 @@ test_map_config_new_enomem(const struct test_case *tc, int argc,
 
 	core_inject_fault_at(PMEM_MALLOC, 1, "pmemset_malloc");
 
-	ret = pmemset_map_config_new(&map_cfg, set);
+	ret = pmemset_map_config_new(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
 	UT_ASSERTeq(map_cfg, NULL);
 
@@ -87,11 +87,11 @@ test_map_config_new_valid_source_file(const struct test_case *tc, int argc,
 	ret = pmemset_source_from_file(&src, file);
 	UT_ASSERTeq(ret, 0);
 
-	ret = pmemset_map_config_new(&map_cfg, set);
+	ret = pmemset_map_config_new(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_source_delete(&src);
@@ -139,11 +139,11 @@ test_map_config_new_valid_source_pmem2(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
-	ret = pmemset_map_config_new(&map_cfg, set);
+	ret = pmemset_map_config_new(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_source_delete(&src);
@@ -180,11 +180,11 @@ test_map_config_new_invalid_source(const struct test_case *tc, int argc,
 	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_map_config_new(&map_cfg, set);
+	ret = pmemset_map_config_new(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map_cfg, NULL);
 
-	ret = pmemset_map(NULL, map_cfg, NULL);
+	ret = pmemset_map(set, NULL, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_SOURCE_TYPE);
 
 	ret = pmemset_map_config_delete(&map_cfg);
@@ -238,7 +238,7 @@ test_map_config_invalid_offset(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_map_config_new(&map_cfg, set);
+	ret = pmemset_map_config_new(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map_cfg, NULL);
 

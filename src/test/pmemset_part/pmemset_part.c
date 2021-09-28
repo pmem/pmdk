@@ -52,9 +52,9 @@ test_part_map_valid_source_pmem2(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 64 * 1024);
+	ut_create_map_config(&map_cfg, 0, 64 * 1024);
 
-	ret = pmemset_map(src, map_cfg, &desc);
+	ret = pmemset_map(set, src, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(desc.addr, NULL);
 	UT_ASSERTeq(desc.size, 64 * 1024);
@@ -101,9 +101,9 @@ test_part_map_valid_source_file(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 64 * 1024);
+	ut_create_map_config(&map_cfg, 0, 64 * 1024);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_delete(&set);
@@ -144,12 +144,12 @@ test_part_map_gran_read(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 64 * 1024);
+	ut_create_map_config(&map_cfg, 0, 64 * 1024);
 
 	ret = pmemset_get_store_granularity(set, &effective_gran);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_NO_PART_MAPPED);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_get_store_granularity(set, &effective_gran);
@@ -192,7 +192,6 @@ test_unmap_part(const struct test_case *tc, int argc,
 	struct pmemset_source *src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 
 	int ret = pmemset_source_from_file(&src, file);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -202,10 +201,8 @@ test_unmap_part(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_map(src, map_cfg, &desc);
+	ret = pmemset_map(set, src, NULL, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	memset(desc.addr, 1, desc.size);
@@ -228,8 +225,6 @@ test_unmap_part(const struct test_case *tc, int argc,
 
 	ret = pmemset_config_delete(&cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
@@ -250,7 +245,6 @@ test_part_map_enomem(const struct test_case *tc, int argc,
 	struct pmemset *set;
 	struct pmemset_source *src;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 
 	if (!core_fault_injection_enabled())
 		return 1;
@@ -264,17 +258,13 @@ test_part_map_enomem(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	core_inject_fault_at(PMEM_MALLOC, 1, "pmemset_malloc");
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
 
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -315,9 +305,9 @@ test_part_map_first(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -372,9 +362,9 @@ test_part_map_descriptor(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &pmap);
@@ -436,14 +426,14 @@ test_part_map_next(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&first_map_cfg, set, 0, first_part_size);
+	ut_create_map_config(&first_map_cfg, 0, first_part_size);
 
-	ret = pmemset_map(src, first_map_cfg, NULL);
+	ret = pmemset_map(set, src, first_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&second_map_cfg, set, 0, second_part_size);
+	ut_create_map_config(&second_map_cfg, 0, second_part_size);
 
-	ret = pmemset_map(src, second_map_cfg, NULL);
+	ret = pmemset_map(set, src, second_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -511,9 +501,9 @@ test_part_map_drop(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &pmap);
@@ -578,14 +568,14 @@ test_part_map_by_addr(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&first_map_cfg, set, 0, part_size_first);
+	ut_create_map_config(&first_map_cfg, 0, part_size_first);
 
-	ret = pmemset_map(src, first_map_cfg, NULL);
+	ret = pmemset_map(set, src, first_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&second_map_cfg, set, 0, part_size_second);
+	ut_create_map_config(&second_map_cfg, 0, part_size_second);
 
-	ret = pmemset_map(src, second_map_cfg, NULL);
+	ret = pmemset_map(set, src, second_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -639,7 +629,6 @@ test_part_map_unaligned_size(const struct test_case *tc, int argc,
 	const char *file = argv[0];
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_source *src;
 	struct pmem2_source *pmem2_src;
 
@@ -656,16 +645,12 @@ test_part_map_unaligned_size(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_LENGTH_UNALIGNED);
 
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -691,7 +676,6 @@ test_part_map_full_coalesce_before(const struct test_case *tc, int argc,
 	struct pmem2_source *pmem2_src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_part_descriptor desc_before;
 	struct pmemset_part_descriptor desc_after;
 	struct pmemset_part_map *first_pmap = NULL;
@@ -715,9 +699,7 @@ test_part_map_full_coalesce_before(const struct test_case *tc, int argc,
 			PMEMSET_COALESCING_FULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -725,7 +707,7 @@ test_part_map_full_coalesce_before(const struct test_case *tc, int argc,
 
 	desc_before = pmemset_descriptor_part_map(first_pmap);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -749,8 +731,6 @@ err_cleanup:
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmem2_source_delete(&pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	CLOSE(fd);
@@ -773,7 +753,6 @@ test_part_map_full_coalesce_after(const struct test_case *tc, int argc,
 	struct pmem2_source *pmem2_src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_part_descriptor desc_before;
 	struct pmemset_part_descriptor desc_after;
 	struct pmemset_part_map *first_pmap = NULL;
@@ -793,9 +772,7 @@ test_part_map_full_coalesce_after(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -807,7 +784,7 @@ test_part_map_full_coalesce_after(const struct test_case *tc, int argc,
 			PMEMSET_COALESCING_FULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 		goto err_cleanup;
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -828,8 +805,6 @@ err_cleanup:
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -880,12 +855,12 @@ test_part_map_opp_coalesce_before(const struct test_case *tc, int argc,
 			PMEMSET_COALESCING_OPPORTUNISTIC);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/*
@@ -955,16 +930,16 @@ test_part_map_opp_coalesce_after(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_set_contiguous_part_coalescing(set,
 			PMEMSET_COALESCING_OPPORTUNISTIC);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/*
@@ -1036,14 +1011,14 @@ test_remove_part_map(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&first_map_cfg, set, 0, first_part_size);
+	ut_create_map_config(&first_map_cfg, 0, first_part_size);
 
-	ret = pmemset_map(src, first_map_cfg, NULL);
+	ret = pmemset_map(set, src, first_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&second_map_cfg, set, 0, second_part_size);
+	ut_create_map_config(&second_map_cfg, 0, second_part_size);
 
-	ret = pmemset_map(src, second_map_cfg, NULL);
+	ret = pmemset_map(set, src, second_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_first_part_map(set, &first_pmap);
@@ -1137,14 +1112,14 @@ test_full_coalescing_before_remove_part_map(const struct test_case *tc,
 			PMEMSET_COALESCING_FULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&first_map_cfg, set, 0, first_part_size);
+	ut_create_map_config(&first_map_cfg, 0, first_part_size);
 
-	ret = pmemset_map(src, first_map_cfg, NULL);
+	ret = pmemset_map(set, src, first_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&second_map_cfg, set, 0, second_part_size);
+	ut_create_map_config(&second_map_cfg, 0, second_part_size);
 
-	ret = pmemset_map(src, second_map_cfg, NULL);
+	ret = pmemset_map(set, src, second_map_cfg, NULL);
 	/* the address next to the previous part mapping is already occupied */
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 		goto err_cleanup;
@@ -1206,7 +1181,6 @@ test_full_coalescing_after_remove_first_part_map(const struct test_case *tc,
 	struct pmem2_source *pmem2_src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_part_map *first_pmap = NULL;
 	struct pmemset_part_map *second_pmap = NULL;
 	struct pmemset_source *src;
@@ -1224,14 +1198,12 @@ test_full_coalescing_after_remove_first_part_map(const struct test_case *tc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	/* map first part */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* map second part */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* there should be two mapping in the pmemset */
@@ -1267,7 +1239,7 @@ test_full_coalescing_after_remove_first_part_map(const struct test_case *tc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* new part should be coalesced with the remaining mapping */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 
 	/* the address next to the previous part mapping is already occupied */
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
@@ -1294,8 +1266,6 @@ err_cleanup:
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -1325,7 +1295,6 @@ test_full_coalescing_after_remove_second_part_map(const struct test_case *tc,
 	struct pmem2_source *pmem2_src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_part_map *first_pmap = NULL;
 	struct pmemset_part_map *second_pmap = NULL;
 	struct pmemset_source *src;
@@ -1343,14 +1312,12 @@ test_full_coalescing_after_remove_second_part_map(const struct test_case *tc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	/* map first part */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* map second part */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* there should be two mapping in the pmemset */
@@ -1387,7 +1354,7 @@ test_full_coalescing_after_remove_second_part_map(const struct test_case *tc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* new part should be coalesced with the remaining mapping */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 
 	/* the address next to the previous part mapping is already occupied */
 	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
@@ -1416,8 +1383,6 @@ err_cleanup:
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -1463,11 +1428,11 @@ test_remove_multiple_part_maps(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	/* map hundred parts */
 	for (int i = 0; i < nmaps; i++) {
-		ret = pmemset_map(src, map_cfg, NULL);
+		ret = pmemset_map(set, src, map_cfg, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -1543,17 +1508,17 @@ test_part_map_valid_source_temp(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_map(src, map_cfg, &desc);
+	ret = pmemset_map(set, src, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ASSERTeq(desc.size, part_size);
 
 	static size_t nmaps = 3;
 	for (int i = 0; i < nmaps; i++) {
-		ut_create_map_config(&map_cfg, set, 0, part_size / 2);
-		ret = pmemset_map(src, map_cfg, &desc);
+		ut_create_map_config(&map_cfg, 0, part_size / 2);
+		ret = pmemset_map(set, src, map_cfg, &desc);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 		ASSERTeq(desc.size, part_size / 2);
 	}
@@ -1620,9 +1585,9 @@ test_part_map_invalid_source_temp(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, SIZE_MAX);
+	ut_create_map_config(&map_cfg, 0, SIZE_MAX);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_GROW_SOURCE_FILE);
 
 	ret = pmemset_delete(&set);
@@ -1677,10 +1642,10 @@ test_part_map_source_do_not_grow(const struct test_case *tc, int argc,
 	os_off_t size = st.st_size;
 	UT_ASSERT(size == 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	/* it should fail - size of file equals zero and cannot grow */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL);
 
 	ret = pmemset_delete(&set);
@@ -1703,10 +1668,10 @@ test_part_map_source_do_not_grow(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	struct pmemset_part_descriptor desc;
-	ret = pmemset_map(src, map_cfg, &desc);
+	ret = pmemset_map(set, src, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ASSERTeq(desc.size, part_size);
 
@@ -1723,9 +1688,9 @@ test_part_map_source_do_not_grow(const struct test_case *tc, int argc,
 	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size * 2);
+	ut_create_map_config(&map_cfg, 0, part_size * 2);
 
-	ret = pmemset_map(src, map_cfg, &desc);
+	ret = pmemset_map(set, src, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ASSERTeq(desc.size, part_size * 2);
 
@@ -1765,10 +1730,10 @@ test_part_map_source_do_not_grow(const struct test_case *tc, int argc,
 	size = st.st_size;
 	UT_ASSERT(size == part_size * 2);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size * 4);
+	ut_create_map_config(&map_cfg, 0, part_size * 4);
 
 	/* it should fail - file is not empty but its size is too small */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL);
 
 	ret = pmemset_delete(&set);
@@ -1796,7 +1761,6 @@ test_part_map_source_do_not_grow_len_unset(const struct test_case *tc, int argc,
 		         <file>");
 
 	const char *file = argv[0];
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_source *src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
@@ -1822,17 +1786,13 @@ test_part_map_source_do_not_grow_len_unset(const struct test_case *tc, int argc,
 	os_off_t size = st.st_size;
 	UT_ASSERT(size == 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	/* it should fail - map config length is unset */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_MAP_LENGTH_UNSET);
 
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -1853,7 +1813,6 @@ test_part_map_source_len_unset(const struct test_case *tc, int argc,
 		         <file>");
 
 	const char *file = argv[0];
-	struct pmemset_map_config *map_cfg;
 	struct pmemset_source *src;
 	struct pmemset *set;
 	struct pmemset_config *cfg;
@@ -1878,17 +1837,13 @@ test_part_map_source_len_unset(const struct test_case *tc, int argc,
 	os_off_t size = st.st_size;
 	UT_ASSERT(size == 0);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
-
 	/* it should fail - map config length is unset */
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, NULL, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_MAP_LENGTH_UNSET);
 
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -1932,10 +1887,10 @@ test_remove_two_ranges(const struct test_case *tc, int argc, char *argv[])
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 	int n_maps = 2;
 	for (int i = 0; i < n_maps; i++) {
-		ret = pmemset_map(src, map_cfg, NULL);
+		ret = pmemset_map(set, src, map_cfg, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -2013,7 +1968,7 @@ test_remove_coalesced_two_ranges(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 	int n_maps = 4;
 	for (int i = 0; i < n_maps; i++) {
 		/* there will be two different coalesced part mappings */
@@ -2022,7 +1977,7 @@ test_remove_coalesced_two_ranges(const struct test_case *tc, int argc,
 				PMEMSET_COALESCING_NONE;
 		pmemset_set_contiguous_part_coalescing(set, coalescing);
 
-		ret = pmemset_map(src, map_cfg, NULL);
+		ret = pmemset_map(set, src, map_cfg, NULL);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 			goto err_cleanup;
 
@@ -2124,11 +2079,11 @@ test_remove_coalesced_middle_range(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_set_contiguous_part_coalescing(set, PMEMSET_COALESCING_FULL);
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	int n_maps = 3;
 	for (int i = 0; i < n_maps; i++) {
-		ret = pmemset_map(src, map_cfg, NULL);
+		ret = pmemset_map(set, src, map_cfg, NULL);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 			goto err_cleanup;
 
@@ -2191,7 +2146,7 @@ part_map_and_remove_worker(void *arg)
 
 	int ret;
 	for (size_t n = 0; n < n_ops; n++) {
-		ret = pmemset_map(src, map_cfg, &desc);
+		ret = pmemset_map(set, src, map_cfg, &desc);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 		ret = pmemset_part_map_by_address(set, &pmap, desc.addr);
@@ -2258,7 +2213,7 @@ test_pmemset_async_map_remove_multiple_part_maps(const struct test_case *tc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	for (size_t n = 0; n < n_threads; n++) {
 		args[n].n_ops = ops_per_thread;
@@ -2321,11 +2276,11 @@ test_divide_coalesced_remove_obtained_pmaps(const struct test_case *tc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	pmemset_set_contiguous_part_coalescing(set, PMEMSET_COALESCING_FULL);
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	int n_maps = 5;
 	for (int i = 0; i < n_maps; i++) {
-		ret = pmemset_map(src, map_cfg, NULL);
+		ret = pmemset_map(set, src, map_cfg, NULL);
 		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
 			goto err_cleanup;
 
@@ -2417,11 +2372,11 @@ test_part_map_with_set_reservation(const struct test_case *tc,
 
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	size_t n_maps = 3;
 	for (int i = 0; i < n_maps; i++) {
-		ret = pmemset_map(src, map_cfg, NULL);
+		ret = pmemset_map(set, src, map_cfg, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -2521,10 +2476,10 @@ test_part_map_coalesce_with_set_reservation(const struct test_case *tc,
 
 	pmemset_set_contiguous_part_coalescing(set, PMEMSET_COALESCING_FULL);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 	size_t n_maps = 3;
 	for (int i = 0; i < n_maps; i++) {
-		ret = pmemset_map(src, map_cfg, NULL);
+		ret = pmemset_map(set, src, map_cfg, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -2546,7 +2501,7 @@ test_part_map_coalesce_with_set_reservation(const struct test_case *tc,
 			part_size);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
@@ -2621,9 +2576,9 @@ test_part_map_with_set_reservation_too_small(const struct test_case *tc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_FIT_PART_MAP);
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
@@ -2693,11 +2648,11 @@ test_part_map_with_set_reservation_cannot_fit(const struct test_case *tc,
 
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ut_create_map_config(&map_cfg, set, 0, part_size / 2);
+	ut_create_map_config(&map_cfg, 0, part_size / 2);
 
 	size_t n_maps = 6;
 	for (int i = 0; i < n_maps; i++) {
-		ret = pmemset_map(src, map_cfg, NULL);
+		ret = pmemset_map(set, src, map_cfg, NULL);
 		UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	}
 
@@ -2726,9 +2681,9 @@ test_part_map_with_set_reservation_cannot_fit(const struct test_case *tc,
 	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, set, 0, part_size);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_FIT_PART_MAP);
 
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);

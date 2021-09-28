@@ -28,10 +28,12 @@ date: pmemset API version 1.0
 ```c
 #include <libpmemset.h>
 
+struct pmemset;
 struct pmemset_map_config;
 struct pmemset_part_descriptor;
 struct pmemset_source;
-int pmemset_map(struct pmemset_source *src,
+int pmemset_map(struct pmemset *set,
+		struct pmemset_source *src,
 		struct pmemset_map_config *map_cfg,
 		struct pmemset_part_descriptor *desc);
 ```
@@ -40,8 +42,11 @@ int pmemset_map(struct pmemset_source *src,
 
 The **pmemset_map**() function creates new mapping in the virtual address space
 of the calling process and adds structure describing this mapping to the pmemset. It requires
-an address of a pointer to initialized map configuration provided in the *map_cfg* parameter.
-A map configuration should be created using **pmemset_map_config_new**(3) function.
+an address of a pointer to initialized set, created using **pmemset_new**(3) function
+and optionally a map configuration provided in the *map_cfg* parameter.
+A map configuration can be created using **pmemset_map_config_new**(3) function.
+Specifying *map_cfg* in **pmemset_map** function allows the mapping length and offset to be defined.
+If *map_cfg* is NULL then the whole source from *src* is mapped.
 The mapping can later be retrieved using **pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3) and **pmemset_part_map_by_address**(3) functions.
 
