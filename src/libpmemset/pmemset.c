@@ -535,15 +535,17 @@ pmemset_find_reservation_empty_range(struct pmem2_vm_reservation *p2rsv,
  * pmemset_map -- map a part to the set
  */
 int
-pmemset_map(struct pmemset_source *src,
+pmemset_map(struct pmemset *set,
+		struct pmemset_source *src,
 		struct pmemset_map_config *map_cfg,
 		struct pmemset_part_descriptor *desc)
 {
-	LOG(3, "src %p map_cfg %p desc %p", src, map_cfg, desc);
+	LOG(3, "set %p src %p map_cfg %p desc %p", set, src, map_cfg, desc);
 	PMEMSET_ERR_CLR();
 
 	int ret = 0;
-	struct pmemset *set = pmemset_map_config_get_set(map_cfg);
+	size_t part_size = 0;
+	size_t part_offset = 0;
 	struct pmemset_config *set_config = set->set_config;
 	enum pmem2_granularity mapping_gran;
 	enum pmem2_granularity config_gran =
@@ -554,7 +556,11 @@ pmemset_map(struct pmemset_source *src,
 		return PMEMSET_E_INVALID_SOURCE_TYPE;
 	}
 
-	size_t part_offset = pmemset_map_config_get_offset(map_cfg);
+	if (map_cfg) {
+		part_size = pmemset_map_config_get_length(map_cfg);
+		part_offset = pmemset_map_config_get_offset(map_cfg);
+	}
+
 	struct pmemset_file *part_file = pmemset_source_get_set_file(src);
 	struct pmem2_source *pmem2_src =
 			pmemset_file_get_pmem2_source(part_file);
@@ -577,7 +583,6 @@ pmemset_map(struct pmemset_source *src,
 			return ret;
 	}
 
-	size_t part_size = pmemset_map_config_get_length(map_cfg);
 	size_t source_size;
 	ret = pmem2_source_size(pmem2_src, &source_size);
 	if (ret)

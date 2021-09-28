@@ -217,8 +217,7 @@ int pmemset_delete(struct pmemset **set);
 
 /* map config setup */
 
-int pmemset_map_config_new(struct pmemset_map_config **map_cfg, struct
-		pmemset *set);
+int pmemset_map_config_new(struct pmemset_map_config **map_cfg);
 
 int pmemset_map_config_set_offset(struct pmemset_map_config *map_cfg,
 		size_t offset);
@@ -380,7 +379,8 @@ int pmemset_source_set_sds(struct pmemset_source *src, struct pmemset_sds *sds,
 
 /* map, unmap and part operations */
 
-int pmemset_map(struct pmemset_source *src,
+int pmemset_map(struct pmemset *set,
+		struct pmemset_source *src,
 		struct pmemset_map_config *map_cfg,
 		struct pmemset_part_descriptor *desc);
 

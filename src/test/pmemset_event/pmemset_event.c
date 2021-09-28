@@ -21,11 +21,7 @@
 static void map(struct pmemset *set, struct pmemset_source *src,
 	struct pmemset_part_descriptor *desc)
 {
-	struct pmemset_map_config *map_cfg;
-	ut_create_map_config(&map_cfg, set, 0, 0);
-	int ret = pmemset_map(src, map_cfg, desc);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_map_config_delete(&map_cfg);
+	int ret = pmemset_map(set, src, NULL, desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 }
 
@@ -559,9 +555,9 @@ test_pmemset_sds_update_event(const struct test_case *tc,
 
 	pmemset_source_set_sds(src, &sds, NULL);
 
-	ut_create_map_config(&map_cfg, set, 0, 0);
+	ut_create_map_config(&map_cfg, 0, 0);
 
-	ret = pmemset_map(src, map_cfg, NULL);
+	ret = pmemset_map(set, src, map_cfg, NULL);
 	if (ret == PMEMSET_E_SDS_ENOSUPP)
 		goto cleanup;
 	UT_ASSERTeq(args.count, 1); /* sds updated, sds refcount raised */

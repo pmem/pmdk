@@ -51,8 +51,8 @@ void ut_create_set_config(struct pmemset_config **cfg) {
  * ut_create_map_config -- create pmemset map config using test args
  */
 void ut_create_map_config(struct pmemset_map_config **map_cfg,
-		struct pmemset *set, size_t offset, size_t length) {
-	int ret = pmemset_map_config_new(map_cfg, set);
+		size_t offset, size_t length) {
+	int ret = pmemset_map_config_new(map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map_cfg, NULL);
 
