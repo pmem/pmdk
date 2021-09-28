@@ -4,7 +4,7 @@
     fun:*mem*cpy
     ...
     fun:_IO_file_xsputn@@GLIBC*
-    fun:fputs
+    ...
     fun:out_print_func
     fun:out_common
     fun:out_log
@@ -25,7 +25,7 @@
     fun:*mem*cpy
     ...
     fun:_IO_file_xsputn@@GLIBC*
-    fun:fputs
+    ...
     fun:out_print_func
     fun:out_error
     fun:out_err
