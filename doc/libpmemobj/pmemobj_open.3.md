@@ -70,7 +70,7 @@ used as a check when _UW(pmemobj_open) is called. The layout name, including
 the terminating null byte ('\0'), cannot be longer than **PMEMOBJ_MAX_LAYOUT**
 as defined in **\<libpmemobj.h\>**. A NULL *layout* is equivalent
 to using an empty string as a layout name. *mode* specifies the permissions to
-use when creating the file, as described by **creat**(2). The memory pool file
+use when creating the file, as described by **create**(2). The memory pool file
 is fully allocated to the size *poolsize* using **posix_fallocate**(3). The
 caller may choose to take responsibility for creating the memory pool file
 by creating it before calling _UW(pmemobj_create), and then specifying
