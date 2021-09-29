@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 from sys import exit
-from os import path
+from os import path, system
 from ctypes import cdll, c_char_p, c_int
-import os
 
 checkers = ["prog", "lib"]
 
@@ -85,7 +84,7 @@ class ProgChecker(ConsistencyCheckerBase):
         """
         if self._bin_path is None or self._bin_cmd is None:
             raise RuntimeError("consistency check handle not set")
-        return os.system(self._bin_path + " " + self._bin_cmd + " " + filename)
+        return system(self._bin_path + " " + self._bin_cmd + " " + filename)
 
 
 def get_checker(checker_type, checker_path_args, name):
