@@ -2195,7 +2195,7 @@ CTL_WRITE_HANDLER(size)(void *ctx,
 
 	PMEMobjpool *pop = ctx;
 
-	ssize_t arg_in = *(int *)arg;
+	ssize_t arg_in = *(long long *)arg;
 
 	if (arg_in < 0 || arg_in > (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE) {
 		errno = EINVAL;

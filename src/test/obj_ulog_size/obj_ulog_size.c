@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * obj_ulog_size.c -- unit tests for pmemobj_action API and
@@ -882,6 +882,78 @@ do_log_snapshots_max_size(PMEMobjpool *pop)
 	FREE(sizes);
 }
 
+/*
+ * do_ctl_snapshots_cache_size -- test setting the cache size
+ * transaction parameter for the snapshot cache
+ */
+static void
+do_ctl_snapshots_cache_size(PMEMobjpool *pop)
+{
+	UT_OUT("do_ctl_snapshots_cache_size");
+
+	/* set cache_size to 4GiB */
+	long long cache_size = 0x100000000;
+
+	/* cache size in the range- it should pass */
+	int ret = pmemobj_ctl_set(pop, "tx.cache.size",
+					&cache_size);
+	UT_ASSERTeq(ret, 0);
+
+	/*
+	 * manual clear of the previous cache_size value,
+	 * done in order to ensure ctl_get works properly
+	 * and that the test does not succeed accidently
+	 */
+	cache_size = 0;
+
+	ret = pmemobj_ctl_get(pop, "tx.cache.size",
+					&cache_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(cache_size, 0x100000000);
+
+	cache_size = (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE;
+
+	/* cache size in the range- it should pass */
+	ret = pmemobj_ctl_set(pop, "tx.cache.size",
+					&cache_size);
+	UT_ASSERTeq(ret, 0);
+
+	cache_size = 0;
+
+	ret = pmemobj_ctl_get(pop, "tx.cache.size",
+					&cache_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(cache_size, (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE);
+
+	cache_size = -1;
+
+	/* cache size is too small- it should fail */
+	ret = pmemobj_ctl_set(pop, "tx.cache.size",
+					&cache_size);
+	UT_ASSERTeq(ret, -1);
+
+	cache_size = 0;
+
+	ret = pmemobj_ctl_get(pop, "tx.cache.size",
+					&cache_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(cache_size, (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE);
+
+	cache_size = (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE + 1;
+
+	/* cache size is too large- it should fail */
+	ret = pmemobj_ctl_set(pop, "tx.cache.size",
+					&cache_size);
+	UT_ASSERTeq(ret, -1);
+
+	cache_size = 0;
+
+	ret = pmemobj_ctl_get(pop, "tx.cache.size",
+					&cache_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(cache_size, (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -918,6 +990,8 @@ main(int argc, char *argv[])
 	do_log_intents_max_size(pop);
 	do_log_snapshots_max_size_limits();
 	do_log_snapshots_max_size(pop);
+
+	do_ctl_snapshots_cache_size(pop);
 
 	pmemobj_close(pop);
 	pmemobj_close(pop2);
