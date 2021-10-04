@@ -447,18 +447,53 @@ pmemset_pmem2_config_init(struct pmem2_config *pmem2_cfg,
  */
 static int
 pmemset_create_reservation(struct pmem2_vm_reservation **pmem2_reserv,
-		size_t size)
+		struct pmem2_source *src, size_t size)
 {
+	size_t alignment;
+	int ret = pmem2_source_alignment(src, &alignment);
+	if (ret)
+		return ret;
+
+	/*
+	 * vm reservation aligns to the Mmap_align, source can have different
+	 * alignment than mapping alignment e.g. devdax
+	 */
+	size_t rsv_size = size;
+	if (alignment != Mmap_align)
+		rsv_size += alignment;
+
 	struct pmem2_vm_reservation *p2rsv;
-	int ret = pmem2_vm_reservation_new(&p2rsv, NULL, size);
+	ret = pmem2_vm_reservation_new(&p2rsv, NULL, rsv_size);
 	if (ret == PMEM2_E_LENGTH_UNALIGNED)
 		return PMEMSET_E_LENGTH_UNALIGNED;
 	else if (ret)
 		return ret;
 
+	size_t addr = (size_t)pmem2_vm_reservation_get_address(p2rsv);
+	size_t aligned_addr = ALIGN_UP(addr, alignment);
+
+	size_t addr_diff = aligned_addr - addr;
+	size_t size_diff = rsv_size - size;
+	if (addr_diff) {
+		ret = pmem2_vm_reservation_shrink(p2rsv, 0, addr_diff);
+		if (ret)
+			goto err_delete_p2rsv;
+		size_diff -= addr_diff;
+	}
+
+	if (size_diff) {
+		ret = pmem2_vm_reservation_shrink(p2rsv, size, size_diff);
+		if (ret)
+			goto err_delete_p2rsv;
+	}
+
 	*pmem2_reserv = p2rsv;
 
 	return 0;
+
+err_delete_p2rsv:
+	pmem2_vm_reservation_delete(&p2rsv);
+	return ret;
 }
 
 enum reservation_prep_type {
@@ -666,7 +701,7 @@ pmemset_map(struct pmemset *set,
 						&map_reserv_offset);
 			} else {
 				ret = pmemset_create_reservation(&pmem2_reserv,
-						part_size);
+						pmem2_src, part_size);
 			}
 
 			if (ret)
