@@ -1,3 +1,4 @@
+#include "source.h"
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2021, Intel Corporation */
 
@@ -6,6 +7,7 @@
  */
 
 #include "libpmem2.h"
+#include "source.h"
 #include "unittest.h"
 #include "ut_pmem2.h"
 
@@ -71,7 +73,8 @@ test_pmem2_src_mcsafe_badblock_read(const struct test_case *tc, int argc,
 	ret = pmem2_source_pread_mcsafe(src, buf, bufsize, 0);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_IO_FAIL);
 
-	pmem2_source_delete(&src);
+	ret = pmem2_source_delete(&src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	CLOSE(fd);
 
 	return 1;
@@ -96,12 +99,27 @@ test_pmem2_src_mcsafe_badblock_write(const struct test_case *tc, int argc,
 	int ret = pmem2_source_from_fd(&src, fd);
 	UT_ASSERTeq(ret, 0);
 
+	enum pmem2_file_type ftype = src->value.ftype;
+	UT_ASSERT(ftype == PMEM2_FTYPE_REG || ftype == PMEM2_FTYPE_DEVDAX);
+
 	size_t bufsize = 4096;
 	void *buf = MALLOC(bufsize);
+	memset(buf, '6', bufsize);
 	ret = pmem2_source_pwrite_mcsafe(src, buf, bufsize, 0);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_IO_FAIL);
 
-	pmem2_source_delete(&src);
+	/*
+	 * writing to mapped memory region on devdax clears the badblock,
+	 * pmem2_source_pwrite_mcsafe function does that for DEVDAX source
+	 */
+	if (ftype == PMEM2_FTYPE_REG)
+		UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_IO_FAIL);
+	else if (ftype == PMEM2_FTYPE_DEVDAX)
+		UT_PMEM2_EXPECT_RETURN(ret, 0);
+	else /* should be unreachable */
+		UT_ASSERT(0);
+
+	ret = pmem2_source_delete(&src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	CLOSE(fd);
 
 	return 1;

@@ -24,6 +24,16 @@ class PMEM2_SOURCE_NO_DIR(t.Test):
         ctx.exec('pmem2_source', self.test_case)
 
 
+@t.windows_exclude
+@t.require_devdax(t.DevDax('devdax1'))
+class PMEM2_SOURCE_DEVDAX(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        ddpath = ctx.devdaxes.devdax1.path
+        ctx.exec('pmem2_source', self.test_case, ddpath)
+
+
 class TEST0(PMEM2_SOURCE):
     """setting a read + write file descriptor in pmem2_source"""
     test_case = "test_set_rw_fd"
@@ -128,3 +138,42 @@ class TEST16(PMEM2_SOURCE):
 class TEST17(PMEM2_SOURCE):
     """test mcsafe write operation"""
     test_case = "test_pmem2_src_mcsafe_write"
+
+
+class TEST18(PMEM2_SOURCE_DEVDAX):
+    """test mcsafe read operation"""
+    test_case = "test_pmem2_src_mcsafe_read"
+
+
+class TEST19(PMEM2_SOURCE_DEVDAX):
+    """test mcsafe write operation"""
+    test_case = "test_pmem2_src_mcsafe_write"
+
+
+class TEST20(PMEM2_SOURCE):
+    """
+    test mcsafe read and write operations with length bigger than source size
+    """
+    test_case = "test_pmem2_src_mcsafe_read_write_len_out_of_range"
+
+
+class TEST21(PMEM2_SOURCE_DEVDAX):
+    """
+    test mcsafe read and write operations with length bigger than source size
+    on devdax
+    """
+    test_case = "test_pmem2_src_mcsafe_read_write_len_out_of_range"
+
+
+class TEST22(PMEM2_SOURCE):
+    """
+    test mcsafe read and write operations on source with invalid type
+    """
+    test_case = "test_pmem2_src_mcsafe_read_write_invalid_ftype"
+
+
+class TEST23(PMEM2_SOURCE_DEVDAX):
+    """
+    test mcsafe read and write operations on source with invalid type on devdax
+    """
+    test_case = "test_pmem2_src_mcsafe_read_write_invalid_ftype"
