@@ -70,7 +70,9 @@ extern "C" {
 #define PMEMSET_E_SDS_ENOSUPP				(-200028)
 #define PMEMSET_E_SDS_DEVICE_ID_LEN_TOO_BIG		(-200029)
 #define PMEMSET_E_MAP_LENGTH_UNSET			(-200030)
-#define PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL  (-200031)
+#define PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL		(-200031)
+#define PMEMSET_E_IO_FAIL				(-200032)
+#define PMEMSET_E_LENGTH_OUT_OF_RANGE			(-200033)
 
 struct pmemset;
 struct pmemset_config;
@@ -376,6 +378,12 @@ struct pmemset_sds {
 
 int pmemset_source_set_sds(struct pmemset_source *src, struct pmemset_sds *sds,
 		enum pmemset_part_state *state_ptr);
+
+int pmemset_source_pread_mcsafe(struct pmemset_source *src, void *buf,
+		size_t size, size_t offset);
+
+int pmemset_source_pwrite_mcsafe(struct pmemset_source *src, void *buf,
+		size_t size, size_t offset);
 
 /* map, unmap and part operations */
 
