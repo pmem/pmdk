@@ -29,6 +29,10 @@ env:
     - MAKE_PKG=1 REMOTE_TESTS=0 VALGRIND=0 OS=fedora OS_VER=31
     - COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug
 
+jobs:
+  allow_failures:
+    - arch: ppc64le
+
 before_install:
   - echo $TRAVIS_COMMIT_RANGE
   - export HOST_WORKDIR=`pwd`
