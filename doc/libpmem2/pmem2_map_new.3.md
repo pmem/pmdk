@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019-2020, Intel Corporation)
+[comment]: <> (Copyright 2019-2021, Intel Corporation)
 
 [comment]: <> (pmem2_map_new.3 -- man page for libpmem2 pmem2_map_new operation)
 
@@ -62,7 +62,7 @@ be destroyed using the **pmem2_map_delete**() function. For details please see
 
 # RETURN VALUE #
 
-The **pmem2_map_new**() function returns 0 on succeeds
+The **pmem2_map_new**() function returns 0 on success
 or a negative error code on failure.
 
 # ERRORS #
