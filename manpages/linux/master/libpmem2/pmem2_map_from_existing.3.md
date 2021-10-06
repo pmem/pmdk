@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2021, Intel Corporation)
 
 [comment]: <> (pmem2_map_from_existing.3 -- man page for libpmem2 pmem2_map_from_existing operation)
 
@@ -53,7 +53,7 @@ or a negative error code on failure.
 The **pmem2_map_from_existing**() can fail with the following errors:
 
 **PMEM2_E_MAPPING_EXISTS** - when contiguous region (*addr*, *addr* + *len*)
-is all ready registered by *libpmem2*
+is already registered by *libpmem2*
 
 It can also return **-ENOMEM**  from the underlying **malloc**(2) function.
 
