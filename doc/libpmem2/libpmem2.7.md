@@ -109,7 +109,7 @@ To read or clear badblocks, the following functions are provided:
 To handle unsafe shutdown in the application, the following functions are provided:
 **pmem2_source_device_id**(3), **pmem2_source_device_usc**(3).
 More detailed information about unsafe shutdown detection and unsafe shutdown count
-and can be found in the **libpmem2_unsafe_shutdown**(7) man page.
+can be found in the **libpmem2_unsafe_shutdown**(7) man page.
 
 # GRANULARITY #
 
@@ -148,14 +148,14 @@ still be required for ordering.
 
 The library declares these granularity level in *pmem2_granularity* enum, which
 the application must set in *pmem2_config* to the appropriate level for
-a mapping a succeed. The software should set this config parameter to a value
+a mapping to succeed. The software should set this config parameter to a value
 that most accurately represents the target hardware characteristics and
 the storage patterns of the application. For example, a database storage engine
 that operates on large logical pages that reside either on SSDs or PMEM should
 set this value to **PMEM2_GRANULARITY_PAGE**.
 The library will create mappings where the new map granularity is lower or
 equal to the requested one. For example, a mapping with **PMEM2_GRANULARITY_CACHE_LINE**
-can created for the required granularity **PMEM2_GRANULARITY_PAGE**, but not
+can be created for the required granularity **PMEM2_GRANULARITY_PAGE**, but not
 vice versa.
 
 # CAVEATS #
