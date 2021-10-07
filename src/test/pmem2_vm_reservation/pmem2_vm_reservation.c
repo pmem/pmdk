@@ -16,6 +16,7 @@
 #include "pmem2_utils.h"
 #include "source.h"
 #include "map.h"
+#include "mmap.h"
 #include "out.h"
 #include "pmem2.h"
 #include "unittest.h"
@@ -40,27 +41,6 @@ get_align_by_filename(const char *filename)
 }
 
 /*
- * offset_align_to_devdax - align offset of the virtual memory reservation
- *                          to device DAX granularity
- */
-static size_t
-offset_align_to_devdax(void *rsv_addr, size_t alignment)
-{
-	/*
-	 * Address of the vm_reservation, is always aligned to the OS allocation
-	 * granularity. DevDax demands its own granularity, we need to calculate
-	 * the offset, so that (reservation address + offset) is aligned to the
-	 * closest address, contained in the vm reservation, compatible with
-	 * DevDax granularity.
-	 */
-	size_t mod_align = (size_t)rsv_addr % alignment;
-	if (mod_align)
-		return (alignment - mod_align);
-
-	return 0;
-}
-
-/*
  * test_vm_reserv_new_valid_addr - map a file to the desired addr with the
  *                                 help of virtual memory reservation
  */
@@ -74,6 +54,7 @@ test_vm_reserv_new_valid_addr(const struct test_case *tc,
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
+	size_t align;
 	void *rsv_addr;
 	size_t rsv_size;
 	struct FHandle *fh;
@@ -94,11 +75,15 @@ test_vm_reserv_new_valid_addr(const struct test_case *tc,
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(map, NULL);
 
+	ret = pmem2_source_alignment(src, &align);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
 	/*
-	 * there's no need for padding in case of DevDax since the address
-	 * we get from the first mapping is already aligned
+	 * reservation aligns provided address and size to the predicted
+	 * alignment, make it smaller so it won't cover more virtual address
+	 * space than previous mapping
 	 */
-	rsv_size = size;
+	rsv_size = ALIGN_UP(size / 2, align);
 
 	ret = pmem2_vm_reservation_new(&rsv, rsv_addr, rsv_size);
 	UT_ASSERTeq(ret, 0);
@@ -106,6 +91,7 @@ test_vm_reserv_new_valid_addr(const struct test_case *tc,
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
 	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+	pmem2_config_set_length(&cfg, rsv_size);
 
 	ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
@@ -399,36 +385,28 @@ test_vm_reserv_map_file(const struct test_case *tc,
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	size_t alignment = get_align_by_filename(file);
 	void *rsv_addr;
-	size_t rsv_offset;
-	size_t rsv_size;
 	struct FHandle *fh;
 	struct pmem2_config cfg;
 	struct pmem2_map *map;
 	struct pmem2_vm_reservation *rsv;
 	struct pmem2_source *src;
 
-	rsv_size = size + alignment;
-
-	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, size);
 	UT_ASSERTeq(ret, 0);
 
 	rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	UT_ASSERTne(rsv_addr, 0);
-	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
-
-	/* in case of DevDax */
-	rsv_offset = offset_align_to_devdax(rsv_addr, alignment);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), size);
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
-	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
 
 	ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	UT_ASSERTne(map, NULL);
-	UT_ASSERTeq(pmem2_map_get_address(map), (char *)rsv_addr + rsv_offset);
+	UT_ASSERTeq(pmem2_map_get_address(map), rsv_addr);
 
 	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
@@ -453,10 +431,9 @@ test_vm_reserv_map_part_file(const struct test_case *tc,
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	size_t alignment = get_align_by_filename(file);
+	size_t align;
 	size_t offset = 0;
 	void *rsv_addr;
-	size_t rsv_offset;
 	size_t rsv_size;
 	struct FHandle *fh;
 	struct pmem2_config cfg;
@@ -464,30 +441,31 @@ test_vm_reserv_map_part_file(const struct test_case *tc,
 	struct pmem2_vm_reservation *rsv;
 	struct pmem2_source *src;
 
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	int ret = pmem2_source_alignment(src, &align);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
 	/* map only part of the file */
-	offset = ALIGN_DOWN(size / 2, alignment);
+	offset = ALIGN_UP(size / 2, align);
 
 	/* reservation size is not big enough for the whole file */
-	rsv_size = size - offset + alignment;
+	rsv_size = size - offset;
 
-	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
 	UT_ASSERTeq(ret, 0);
 
 	rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	UT_ASSERTne(rsv_addr, 0);
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
-	/* in case of DevDax */
-	rsv_offset = offset_align_to_devdax(rsv_addr, alignment);
-
-	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, offset,
-			FH_RDWR);
-	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+	pmem2_config_set_offset(&cfg, offset);
 
 	ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	UT_ASSERTeq(pmem2_map_get_address(map), (char *)rsv_addr + rsv_offset);
+	UT_ASSERTeq(pmem2_map_get_address(map), rsv_addr);
 
 	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
@@ -514,31 +492,23 @@ test_vm_reserv_delete_contains_mapping(const struct test_case *tc,
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	size_t alignment = get_align_by_filename(file);
 	void *rsv_addr;
-	size_t rsv_size;
-	size_t rsv_offset;
 	struct FHandle *fh;
 	struct pmem2_config cfg;
 	struct pmem2_map *map;
 	struct pmem2_source *src;
 	struct pmem2_vm_reservation *rsv;
 
-	rsv_size = size + alignment;
-
 	/* create a reservation in the virtual memory */
-	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, size);
 	UT_ASSERTeq(ret, 0);
 
 	rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	UT_ASSERTne(rsv_addr, 0);
-	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
-
-	/* in case of DevDax */
-	rsv_offset = offset_align_to_devdax(rsv_addr, alignment);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), size);
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
-	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
 
 	/* create a mapping in the reserved region */
 	ret = pmem2_map_new(&map, &cfg, src);
@@ -573,9 +543,7 @@ test_vm_reserv_map_unmap_multiple_files(const struct test_case *tc,
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	size_t alignment = get_align_by_filename(file);
 	void *rsv_addr;
-	size_t rsv_offset;
 	size_t rsv_size;
 	struct FHandle *fh;
 	struct pmem2_config cfg;
@@ -586,7 +554,7 @@ test_vm_reserv_map_unmap_multiple_files(const struct test_case *tc,
 
 	map = MALLOC(sizeof(struct pmem2_map *) * NMAPPINGS);
 
-	rsv_size = NMAPPINGS * size + alignment;
+	rsv_size = NMAPPINGS * size;
 
 	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
 	UT_ASSERTeq(ret, 0);
@@ -595,13 +563,10 @@ test_vm_reserv_map_unmap_multiple_files(const struct test_case *tc,
 	UT_ASSERTne(rsv_addr, NULL);
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
-	/* in case of DevDax */
-	size_t align_offset = offset_align_to_devdax(rsv_addr, alignment);
-	rsv_offset = align_offset;
-
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
 
-	for (size_t i = 0; i < NMAPPINGS; i++, rsv_offset += size) {
+	for (size_t i = 0, rsv_offset = 0; i < NMAPPINGS; i++,
+			rsv_offset += size) {
 		pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
 
 		ret = pmem2_map_new(&map[i], &cfg, src);
@@ -617,8 +582,8 @@ test_vm_reserv_map_unmap_multiple_files(const struct test_case *tc,
 		UT_ASSERTeq(map[i], NULL);
 	}
 
-	rsv_offset = align_offset;
-	for (size_t i = 0; i < NMAPPINGS; i += 2, rsv_offset += 2 * size) {
+	for (size_t i = 0, rsv_offset = 0; i < NMAPPINGS; i += 2,
+			rsv_offset += 2 * size) {
 		pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
 
 		ret = pmem2_map_new(&map[i], &cfg, src);
@@ -702,10 +667,7 @@ test_vm_reserv_map_full_overlap(const struct test_case *tc,
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	size_t alignment = get_align_by_filename(file);
 	void *rsv_addr;
-	size_t rsv_offset;
-	size_t rsv_size;
 	struct FHandle *fh;
 	struct pmem2_config cfg;
 	struct pmem2_map *map;
@@ -713,20 +675,15 @@ test_vm_reserv_map_full_overlap(const struct test_case *tc,
 	struct pmem2_vm_reservation *rsv;
 	struct pmem2_source *src;
 
-	rsv_size = size + alignment;
-
-	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, size);
 	UT_ASSERTeq(ret, 0);
 
 	rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	UT_ASSERTne(rsv_addr, NULL);
-	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
-
-	/* in case of DevDax */
-	rsv_offset = offset_align_to_devdax(rsv_addr, alignment);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), size);
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
-	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
 
 	ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
@@ -759,10 +716,10 @@ test_vm_reserv_map_partial_overlap_below(const struct test_case *tc,
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	size_t alignment = get_align_by_filename(file);
+	size_t align;
 	void *rsv_addr;
-	size_t rsv_size;
 	size_t rsv_offset;
+	size_t rsv_size;
 	struct FHandle *fh;
 	struct pmem2_config cfg;
 	struct pmem2_map *map;
@@ -770,7 +727,7 @@ test_vm_reserv_map_partial_overlap_below(const struct test_case *tc,
 	struct pmem2_vm_reservation *rsv;
 	struct pmem2_source *src;
 
-	rsv_size = size + size / 2 + alignment;
+	rsv_size = size + size / 2;
 
 	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
 	UT_ASSERTeq(ret, 0);
@@ -779,18 +736,18 @@ test_vm_reserv_map_partial_overlap_below(const struct test_case *tc,
 	UT_ASSERTne(rsv_addr, NULL);
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
-	/* in case of DevDax */
-	size_t offset_align = offset_align_to_devdax(rsv_addr, alignment);
-
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
 
-	rsv_offset = ALIGN_DOWN(size / 2, alignment) + offset_align;
+	ret = pmem2_source_alignment(src, &align);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	rsv_offset = ALIGN_DOWN(size / 2, align);
 	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
 
 	ret = pmem2_map_new(&map, &cfg, src);
 	UT_ASSERTeq(ret, 0);
 
-	rsv_offset = offset_align;
+	rsv_offset = 0;
 	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
 
 	ret = pmem2_map_new(&overlap_map, &cfg, src);
@@ -821,10 +778,10 @@ test_vm_reserv_map_partial_overlap_above(const struct test_case *tc,
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	size_t alignment = get_align_by_filename(file);
+	size_t align;
 	void *rsv_addr;
-	size_t rsv_size;
 	size_t rsv_offset;
+	size_t rsv_size;
 	struct FHandle *fh;
 	struct pmem2_config cfg;
 	struct pmem2_map *map;
@@ -832,7 +789,7 @@ test_vm_reserv_map_partial_overlap_above(const struct test_case *tc,
 	struct pmem2_vm_reservation *rsv;
 	struct pmem2_source *src;
 
-	rsv_size = size + size / 2 + alignment;
+	rsv_size = size + size / 2;
 
 	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
 	UT_ASSERTeq(ret, 0);
@@ -841,18 +798,18 @@ test_vm_reserv_map_partial_overlap_above(const struct test_case *tc,
 	UT_ASSERTne(rsv_addr, NULL);
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
-	/* in case of DevDax */
-	size_t offset_align = offset_align_to_devdax(rsv_addr, alignment);
-
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
 
-	rsv_offset = offset_align;
+	rsv_offset = 0;
 	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
 
 	ret = pmem2_map_new(&map, &cfg, src);
 	UT_ASSERTeq(ret, 0);
 
-	rsv_offset = ALIGN_DOWN(size / 2, alignment) + offset_align;
+	ret = pmem2_source_alignment(src, &align);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	rsv_offset = ALIGN_DOWN(size / 2, align);
 	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
 
 	ret = pmem2_map_new(&overlap_map, &cfg, src);
@@ -948,6 +905,7 @@ struct worker_args {
 	size_t n_ops;
 	struct pmem2_vm_reservation *rsv;
 	size_t rsv_offset;
+	size_t size;
 	struct FHandle *fh;
 };
 
@@ -961,6 +919,7 @@ map_unmap_worker(void *arg)
 
 	void *rsv_addr;
 	size_t rsv_offset;
+	size_t size;
 	size_t n_ops = warg->n_ops;
 	struct pmem2_config cfg;
 	struct pmem2_source *src;
@@ -968,10 +927,12 @@ map_unmap_worker(void *arg)
 
 	rsv_addr  = pmem2_vm_reservation_get_address(rsv);
 	rsv_offset = warg->rsv_offset;
+	size = warg->size;
 
 	pmem2_config_init(&cfg);
 	pmem2_config_set_required_store_granularity(&cfg,
 			PMEM2_GRANULARITY_PAGE);
+	pmem2_config_set_length(&cfg, size);
 	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
 	PMEM2_SOURCE_FROM_FH(&src, fh);
 
@@ -1041,42 +1002,44 @@ test_vm_reserv_async_map_unmap_multiple_files(const struct test_case *tc,
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
 	size_t ops_per_thread = ATOU(argv[3]);
-	size_t alignment = get_align_by_filename(file);
+	size_t align;
 	void *rsv_addr;
 	size_t rsv_size;
 	size_t rsv_offset;
 	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
 	struct FHandle *fh;
 	struct worker_args args[MAX_THREADS];
 
-	/*
-	 * reservation will fit as many files as there are threads + 1,
-	 * it's expanded by the length of alignment, for the device DAX
-	 */
-	rsv_size = n_threads * size + alignment;
+	fh = UT_FH_OPEN(FH_FD, file, FH_RDWR);
+	PMEM2_SOURCE_FROM_FH(&src, fh);
 
-	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	int ret = pmem2_source_alignment(src, &align);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	PMEM2_SOURCE_DELETE(&src);
+
+	/* align the file size */
+	size = ALIGN_DOWN(size, align);
+
+	/* reservation will fit as many files as there are threads + 1 */
+	rsv_size = n_threads * size;
+
+	ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
 	UT_ASSERTeq(ret, 0);
 
 	rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	UT_ASSERTne(rsv_addr, NULL);
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
-	fh = UT_FH_OPEN(FH_FD, file, FH_RDWR);
-
-	/* in case of DevDax */
-	size_t offset_align = offset_align_to_devdax(rsv_addr, alignment);
-
-	/*
-	 * the offset increases by the size of the file.
-	 */
 	for (size_t n = 0; n < n_threads; n++) {
 		/* calculate offset for each thread */
-		rsv_offset = ALIGN_DOWN(n * size, alignment) + offset_align;
+		rsv_offset = n * size;
 
 		args[n].n_ops = ops_per_thread;
 		args[n].rsv = rsv;
 		args[n].rsv_offset = rsv_offset;
+		args[n].size = size;
 		args[n].fh = fh;
 	}
 

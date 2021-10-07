@@ -7,6 +7,7 @@
 
 #include "alloc.h"
 #include "map.h"
+#include "mmap.h"
 #include "pmem2_utils.h"
 #include "ravl_interval.h"
 #include "sys_util.h"
@@ -18,9 +19,12 @@
 
 struct pmem2_vm_reservation {
 	struct ravl_interval *itree;
-	void *addr;
-	size_t size;
 	os_rwlock_t lock;
+	void *addr; /* address visible to the user */
+	size_t size; /* size visible to the user */
+	void *reserv_addr; /* real reserved address */
+	size_t reserv_size; /* real reserved size */
+	size_t align; /* alignment predicted on the reservation creation */
 };
 
 int vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
@@ -109,8 +113,8 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 	*rsv_ptr = NULL;
 
 	/*
-	 * base address has to be aligned to the allocation granularity
-	 * on Windows, and to the page size otherwise
+	 * base address and size must be aligned to the 'allocation granularity'
+	 * on Windows and to the 'page size' otherwise
 	 */
 	if (addr && (unsigned long long)addr % Mmap_align) {
 		ERR("address %p is not a multiple of 0x%llx", addr,
@@ -118,10 +122,6 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 		return PMEM2_E_ADDRESS_UNALIGNED;
 	}
 
-	/*
-	 * size should be aligned to the allocation granularity on Windows,
-	 * and to the page size otherwise
-	 */
 	if (size % Mmap_align) {
 		ERR("reservation size %zu is not a multiple of %llu",
 			size, Mmap_align);
@@ -139,14 +139,32 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 	if (ret)
 		goto err_rsv_init;
 
+	/* create virtual memory mapping */
+	size_t reserv_size = size;
+
+	size_t align = vm_reservation_get_map_alignment(size, Mmap_align);
+	/* predicted alignment is not equal to the default OS map alignment */
+	if (align != Mmap_align) {
+		/* account for possible address alignment */
+		reserv_size = ALIGN_UP(size, align) + align;
+	}
+
 	void *raddr = NULL;
 	size_t rsize = 0;
-	ret = vm_reservation_reserve_memory(addr, size, &raddr, &rsize);
+	ret = vm_reservation_reserve_memory(addr, reserv_size, &raddr, &rsize);
 	if (ret)
 		goto err_reserve;
 
-	rsv->addr = raddr;
-	rsv->size = rsize;
+	/* address and size visible to the user */
+	rsv->addr = addr ? addr : (void *)ALIGN_UP((size_t)raddr, align);
+	rsv->size = size;
+
+	/* underlying reserved address and size */
+	rsv->reserv_addr = raddr;
+	rsv->reserv_size = rsize;
+
+	/* alignment that will be used for reservation extending/shrinking */
+	rsv->align = align;
 
 	*rsv_ptr = rsv;
 
@@ -416,19 +434,42 @@ pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size)
 	LOG(3, "reservation %p size %zu", rsv, size);
 	PMEM2_ERR_CLR();
 
-	void *rsv_end_addr = (char *)rsv->addr + rsv->size;
-
 	if (size % Mmap_align) {
 		ERR("reservation extension size %zu is not a multiple of %llu",
 			size, Pagesize);
 		return PMEM2_E_LENGTH_UNALIGNED;
 	}
 
+	int ret = 0;
+
 	util_rwlock_wrlock(&rsv->lock);
+
+	/* new size, address doesn't change, we can only extend from the end */
+	size_t new_addr = (size_t)rsv->addr;
+	size_t new_size = rsv->size + size;
+
+	/* new end address aligned to the predicted alignment */
+	size_t align = rsv->align;
+	size_t align_new_end_addr = ALIGN_UP(new_addr + new_size, align);
+
+	/* current reserv end address */
+	size_t cur_reserv_end_addr = (size_t)rsv->reserv_addr +
+			rsv->reserv_size;
+
 	rsv->size += size;
-	int ret = vm_reservation_extend_memory(rsv, rsv_end_addr, size);
-	if (ret)
-		rsv->size -= size;
+	if (align_new_end_addr > cur_reserv_end_addr) {
+		void *extend_addr = (void *)cur_reserv_end_addr;
+		size_t extend_size = align_new_end_addr - cur_reserv_end_addr;
+
+		ret = vm_reservation_extend_memory(rsv, extend_addr,
+				extend_size);
+		if (ret) {
+			rsv->size -= size;
+		} else {
+			rsv->reserv_size += extend_size;
+		}
+	}
+
 	util_rwlock_unlock(&rsv->lock);
 
 	return ret;
@@ -494,13 +535,50 @@ pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
 		return PMEM2_E_VM_RESERVATION_NOT_EMPTY;
 	}
 
-	void *rsv_release_addr = (char *)rsv->addr + offset;
+	int ret = 0;
 
 	util_rwlock_wrlock(&rsv->lock);
-	int ret = vm_reservation_shrink_memory(rsv, rsv_release_addr, size);
+
+	/* new address and size */
+	size_t new_addr = (size_t)rsv->addr;
 	if (offset == 0)
-		rsv->addr = (char *)rsv->addr + size;
-	rsv->size -= size;
+		new_addr += size;
+	size_t new_size = rsv->size - size;
+
+	/* new address and end address aligned to the predicted alignment */
+	size_t align = rsv->align;
+	size_t align_new_addr = ALIGN_DOWN(new_addr, align);
+	size_t align_new_end_addr = ALIGN_UP(new_addr + new_size, align);
+
+	/* current reserv address and end address */
+	size_t cur_reserv_addr = (size_t)rsv->reserv_addr;
+	size_t cur_reserv_end_addr = cur_reserv_addr + rsv->reserv_size;
+
+	void *shrink_addr = NULL;
+	size_t shrink_size = 0;
+
+	if (align_new_addr > cur_reserv_addr) {
+		shrink_addr = (void *)cur_reserv_addr;
+		shrink_size = align_new_addr - cur_reserv_addr;
+	} else if (align_new_end_addr < cur_reserv_end_addr) {
+		shrink_addr = (void *)align_new_end_addr;
+		shrink_size = cur_reserv_end_addr - align_new_end_addr;
+	}
+
+	if (shrink_addr != NULL && shrink_size != 0) {
+		ret = vm_reservation_shrink_memory(rsv, shrink_addr,
+				shrink_size);
+		if (ret)
+			goto cleanup_unlock;
+
+		rsv->reserv_addr = (void *)align_new_addr;
+		rsv->reserv_size = align_new_end_addr - align_new_addr;
+	}
+
+	rsv->addr = (void *)new_addr;
+	rsv->size = new_size;
+
+cleanup_unlock:
 	util_rwlock_unlock(&rsv->lock);
 
 	return ret;
