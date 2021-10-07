@@ -56,6 +56,11 @@ If the **pmem2_vm_reservation_shrink**() succeeds in shrinking a reservation, it
 placeholder virtual memory range that was designated by *offset* and *size* variables.
 Mappings made to the reservation before shrinking are preserved.
 
+**libpmem2**(7) library predicts the most fitting alignment for the reservation based on size
+provided to **pmem2_vm_reservation_new**(3) function. If the predicted alignment is different
+than the OS allocation granularity, then the underlying size of the reservation can be bigger
+than the value presented to the user. Alignment prediction functionality is limited to POSIX systems.
+
 If either of those functions fails, reservation will be left as it was and appropriate error
 value will be returned.
 
