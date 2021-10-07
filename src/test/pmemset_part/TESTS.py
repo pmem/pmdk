@@ -37,6 +37,16 @@ class PMEMSET_PART_ASYNC(t.Test):
                  self.ops_per_thread)
 
 
+@t.linux_only
+@t.require_devdax(t.DevDax('devdax1'))
+class PMEMSET_PART_DEVDAX(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        ddpath = ctx.devdaxes.devdax1.path
+        ctx.exec('pmemset_part', self.test_case, ddpath)
+
+
 class TEST0(PMEMSET_PART):
     """create a new part from a source with valid pmem2_source and map it"""
     test_case = "test_part_map_valid_source_pmem2"
@@ -110,7 +120,6 @@ class TEST12(PMEMSET_PART):
 class TEST13(PMEMSET_PART):
     """turn on full coalescing feature then create two mappings"""
     test_case = "test_part_map_full_coalesce_before"
-    file_size = 64 * t.KiB
 
 
 class TEST14(PMEMSET_PART):
@@ -118,13 +127,11 @@ class TEST14(PMEMSET_PART):
     map a part, turn on the full coalescing feature and map a part second time
     """
     test_case = "test_part_map_full_coalesce_after"
-    file_size = 64 * t.KiB
 
 
 class TEST15(PMEMSET_PART):
     """turn on opportunistic coalescing feature then create two mappings"""
     test_case = "test_part_map_opp_coalesce_before"
-    file_size = 64 * t.KiB
 
 
 class TEST16(PMEMSET_PART):
@@ -132,8 +139,7 @@ class TEST16(PMEMSET_PART):
     map a part, turn on the opportunistic coalescing feature and
     map a part second time
     """
-    test_case = "test_part_map_full_coalesce_after"
-    file_size = 64 * t.KiB
+    test_case = "test_part_map_opp_coalesce_after"
 
 
 class TEST17(PMEMSET_PART):
@@ -299,3 +305,65 @@ class TEST35(PMEMSET_PART):
     every second part mapping then try to map a part with the size of one file
     """
     test_case = "test_part_map_with_set_reservation_cannot_fit"
+
+
+class TEST36(PMEMSET_PART_DEVDAX):
+    """
+    devdax create a new part from a source with valid pmem2_source and map it
+    """
+    test_case = "test_part_map_valid_source_pmem2"
+
+
+class TEST37(PMEMSET_PART_DEVDAX):
+    """
+    create a new part from a source with valid file path and map it
+    """
+    test_case = "test_part_map_valid_source_file"
+
+
+class TEST38(PMEMSET_PART_DEVDAX):
+    """devdax get the first (earliest in the memory) mapping from the set"""
+    test_case = "test_part_map_first"
+
+
+class TEST39(PMEMSET_PART_DEVDAX):
+    """devdax get the descriptor from the part map"""
+    test_case = "test_part_map_descriptor"
+
+
+class TEST40(PMEMSET_PART_DEVDAX):
+    """devdax test retrieving next mapping from the set"""
+    test_case = "test_part_map_next"
+
+
+class TEST41(PMEMSET_PART_DEVDAX):
+    """devdax test reading part mapping by address"""
+    test_case = "test_part_map_by_addr"
+
+
+class TEST42(PMEMSET_PART_DEVDAX):
+    """devdax turn on full coalescing feature then create two mappings"""
+    test_case = "test_part_map_full_coalesce_before"
+
+
+class TEST43(PMEMSET_PART_DEVDAX):
+    """
+    devdax map a part, turn on the full coalescing feature and map a part
+    second time
+    """
+    test_case = "test_part_map_full_coalesce_after"
+
+
+class TEST44(PMEMSET_PART_DEVDAX):
+    """
+    devdax turn on opportunistic coalescing feature then create two mappings
+    """
+    test_case = "test_part_map_opp_coalesce_before"
+
+
+class TEST45(PMEMSET_PART_DEVDAX):
+    """
+    devdax map a part, turn on the opportunistic coalescing feature and
+    map a part second time
+    """
+    test_case = "test_part_map_opp_coalesce_after"
