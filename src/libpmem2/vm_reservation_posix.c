@@ -10,20 +10,31 @@
 
 #include "alloc.h"
 #include "map.h"
+#include "mmap.h"
 #include "out.h"
 #include "pmem2_utils.h"
 
 int vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
-		size_t *rsize);
+		size_t *rsize, bool align_addr);
 int vm_reservation_release_memory(void *addr, size_t size);
 
 /*
- * vm_reservation_reserve_memory -- create a blank virtual memory mapping
+ * vm_reservation_reserve_memory -- (internal) create a blank virtual memory
+ *                                             mapping, not backed by a file
+ *
+ * Address is an optional parameter.
+ * Address and size should be a multiple of page size.
+ *
+ * Can be used to align randomly received address to the predicted alignment.
+ * This feature doesn't work when a non-null address is provided.
  */
 int
 vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
-		size_t *rsize)
+		size_t *rsize, bool align_addr)
 {
+	size_t mmap_size = size;
+	size_t align = Mmap_align;
+
 	int map_flag = 0;
 	if (addr) {
 /*
@@ -33,16 +44,18 @@ vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
 #ifdef MAP_FIXED_NOREPLACE
 		map_flag = MAP_FIXED_NOREPLACE;
 #endif
+	} else if (align_addr) {
+		align = util_map_hint_align(size, 0);
+		mmap_size += align;
 	}
 
 	/*
-	 * Create a dummy mapping to find an unused region of given size.
-	 * If the flag is supported and requested region is occupied,
-	 * mmap will fail with EEXIST.
+	 * If the MAP_FIXED_NOREPLACE flag is supported and requested region is
+	 * occupied, mmap will fail with EEXIST.
 	 */
-	char *daddr = mmap(addr, size, PROT_NONE,
+	char *mmap_addr = mmap(addr, mmap_size, PROT_NONE,
 			MAP_PRIVATE | MAP_ANONYMOUS | map_flag, -1, 0);
-	if (daddr == MAP_FAILED) {
+	if (mmap_addr == MAP_FAILED) {
 		if (errno == EEXIST) {
 			ERR("!mmap MAP_FIXED_NOREPLACE");
 			return PMEM2_E_MAPPING_EXISTS;
@@ -52,26 +65,51 @@ vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
 	}
 
 	/*
+	 * If kernel does not support the MAP_FIXED_NOREPLACE flag and provided
+	 * address is occupied, kernel chooses new random address. To avoid this
+	 * behavior, we validate requested and returned addresses.
 	 * When requested address is not specified, any returned address
-	 * is acceptable. If kernel does not support flag and given addr
-	 * is occupied, kernel chooses new addr randomly and returns it.
-	 * We do not want that behavior, so we validate it and fail when
-	 * addresses do not match.
+	 * is acceptable.
 	 */
-	if (addr && daddr != addr) {
-		munmap(daddr, size);
+	if (addr && mmap_addr != addr) {
+		munmap(mmap_addr, mmap_size);
 		ERR("mapping exists in the given address");
 		return PMEM2_E_MAPPING_EXISTS;
 	}
 
-	*raddr = daddr;
-	*rsize = roundup(size, Pagesize);
+	/* mmap size was enlarged for address alignment */
+	if (mmap_size != size) {
+		void *aligned_addr = (void *)ALIGN_UP((size_t)mmap_addr, align);
+		size_t addr_diff = (size_t)aligned_addr - (size_t)mmap_addr;
+		size_t size_diff = mmap_size - size;
+
+		if (addr_diff) {
+			if (munmap(mmap_addr, addr_diff)) {
+				ERR("!munmap");
+				return PMEM2_E_ERRNO;
+			}
+			size_diff -= addr_diff;
+		}
+
+		if (size_diff) {
+			if (munmap(ADDR_SUM(aligned_addr, size), size_diff)) {
+				ERR("!munmap");
+				return PMEM2_E_ERRNO;
+			}
+		}
+
+		mmap_addr = aligned_addr;
+	}
+
+	*raddr = mmap_addr;
+	*rsize = size;
 
 	return 0;
 }
 
 /*
- * vm_reservation_release_memory -- releases blank virtual memory mapping
+ * vm_reservation_release_memory -- (internal) releases blank virtual memory
+ *                                             mapping
  */
 int
 vm_reservation_release_memory(void *addr, size_t size)
@@ -85,7 +123,7 @@ vm_reservation_release_memory(void *addr, size_t size)
 }
 
 /*
- * vm_reservation_extend_memory -- extend memory range the reservation covers
+ * vm_reservation_extend_memory -- (internal) extend virtual memory mapping
  */
 int
 vm_reservation_extend_memory(struct pmem2_vm_reservation *rsv,
@@ -98,7 +136,7 @@ vm_reservation_extend_memory(struct pmem2_vm_reservation *rsv,
 	size_t reserved_size = 0;
 
 	int ret = vm_reservation_reserve_memory(rsv_end_addr, size,
-			&reserved_addr, &reserved_size);
+			&reserved_addr, &reserved_size, 0);
 	if (ret)
 		return ret;
 
@@ -109,7 +147,7 @@ vm_reservation_extend_memory(struct pmem2_vm_reservation *rsv,
 }
 
 /*
- * vm_reservation_shrink_memory -- shrink memory range the reservation covers
+ * vm_reservation_shrink_memory -- (internal) shrink virtual memory mapping
  */
 int
 vm_reservation_shrink_memory(struct pmem2_vm_reservation *rsv,

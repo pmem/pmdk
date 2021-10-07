@@ -7,6 +7,7 @@
 
 #include "alloc.h"
 #include "map.h"
+#include "mmap.h"
 #include "pmem2_utils.h"
 #include "ravl_interval.h"
 #include "sys_util.h"
@@ -24,7 +25,7 @@ struct pmem2_vm_reservation {
 };
 
 int vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
-		size_t *rsize);
+		size_t *rsize, bool align_addr);
 int vm_reservation_release_memory(void *addr, size_t size);
 struct ravl_interval *vm_reservation_get_interval_tree(
 		struct pmem2_vm_reservation *rsv);
@@ -109,8 +110,8 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 	*rsv_ptr = NULL;
 
 	/*
-	 * base address has to be aligned to the allocation granularity
-	 * on Windows, and to the page size otherwise
+	 * base address and size must be aligned to the 'allocation granularity'
+	 * on Windows and to the 'page size' otherwise
 	 */
 	if (addr && (unsigned long long)addr % Mmap_align) {
 		ERR("address %p is not a multiple of 0x%llx", addr,
@@ -118,10 +119,6 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 		return PMEM2_E_ADDRESS_UNALIGNED;
 	}
 
-	/*
-	 * size should be aligned to the allocation granularity on Windows,
-	 * and to the page size otherwise
-	 */
 	if (size % Mmap_align) {
 		ERR("reservation size %zu is not a multiple of %llu",
 			size, Mmap_align);
@@ -141,7 +138,7 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 
 	void *raddr = NULL;
 	size_t rsize = 0;
-	ret = vm_reservation_reserve_memory(addr, size, &raddr, &rsize);
+	ret = vm_reservation_reserve_memory(addr, size, &raddr, &rsize, 1);
 	if (ret)
 		goto err_reserve;
 

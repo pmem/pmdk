@@ -14,7 +14,7 @@
 #include "sys_util.h"
 
 int vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
-		size_t *rsize);
+		size_t *rsize, bool align_addr);
 int vm_reservation_release_memory(void *addr, size_t size);
 struct ravl_interval *vm_reservation_get_interval_tree(
 		struct pmem2_vm_reservation *rsv);
@@ -24,8 +24,11 @@ struct ravl_interval *vm_reservation_get_interval_tree(
  */
 int
 vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
-		size_t *rsize)
+		size_t *rsize, bool align_addr)
 {
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(align_addr);
+
 	void *daddr = VirtualAlloc2(GetCurrentProcess(),
 		addr,
 		size,
@@ -206,7 +209,7 @@ vm_reservation_extend_memory(struct pmem2_vm_reservation *rsv,
 	size_t reserved_size = 0;
 
 	int ret = vm_reservation_reserve_memory(rsv_end_addr, size,
-			&reserved_addr, &reserved_size);
+			&reserved_addr, &reserved_size, 0);
 	if (ret)
 		return ret;
 
