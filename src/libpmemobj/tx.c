@@ -1062,6 +1062,7 @@ pmemobj_tx_end(void)
 	Free(txd);
 
 	VALGRIND_END_TX;
+	int ret = tx->last_errnum;
 
 	if (PMDK_SLIST_EMPTY(&tx->tx_entries)) {
 		ASSERTeq(tx->lane, NULL);
@@ -1080,6 +1081,7 @@ pmemobj_tx_end(void)
 			tx->stage_callback_arg = NULL;
 
 			cb(tx->pop, TX_STAGE_NONE, arg);
+			/* tx should not be accessed after this callback */
 		}
 	} else {
 		/* resume the next transaction */
@@ -1090,7 +1092,7 @@ pmemobj_tx_end(void)
 			obj_tx_abort(tx->last_errnum, 0);
 	}
 
-	return tx->last_errnum;
+	return ret;
 }
 
 /*
