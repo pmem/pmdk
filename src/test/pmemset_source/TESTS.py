@@ -203,3 +203,15 @@ class TEST24(PMEMSET_SOURCE_DEVDAX):
 class TEST25(PMEMSET_SOURCE_DEVDAX):
     """test mcsafe write operation on devdax"""
     test_case = "test_src_mcsafe_write"
+
+
+class TEST26(PMEMSET_SOURCE):
+    """test alignment read operation"""
+    test_case = "test_src_alignment"
+    create_file = True
+
+
+class TEST27(PMEMSET_SOURCE_DEVDAX):
+    """test alignment read operation"""
+    test_case = "test_src_alignment"
+    create_file = True

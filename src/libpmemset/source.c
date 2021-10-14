@@ -626,3 +626,25 @@ pmemset_source_pwrite_mcsafe(struct pmemset_source *src, void *buf,
 
 	return 0;
 }
+
+/*
+ * pmemset_source_alignment -- get alignment of the pmem2 source file stored
+ * in the provided pmemset_source
+ */
+int
+pmemset_source_alignment(struct pmemset_source *src, size_t *alignment)
+{
+	LOG(3, "src %p", src);
+	PMEMSET_ERR_CLR();
+
+	struct pmem2_source *p2src =
+			pmemset_file_get_pmem2_source(src->file_set);
+
+	int ret = pmem2_source_alignment(p2src, alignment);
+	if (ret) {
+		ERR("!pmem2_source_alignment");
+		return PMEMSET_E_INVALID_ALIGNMENT_VALUE;
+	}
+
+	return 0;
+}

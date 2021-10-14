@@ -73,6 +73,7 @@ extern "C" {
 #define PMEMSET_E_SOURCE_FILE_IS_TOO_SMALL		(-200031)
 #define PMEMSET_E_IO_FAIL				(-200032)
 #define PMEMSET_E_LENGTH_OUT_OF_RANGE			(-200033)
+#define PMEMSET_E_INVALID_ALIGNMENT_VALUE			(-200034)
 
 struct pmemset;
 struct pmemset_config;
@@ -384,6 +385,9 @@ int pmemset_source_pread_mcsafe(struct pmemset_source *src, void *buf,
 
 int pmemset_source_pwrite_mcsafe(struct pmemset_source *src, void *buf,
 		size_t size, size_t offset);
+
+int pmemset_source_alignment(struct pmemset_source *src,
+		size_t *alignment);
 
 /* map, unmap and part operations */
 
