@@ -183,35 +183,35 @@ pmemset_adjust_reservation_to_contents(
 	size_t rsv_size = pmem2_vm_reservation_get_size(p2rsv);
 
 	struct pmem2_map *p2map;
-	/* find first pmem2 mapping in the vm reservation */
-	pmem2_vm_reservation_map_find_first(p2rsv, &p2map);
+	/* find last pmem2 mapping in the vm reservation */
+	pmem2_vm_reservation_map_find_last(p2rsv, &p2map);
 
 	if (!p2map) {
 		/* vm reservation is empty so it needs to be deleted */
 		ret = pmem2_vm_reservation_delete(pmem2_reserv);
 		ASSERTeq(ret, 0);
 	} else {
-		/* vm reservation is not empty so it needs to be resized */
-		size_t p2map_offset = (size_t)pmem2_map_get_address(p2map) -
-				rsv_addr;
-		size_t p2map_size = pmem2_map_get_size(p2map);
+		/* vm reservation is not empty so it needs to be shrunk */
+		size_t shrink_offset = (size_t)pmem2_map_get_address(p2map) -
+				rsv_addr + pmem2_map_get_size(p2map);
+		size_t shrink_size = rsv_size - shrink_offset;
 
-		if (p2map_offset > 0) {
-			ret = pmem2_vm_reservation_shrink(p2rsv, 0,
-					p2map_offset);
+		/* shrink the vm reservation from the end */
+		if (shrink_offset < rsv_size) {
+			ret = pmem2_vm_reservation_shrink(p2rsv, shrink_offset,
+					shrink_size);
 			ASSERTeq(ret, 0);
 		}
 
-		/* find last pmem2 mapping in the vm reservation */
-		pmem2_vm_reservation_map_find_last(p2rsv, &p2map);
+		/* find first pmem2 mapping in the vm reservation */
+		pmem2_vm_reservation_map_find_first(p2rsv, &p2map);
 		ASSERTne(p2map, NULL);
 
-		p2map_offset = (size_t)pmem2_map_get_address(p2map) - rsv_addr;
-		p2map_size = pmem2_map_get_size(p2map);
+		shrink_offset = 0;
+		shrink_size = (size_t)pmem2_map_get_address(p2map) - rsv_addr;
 
-		if (p2map_offset + p2map_size < rsv_size) {
-			size_t shrink_offset = p2map_offset + p2map_size;
-			size_t shrink_size = rsv_size - shrink_offset;
+		/* shrink the vm reservation from the start */
+		if (shrink_size > 0) {
 			ret = pmem2_vm_reservation_shrink(p2rsv, shrink_offset,
 					shrink_size);
 			ASSERTeq(ret, 0);
