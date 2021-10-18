@@ -434,6 +434,7 @@
         pmemset_remove_part_map.3
         pmemset_remove_range.3
         pmemset_set_contiguous_part_coalescing.3
+        pmemset_source_alignment.3
         pmemset_source_delete.3
         pmemset_source_from_file.3
         pmemset_source_from_pmem2.3
