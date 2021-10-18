@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 from operationfactory import OperationFactory
 from binaryoutputhandler import BinaryOutputHandler
@@ -24,6 +24,7 @@ class OpsContext:
     :type default_barrier: bool
     :ivar file_handler: The file handler used.
     """
+
     def __init__(self, log_file, checker, logger, arg_engine, markers):
         """
         Splits the operations in the log file and sets the instance variables
@@ -41,11 +42,11 @@ class OpsContext:
         self.test_on_barrier = engine.test_on_barrier
         self.default_engine = self.reorder_engine
         self.default_barrier = self.default_engine.test_on_barrier
-        self.file_handler = BinaryOutputHandler(checker)
+        self.file_handler = BinaryOutputHandler(checker, logger)
         self.checker = checker
         self.logger = logger
         self.markers = markers
-        self.stack_engines = [('START', getattr(memoryoperations, arg_engine))]
+        self.stack_engines = [("START", getattr(memoryoperations, arg_engine))]
 
     # TODO this should probably be made a generator
     def extract_operations(self):
@@ -63,6 +64,11 @@ class OpsContext:
             elif "STOP" in elem:
                 stop_index = i
 
-        return list(map(OperationFactory.create_operation,
-                        self._operations[start_index + 1:stop_index],
-                        repeat(self.markers), repeat(self.stack_engines)))
+        return list(
+            map(
+                OperationFactory.create_operation,
+                self._operations[start_index + 1:stop_index],
+                repeat(self.markers),
+                repeat(self.stack_engines),
+            )
+        )

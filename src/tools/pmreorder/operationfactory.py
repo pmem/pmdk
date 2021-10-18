@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 import memoryoperations
 from reorderexceptions import NotSupportedOperationException
@@ -24,6 +24,7 @@ class OperationFactory:
     :cvar __factories: The registered object factories.
     :type __factories: dict
     """
+
     __factories = {}
     __suffix = ['.BEGIN', '.END']
     memoryoperations.BaseOperation()
@@ -46,7 +47,6 @@ class OperationFactory:
 
     @staticmethod
     def create_operation(string_operation, markers, stack):
-
         def check_marker_format(marker):
             """
             Checks if marker has proper suffix.
@@ -56,8 +56,8 @@ class OperationFactory:
                     return
 
             raise NotSupportedOperationException(
-                        "Incorrect marker format {}, suffix is missing."
-                        .format(marker))
+                "Incorrect marker format {}, suffix is missing.".format(marker)
+            )
 
         def check_pair_consistency(stack, marker):
             """
@@ -85,8 +85,8 @@ class OperationFactory:
 
             if top != marker:
                 raise NotSupportedOperationException(
-                        "Cannot cross markers: {0}, {1}"
-                        .format(top, marker))
+                    "Cannot cross markers: {0}, {1}".format(top, marker)
+                )
 
         """
         Creates the object based on the pre-formatted string.
@@ -114,15 +114,15 @@ class OperationFactory:
             # if id_ is section BEGIN
             if id_.endswith(OperationFactory.__suffix[0]):
                 # BEGIN defined by user
-                marker_name = id_.partition('.')[0]
+                marker_name = id_.partition(".")[0]
                 if markers is not None and marker_name in markers:
                     engine = markers[marker_name]
                     try:
                         mem_ops = getattr(memoryoperations, engine)
                     except AttributeError:
                         raise NotSupportedOperationException(
-                                "Not supported reorder engine: {}"
-                                .format(engine))
+                            "Not supported reorder engine: {}".format(engine)
+                        )
                 # BEGIN but not defined by user
                 else:
                     mem_ops = stack[-1][1]

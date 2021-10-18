@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 import memoryoperations as memops
 import reorderengines
@@ -16,6 +16,7 @@ class State:
     :ivar trans_stores: The list of unflushed stores.
     :type trans_stores: list of :class:`memoryoperations.Store`
     """
+
     trans_stores = []
 
     def __init__(self, context):
@@ -56,6 +57,7 @@ class InitState(State):
     """
     The initial no-op state.
     """
+
     def __init__(self, context):
         """
         Saves the reordering context.
@@ -98,6 +100,7 @@ class CollectingState(State):
     :ivar _inner_state: The internal state of operations.
     :type _inner_state: str
     """
+
     def __init__(self, context):
         """
         Saves the reordering context.
@@ -119,8 +122,7 @@ class CollectingState(State):
         :return: The next state.
         :rtype: subclass of :class:`State`
         """
-        if isinstance(in_op, memops.Fence) and \
-                self._inner_state == "flush":
+        if isinstance(in_op, memops.Fence) and self._inner_state == "flush":
             return ReplayingState(self._ops_list, self._context)
         else:
             return self
@@ -162,15 +164,14 @@ class CollectingState(State):
         :return: None
         """
         if isinstance(order_ops, memops.ReorderFull):
-            self._context.reorder_engine = \
-                reorderengines.FullReorderEngine()
+            self._context.reorder_engine = reorderengines.FullReorderEngine()
             self._context.test_on_barrier = \
                 self._context.reorder_engine.test_on_barrier
         elif isinstance(order_ops, memops.ReorderPartial):
             # TODO add macro in valgrind or
             # parameter inside the tool to support parameters?
             self._context.reorder_engine = \
-                 reorderengines.RandomPartialReorderEngine(3)
+                reorderengines.RandomPartialReorderEngine(3)
             self._context.test_on_barrier = \
                 self._context.reorder_engine.test_on_barrier
         elif isinstance(order_ops, memops.ReorderAccumulative):
@@ -196,8 +197,8 @@ class CollectingState(State):
             self._context.test_on_barrier = self._context.default_barrier
         else:
             raise NotSupportedOperationException(
-                                   "Not supported reorder engine: {}"
-                                   .format(order_ops))
+                "Not supported reorder engine: {}".format(order_ops)
+            )
 
     def flush_stores(self, flush_op):
         """
@@ -222,9 +223,9 @@ class CollectingState(State):
         :type file_op: memoryoperations.Register_file
         :return: None
         """
-        self._context.file_handler.add_file(file_op.name,
-                                            file_op.address,
-                                            file_op.size)
+        self._context.file_handler.add_file(
+            file_op.name, file_op.address, file_op.size
+        )
 
     def move_inner_state(self, in_op):
         """
@@ -237,17 +238,16 @@ class CollectingState(State):
         :type in_op: subclass of :class:`memoryoperations.BaseOperation`
         :return: None
         """
-        if isinstance(in_op, memops.Store) and \
-                self._inner_state == "init":
+        if isinstance(in_op, memops.Store) and self._inner_state == "init":
             self._inner_state = "dirty"
-        elif isinstance(in_op, memops.FlushBase) and \
-                self._inner_state == "dirty":
+        elif (
+            isinstance(in_op, memops.FlushBase)
+            and self._inner_state == "dirty"
+        ):
             self._inner_state = "flush"
-        elif isinstance(in_op, memops.Fence) and \
-                self._inner_state == "flush":
+        elif isinstance(in_op, memops.Fence) and self._inner_state == "flush":
             self._inner_state = "fence"
-        elif isinstance(in_op, memops.Flush) and \
-                self._inner_state == "init":
+        elif isinstance(in_op, memops.Flush) and self._inner_state == "init":
             self._inner_state = "flush"
 
 
@@ -258,6 +258,7 @@ class ReplayingState(State):
     :ivar _ops_list: The list of stores to be reordered and replayed.
     :type _ops_list: list of :class:`memoryoperations.Store`
     """
+
     def __init__(self, in_ops_list, context):
         """
 
@@ -298,13 +299,26 @@ class ReplayingState(State):
         flushed_stores = list(filter(lambda x: x.flushed, self._ops_list))
 
         # not-flushed stores should be passed to next state
-        State.trans_stores = list(filter(lambda x: x.flushed is False,
-                                         self._ops_list))
+        State.trans_stores = list(
+            filter(lambda x: x.flushed is False, self._ops_list)
+        )
 
         if self._context.test_on_barrier:
-            for seq in self._context.reorder_engine.generate_sequence(
-                                                              flushed_stores):
-                for op in seq:
+            self._context.logger.debug(
+                "Current reorder engine: {}"
+                .format(self._context.reorder_engine)
+            )
+            for i, seq in enumerate(
+                self._context.reorder_engine.generate_sequence(flushed_stores)
+            ):
+                self._context.logger.debug(
+                    "NEXT Sequence (no. {0}) with length: {1}"
+                    .format(i, len(seq))
+                )
+                for j, op in enumerate(seq):
+                    self._context.logger.debug(
+                        "NEXT Operation (no. {0}): {1}".format(j, op)
+                    )
                     # do stores
                     self._context.file_handler.do_store(op)
                 # check consistency of all files
@@ -336,6 +350,7 @@ class StateMachine:
     :ivar _curr_state: The current state.
     :type _curr_state: subclass of :class:`State`
     """
+
     def __init__(self, init_state):
         """
         Initialize the state machine with a specified state.
@@ -356,6 +371,7 @@ class StateMachine:
         """
         all_consistent = True
         for ops in operations:
+            self._curr_state._context.logger.info(ops)
             self._curr_state = self._curr_state.next(ops)
             check = self._curr_state.run(ops)
             if check is False:

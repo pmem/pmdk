@@ -1,4 +1,4 @@
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -7,7 +7,7 @@ Store [1]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -16,7 +16,7 @@ Store [1]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -25,7 +25,7 @@ Store [1]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -34,7 +34,7 @@ Store [1]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -43,7 +43,7 @@ Store [1]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -52,19 +52,7 @@ Store [1]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
-WARNING:pmreorder:Call trace:
-Store [0]:
-    by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
-    by	0x$(nW): main (pmreorder_simple.c:$(N))
-Store [1]:
-    by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
-    by	0x$(nW): main (pmreorder_simple.c:$(N))
-Store [2]:
-    by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
-    by	0x$(nW): main (pmreorder_simple.c:$(N))
-
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -76,7 +64,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -88,7 +76,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -100,7 +88,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -112,7 +100,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -124,7 +112,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -136,7 +124,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -148,7 +136,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -160,7 +148,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -172,7 +160,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -184,7 +172,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -196,7 +184,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -208,7 +196,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -220,7 +208,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -232,7 +220,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -244,7 +232,7 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
@@ -256,7 +244,19 @@ Store [2]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
     by	0x$(nW): main (pmreorder_simple.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
+WARNING:pmreorder:Call trace:
+Store [0]:
+    by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
+    by	0x$(nW): main (pmreorder_simple.c:$(N))
+Store [1]:
+    by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
+    by	0x$(nW): main (pmreorder_simple.c:$(N))
+Store [2]:
+    by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
+    by	0x$(nW): main (pmreorder_simple.c:$(N))
+
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(N), size: 0x$(N)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): write_inconsistent (pmreorder_simple.c:$(N))
