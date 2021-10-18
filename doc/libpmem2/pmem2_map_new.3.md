@@ -86,11 +86,11 @@ For details please see **CreateFileMapping**() manual pages. (Windows only)
 
 * **PMEM2_E_OFFSET_UNALIGNED** - argument unaligned, offset is not a multiple of
 the alignment required for specific *\*source*. Please see
-**pmem2_source_alignement**(3).
+**pmem2_source_alignment**(3).
 
 * **PMEM2_E_LENGTH_UNALIGNED** - argument unaligned, length is not a multiple of
 the alignment required for specific *\*source*. Please see
-**pmem2_source_alignement**(3).
+**pmem2_source_alignment**(3).
 
 * **PMEM2_E_SRC_DEVDAX_PRIVATE** - device DAX mapped with MAP_PRIVATE. (Linux only)
 

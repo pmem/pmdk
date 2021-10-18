@@ -41,6 +41,7 @@ EXPORTS
 	pmemset_remove_part_map
 	pmemset_remove_range
 	pmemset_set_contiguous_part_coalescing
+	pmemset_source_alignment
 	pmemset_source_delete
 	pmemset_source_from_fileU
 	pmemset_source_from_fileW

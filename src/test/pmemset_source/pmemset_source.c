@@ -815,6 +815,34 @@ test_src_mcsafe_write(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_src_alignment -- test read alignment operation
+ */
+static int
+test_src_alignment(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_src_alignment <file>");
+
+	const char *file = argv[0];
+	struct pmemset_source *src;
+
+	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	size_t alignment = 0;
+	ret = pmemset_source_alignment(src, &alignment);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(alignment, 0);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src, NULL);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -842,6 +870,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_src_from_file_with_rwxu_mode_if_needed_created),
 	TEST_CASE(test_src_mcsafe_read),
 	TEST_CASE(test_src_mcsafe_write),
+	TEST_CASE(test_src_alignment),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
