@@ -182,7 +182,7 @@ pmemset_adjust_reservation_to_contents(
 	size_t rsv_addr = (size_t)pmem2_vm_reservation_get_address(p2rsv);
 	size_t rsv_size = pmem2_vm_reservation_get_size(p2rsv);
 
-	struct pmem2_map *p2map;
+	struct pmem2_map *p2map = NULL;
 	/* find first pmem2 mapping in the vm reservation */
 	pmem2_vm_reservation_map_find_first(p2rsv, &p2map);
 
@@ -203,7 +203,8 @@ pmemset_adjust_reservation_to_contents(
 		}
 
 		/* find last pmem2 mapping in the vm reservation */
-		ret = pmem2_vm_reservation_map_find_last(p2rsv, &p2map);
+		pmem2_vm_reservation_map_find_last(p2rsv, &p2map);
+		ASSERTne(p2map, NULL);
 
 		p2map_offset = (size_t)pmem2_map_get_address(p2map) - rsv_addr;
 		p2map_size = pmem2_map_get_size(p2map);
@@ -714,6 +715,8 @@ pmemset_map(struct pmemset *set,
 		goto err_pmap_revert;
 	}
 
+	ASSERTne(pmem2_map, NULL);
+
 	/*
 	 * effective granularity is only set once and
 	 * must have the same value for each mapping
@@ -985,12 +988,14 @@ pmemset_remove_part_map_range_cb(struct pmemset *set,
 	size_t pmap_addr = (size_t)pmap->desc.addr;
 	size_t pmap_size = pmap->desc.size;
 
-	struct pmem2_map *first_p2map;
-	struct pmem2_map *last_p2map;
+	struct pmem2_map *first_p2map = NULL;
+	struct pmem2_map *last_p2map = NULL;
 	ret = pmemset_part_map_find(pmap, 0, 1, &first_p2map);
+	ASSERTne(first_p2map, NULL);
 	ASSERTeq(ret, 0);
 
 	ret = pmemset_part_map_find(pmap, pmap_size - 1, 1, &last_p2map);
+	ASSERTne(last_p2map, NULL);
 	ASSERTeq(ret, 0);
 
 	size_t first_p2map_end_addr = (size_t)pmem2_map_get_address(first_p2map)
