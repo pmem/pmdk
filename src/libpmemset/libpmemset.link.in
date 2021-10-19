@@ -45,6 +45,8 @@ LIBPMEMSET_1.0 {
 		pmemset_source_from_file;
 		pmemset_source_from_pmem2;
 		pmemset_source_from_temporary;
+		pmemset_source_pread_mcsafe;
+		pmemset_source_pwrite_mcsafe;
 		pmemset_source_set_sds;
 		pmemset_xsource_from_file;
 	local:
