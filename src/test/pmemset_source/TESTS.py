@@ -185,24 +185,24 @@ class TEST21(PMEMSET_SOURCE):
 
 class TEST22(PMEMSET_SOURCE):
     """test mcsafe read operation"""
-    test_case = "test_src_mcsafe_read"
+    test_case = "test_src_file_and_pmem2_mcsafe_read"
     create_file = True
 
 
 class TEST23(PMEMSET_SOURCE):
     """test mcsafe write operation"""
-    test_case = "test_src_mcsafe_write"
+    test_case = "test_src_file_and_pmem2_mcsafe_write"
     create_file = True
 
 
 class TEST24(PMEMSET_SOURCE_DEVDAX):
     """test mcsafe read operation on devdax"""
-    test_case = "test_src_mcsafe_read"
+    test_case = "test_src_file_and_pmem2_mcsafe_read"
 
 
 class TEST25(PMEMSET_SOURCE_DEVDAX):
     """test mcsafe write operation on devdax"""
-    test_case = "test_src_mcsafe_write"
+    test_case = "test_src_file_and_pmem2_mcsafe_write"
 
 
 class TEST26(PMEMSET_SOURCE):
