@@ -137,6 +137,7 @@ def require_ndctl(**kwargs):
         if key not in valid_kwarg_keys:
             raise KeyError('provided key {} is invalid'.format(key))
 
+    # namespace requirement
     namespace_kw = 'require_namespace'
     namespace_val = kwargs.get(namespace_kw, False)
     if not isinstance(namespace_val, bool):
