@@ -12,7 +12,7 @@ import re
 @t.linux_only
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
-@t.require_ndctl(require_namespace=True)
+@t.require_ndctl(require_namespace=True, require_real_pmem=True)
 @t.windows_exclude
 class PMEM2_BADBLOCK_COUNT(t.Test):
     test_type = t.Short
@@ -54,7 +54,7 @@ class PMEM2_BADBLOCK_COUNT(t.Test):
 @t.linux_only
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
-@t.require_ndctl(require_namespace=True)
+@t.require_ndctl(require_namespace=True, require_real_pmem=True)
 @t.windows_exclude
 class PMEM2_BADBLOCK(t.Test):
     test_type = t.Short
