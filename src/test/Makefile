@@ -265,6 +265,7 @@ EXAMPLES_TESTS = \
 	ex_libpmemblk\
 	ex_libpmemlog\
 	ex_libpmemobj\
+	ex_libpmemset\
 	ex_linkedlist
 
 RPMEM_EXAMPLES_TESTS = \
