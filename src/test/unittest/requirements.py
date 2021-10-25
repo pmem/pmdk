@@ -5,6 +5,7 @@
 
 import ctypes
 import os
+import json
 from shutil import which
 import subprocess as sp
 import sys
@@ -12,6 +13,7 @@ import sys
 import configurator as conf
 import context as ctx
 import futils
+import granularity as g
 
 
 NDCTL_MIN_VERSION = '63'
@@ -74,6 +76,85 @@ class Requirements:
         if not proc.stdout or proc.stdout.isspace():
             raise futils.Skip('no ndctl namespace set')
 
+    def _get_emulated_devices(self):
+        cmd = ['ndctl', 'list', '-BN']
+        cmd_as_str = ' '.join(cmd)
+        proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
+                      universal_newlines=True)
+        if proc.returncode != 0:
+            raise futils.Fail('"{}" failed:{}{}'.format(cmd_as_str, os.linesep,
+                                                        proc.stdout))
+        try:
+            out = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            raise futils.Fail('invalid "{}" output (could '
+                              'not read as JSON): {}'.format(cmd_as_str,
+                                                             proc.stdout))
+        emulated_devices = []
+
+        # provider of emulated pmem
+        emulated_pmem_provider = "e820"
+
+        # possible viable device types as shown with 'ndctl list' output
+        devtypes = ('blockdev', 'chardev')
+
+        for bus in out:
+            if bus['provider'] == emulated_pmem_provider:
+                for ns in bus['namespaces']:
+                    for dt in devtypes:
+                        if dt in ns:
+                            emulated_devices.append(ns[dt])
+        return emulated_devices
+
+    def _get_test_config_devices(self):
+        # get all mount points
+        cmd = ['mount']
+        cmd_as_str = ' '.join(cmd)
+        proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
+                      universal_newlines=True)
+        if proc.returncode != 0:
+            raise futils.Fail('"{}" failed:{}{}'.format(cmd_as_str, os.linesep,
+                                                        proc.stdout))
+        mounts = proc.stdout
+
+        cache_fs_device = None
+        byte_fs_device = None
+
+        # get fs devices from mount points
+        config = ctx.config
+        for line in mounts.split('\n'):
+            if config['cacheline_fs_dir'] in line:
+                dev_path = line.split()[0]
+                cache_fs_device = dev_path.split('/')[2]
+            if config['byte_fs_dir'] in line:
+                dev_path = line.split()[0]
+                byte_fs_device = dev_path.split('/')[2]
+
+        devdax_devices = []
+
+        # get devdax devices
+        for dpath in config['device_dax_path']:
+            devdax_devices.append(dpath.split('/')[2])
+
+        return (cache_fs_device, byte_fs_device, devdax_devices)
+
+    def check_real_pmem(self, tc):
+        emulated_devices = self._get_emulated_devices()
+        cache_dev, byte_dev, devdax_devices = self._get_test_config_devices()
+
+        req_gran, _ = ctx.get_requirement(tc, 'granularity', None)
+        if cache_dev in emulated_devices and g.CACHELINE.value in req_gran:
+            raise futils.Skip('found emulated pmem in test config')
+        if byte_dev in emulated_devices and g.BYTE.value in req_gran:
+            raise futils.Skip('found emulated pmem in test config')
+
+        req_devdax, _ = ctx.get_requirement(tc, 'devdax', ())
+        if req_devdax:
+            for edev in emulated_devices:
+                for daxdev in devdax_devices:
+                    if edev == daxdev:
+                        raise futils.Skip('found emulated pmem in test config')
+
     def _check_ndctl_req_is_met(self, tc):
         """
         Check if all conditions for the ndctl requirement are met
@@ -87,6 +168,9 @@ class Requirements:
 
         if kwargs.get('require_namespace', False):
             self.check_namespace()
+
+        if kwargs.get('require_real_pmem', False):
+            self.check_real_pmem(tc)
 
         return True
 
@@ -130,18 +214,26 @@ def require_ndctl(**kwargs):
     Args:
         kwargs: optional keyword arguments
     """
-    valid_kwarg_keys = ['require_namespace']
+    valid_kwarg_keys = ['require_namespace', 'require_real_pmem']
 
     # check if all provided keys are valid
     for key in kwargs.keys():
         if key not in valid_kwarg_keys:
             raise KeyError('provided key {} is invalid'.format(key))
 
+    # namespace requirement
     namespace_kw = 'require_namespace'
     namespace_val = kwargs.get(namespace_kw, False)
     if not isinstance(namespace_val, bool):
         raise ValueError('provided value {} for optional key {} is invalid'
                          .format(namespace_val, namespace_kw))
+
+    # real pmem requirement
+    real_pmem_kw = 'require_real_pmem'
+    real_pmem_val = kwargs.get(real_pmem_kw, False)
+    if not isinstance(real_pmem_val, bool):
+        raise ValueError('provided value {} for optional key {} is invalid'
+                         .format(real_pmem_val, real_pmem_kw))
 
     def wrapped(tc):
         ctx.add_requirement(tc, 'require_ndctl', True, **kwargs)
