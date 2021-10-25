@@ -88,6 +88,9 @@ class Requirements:
         if kwargs.get('require_namespace', False):
             self.check_namespace()
 
+        if kwargs.get('require_real_pmem', False):
+            self.check_real_pmem(tc)
+
         return True
 
     def _check_admin_req_is_met(self, tc):
@@ -130,13 +133,14 @@ def require_ndctl(**kwargs):
     Args:
         kwargs: optional keyword arguments
     """
-    valid_kwarg_keys = ['require_namespace']
+    valid_kwarg_keys = ['require_namespace', 'require_real_pmem']
 
     # check if all provided keys are valid
     for key in kwargs.keys():
         if key not in valid_kwarg_keys:
             raise KeyError('provided key {} is invalid'.format(key))
 
+    # namespace requirement
     namespace_kw = 'require_namespace'
     namespace_val = kwargs.get(namespace_kw, False)
     if not isinstance(namespace_val, bool):

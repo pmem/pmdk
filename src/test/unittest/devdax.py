@@ -11,6 +11,7 @@ import sys
 
 import context as ctx
 import futils
+import granularity as g
 import requirements as req
 import tools
 
@@ -128,6 +129,7 @@ class DevDaxes():
         dax_devices, _ = ctx.get_requirement(tc, 'devdax', ())
         cls.check_fs_exec, kwargs = ctx.get_requirement(tc, 'require_fs_exec',
                                                         None)
+        req_real_pmem, _ = ctx.get_requirement(tc, 'require_real_pmem', False)
 
         if not dax_devices:
             return ctx.NO_CONTEXT
@@ -150,6 +152,19 @@ class DevDaxes():
 
         assigned = _try_assign_by_requirements(config.device_dax_path,
                                                dax_devices)
+
+        # filter out the emulated devdaxes
+        if req_real_pmem:
+            assigned_filtered = []
+            emulated_devices = g.get_emulated_devices()
+
+            for dd in assigned:
+                dev = g.get_device_from_dir(dd.path)
+                if dev not in emulated_devices:
+                    assigned_filtered.add(dd)
+
+            assigned = tuple(assigned_filtered)
+
         if not assigned:
             raise futils.Skip('Dax devices in test configuration do not '
                               'meet test requirements')

@@ -13,7 +13,7 @@ import re
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
 @t.require_ndctl(require_namespace=True)
-@t.windows_exclude
+@g.require_real_pmem()
 class PMEM2_BADBLOCK_COUNT(t.Test):
     test_type = t.Short
 
@@ -51,11 +51,11 @@ class PMEM2_BADBLOCK_COUNT(t.Test):
         ctx.env['UNITTEST_LOG_LEVEL'] = old_log_level
 
 
+@g.require_real_pmem()
 @t.linux_only
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
 @t.require_ndctl(require_namespace=True)
-@t.windows_exclude
 class PMEM2_BADBLOCK(t.Test):
     test_type = t.Short
 

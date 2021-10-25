@@ -6,11 +6,14 @@
 
 import os
 import shutil
+import json
 from enum import Enum, unique
 
 import context as ctx
 import configurator
 import futils
+import subprocess as sp
+
 from tools import Tools
 
 
@@ -92,6 +95,25 @@ class Granularity(metaclass=ctx.CtxType):
         else:
             return True
 
+    def _check_real_pmem_req_is_met(self, tc):
+        req_real_pmem, _ = ctx.get_requirement(tc, 'require_real_pmem', False)
+        if not req_real_pmem:
+            return True
+
+        devdaxes, _ = ctx.get_requirement(tc, 'require_devdax', None)
+        # devdax cases should be dealt in devdax module
+        if not devdaxes:
+            return True
+
+        emulated_devices = get_emulated_devices()
+
+        device = get_device_from_dir(self.testdir)
+
+        if device in emulated_devices:
+            raise futils.Skip('skip emulated pmem')
+
+        return True
+
     def _check_usc_req_is_met(self, tc):
         require_usc, _ = ctx.get_requirement(tc, 'require_usc', False)
         if not require_usc:
@@ -167,6 +189,7 @@ class Granularity(metaclass=ctx.CtxType):
             try:
                 gran = g(**kwargs)
                 gran._check_usc_req_is_met(tc)
+                gran._check_real_pmem_req_is_met(tc)
                 gs.append(gran)
             except futils.Skip as s:
                 msg.print_verbose('{}: SKIP: {}'.format(tc, s))
@@ -248,6 +271,71 @@ PAGE_OR_LESS = _Granularity.PAGE_OR_LESS
 ANY = _Granularity.ANY
 
 
+def get_emulated_devices():
+    cmd = ['ndctl', 'list', '-BN']
+    cmd_as_str = ' '.join(cmd)
+    proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
+                  universal_newlines=True)
+    if proc.returncode != 0:
+        raise futils.Fail('"{}" failed:{}{}'.format(cmd_as_str, os.linesep,
+                                                    proc.stdout))
+    try:
+        out = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        raise futils.Fail('invalid "{}" output (could '
+                          'not read as JSON): {}'.format(cmd_as_str,
+                                                         proc.stdout))
+    emulated_devices = []
+
+    # provider of emulated pmem
+    emulated_pmem_provider = "e820"
+
+    # possible viable device types as shown with 'ndctl list' output
+    devtypes = ('blockdev', 'chardev')
+
+    for bus in out:
+        if bus['provider'] == emulated_pmem_provider:
+            for ns in bus['namespaces']:
+                for dt in devtypes:
+                    if dt in ns:
+                        emulated_devices.append(ns[dt])
+    return emulated_devices
+
+
+def get_device_from_dir(dir):
+    # get all mount points
+    cmd = ['mount']
+    cmd_as_str = ' '.join(cmd)
+    proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
+                  universal_newlines=True)
+    if proc.returncode != 0:
+        raise futils.Fail('"{}" failed:{}{}'.format(cmd_as_str, os.linesep,
+                                                    proc.stdout))
+    mounts = proc.stdout
+
+    # get device from dir
+    if dir.startswith('/dev'):
+        return dir.split('/')[2]
+
+    fitting_mount_lines = []
+    # get lines with mount point that is a substring of dir
+    for line in mounts.split('\n'):
+        if line != '' and line.split()[2] in dir:
+            fitting_mount_lines.append(line)
+
+    device = None
+
+    # get the device from the line with mount point as longest substring
+    longest_substring = 0
+    for line in fitting_mount_lines:
+        mount_point = line.split()[2]
+        if len(mount_point) > longest_substring:
+            longest_substring = len(mount_point)
+            device = line.split()[0].split('/')[2]
+
+    return device
+
+
 def require_granularity(*granularity, **kwargs):
     for g in granularity:
         if not isinstance(g, _Granularity):
@@ -272,5 +360,12 @@ def no_testdir(**kwargs):
 def require_usc(**kwargs):
     def wrapped(tc):
         ctx.add_requirement(tc, 'require_usc', True)
+        return tc
+    return wrapped
+
+
+def require_real_pmem(**kwargs):
+    def wrapped(tc):
+        ctx.add_requirement(tc, 'require_real_pmem', True)
         return tc
     return wrapped
