@@ -73,18 +73,8 @@ class NdctlBB(tools.Ndctl, BBTool):
         super().__init__()
         self.util_tools = util_tools
 
-    def _get_file_device(self, file):
-        blockdev = futils.run_command("df -P {} | tail -n 1 | cut -f 1 -d ' '"
-                                      .format(file)).strip().decode('UTF8')
-        if blockdev == "devtmpfs":
-            device = file  # devdax
-        else:
-            device = blockdev  # fsdax
-
-        return device
-
     def inject_bad_block(self, file, offset):
-        device = self._get_file_device(file)
+        device = self._get_path_device(file)
         namespace = self.get_dev_namespace(device)
 
         count = 1
@@ -106,11 +96,11 @@ class NdctlBB(tools.Ndctl, BBTool):
                            "injecting bad block failed")
 
     def get_bad_blocks_count(self, file):
-        device = self._get_file_device(file)
+        device = self._get_path_device(file)
         return self.get_dev_bb_count(device)
 
     def clear_all_bad_blocks(self, file):
-        device = self._get_file_device(file)
+        device = self._get_path_device(file)
         namespace = self.get_dev_namespace(device)
 
         if self.is_devdax(device):
