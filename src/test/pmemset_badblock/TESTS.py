@@ -11,6 +11,7 @@ from testframework import granularity as g
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
 @t.require_ndctl(require_namespace=True)
+@g.require_real_pmem()
 class PMEMSET_BADBLOCK(t.Test):
     test_type = t.Short
 
