@@ -713,36 +713,161 @@ test_src_from_file_with_rwxu_mode_if_needed_created(const struct test_case *tc,
 	return 1;
 }
 
-enum test_src_op_type {
-	TEST_SRC_OP_READ,
-	TEST_SRC_OP_WRITE
-};
-
 /*
- * test_src_mcsafe_op -- test machine safe operation
+ * set_content_mcsafe_read -- set file content for
+ *                            test_src_file_and_pmem2_mcsafe_read
  */
 static void
-test_src_mcsafe_op(char *file, enum test_src_op_type op_type)
+set_content_mcsafe_read(char *file, char *writebuf)
 {
-	UT_ASSERT(op_type >= TEST_SRC_OP_READ && op_type <= TEST_SRC_OP_WRITE);
+	/* set file content */
+	struct pmem2_config *p2cfg;
+	struct pmem2_map *p2map;
+	struct pmem2_source *p2src;
 
+	int fd = OPEN(file, O_RDWR);
+	UT_ASSERTne(fd, -1);
+
+	int ret = pmem2_source_from_fd(&p2src, fd);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_config_new(&p2cfg);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_config_set_required_store_granularity(p2cfg,
+			PMEM2_GRANULARITY_PAGE);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_map_new(&p2map, p2cfg, p2src);
+	UT_ASSERTeq(ret, 0);
+
+	void *addr = pmem2_map_get_address(p2map);
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(p2map);
+
+	size_t bufsize = strlen(writebuf);
+	memcpy_fn(addr, writebuf, bufsize, 0);
+
+	ret = pmem2_map_delete(&p2map);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_config_delete(&p2cfg);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_source_delete(&p2src);
+	UT_ASSERTeq(ret, 0);
+	CLOSE(fd);
+}
+
+/*
+ * verify_content_mcsafe_read -- verify file content for
+ *                               test_src_file_and_pmem2_mcsafe_read
+ */
+static void
+verify_content_mcsafe_read(struct pmemset_source *src, char *verifybuf)
+{
+	size_t bufsize = strlen(verifybuf);
+
+	/* verify read content */
+	char *readbuf = MALLOC(bufsize);
+	int ret = pmemset_source_pread_mcsafe(src, readbuf, bufsize, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = strncmp(verifybuf, readbuf, bufsize);
+	ASSERTeq(ret, 0);
+
+	FREE(readbuf);
+}
+
+/*
+ * set_content_mcsafe_write -- set file content for
+ *                             test_src_file_and_pmem2_mcsafe_write
+ */
+static void
+set_content_mcsafe_write(struct pmemset_source *src, char *writebuf)
+{
+	/* set file content */
+	size_t bufsize = strlen(writebuf);
+
+	int ret = pmemset_source_pwrite_mcsafe(src, writebuf, bufsize, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+}
+
+/*
+ * verify_content_mcsafe_write -- verify file content for
+ *                                test_src_file_and_pmem2_mcsafe_write
+ */
+static void
+verify_content_mcsafe_write(char *file, char *verifybuf)
+{
+	/* verify read content */
+	struct pmem2_config *p2cfg;
+	struct pmem2_map *p2map;
+	struct pmem2_source *p2src;
+
+	size_t bufsize = strlen(verifybuf);
+
+	int fd = OPEN(file, O_RDWR);
+	UT_ASSERTne(fd, -1);
+
+	int ret = pmem2_source_from_fd(&p2src, fd);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_config_new(&p2cfg);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_config_set_required_store_granularity(p2cfg,
+			PMEM2_GRANULARITY_PAGE);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_map_new(&p2map, p2cfg, p2src);
+	UT_ASSERTeq(ret, 0);
+
+	void *addr = pmem2_map_get_address(p2map);
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(p2map);
+
+	char *readbuf = MALLOC(bufsize);
+	memcpy_fn(readbuf, addr, bufsize, 0);
+
+	ret = pmem2_map_delete(&p2map);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_config_delete(&p2cfg);
+	UT_ASSERTeq(ret, 0);
+
+	pmem2_source_delete(&p2src);
+	CLOSE(fd);
+
+	ret = strncmp(verifybuf, readbuf, bufsize);
+	ASSERTeq(ret, 0);
+
+	FREE(readbuf);
+}
+
+/*
+ * test_src_file_and_pmem2_mcsafe_read -- test mcsafe read operation for
+ *                                        file and pmem2 sources
+ */
+static int
+test_src_file_and_pmem2_mcsafe_read(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_src_file_and_pmem2_mcsafe_read <file>");
+
+	char *file = argv[0];
 	struct pmem2_source *p2src;
 	struct pmemset_source *src;
 
-	size_t bufsize = 4096;
-	void *buf = MALLOC(bufsize);
+	set_content_mcsafe_read(file, "Write content");
 
 	/* source from file */
 	int ret = pmemset_source_from_file(&src, file);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	if (op_type == TEST_SRC_OP_READ)
-		ret = pmemset_source_pread_mcsafe(src, buf, bufsize, 0);
-	else
-		ret = pmemset_source_pwrite_mcsafe(src, buf, bufsize, 0);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	verify_content_mcsafe_read(src, "Write content");
 
-	pmemset_source_delete(&src);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	/* source from pmem2 */
 	int fd = OPEN(file, O_RDWR);
@@ -752,64 +877,62 @@ test_src_mcsafe_op(char *file, enum test_src_op_type op_type)
 	ret = pmemset_source_from_pmem2(&src, p2src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	if (op_type == TEST_SRC_OP_READ)
-		ret = pmemset_source_pread_mcsafe(src, buf, bufsize, 0);
-	else
-		ret = pmemset_source_pwrite_mcsafe(src, buf, bufsize, 0);
+	verify_content_mcsafe_read(src, "Write content");
+
+	ret = pmem2_source_delete(&p2src);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	pmemset_source_delete(&src);
 	CLOSE(fd);
-
-	/* source from temporary */
-	for (int i = (int)strlen(file) - 1; i > 0; i--) {
-		/* change file path into directory path */
-		if (file[i] == '/' || file[i] == '\\') {
-			file[i + 1] = '\0';
-			break;
-		}
-	}
-
-	ret = pmemset_source_from_temporary(&src, file);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-
-	if (op_type == TEST_SRC_OP_READ)
-		ret = pmemset_source_pread_mcsafe(src, buf, bufsize, 0);
-	else
-		ret = pmemset_source_pwrite_mcsafe(src, buf, bufsize, 0);
-	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_LENGTH_OUT_OF_RANGE);
-
-	FREE(buf);
-
-	pmemset_source_delete(&src);
-}
-
-/*
- * test_src_mcsafe_read -- test mcsafe read operation
- */
-static int
-test_src_mcsafe_read(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_src_mcsafe_read <file>");
-
-	char *file = argv[0];
-	test_src_mcsafe_op(file, TEST_SRC_OP_READ);
 
 	return 1;
 }
 
 /*
- * test_src_mcsafe_write -- test mcsafe write operation
+ * test_src_file_and_pmem2_mcsafe_write -- test mcsafe write operation for
+ *                                         file and pmem2 sources
  */
 static int
-test_src_mcsafe_write(const struct test_case *tc, int argc, char *argv[])
+test_src_file_and_pmem2_mcsafe_write(const struct test_case *tc, int argc,
+		char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: test_src_mcsafe_write <file>");
+		UT_FATAL("usage: test_src_file_and_pmem2_mcsafe_write <file>");
 
 	char *file = argv[0];
-	test_src_mcsafe_op(file, TEST_SRC_OP_WRITE);
+	struct pmem2_source *p2src;
+	struct pmemset_source *src;
+
+	/* source from file */
+	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	set_content_mcsafe_write(src, "Write content");
+
+	pmemset_source_delete(&src);
+
+	verify_content_mcsafe_write(file, "Write content");
+
+	/* source from pmem2 */
+	int fd = OPEN(file, O_RDWR);
+	ret = pmem2_source_from_fd(&p2src, fd);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, p2src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	set_content_mcsafe_write(src, "Write content2");
+
+	pmem2_source_delete(&p2src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_source_delete(&src);
+
+	CLOSE(fd);
+
+	verify_content_mcsafe_write(file, "Write content2");
 
 	return 1;
 }
@@ -868,8 +991,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_src_from_file_only_mode),
 	TEST_CASE(test_src_from_file_with_rusr_mode_if_needed),
 	TEST_CASE(test_src_from_file_with_rwxu_mode_if_needed_created),
-	TEST_CASE(test_src_mcsafe_read),
-	TEST_CASE(test_src_mcsafe_write),
+	TEST_CASE(test_src_file_and_pmem2_mcsafe_read),
+	TEST_CASE(test_src_file_and_pmem2_mcsafe_write),
 	TEST_CASE(test_src_alignment),
 };
 
