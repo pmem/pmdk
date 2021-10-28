@@ -169,10 +169,6 @@ main(int argc, char *argv[])
 			"PMDK libpmemset part map number %d", i);
 		strcpy(desc[i].addr, text);
 		pmemset_persist(set, desc[i].addr, strlen(text) + 1);
-		if (ret) {
-			pmemset_perror("pmemset_persist");
-			goto exit;
-		}
 		printf("%s\n", (char *)desc[i].addr);
 	}
 
