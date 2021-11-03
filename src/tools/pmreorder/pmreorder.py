@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 import argparse
 import statemachine
@@ -66,7 +66,8 @@ def main():
     checker = consistencycheckwrap.get_checker(
                                                args.checker,
                                                ' '.join(args.path),
-                                               args.name)
+                                               args.name,
+                                               logger)
 
     markers = markerparser.MarkerParser().get_markers(args.extended_macros)
 
@@ -77,6 +78,7 @@ def main():
                                     logger,
                                     args.default_engine,
                                     markers)
+    logger.debug("Input parameters: {}".format(context.__dict__))
 
     # init and run the state machine
     a = statemachine.StateMachine(statemachine.InitState(context))

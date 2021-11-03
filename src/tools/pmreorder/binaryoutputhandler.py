@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
-import utils
+from loggingfacility import LoggingBase
 from reorderexceptions import InconsistentFileException
+from sys import byteorder
+import utils
 
 
 class BinaryOutputHandler:
@@ -16,15 +18,18 @@ class BinaryOutputHandler:
     :type _files: list
     """
 
-    def __init__(self, checker):
+    def __init__(self, checker, logger=None):
         """
         Binary handler constructor.
 
         :param checker: consistency checker object
         :type checker: ConsistencyCheckerBase
+        :param logger: logger handle, default: empty logger (LoggingBase)
+        :type logger: subclass of :class:`LoggingBase`
         """
         self._files = []
         self._checker = checker
+        self._logger = logger or LoggingBase()
 
     def add_file(self, file, map_base, size):
         """
@@ -38,7 +43,9 @@ class BinaryOutputHandler:
         :type size: int
         :return: None
         """
-        self._files.append(BinaryFile(file, map_base, size, self._checker))
+        self._files.append(
+            BinaryFile(file, map_base, size, self._checker, self._logger)
+        )
 
     def remove_file(self, file):
         """Remove file from :attr:`_files`.
@@ -64,14 +71,17 @@ class BinaryOutputHandler:
         :raises: Generic exception - to be precised later.
         """
         store_ok = False
-        for bf in self._files:
+        for i, bf in enumerate(self._files):
             if utils.range_cmp(store_op, bf) == 0:
+                self._logger.debug(
+                    "Doing store in file no. {0}: {1}".format(i, bf)
+                )
                 bf.do_store(store_op)
                 store_ok = True
         if not store_ok:
             raise OSError(
-                          "No suitable file found for store {}"
-                          .format(store_op))
+                "No suitable file found for store {}".format(store_op)
+            )
 
     def do_revert(self, store_op):
         """
@@ -92,8 +102,8 @@ class BinaryOutputHandler:
                 revert_ok = True
         if not revert_ok:
             raise OSError(
-                          "No suitable file found for store {}"
-                          .format(store_op))
+                "No suitable file found for store {}".format(store_op)
+            )
 
     def check_consistency(self):
         """
@@ -105,7 +115,8 @@ class BinaryOutputHandler:
         for bf in self._files:
             if not bf.check_consistency():
                 raise InconsistentFileException(
-                          "File {} inconsistent".format(bf))
+                    "File {} inconsistent".format(bf)
+                )
 
 
 class BinaryFile(utils.Rangeable):
@@ -126,7 +137,7 @@ class BinaryFile(utils.Rangeable):
     :type _checker: ConsistencyCheckerBase
     """
 
-    def __init__(self, file_name, map_base, size, checker):
+    def __init__(self, file_name, map_base, size, checker, logger=None):
         """
         Initializes the binary file handler.
 
@@ -138,6 +149,8 @@ class BinaryFile(utils.Rangeable):
         :type size: int
         :param checker: consistency checker object
         :type checker: ConsistencyCheckerBase
+        :param logger: logger handle, default: empty logger (LoggingBase)
+        :type logger: subclass of :class:`LoggingBase`
         :return: None
         """
         self._file_name = file_name
@@ -146,9 +159,15 @@ class BinaryFile(utils.Rangeable):
         # TODO consider mmaping only necessary parts on demand
         self._file_map = utils.memory_map(file_name)
         self._checker = checker
+        self._logger = logger or LoggingBase()
 
     def __str__(self):
-        return self._file_name
+        return (
+            "{0} (base: {1}, size: {2})".format(
+                self._file_name, hex(self._map_base),
+                hex(self._map_max-self._map_base)
+            )
+        )
 
     def do_store(self, store_op):
         """
@@ -164,6 +183,13 @@ class BinaryFile(utils.Rangeable):
         max_off = store_op.get_max_address() - self._map_base
         # read and save old value
         store_op.old_value = bytes(self._file_map[base_off:max_off])
+        self._logger.debug(
+            "do_store: old_value: {0}, new_value: {1}".format(
+                hex(int.from_bytes(store_op.old_value, byteorder=byteorder)),
+                hex(int.from_bytes(store_op.new_value, byteorder=byteorder))
+            )
+        )
+
         # write out the new value
         self._file_map[base_off:max_off] = store_op.new_value
         self._file_map.flush(base_off & ~4095, 4096)
@@ -182,6 +208,12 @@ class BinaryFile(utils.Rangeable):
         """
         base_off = store_op.get_base_address() - self._map_base
         max_off = store_op.get_max_address() - self._map_base
+
+        self._logger.debug(
+            "do_revert: old_value: {}".format(
+                hex(int.from_bytes(store_op.old_value, byteorder=byteorder))
+            )
+        )
         # write out the old value
         self._file_map[base_off:max_off] = store_op.old_value
         self._file_map.flush(base_off & ~4095, 4096)

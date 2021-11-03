@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 from utils import Rangeable
 from utils import range_cmp
@@ -11,6 +11,7 @@ class BaseOperation:
     """
     Base class for all memory operations.
     """
+
     pass
 
 
@@ -21,10 +22,15 @@ class Fence(BaseOperation):
     The exact type of the memory barrier is not important,
     it is interpreted as an SFENCE or MFENCE.
     """
+
+    def __str__(self):
+        return "Fence"
+
     class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
@@ -52,6 +58,7 @@ class Store(BaseOperation, Rangeable):
     :ivar flushed: Indicates whether the store has been flushed.
     :type flushed: bool
     """
+
     def __init__(self, values):
         """
         Initializes the object based on the describing string.
@@ -64,8 +71,9 @@ class Store(BaseOperation, Rangeable):
         # calculate the offset given the registered file mapping
         self.address = int(params[1], 16)
         self.size = int(params[3], 16)
-        self.new_value = \
-            int(params[2], 16).to_bytes(self.size, byteorder=byteorder)
+        self.new_value = int(params[2], 16).to_bytes(
+            self.size, byteorder=byteorder
+        )
         if len(params) > 4:
             self.trace = StackTrace(params[4:])
         else:
@@ -74,8 +82,13 @@ class Store(BaseOperation, Rangeable):
         self.flushed = False
 
     def __str__(self):
-        return "addr: " + hex(self.address) + " size " + \
-            str(self.size) + " value " + str(self.new_value)
+        return (
+            "Store: addr: {0}, size: {1}, val: {2}, stack trace: {3}".format(
+                hex(self.address), hex(self.size),
+                hex(int.from_bytes(self.new_value, byteorder=byteorder)),
+                self.trace
+            )
+        )
 
     def get_base_address(self):
         """
@@ -95,10 +108,11 @@ class Store(BaseOperation, Rangeable):
         """
         return self.address + self.size
 
-    class Factory():
+    class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
@@ -115,6 +129,7 @@ class FlushBase(BaseOperation, Rangeable):
     """
     Base class for flush operations.
     """
+
     def is_in_flush(self, store_op):
         """
         Check if a given store is within the flush.
@@ -137,6 +152,7 @@ class Flush(FlushBase):
     :ivar _size: The size of the flush in bytes (should be cache line aligned).
     :type _size: int
     """
+
     def __init__(self, values):
         """
         Initializes the object based on the describing string.
@@ -148,6 +164,11 @@ class Flush(FlushBase):
         params = values.split(";")
         self._address = int(params[1], 16)
         self._size = int(params[2], 16)
+
+    def __str__(self):
+        return "Flush: addr: {0} size: {1}".format(
+            hex(self._address), hex(self._size)
+        )
 
     def is_in_flush(self, store_op):
         """
@@ -184,6 +205,7 @@ class Flush(FlushBase):
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
@@ -200,7 +222,24 @@ class ReorderBase(BaseOperation):
     """
     Base class for all reorder type classes.
     """
-    pass
+
+    def __init__(self, values):
+        """
+        Initializes the object based on the describing string.
+
+        :param values: Pre-formatted string describing values for
+            current op.
+        :type values: str
+        :return: None
+        """
+        # first value is the op name; for reorder op, it's marker name
+        self._marker_name = values.split(";")[0]
+
+    def __str__(self):
+        name = self.__class__.__name__
+        if self._marker_name is not None:
+            name += " -- " + self._marker_name
+        return name
 
 
 class NoReorderDoCheck(ReorderBase):
@@ -210,20 +249,23 @@ class NoReorderDoCheck(ReorderBase):
     This marker class triggers writing the whole sequence of stores
     between barriers.
     """
+
     class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
 
-            :param values: Ignored.
+            :param values: Pre-formatted string describing values for
+                current op.
             :type values: str
             :return: New NoReorderDoCheck object.
             :rtype: NoReorderDoCheck
             """
-            return NoReorderDoCheck()
+            return NoReorderDoCheck(values)
 
 
 class ReorderFull(ReorderBase):
@@ -233,20 +275,23 @@ class ReorderFull(ReorderBase):
     This marker class triggers writing all possible sequences of stores
     between barriers.
     """
+
     class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
 
-            :param values: Ignored.
+            :param values: Pre-formatted string describing values for
+                current op.
             :type values: str
             :return: New ReorderFull object.
             :rtype: ReorderFull
             """
-            return ReorderFull()
+            return ReorderFull(values)
 
 
 class ReorderAccumulative(ReorderBase):
@@ -257,20 +302,23 @@ class ReorderAccumulative(ReorderBase):
     possible accumulative sequences of stores
     between barriers.
     """
+
     class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
 
-            :param values: Ignored.
+            :param values: Pre-formatted string describing values for
+                current op.
             :type values: str
             :return: New ReorderAccumulative object.
             :rtype: ReorderAccumulative
             """
-            return ReorderAccumulative()
+            return ReorderAccumulative(values)
 
 
 class ReorderReverseAccumulative(ReorderBase):
@@ -281,20 +329,23 @@ class ReorderReverseAccumulative(ReorderBase):
     possible reverted accumulative sequences of stores
     between barriers.
     """
+
     class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
 
-            :param values: Ignored.
+            :param values: Pre-formatted string describing values for
+                current op.
             :type values: str
             :return: New ReorderReverseAccumulative object.
             :rtype: ReorderReverseAccumulative
             """
-            return ReorderReverseAccumulative()
+            return ReorderReverseAccumulative(values)
 
 
 class NoReorderNoCheck(ReorderBase):
@@ -305,20 +356,23 @@ class NoReorderNoCheck(ReorderBase):
     between barriers. It additionally marks that no consistency checking
     is to be made.
     """
+
     class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
 
-            :param values: Ignored.
+            :param values: Pre-formatted string describing values for
+                current op.
             :type values: str
             :return: New NoReorderNoCheck object.
             :rtype: NoReorderNoCheck
             """
-            return NoReorderNoCheck()
+            return NoReorderNoCheck(values)
 
 
 class ReorderDefault(ReorderBase):
@@ -327,20 +381,23 @@ class ReorderDefault(ReorderBase):
 
     This marker class triggers default reordering.
     """
+
     class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
 
-            :param values: Ignored.
+            :param values: Pre-formatted string describing values for
+                current op.
             :type values: str
             :return: ReorderDefault object.
             :rtype: ReorderDefault
             """
-            return ReorderDefault()
+            return ReorderDefault(values)
 
 
 class ReorderPartial(ReorderBase):
@@ -353,20 +410,23 @@ class ReorderPartial(ReorderBase):
     The type of partial reordering is chosen at runtime. Not yet
     implemented.
     """
+
     class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
 
-            :param values: Ignored.
+            :param values: Pre-formatted string describing values for
+                current op.
             :type values: str
             :return: New ReorderPartial object.
             :rtype: ReorderPartial
             """
-            return ReorderPartial()
+            return ReorderPartial(values)
 
 
 class Register_file(BaseOperation):
@@ -382,6 +442,7 @@ class Register_file(BaseOperation):
     :ivar offset: The start offset of the mapping within the file.
     :type offset: int
     """
+
     def __init__(self, values):
         """
         Initializes the object based on the describing string.
@@ -396,10 +457,18 @@ class Register_file(BaseOperation):
         self.size = int(params[3], 16)
         self.offset = int(params[4], 16)
 
-    class Factory():
+    def __str__(self):
+        return (
+            "Register_file: name: {0} addr: {1} size: {2} offset: {3}".format(
+                self.name, hex(self.address), hex(self.size), hex(self.offset)
+            )
+        )
+
+    class Factory:
         """
         Internal factory class to be used in dynamic object creation.
         """
+
         def create(self, values):
             """
             Factory object creation method.
