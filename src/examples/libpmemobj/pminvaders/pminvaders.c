@@ -234,7 +234,6 @@ process_aliens(void)
 		if (D_RO(iter)->y > GAME_HEIGHT - 1) {
 			POBJ_FREE(&iter);
 			update_score(-1);
-			pmemobj_persist(pop, gstate, sizeof(*gstate));
 		}
 	}
 }
@@ -290,14 +289,17 @@ process_player(int input)
 
 	/* weapon cooldown tick */
 	timer_tick(&D_RW(plr)->timer);
+	int plr_updated = 0;
 
 	switch (input) {
 	case KEY_LEFT:
 	case 'o':
 		{
 			uint16_t dstx = D_RO(plr)->x - 1;
-			if (dstx != 0)
+			if (dstx != 0) {
 				D_RW(plr)->x = dstx;
+				plr_updated = 1;
+			}
 		}
 		break;
 
@@ -305,14 +307,17 @@ process_player(int input)
 	case 'p':
 		{
 			uint16_t dstx = D_RO(plr)->x + 1;
-			if (dstx != GAME_WIDTH - 1)
+			if (dstx != GAME_WIDTH - 1) {
 				D_RW(plr)->x = dstx;
+				plr_updated = 1;
+			}
 		}
 		break;
 
 	case ' ':
 		if (D_RO(plr)->timer == 0) {
 			D_RW(plr)->timer = MAX_PLAYER_TIMER;
+			plr_updated = 1;
 			POBJ_NEW(pop, NULL, struct bullet,
 					create_bullet, D_RW(plr));
 		}
@@ -322,7 +327,8 @@ process_player(int input)
 		break;
 	}
 
-	pmemobj_persist(pop, D_RW(plr), sizeof(struct player));
+	if (plr_updated)
+		pmemobj_persist(pop, D_RW(plr), sizeof(struct player));
 
 	draw_player(plr);
 }
