@@ -115,6 +115,13 @@ as for software developers for troubleshooting and debugging.
 
 See the [pmempool page](pmempool) for available commands and documentation.
 
+#### librpma
+
+**librpma** is a C library to simplify accessing persistent memory
+on remote hosts over Remote Direct Memory Access (RDMA).
+
+See the [librpma page](../rpma/) for available documentation.
+
 #### librpmem
 
 The **librpmem** provides low-level support for remote access to
@@ -130,14 +137,7 @@ environments.
 
 >NOTE:
 The alternative solution for accessing remote persistent memory is implemented
-by the [librpma](index.md#librpma) library (see below).
-
-#### librpma
-
-**librpma** is a C library to simplify accessing persistent memory
-on remote hosts over Remote Direct Memory Access (RDMA).
-
-See the [librpma page](../rpma/) for available documentation.
+by the [librpma](index.md#librpma) library (see above).
 
 #### libvmemcache
 
