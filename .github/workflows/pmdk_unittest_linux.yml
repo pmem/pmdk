@@ -81,9 +81,7 @@ jobs:
             echo "memcheck: ${{ github.event.inputs.memcheck }}"
             echo "helgrind: ${{ github.event.inputs.helgrind }}" 
             echo "dual_exec: ${{ github.event.inputs.dual_exec }}"
-            echo "email_recipients: ${{ github.event.inputs.email_recipients }}"
-            echo "skip_tests: ${{ github.event.inputs.skip_tests }}" 
-            echo "pmdk_libs: ${{ github.event.inputs.pmdk_libs }}"
+            echo "email_recipients: ${{ env.EMAIL_RECIPIENTS }}"
         - name: Clone the git repo
           uses: actions/checkout@v2
           with:
