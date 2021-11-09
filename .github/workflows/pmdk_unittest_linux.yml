@@ -7,7 +7,7 @@ on:
             label:
                 description: 'label of execution machine, for example dell004 or fedora34, remember to manually add labels on gha runners page.'
                 required: true
-                default: '[self-hosted, Linux, X64]'
+                default: 'dell004'
             test_folders:
                 description: 'please select one: all, remotes, nonremotes'
                 required: true
@@ -53,7 +53,7 @@ env:
 jobs:
   linux:
     name: Linux
-    runs-on: ${{ github.event.inputs.label }}" 
+    runs-on: [self-hosted, linux, x64, '${{ github.event.inputs.label }}' ]
     env:
       # use org's Private Access Token to log in to GitHub Container Registry
       GH_CR_USER:  ${{ secrets.GH_CR_USER }}
