@@ -69,6 +69,7 @@ jobs:
       SRC_CHECKERS:   0
    
     steps:
+    
         - name: Print configaration data
           run: |
             echo "label: ${{ github.event.inputs.label }}" 
@@ -82,10 +83,28 @@ jobs:
             echo "helgrind: ${{ github.event.inputs.helgrind }}" 
             echo "dual_exec: ${{ github.event.inputs.dual_exec }}"
             echo "email_recipients: ${{ env.EMAIL_RECIPIENTS }}"
+            
         - name: Clone the git repo
           uses: actions/checkout@v2
-          with:
-            fetch-depth: 50
+          
+        - name: Get system info
+          uses: actions/checkout@v2
+          
+        - name: Prepare namespaces
+          uses: actions/checkout@v2
+          
+        - name: Prepare configs
+          uses: actions/checkout@v2
+          
+        - name: build pmdk
+          uses: actions/checkout@v2
+          
+        - name: run tests
+          uses: actions/checkout@v2
+          
+        - name: send confirmation email
+          uses: actions/checkout@v2
+ 
 
 
       
