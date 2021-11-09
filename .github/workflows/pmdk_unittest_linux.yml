@@ -1,5 +1,6 @@
 
-name: PMDKunittestsLinux
+name: pmdk_unittest_linux
+
 on:
     workflow_dispatch:
         inputs:
@@ -64,7 +65,7 @@ env:
 jobs:
   linux:
     name: Linux
-    runs-on: [self-hosted, linux, x64]
+    runs-on: ${{ github.event.inputs.label }}" 
     env:
       # use org's Private Access Token to log in to GitHub Container Registry
       GH_CR_USER:  ${{ secrets.GH_CR_USER }}
@@ -78,31 +79,29 @@ jobs:
       REMOTE_TESTS:   1
       VALGRIND:       1
       SRC_CHECKERS:   0
-    strategy:
-      matrix:
-        CONFIG: ["N=1 OS=ubuntu OS_VER=20.04 FAULT_INJECTION=1 TEST_BUILD=debug",
-                 "N=2 OS=ubuntu OS_VER=20.04 FAULT_INJECTION=1 TEST_BUILD=nondebug UBSAN=1",
-                 "N=3 OS=ubuntu OS_VER=20.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug SRC_CHECKERS=1",
-                 "N=4 OS=ubuntu OS_VER=20.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug",
-                 "N=5 OS=fedora OS_VER=31    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
-                 "N=6 OS=fedora OS_VER=31    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1",
-                 "N=7 OS=fedora OS_VER=31    MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 PMEMSET_INSTALL=y PUSH_IMAGE=1",
-                 "N=8 OS=ubuntu OS_VER=20.04 MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMEMSET_INSTALL=y PUSH_IMAGE=1",
-                 "N=9 OS=ubuntu OS_VER=20.04 MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++",
-                "N=10 OS=ubuntu OS_VER=20.04 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug"]
+   
     steps:
-       - name: Clone the git repo
-         uses: actions/checkout@v2
-         with:
+        - name: Print configaration data
+          run: |
+            echo "label: ${{ github.event.inputs.label }}" 
+            echo "test_folders: ${{ github.event.inputs.test_folders }}"
+            echo "test_type: ${{ github.event.inputs.test_type }}" 
+            echo "test_build: ${{ github.event.inputs.test_build }}"
+            echo "fs_type: ${{ github.event.inputs.fs_type }}" 
+            echo "badblock: ${{ github.event.inputs.badblock }}"
+            echo "drd: ${{ github.event.inputs.drd }}" 
+            echo "memcheck: ${{ github.event.inputs.memcheck }}"
+            echo "helgrind: ${{ github.event.inputs.helgrind }}" 
+            echo "dual_exec: ${{ github.event.inputs.dual_exec }}"
+            echo "email_recipients: ${{ github.event.inputs.email_recipients }}"
+            echo "skip_tests: ${{ github.event.inputs.skip_tests }}" 
+            echo "pmdk_libs: ${{ github.event.inputs.pmdk_libs }}"
+        - name: Clone the git repo
+          uses: actions/checkout@v2
+          with:
             fetch-depth: 50
 
-       - name: Pull or rebuild the image
-         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
-       - name: Run the build
-         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
+      
 
-       - name: Push the image
-         run: cd $WORKDIR && source ./set-vars.sh && ${{ matrix.CONFIG }} /bin/bash -c "if [[ -f ${CI_FILE_PUSH_IMAGE_TO_REPO} ]]; then images/push-image.sh; fi"
-
- 
+     
