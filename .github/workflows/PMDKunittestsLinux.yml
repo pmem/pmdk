@@ -1,5 +1,5 @@
 
-name: PMDK
+name: PMDKunittestsLinux
 on:
     workflow_dispatch:
         inputs:
