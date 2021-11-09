@@ -44,23 +44,11 @@ on:
                 description: 'please select one: nope, dbg_st-nondbg_vs_nondbg-st-dbg'
                 required: true
                 default: 'nope'
-            email_recipients:
-                description: 'optional: provide emails separated by comma to receive results..'
-                required: false
-                default: 'gk.pmdk.gb.val@intel.com'
-            skip_tests:
-                description: 'remove tests from scope, put spaces between tests.'
-                required: false
-                default: ''
-            pmdk_libs:
-                description: 'PMDK libs to test, separated by comma, Leave blank if not used.'
-                required: false
-                default: ''
         
-
 env:
     GITHUB_REPO: pmem/pmdk
     DOCKER_REPO: ghcr.io/pmem/pmdk
+    EMAIL_RECIPIENTS: 'gk.pmdk.gb.val@intel.com'
 
 jobs:
   linux:
