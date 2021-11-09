@@ -7,7 +7,7 @@ on:
             label:
                 description: 'label of execution machine, for example dell004 or fedora34, remember to manually add labels on gha runners page.'
                 required: true
-                default: 'fedora34'
+                default: '[self-hosted, Linux, X64]'
             test_folders:
                 description: 'please select one: all, remotes, nonremotes'
                 required: true
