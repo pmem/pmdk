@@ -1,6 +1,16 @@
 
 name: PMDK
-on: [push, pull_request]
+on:
+    workflow_dispatch:
+        inputs:
+          name:
+            description: 'Person to greet'
+            required: true
+            default: 'Mona the Octocat'
+          home:
+            description: 'location'
+            required: false
+            default: 'The Octoverse'
 
 env:
     GITHUB_REPO: pmem/pmdk
