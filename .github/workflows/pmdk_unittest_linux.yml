@@ -87,7 +87,7 @@ jobs:
               --conf-path_0='' ''
           
         - name: build pmdk
-          run: "build_pmdk --pmdk-path=${pmdk_0_path}"
+          run: ${SCRIPT_DIR}/docker/build_pmdk --pmdk-path=${HOST_WORKDIR}"
           
         - name: build pmdk
           uses: actions/checkout@v2
