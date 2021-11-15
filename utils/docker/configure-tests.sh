@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2021, Intel Corporation
 
 #
 # configure-tests.sh - is called inside a Docker container; configures tests
@@ -69,7 +69,10 @@ EOF
 
 	# Start ssh service
 	echo $USERPASS | sudo -S $START_SSH_COMMAND
-
+	# Before verification of ssh service, we need short sleep,
+	# to ensure that ssh demon is set and running.
+	sleep 5
+	# verify that ssh works properly
 	ssh 127.0.0.1 exit 0
 else
 	echo "Skipping remote tests"
