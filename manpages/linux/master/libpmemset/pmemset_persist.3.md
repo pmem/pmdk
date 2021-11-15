@@ -61,7 +61,7 @@ is an equivalent of:
 ```
 
 >NOTE: In the underlying implementation **pmemset_persist**() uses *pmem2_persist_fn* returned by
-**pmemset_get_persist_fn**(3), so all flush principles are identical for **pmemset_persist**()
+**pmem2_get_persist_fn**(3), so all flush principles are identical for **pmemset_persist**()
 function, and you can find them in the **pmem2_get_persist_fn(3)** man page.
 
 # RETURN VALUE #

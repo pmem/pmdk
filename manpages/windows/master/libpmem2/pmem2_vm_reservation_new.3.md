@@ -43,7 +43,12 @@ of a given size on which sources can be mapped.
 
 For the function to succeed, the *addr* must be either aligned to an appropriate
 allocation granularity or **NULL**, the size always has to be aligned to an
-appropriate allocation granularity.
+appropriate OS allocation granularity.
+
+**libpmem2**(7) library chooses the largest page alignment for the reservation based on *size*.
+If the chosen alignment is different than the OS allocation granularity, then the underlying
+size of the reservation can be bigger than the value presented to the user. Largest page alignment
+functionality is limited to POSIX systems.
 
 If the **pmem2_vm_reservation_new**() succeeds in creating a reservation, it instantiates a new
 **struct pmem2_vm_reservation** object describing the reservation. The pointer to this object
