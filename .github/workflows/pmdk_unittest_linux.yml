@@ -81,20 +81,17 @@ jobs:
           uses: actions/checkout@v2
           
         - name: Prepare namespaces
-          run: |
-              mkdir --parents $WORKDIR
-              ${SCRIPT_DIR}/gha-runners/createNamespaceConfig.sh -u testconfig.sh --conf-pmdk-nondebug-lib-path=''
-              --conf-path_0='' ''
+          run: ./utils/gha-runners/createNamespace.sh ./src/test 'testconfig.sh' 'u'
           
-        - name: build pmdk
-          run: ${SCRIPT_DIR}/docker/build_pmdk --pmdk-path=${HOST_WORKDIR}"
+        # - name: build pmdk
+        #   run: ${SCRIPT_DIR}/docker/build_pmdk --pmdk-path=${HOST_WORKDIR}"
           
-        - name: build pmdk
-          uses: actions/checkout@v2
+        # - name: build pmdk
+        #   uses: actions/checkout@v2
           
-        - name: Configure tests
-          run: ${SCRIPT_DIR}/docker/configure-tests.sh
+        # - name: Configure tests
+        #   run: ${SCRIPT_DIR}/docker/configure-tests.sh
           
-        - name: run tests
-          run:  ${SCRIPT_DIR}/pmdk/utils/docker/run-coverage.sh
+        # - name: run tests
+        #   run:  ${SCRIPT_DIR}/pmdk/utils/docker/run-coverage.sh
           
