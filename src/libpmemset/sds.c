@@ -210,7 +210,7 @@ pmemset_sds_read_values(struct pmemset_sds *sds, struct pmemset_source *src)
 
 err_translate:
 	if (ret == PMEM2_E_NOSUPP)
-		return PMEMSET_E_SDS_ENOSUPP;
+		return PMEMSET_E_SDS_NOSUPP;
 	return ret;
 }
 

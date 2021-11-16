@@ -60,3 +60,41 @@ class TEST3(PMEMSET_BADBLOCK):
     def run(self, ctx):
         ddpath = ctx.devdaxes.devdax1.path
         self.run_test(ctx, ddpath)
+
+
+class TEST4(PMEMSET_BADBLOCK):
+    """test pmemset map on a source with a badblock"""
+    test_case = "test_pmemset_map_detect_badblock"
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(4 * t.KiB, 'testfile')
+        self.run_test(ctx, filepath)
+
+
+@t.require_devdax(t.DevDax('devdax1'))
+class TEST5(PMEMSET_BADBLOCK):
+    """test pmemset map on a source with a badblock on devdax"""
+    test_case = "test_pmemset_map_detect_badblock"
+
+    def run(self, ctx):
+        ddpath = ctx.devdaxes.devdax1.path
+        self.run_test(ctx, ddpath)
+
+
+class TEST6(PMEMSET_BADBLOCK):
+    """test pmemset map on a source with a badblock and clear it"""
+    test_case = "test_pmemset_map_detect_badblock_and_clear"
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(4 * t.KiB, 'testfile')
+        self.run_test(ctx, filepath)
+
+
+@t.require_devdax(t.DevDax('devdax1'))
+class TEST7(PMEMSET_BADBLOCK):
+    """test pmemset map on a source with a badblock and clear it on devdax"""
+    test_case = "test_pmemset_map_detect_badblock_and_clear"
+
+    def run(self, ctx):
+        ddpath = ctx.devdaxes.devdax1.path
+        self.run_test(ctx, ddpath)

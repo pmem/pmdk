@@ -148,11 +148,13 @@ test_config_set_event(const struct test_case *tc, int argc,
 		> PMEMSET_EVENT_CONTEXT_SIZE);
 	COMPILE_ERROR_ON(sizeof(struct pmemset_event_persist)
 		> PMEMSET_EVENT_CONTEXT_SIZE);
-	COMPILE_ERROR_ON(sizeof(struct pmemset_event_bad_block)
-		> PMEMSET_EVENT_CONTEXT_SIZE);
 	COMPILE_ERROR_ON(sizeof(struct pmemset_event_part_remove)
 		> PMEMSET_EVENT_CONTEXT_SIZE);
 	COMPILE_ERROR_ON(sizeof(struct pmemset_event_part_add)
+		> PMEMSET_EVENT_CONTEXT_SIZE);
+	COMPILE_ERROR_ON(sizeof(struct pmemset_event_sds_update)
+		> PMEMSET_EVENT_CONTEXT_SIZE);
+	COMPILE_ERROR_ON(sizeof(struct pmemset_event_badblock)
 		> PMEMSET_EVENT_CONTEXT_SIZE);
 
 	struct pmemset_config *cfg;

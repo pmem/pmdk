@@ -41,7 +41,7 @@ struct pmemset_source {
 	struct {
 		struct pmemset_sds *sds;
 		enum pmemset_part_state *state;
-		struct pmemset_badblock *bb;
+		bool bb_detection;
 		int use_count;
 	} extras;
 };
@@ -93,9 +93,9 @@ pmemset_source_from_pmem2(struct pmemset_source **src,
 	srcp->type = PMEMSET_SOURCE_PMEM2;
 	srcp->pmem2.src = pmem2_src;
 	srcp->extras.sds = NULL;
-	srcp->extras.bb = NULL;
 	srcp->extras.state = NULL;
 	srcp->extras.use_count = 0;
+	srcp->extras.bb_detection = false;
 
 	ret = pmemset_source_open_file(srcp, 0);
 	if (ret)
@@ -145,9 +145,9 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 	srcp->type = PMEMSET_SOURCE_FILE;
 	srcp->file.path = Strdup(file);
 	srcp->extras.sds = NULL;
-	srcp->extras.bb = NULL;
 	srcp->extras.state = NULL;
 	srcp->extras.use_count = 0;
+	srcp->extras.bb_detection = false;
 
 	if (srcp->file.path == NULL) {
 		ERR("!strdup");
@@ -210,9 +210,9 @@ pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir)
 	srcp->type = PMEMSET_SOURCE_TEMP;
 	srcp->temp.dir = Strdup(dir);
 	srcp->extras.sds = NULL;
-	srcp->extras.bb = NULL;
 	srcp->extras.state = NULL;
 	srcp->extras.use_count = 0;
+	srcp->extras.bb_detection = false;
 
 	if (srcp->temp.dir == NULL) {
 		ERR("!strdup");
@@ -514,6 +514,28 @@ struct pmemset_sds *
 pmemset_source_get_sds(struct pmemset_source *src)
 {
 	return src->extras.sds;
+}
+
+/*
+ * pmemset_source_set_badblock_detection -- sets badblock detection on the
+ *                                          source on/off
+ */
+void
+pmemset_source_set_badblock_detection(struct pmemset_source *src, bool value)
+{
+	LOG(3, "src %p value %d", src, value);
+
+	src->extras.bb_detection = value;
+}
+
+/*
+ * pmemset_source_get_badblock_detection -- gets badblock detection value from
+ *                                          the source
+ */
+bool
+pmemset_source_get_badblock_detection(struct pmemset_source *src)
+{
+	return src->extras.bb_detection;
 }
 
 /*
