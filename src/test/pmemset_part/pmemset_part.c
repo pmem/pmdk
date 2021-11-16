@@ -38,6 +38,7 @@ test_part_map_valid_source_pmem2(const struct test_case *tc, int argc,
 	struct pmemset_part_descriptor desc;
 	struct pmemset_source *src;
 	struct pmem2_source *pmem2_src;
+	size_t alignment;
 
 	int fd = OPEN(file, O_RDWR);
 
@@ -47,17 +48,22 @@ test_part_map_valid_source_pmem2(const struct test_case *tc, int argc,
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	ret = pmemset_source_alignment(src, &alignment);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
 	ut_create_set_config(&cfg);
 
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, 0, 64 * 1024);
+	/* align the part size in case of devdax alignment requirement */
+	size_t part_size = ALIGN_UP(64 * 1024, alignment);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	ret = pmemset_map(set, src, map_cfg, &desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(desc.addr, NULL);
-	UT_ASSERTeq(desc.size, 64 * 1024);
+	UT_ASSERTeq(desc.size, part_size);
 
 	memset(desc.addr, 1, desc.size);
 
@@ -92,8 +98,12 @@ test_part_map_valid_source_file(const struct test_case *tc, int argc,
 	struct pmemset *set;
 	struct pmemset_config *cfg;
 	struct pmemset_map_config *map_cfg;
+	size_t alignment;
 
 	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_alignment(src, &alignment);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ut_create_set_config(&cfg);
@@ -101,7 +111,9 @@ test_part_map_valid_source_file(const struct test_case *tc, int argc,
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ut_create_map_config(&map_cfg, 0, 64 * 1024);
+	/* align the part size in case of devdax alignment requirement */
+	size_t part_size = ALIGN_UP(64 * 1024, alignment);
+	ut_create_map_config(&map_cfg, 0, part_size);
 
 	ret = pmemset_map(set, src, map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -290,7 +302,7 @@ test_part_map_first(const struct test_case *tc, int argc,
 	struct pmemset_map_config *map_cfg;
 	struct pmemset_part_map *first_pmap = NULL;
 	struct pmemset_source *src;
-	size_t part_size = 64 * 1024;
+	size_t alignment;
 
 	int fd = OPEN(file, O_RDWR);
 
@@ -300,11 +312,16 @@ test_part_map_first(const struct test_case *tc, int argc,
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	ret = pmemset_source_alignment(src, &alignment);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
 	ut_create_set_config(&cfg);
 
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	/* align the part size in case of devdax alignment requirement */
+	size_t part_size = ALIGN_UP(64 * 1024, alignment);
 	ut_create_map_config(&map_cfg, 0, part_size);
 
 	ret = pmemset_map(set, src, map_cfg, NULL);
@@ -347,7 +364,7 @@ test_part_map_descriptor(const struct test_case *tc, int argc,
 	struct pmemset_part_descriptor desc;
 	struct pmemset_part_map *pmap = NULL;
 	struct pmemset_source *src;
-	size_t part_size = 64 * 1024;
+	size_t alignment;
 
 	int fd = OPEN(file, O_RDWR);
 
@@ -357,11 +374,16 @@ test_part_map_descriptor(const struct test_case *tc, int argc,
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	ret = pmemset_source_alignment(src, &alignment);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
 	ut_create_set_config(&cfg);
 
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	/* align the part size in case of devdax alignment requirement */
+	size_t part_size = ALIGN_UP(64 * 1024, alignment);
 	ut_create_map_config(&map_cfg, 0, part_size);
 
 	ret = pmemset_map(set, src, map_cfg, NULL);
@@ -410,8 +432,7 @@ test_part_map_next(const struct test_case *tc, int argc,
 	struct pmemset_part_map *first_pmap = NULL;
 	struct pmemset_part_map *second_pmap = NULL;
 	struct pmemset_source *src;
-	size_t first_part_size = 64 * 1024;
-	size_t second_part_size = 128 * 1024;
+	size_t alignment;
 
 	int fd = OPEN(file, O_RDWR);
 
@@ -421,16 +442,22 @@ test_part_map_next(const struct test_case *tc, int argc,
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	ret = pmemset_source_alignment(src, &alignment);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
 	ut_create_set_config(&cfg);
 
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	/* align the part size in case of devdax alignment requirement */
+	size_t first_part_size = ALIGN_UP(64 * 1024, alignment);
 	ut_create_map_config(&first_map_cfg, 0, first_part_size);
 
 	ret = pmemset_map(set, src, first_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	size_t second_part_size = 2 * first_part_size;
 	ut_create_map_config(&second_map_cfg, 0, second_part_size);
 
 	ret = pmemset_map(set, src, second_map_cfg, NULL);
@@ -552,8 +579,7 @@ test_part_map_by_addr(const struct test_case *tc, int argc,
 	struct pmemset_part_map *first_pmap_ba = NULL;
 	struct pmemset_part_map *second_pmap_ba = NULL;
 	struct pmemset_source *src;
-	size_t part_size_first = 64 * 1024;
-	size_t part_size_second = 128 * 1024;
+	size_t alignment;
 
 	int fd = OPEN(file, O_RDWR);
 
@@ -563,16 +589,22 @@ test_part_map_by_addr(const struct test_case *tc, int argc,
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	ret = pmemset_source_alignment(src, &alignment);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
 	ut_create_set_config(&cfg);
 
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	/* align the part size in case of devdax alignment requirement */
+	size_t part_size_first = ALIGN_UP(64 * 1024, alignment);
 	ut_create_map_config(&first_map_cfg, 0, part_size_first);
 
 	ret = pmemset_map(set, src, first_map_cfg, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	size_t part_size_second = 2 * part_size_first;
 	ut_create_map_config(&second_map_cfg, 0, part_size_second);
 
 	ret = pmemset_map(set, src, second_map_cfg, NULL);
@@ -609,7 +641,12 @@ test_part_map_by_addr(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_map_config_delete(&second_map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	pmem2_source_delete(&pmem2_src);
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_ASSERTeq(ret, 0);
 	CLOSE(fd);
 
 	return 1;
@@ -836,7 +873,7 @@ test_part_map_opp_coalesce_before(const struct test_case *tc, int argc,
 	struct pmemset_part_map *first_pmap = NULL;
 	struct pmemset_part_map *second_pmap = NULL;
 	struct pmemset_source *src;
-	size_t part_size = 64 * 1024;
+	size_t alignment;
 
 	int fd = OPEN(file, O_RDWR);
 
@@ -844,6 +881,9 @@ test_part_map_opp_coalesce_before(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_alignment(src, &alignment);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ut_create_set_config(&cfg);
@@ -855,6 +895,8 @@ test_part_map_opp_coalesce_before(const struct test_case *tc, int argc,
 			PMEMSET_COALESCING_OPPORTUNISTIC);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	/* align the part size in case of devdax alignment requirement */
+	size_t part_size = ALIGN_UP(64 * 1024, alignment);
 	ut_create_map_config(&map_cfg, 0, part_size);
 
 	ret = pmemset_map(set, src, map_cfg, NULL);
@@ -915,7 +957,7 @@ test_part_map_opp_coalesce_after(const struct test_case *tc, int argc,
 	struct pmemset_part_map *first_pmap = NULL;
 	struct pmemset_part_map *second_pmap = NULL;
 	struct pmemset_source *src;
-	size_t part_size = 64 * 1024;
+	size_t alignment;
 
 	int fd = OPEN(file, O_RDWR);
 
@@ -925,11 +967,16 @@ test_part_map_opp_coalesce_after(const struct test_case *tc, int argc,
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	ret = pmemset_source_alignment(src, &alignment);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
 	ut_create_set_config(&cfg);
 
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
+	/* align the part size in case of devdax alignment requirement */
+	size_t part_size = ALIGN_UP(64 * 1024, alignment);
 	ut_create_map_config(&map_cfg, 0, part_size);
 
 	ret = pmemset_map(set, src, map_cfg, NULL);
@@ -2745,7 +2792,6 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_part_map_coalesce_with_set_reservation),
 	TEST_CASE(test_part_map_with_set_reservation_too_small),
 	TEST_CASE(test_part_map_with_set_reservation_cannot_fit),
-	TEST_CASE(test_part_map_coalesce_with_set_reservation),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
