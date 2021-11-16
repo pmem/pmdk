@@ -88,7 +88,7 @@ of the given *src*.
 
 * **PMEM2_E_NOSUPP** - on Windows or when the OS does not support this functionality
 
-- **-ENOMEM** - out of memory
+* **-ENOMEM** - out of memory
 
 * **-errno** - set by failing **ndctl_new**, while trying to create
 a new ndctl context.
