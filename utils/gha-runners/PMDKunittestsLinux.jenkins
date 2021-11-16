@@ -1,0 +1,239 @@
+//
+// Copyright 2019-2020, Intel Corporation
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in
+//       the documentation and/or other materials provided with the
+//       distribution.
+//
+//     * Neither the name of the copyright holder nor the names of its
+//       contributors may be used to endorse or promote products derived
+//       from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+
+if (params.DUAL_EXEC == 'nope') {
+	BUILD_DISPLAY = "$TEST_BUILD"
+} else if (params.DUAL_EXEC == 'dbg_st-nondbg_vs_nondbg-st-dbg') {
+	BUILD_DISPLAY = "all"
+} else if (params.DUAL_EXEC == 'dbg_vs_nondbg') {
+	BUILD_DISPLAY = "dbg+nondbg"
+} else if (params.DUAL_EXEC == 'st-nondbg_vs_st-dbg') {
+	BUILD_DISPLAY = "st-nondbg+st-dbg"
+}
+
+if (params.TAR_URL != '') {
+	currentBuild.displayName = "#$currentBuild.id $LABEL: $TAR_URL - $TEST_TYPE, $BUILD_DISPLAY, remotes:$TEST_FOLDERS"
+} else if (params.PULL_REQUEST != ''){
+	currentBuild.displayName = "#$currentBuild.id $LABEL: PR:$PULL_REQUEST($BRANCH) - $TEST_TYPE, $BUILD_DISPLAY, remotes:$TEST_FOLDERS"
+} else { 
+	currentBuild.displayName = "#$currentBuild.id $LABEL: $BRANCH - $TEST_TYPE, $BUILD_DISPLAY, remotes:$TEST_FOLDERS"
+}
+
+if (params.DRD == 'force-enable') { currentBuild.displayName += ", DRD"}
+if (params.MEMCHECK == 'force-enable') { currentBuild.displayName += ", MCHK"}
+if (params.HELGRIND == 'force-enable') { currentBuild.displayName += ", HGND"}
+if (params.PMEMCHECK == 'force-enable') { currentBuild.displayName += ", PMCHK"}
+if (params.BADBLOCK == 'yes') { currentBuild.displayName += ", BADB"}
+currentBuild.description = "$DESCRIPTION"
+
+pipeline {
+	// put timestamps in output log
+	options { timestamps () }
+
+	//execute tis pipeline job on node in "LABEL" group in Jenkins
+	agent { label params.LABEL }
+
+	//each stage represent pipeline step 
+	stages {
+		stage('Prepare job') {
+			steps {
+				load loading_libraries_code
+				script {
+					libs.utils.prepare_workspace_with_pmdk_files()
+					libs.os.set_jenkins_warning_on_dut()
+					libs.unittests.unload_unnecessary_modules()
+
+					if (params.DUAL_EXEC == 'nope') {
+						PMDK_1_DIR = ''
+						PMDK_1_PATH = ''
+						TEST_OUTPUT_FILE_1 = ''
+						TEST_OUTPUT_PATH_1 = ''
+					}
+				}
+			}
+		}
+		// gather system info:
+		stage('System-info'){
+			steps {
+				script {
+					libs.utils.system_info()
+				}
+			}
+		}
+		// clone PMDK repository:
+		stage('Repository checkout: PMDK') {
+			steps {
+				script {
+					if (params.TAR_URL != '') {
+						libs.linux.run_bash_script_with_common_import("""
+							set -x
+							download_pmdk_archive --tar-url=$TAR_URL --tar-folder=$TAR_FOLDER --pmdk-path=$PMDK_0_PATH
+						""")
+					} else if (params.PULL_REQUEST != ''){
+						libs.utils.clone_repository_with_pr(params.PMDK_REPO_URL, params.PULL_REQUEST, PMDK_0_DIR, params.BRANCH)
+					} else {
+						libs.utils.clone_repository(params.PMDK_REPO_URL, params.BRANCH, PMDK_0_DIR)
+					}
+					if (params.DUAL_EXEC != 'nope') {
+						libs.os.run_script("""
+							cp -a $PMDK_0_PATH/. $PMDK_1_PATH
+						""")
+					}
+				}
+			}
+		}
+		// prepare namespaces configuration and create config files:
+		stage('Setup & create config'){
+			steps {
+				script {
+					if (params.DUAL_EXEC != 'nope') {
+						libs.os.create_namespace_and_config("$PMDK_0_PATH/src/test", libs.utils.TestType.UNITTESTS, "$PMDK_1_PATH/src/test")
+						if (params.BADBLOCK == 'yes') {
+							libs.linux.run_bash_script_with_common_import("""
+								echo "BADBLOCK_TEST_TYPE=real_pmem" >> $PMDK_0_PATH/src/test/testconfig.sh
+								echo "TEST_TIMEOUT=20m" >> $PMDK_0_PATH/src/test/testconfig.sh
+								echo "BADBLOCK_TEST_TYPE=real_pmem" >> $PMDK_1_PATH/src/test/testconfig.sh
+								echo "TEST_TIMEOUT=20m" >> $PMDK_1_PATH/src/test/testconfig.sh
+							""")
+						}
+					} else {
+						libs.os.create_namespace_and_config("$PMDK_0_PATH/src/test", libs.utils.TestType.UNITTESTS)
+						if (params.BADBLOCK == 'yes') {
+							libs.linux.run_bash_script_with_common_import("""
+								echo "BADBLOCK_TEST_TYPE=real_pmem" >> $PMDK_0_PATH/src/test/testconfig.sh
+								echo "TEST_TIMEOUT=20m" >> $PMDK_0_PATH/src/test/testconfig.sh
+							""")
+						}
+					}
+				}
+			}
+		}
+		// build PMDK library and tests, then remove blacklisted tests:
+		stage('Build-PMDK'){
+			steps {
+				script {
+					def pmdk_dir_lst = [PMDK_0_PATH]
+
+					if (params.DUAL_EXEC != 'nope') {
+						libs.unittests.build_pmdk(PMDK_0_PATH, PMDK_1_PATH)
+						pmdk_dir_lst.add(PMDK_1_PATH)
+					} else {
+						libs.unittests.build_pmdk(PMDK_0_PATH)
+					}
+					libs.unittests.remove_unwanted_tests(SKIP_TESTS, pmdk_dir_lst)
+				}
+			}
+		}
+		// run unittests:
+		stage('PMDK-test'){
+			steps {
+				warnError('Build unstable.') {
+					script {
+						libs.utils.echo_header("run unittests")
+						if (params.TEST_TYPE != 'all') {
+							disable_libverbs = "RPMEM_DISABLE_LIBIBVERBS=y "
+						} else {
+							disable_libverbs = ''
+						}
+
+						def get_cmd = {
+							test_build, pmdk_path, test_output_path ->
+								libs.linux.cmd_redir_out("${disable_libverbs}run_unittests --test-type=${TEST_TYPE} --test-build=${test_build} --drd=${DRD} --memcheck=${MEMCHECK} --pmemcheck=${PMEMCHECK} --helgrind=${HELGRIND} --fs-type=${FS_TYPE} --test-folders=${TEST_FOLDERS} --pmdk-path=${pmdk_path} --test-libs='${PMDK_LIBS}'", test_output_path)
+						}
+
+						def get_cmd_0 = {
+							test_build ->
+								get_cmd(test_build, PMDK_0_PATH, TEST_OUTPUT_PATH_0)
+						}
+
+						def get_cmd_1 = {
+							test_build ->
+								get_cmd(test_build, PMDK_1_PATH, TEST_OUTPUT_PATH_1)
+						}
+
+						switch (params.DUAL_EXEC) {
+							case 'nope':
+								cmd_0 = get_cmd_0(TEST_BUILD)
+								cmd_1 = ''
+								break;
+							case 'dbg_st-nondbg_vs_nondbg-st-dbg':
+								cmd_0 = get_cmd_0('debug,static-nondebug')
+								cmd_1 = get_cmd_1('nondebug,static-debug')
+								break
+							case 'dbg_vs_nondbg':
+								cmd_0 = get_cmd_0('debug')
+								cmd_1 = get_cmd_1('nondebug')
+								break;
+							case 'st-nondbg_vs_st-dbg':
+								cmd_0 = get_cmd_0('static-debug')
+								cmd_1 = get_cmd_1('static-nondebug')
+								break;
+							default:
+								throw new java.lang.UnsupportedOperationException("Option '${params.DUAL_EXEC}' as a value for dual execution distinction is not supported.");
+						}
+
+						libs.linux.run_bash_script_with_common_import("""
+							run_parallel "$cmd_0" "$cmd_1"
+						""")
+					}
+				}
+			}
+		}
+	}
+	// do the conversion with PaJaC
+	// generate post-build artifacts
+	// write "fail" or "success" in result.txt file
+	// archive results
+	post {
+		//'always' declarations must be declared first.
+		always {
+			script {
+				libs.unittests.post_always()
+			}
+		}
+		success {
+			script {
+				libs.utils.write_result_and_archive('pass')
+			}
+		}
+		failure {
+			script {
+				libs.utils.write_result_and_archive('fail')
+			}
+		}
+		unstable {
+			script {
+				libs.utils.write_result_and_archive('fail')
+			}
+		}
+	}
+}
