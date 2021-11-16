@@ -84,7 +84,7 @@ jobs:
           run: cd utils/gha-runners
 
         - name: Prepare namespaces99
-          run: echo ls
+          run: ls
           
         - name: Prepare namespaces2
           run: chmod u+x createNamespaceConfig.sh
