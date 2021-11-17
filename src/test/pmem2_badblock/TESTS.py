@@ -13,6 +13,7 @@ import re
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
 @t.require_ndctl(require_namespace=True)
+@g.require_real_pmem()
 class PMEM2_BADBLOCK_COUNT(t.Test):
     test_type = t.Short
 
@@ -54,6 +55,7 @@ class PMEM2_BADBLOCK_COUNT(t.Test):
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
 @t.require_ndctl(require_namespace=True)
+@g.require_real_pmem()
 class PMEM2_BADBLOCK(t.Test):
     test_type = t.Short
 

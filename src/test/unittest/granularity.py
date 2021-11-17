@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 
 """Granularity context classes and utilities"""
@@ -11,7 +11,9 @@ from enum import Enum, unique
 import context as ctx
 import configurator
 import futils
+
 from tools import Tools
+from tools import Ndctl
 
 
 class Granularity(metaclass=ctx.CtxType):
@@ -47,8 +49,9 @@ class Granularity(metaclass=ctx.CtxType):
         self.tools = Tools(self._env, None)
         futils.set_kwargs_attrs(self, kwargs)
         self.config = configurator.Configurator().config
-        dir_ = os.path.abspath(getattr(self.config, self.config_dir_field))
-        self.testdir = os.path.join(dir_, self.tc_dirname)
+        self.dir_ = os.path.abspath(getattr(self.config,
+                                            self.config_dir_field))
+        self.testdir = os.path.join(self.dir_, self.tc_dirname)
         force = getattr(self.config, self.config_force_field)
         if force:
             self.env = {
@@ -91,6 +94,21 @@ class Granularity(metaclass=ctx.CtxType):
             return False
         else:
             return True
+
+    def _check_real_pmem_req_is_met(self, tc):
+        req_real_pmem, _ = ctx.get_requirement(tc, 'require_real_pmem', False)
+        if not req_real_pmem:
+            return True
+
+        devdaxes, _ = ctx.get_requirement(tc, 'require_devdax', None)
+        # devdax cases should be dealt in devdax module
+        if devdaxes is not None:
+            return True
+
+        if Ndctl().is_emulated(self.dir_):
+            raise futils.Skip('skip emulated pmem')
+
+        return True
 
     def _check_usc_req_is_met(self, tc):
         require_usc, _ = ctx.get_requirement(tc, 'require_usc', False)
@@ -167,6 +185,7 @@ class Granularity(metaclass=ctx.CtxType):
             try:
                 gran = g(**kwargs)
                 gran._check_usc_req_is_met(tc)
+                gran._check_real_pmem_req_is_met(tc)
                 gs.append(gran)
             except futils.Skip as s:
                 msg.print_verbose('{}: SKIP: {}'.format(tc, s))
@@ -272,5 +291,12 @@ def no_testdir(**kwargs):
 def require_usc(**kwargs):
     def wrapped(tc):
         ctx.add_requirement(tc, 'require_usc', True)
+        return tc
+    return wrapped
+
+
+def require_real_pmem(**kwargs):
+    def wrapped(tc):
+        ctx.add_requirement(tc, 'require_real_pmem', True)
         return tc
     return wrapped

@@ -79,7 +79,7 @@ class Ndctl:
             futils.fail('ndctl is not available on Windows')
 
         self.version = self._get_ndctl_version()
-        self.ndctl_list_output = self._cmd_out_to_json('list', '-RNDMv')
+        self.ndctl_list_output = self._cmd_out_to_json('list', '-RBNDMv')
 
     def _cmd_out_to_json(self, *args):
         cmd = ['ndctl', *args]
@@ -191,6 +191,43 @@ class Ndctl:
 
         return p
 
+    def _get_emulated_devices(self):
+        # provider of emulated pmem
+        emulated_pmem_provider = "ACPI.NFIT"
+
+        # important keys from ndctl output list
+        blkdev = 'blockdev'
+        chrdev = 'chardev'
+        daxreg = 'daxregion'
+        devs = 'devices'
+
+        emulated_devices = []
+        for bus in self.ndctl_list_output:
+            if bus['provider'] == emulated_pmem_provider:
+                for reg in bus['regions']:
+                    for ns in reg['namespaces']:
+                        if blkdev in ns:
+                            edev = ns[blkdev]
+                        elif daxreg in ns:
+                            for dev in ns[daxreg][devs]:
+                                edev = dev[chrdev]
+                        else:
+                            edev = None
+
+                        emulated_devices.append(edev)
+
+        return emulated_devices
+
+    def _get_path_device(self, path):
+        blockdev = futils.run_command("df -P {} | tail -n 1 | cut -f 1 -d ' '"
+                                      .format(path)).strip().decode('UTF8')
+        if blockdev == "devtmpfs":
+            device = path  # devdax
+        else:
+            device = blockdev  # fsdax
+
+        return device
+
     def get_dev_size(self, dev_path):
         return int(self._get_dev_param(dev_path, 'size'))
 
@@ -215,3 +252,9 @@ class Ndctl:
 
     def is_fsdax(self, dev_path):
         return self.get_dev_mode(dev_path) == 'fsdax'
+
+    def is_emulated(self, dev_path):
+        emulated_devices = self._get_emulated_devices()
+        dev = self._get_path_device(dev_path)
+
+        return (dev in emulated_devices)
