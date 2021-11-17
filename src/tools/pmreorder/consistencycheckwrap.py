@@ -27,7 +27,7 @@ class LibChecker(ConsistencyCheckerBase):
     The function has to be in a shared library. It is then used to check
     consistency of an arbitrary file. The function has to take a file name
     as the only parameter and return an int: 0 for inconsistent, 1 for
-    consistent. The prototype of the function::
+    consistent. The prototype of the function:
 
         int func_name(const char* file_name)
     """
@@ -82,6 +82,10 @@ class ProgChecker(ConsistencyCheckerBase):
     """
     Allows registration of a consistency checking program and verifying
     the consistency of a file.
+
+    The binary executed with its argument is used to check consistency
+    of an arbitrary file. The program has to take a file name as the
+    last parameter and return an int: 0 for inconsistent, 1 for consistent.
     """
 
     def __init__(self, bin_path, bin_args, logger=None):
