@@ -84,7 +84,7 @@ jobs:
           run: chmod u+x utils/gha-runners/createNamespaceConfig.sh
         
         - name: Prepare namespaces
-          run: ./utils/gha-runners/createNamespaceConfig.sh -u
+          run: cd utils/gha-runners && ./createNamespaceConfig.sh -u
         
         # - name: build pmdk
         #   run: ${SCRIPT_DIR}/docker/build_pmdk --pmdk-path=${HOST_WORKDIR}"
