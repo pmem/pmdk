@@ -8,7 +8,7 @@ date: pmreorder version 1.5
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2018-2020, Intel Corporation)
+[comment]: <> (Copyright 2018-2021, Intel Corporation)
 
 [comment]: <> (pmreorder.1 -- man page for pmreorder)
 
@@ -66,12 +66,18 @@ Consistency checker type.
 
 `-p <path>, --path <path>`
 
-Path to the consistency checker. Checker function has to return 0 for consistent cases and 1 otherwise.
+Path to the consistency checker.
+If the checker type is `prog` - given program **has to take a file name as
+the last parameter** and the program has to return 0 for consistent cases
+and 1 otherwise.
+If the checker type is `lib` - `--name` parameter is required.
 
 `-n <name>, --name <name>`
 
-The symbol name of the consistency checking function
-in the library. Valid only if the checker type is `lib`.
+The symbol name of the consistency checking function in the library.
+The function **has to take a file name as the only parameter** and it
+has to return 0 for consistent cases and 1 otherwise.
+This parameter is required only if the checker type is `lib`.
 
 `-o <pmreorder_output>, --output <pmreorder_output>`
 
@@ -402,7 +408,7 @@ python pmreorder.py \
 		-o pmreorder_out.log \
 		-c prog \
 		-x PMREORDER_MARKER_NAME=ReorderPartial \
-		-p checker_binary checker_parameter
+		-p checker_binary checker_parameter(s)
 ```
 
 Checker binary will be used to run consistency checks on

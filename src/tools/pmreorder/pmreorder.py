@@ -44,13 +44,16 @@ def main():
         "-p",
         "--path",
         required=True,
-        help="path to the consistency checker and arguments",
+        help="path to the consistency checker and arguments. "
+        + "Note: If program is given, the program has to take "
+        + "a file name as the last parameter.",
         nargs="+",
     )
     parser.add_argument(
         "-n",
         "--name",
-        help="consistency check function for the 'lib' checker",
+        help="consistency check function for the 'lib' checker. Note: "
+        + "The function has to take a file name as the only parameter.",
     )
     parser.add_argument("-o", "--output", help="set the logger output file")
     parser.add_argument(
