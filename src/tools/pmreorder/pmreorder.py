@@ -16,8 +16,8 @@ def main():
 
     """
     Argv[1] should be given in order to use -v or --version flag. It is passed
-    from the installed script. We check whether argv[1] was given and if it's
-    not any of regular parameters we use it as a version of pmreorder and
+    from the installation script. We check whether argv[1] was given. If it's
+    not any of regular parameters - we use it as a version of pmreorder and
     remove it from the arguments list.
     """
     if len(sys.argv) > 1 and sys.argv[1][0] != "-":
@@ -50,7 +50,7 @@ def main():
     parser.add_argument(
         "-n",
         "--name",
-        help="consistency check function " + "for the 'lib' checker",
+        help="consistency check function for the 'lib' checker",
     )
     parser.add_argument("-o", "--output", help="set the logger output file")
     parser.add_argument(
@@ -62,7 +62,7 @@ def main():
     parser.add_argument(
         "-x",
         "--extended-macros",
-        help="list of pairs MARKER=ENGINE or " + "json config file",
+        help="list of pairs MARKER=ENGINE or json config file",
     )
     parser.add_argument(
         "-v",
@@ -75,7 +75,7 @@ def main():
     parser.add_argument(
         "-r",
         "--default-engine",
-        help="set default reorder engine " + "default=NoReorderNoChecker",
+        help="set default reorder engine default=NoReorderNoChecker",
         choices=engines_keys,
         default=engines_keys[0],
     )

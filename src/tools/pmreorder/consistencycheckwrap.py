@@ -84,10 +84,22 @@ class ProgChecker(ConsistencyCheckerBase):
     the consistency of a file.
     """
 
-    def __init__(self, bin_path, bin_args, logger):
+    def __init__(self, bin_path, bin_args, logger=None):
+        """
+        Loads the consistency checking binary and its arguments required
+        to verify the consistency of a file.
+
+        :param bin_path: The full path of the binary.
+        :type bin_path: str
+        :param bin_args: Binary's arguments to run consistency check.
+        :type bin_args: str
+        :param logger: logger handle, default: empty logger (LoggingBase)
+        :type logger: subclass of :class:`LoggingBase`
+        :return: None
+        """
         self._bin_path = bin_path
         self._bin_cmd = bin_args
-        self._logger = logger
+        self._logger = logger or LoggingBase()
 
     def check_consistency(self, filename):
         """
@@ -108,8 +120,20 @@ class ProgChecker(ConsistencyCheckerBase):
         return system(cmd)
 
 
-def get_checker(checker_type, checker_path_args, name, logger):
+def get_checker(checker_type, checker_path_args, func_name, logger=None):
+    """
+    Returns checker instance, based on the checker type.
 
+    :param checker_type: Type of the checker, supported types: "prog", "lib".
+    :type checker_type: str
+    :param checker_path_args: Checker's arguments for consistency check.
+    :type checker_path_args: str
+    :param func_name: Name of the checker function, given only if "lib" type.
+    :type func_name: str
+    :param logger: logger handle, default: None
+    :type logger: subclass of :class:`LoggingBase`
+    :return: subclass of :class:`ConsistencyCheckerBase`
+    """
     checker_path_args = checker_path_args.split(" ", 1)
     checker_path = checker_path_args[0]
 
@@ -120,13 +144,13 @@ def get_checker(checker_type, checker_path_args, name, logger):
         args = ""
 
     if not path.exists(checker_path):
-        print("Invalid path:" + checker_path)
+        print("Invalid path: " + checker_path)
         exit(1)
 
     checker = None
     if checker_type == "prog":
         checker = ProgChecker(checker_path, args, logger)
     elif checker_type == "lib":
-        checker = LibChecker(checker_path, name, logger)
+        checker = LibChecker(checker_path, func_name, logger)
 
     return checker
