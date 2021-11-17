@@ -26,7 +26,7 @@ class OperationFactory:
     """
 
     __factories = {}
-    __suffix = ['.BEGIN', '.END']
+    __suffix = [".BEGIN", ".END"]
     memoryoperations.BaseOperation()
 
     @staticmethod
@@ -79,9 +79,9 @@ class OperationFactory:
             """
             top = stack[-1][0]
             if top.endswith(OperationFactory.__suffix[0]):
-                top = top[:-len(OperationFactory.__suffix[0])]
+                top = top[: -len(OperationFactory.__suffix[0])]
             if marker.endswith(OperationFactory.__suffix[-1]):
-                marker = marker[:-len(OperationFactory.__suffix[-1])]
+                marker = marker[: -len(OperationFactory.__suffix[-1])]
 
             if top != marker:
                 raise NotSupportedOperationException(

@@ -67,7 +67,7 @@ class OpsContext:
         return list(
             map(
                 OperationFactory.create_operation,
-                self._operations[start_index + 1:stop_index],
+                self._operations[start_index + 1: stop_index],
                 repeat(self.markers),
                 repeat(self.stack_engines),
             )

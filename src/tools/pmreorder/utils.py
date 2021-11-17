@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 
 import os
@@ -13,6 +13,7 @@ class Rangeable:
     All rangeable objects must be able to return their base and max
     addresses.
     """
+
     def get_base_address(self):
         """
         Getter for the base address of the object.

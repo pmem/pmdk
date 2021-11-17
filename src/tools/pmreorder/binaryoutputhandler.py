@@ -162,11 +162,10 @@ class BinaryFile(utils.Rangeable):
         self._logger = logger or LoggingBase()
 
     def __str__(self):
-        return (
-            "{0} (base: {1}, size: {2})".format(
-                self._file_name, hex(self._map_base),
-                hex(self._map_max-self._map_base)
-            )
+        return "{0} (base: {1}, size: {2})".format(
+            self._file_name,
+            hex(self._map_base),
+            hex(self._map_max - self._map_base),
         )
 
     def do_store(self, store_op):
@@ -186,7 +185,7 @@ class BinaryFile(utils.Rangeable):
         self._logger.debug(
             "do_store: old_value: {0}, new_value: {1}".format(
                 hex(int.from_bytes(store_op.old_value, byteorder=byteorder)),
-                hex(int.from_bytes(store_op.new_value, byteorder=byteorder))
+                hex(int.from_bytes(store_op.new_value, byteorder=byteorder)),
             )
         )
 

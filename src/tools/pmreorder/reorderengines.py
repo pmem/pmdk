@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 
 from itertools import combinations
@@ -15,6 +15,7 @@ import collections
 class FullReorderEngine:
     def __init__(self):
         self.test_on_barrier = True
+
     """
     Realizes a full reordering of stores within a given list.
     Example:
@@ -37,6 +38,7 @@ class FullReorderEngine:
                ('c', 'a', 'b')
                ('c', 'b', 'a')
     """
+
     def generate_sequence(self, store_list):
         """
         Generates all possible combinations of all possible lengths,
@@ -55,6 +57,7 @@ class FullReorderEngine:
 class AccumulativeReorderEngine:
     def __init__(self):
         self.test_on_barrier = True
+
     """
     Realizes an accumulative reorder of stores within a given list.
     Example:
@@ -65,6 +68,7 @@ class AccumulativeReorderEngine:
                ('a', 'b')
                ('a', 'b', 'c')
     """
+
     def generate_sequence(self, store_list):
         """
         Generates all accumulative lists,
@@ -84,6 +88,7 @@ class AccumulativeReorderEngine:
 class AccumulativeReverseReorderEngine:
     def __init__(self):
         self.test_on_barrier = True
+
     """
     Realizes an accumulative reorder of stores
     within a given list in reverse order.
@@ -95,6 +100,7 @@ class AccumulativeReverseReorderEngine:
                ('c', 'b')
                ('c', 'b', 'a')
     """
+
     def generate_sequence(self, store_list):
         """
         Reverse all elements order and
@@ -120,6 +126,7 @@ class SlicePartialReorderEngine:
                ('a', 'b')
                ('b', 'c')
     """
+
     def __init__(self, start, stop, step=1):
         """
         Initializes the generator with the provided parameters.
@@ -145,9 +152,17 @@ class SlicePartialReorderEngine:
         :return: Yields a slice of all combinations of stores.
         :rtype: iterable
         """
-        for sl in islice(chain(*map(lambda x: combinations(store_list, x),
-                         range(0, len(store_list) + 1))),
-                         self._start, self._stop, self._step):
+        for sl in islice(
+            chain(
+                *map(
+                    lambda x: combinations(store_list, x),
+                    range(0, len(store_list) + 1),
+                )
+            ),
+            self._start,
+            self._stop,
+            self._step,
+        ):
             yield sl
 
 
@@ -179,6 +194,7 @@ class FilterPartialReorderEngine:
                (a, c)
                (b, c)
     """
+
     def __init__(self, func, **kwargs):
         """
         Initializes the generator with the provided parameters.
@@ -195,7 +211,7 @@ class FilterPartialReorderEngine:
         """
         Filter stores list if number of element is less than kwarg1
         """
-        if (len(store_list) < kwargs["kwarg1"]):
+        if len(store_list) < kwargs["kwarg1"]:
             return False
         return True
 
@@ -204,7 +220,7 @@ class FilterPartialReorderEngine:
         """
         Filter stores list if number of element is greater than kwarg1.
         """
-        if (len(store_list) > kwargs["kwarg1"]):
+        if len(store_list) > kwargs["kwarg1"]:
             return False
         return True
 
@@ -215,7 +231,7 @@ class FilterPartialReorderEngine:
         greater or equal kwarg1 and less or equal kwarg2.
         """
         store_len = len(store_list)
-        if (store_len >= kwargs["kwarg1"] and store_len <= kwargs["kwarg2"]):
+        if store_len >= kwargs["kwarg1"] and store_len <= kwargs["kwarg2"]:
             return True
         return False
 
@@ -230,9 +246,14 @@ class FilterPartialReorderEngine:
         """
         filter_fun = getattr(self, self._filter, None)
         for elem in filter(
-                       partial(filter_fun, **self._filter_kwargs), chain(
-                           *map(lambda x: combinations(store_list, x), range(
-                               0, len(store_list) + 1)))):
+            partial(filter_fun, **self._filter_kwargs),
+            chain(
+                *map(
+                    lambda x: combinations(store_list, x),
+                    range(0, len(store_list) + 1),
+                )
+            ),
+        ):
             yield elem
 
 
@@ -246,6 +267,7 @@ class RandomPartialReorderEngine:
                ('b',)
                ('a', 'b', 'c')
     """
+
     def __init__(self, max_seq=3):
         """
         Initializes the generator with the provided parameters.
@@ -269,24 +291,35 @@ class RandomPartialReorderEngine:
         :return: Yields a random sequence of combinations.
         :rtype: iterable
         """
-        population = list(chain(*map(
-                          lambda x: islice(combinations(store_list, x), 1000),
-                          range(0, len(store_list) + 1))))
+        population = list(
+            chain(
+                *map(
+                    lambda x: islice(combinations(store_list, x), 1000),
+                    range(0, len(store_list) + 1),
+                )
+            )
+        )
         population_size = len(population)
-        for elem in sample(population, self._max_seq if self._max_seq <=
-                           population_size else population_size):
+        for elem in sample(
+            population,
+            self._max_seq
+            if self._max_seq <= population_size
+            else population_size,
+        ):
             yield elem
 
 
 class NoReorderEngine:
     def __init__(self):
         self.test_on_barrier = True
+
     """
     A NULL reorder engine.
     Example:
         input: (a, b, c)
         output: (a, b, c)
     """
+
     def generate_sequence(self, store_list):
         """
         This generator does not modify the provided store list.
@@ -302,12 +335,14 @@ class NoReorderEngine:
 class NoCheckerEngine:
     def __init__(self):
         self.test_on_barrier = False
+
     """
     A NULL reorder engine.
     Example:
         input: (a, b, c)
         output: (a, b, c)
     """
+
     def generate_sequence(self, store_list):
         """
         This generator does not modify the provided store list
@@ -326,16 +361,19 @@ def get_engine(engine):
         reorder_engine = engines[engine]()
     else:
         raise NotSupportedOperationException(
-                  "Not supported reorder engine: {}"
-                  .format(engine))
+            "Not supported reorder engine: {}".format(engine)
+        )
 
     return reorder_engine
 
 
-engines = collections.OrderedDict([
-           ('NoReorderNoCheck', NoCheckerEngine),
-           ('ReorderFull', FullReorderEngine),
-           ('NoReorderDoCheck', NoReorderEngine),
-           ('ReorderAccumulative', AccumulativeReorderEngine),
-           ('ReorderReverseAccumulative', AccumulativeReverseReorderEngine),
-           ('ReorderPartial', RandomPartialReorderEngine)])
+engines = collections.OrderedDict(
+    [
+        ("NoReorderNoCheck", NoCheckerEngine),
+        ("ReorderFull", FullReorderEngine),
+        ("NoReorderDoCheck", NoReorderEngine),
+        ("ReorderAccumulative", AccumulativeReorderEngine),
+        ("ReorderReverseAccumulative", AccumulativeReverseReorderEngine),
+        ("ReorderPartial", RandomPartialReorderEngine),
+    ]
+)
