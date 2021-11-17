@@ -77,16 +77,21 @@ class Store(BaseOperation, Rangeable):
         if len(params) > 4:
             self.trace = StackTrace(params[4:])
         else:
-            self.trace = StackTrace(["No trace available", ])
+            self.trace = StackTrace(
+                [
+                    "No trace available",
+                ]
+            )
         self.old_value = None
         self.flushed = False
 
     def __str__(self):
         return (
             "Store: addr: {0}, size: {1}, val: {2}, stack trace: {3}".format(
-                hex(self.address), hex(self.size),
+                hex(self.address),
+                hex(self.size),
                 hex(int.from_bytes(self.new_value, byteorder=byteorder)),
-                self.trace
+                self.trace,
             )
         )
 
