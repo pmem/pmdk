@@ -193,7 +193,7 @@ class Ndctl:
 
     def _get_emulated_devices(self):
         # provider of emulated pmem
-        emulated_pmem_provider = "ACPI.NFIT"
+        emulated_pmem_provider = "e820"
 
         # important keys from ndctl output list
         blkdev = 'blockdev'
