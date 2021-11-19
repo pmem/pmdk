@@ -1,0 +1,8 @@
+option('ndctl', type: 'feature', value: 'auto',
+    description: 'ndctl support')
+option('rpmem', type: 'boolean', value: true,
+    description: 'RPMEM support')
+option('tools', type: 'boolean', value: true,
+    description: 'Build tools')
+option('tests', type: 'boolean', value: true,
+    description: 'Build tests')
