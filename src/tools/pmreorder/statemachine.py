@@ -165,33 +165,42 @@ class CollectingState(State):
         """
         if isinstance(order_ops, memops.ReorderFull):
             self._context.reorder_engine = reorderengines.FullReorderEngine()
-            self._context.test_on_barrier = \
+            self._context.test_on_barrier = (
                 self._context.reorder_engine.test_on_barrier
+            )
         elif isinstance(order_ops, memops.ReorderPartial):
             # TODO add macro in valgrind or
             # parameter inside the tool to support parameters?
-            self._context.reorder_engine = \
+            self._context.reorder_engine = (
                 reorderengines.RandomPartialReorderEngine(3)
-            self._context.test_on_barrier = \
+            )
+            self._context.test_on_barrier = (
                 self._context.reorder_engine.test_on_barrier
+            )
         elif isinstance(order_ops, memops.ReorderAccumulative):
-            self._context.reorder_engine = \
+            self._context.reorder_engine = (
                 reorderengines.AccumulativeReorderEngine()
-            self._context.test_on_barrier = \
+            )
+            self._context.test_on_barrier = (
                 self._context.reorder_engine.test_on_barrier
+            )
         elif isinstance(order_ops, memops.ReorderReverseAccumulative):
-            self._context.reorder_engine = \
+            self._context.reorder_engine = (
                 reorderengines.AccumulativeReverseReorderEngine()
-            self._context.test_on_barrier = \
+            )
+            self._context.test_on_barrier = (
                 self._context.reorder_engine.test_on_barrier
+            )
         elif isinstance(order_ops, memops.NoReorderDoCheck):
             self._context.reorder_engine = reorderengines.NoReorderEngine()
-            self._context.test_on_barrier = \
+            self._context.test_on_barrier = (
                 self._context.reorder_engine.test_on_barrier
+            )
         elif isinstance(order_ops, memops.NoReorderNoCheck):
             self._context.reorder_engine = reorderengines.NoCheckerEngine()
-            self._context.test_on_barrier = \
+            self._context.test_on_barrier = (
                 self._context.reorder_engine.test_on_barrier
+            )
         elif isinstance(order_ops, memops.ReorderDefault):
             self._context.reorder_engine = self._context.default_engine
             self._context.test_on_barrier = self._context.default_barrier
@@ -305,15 +314,17 @@ class ReplayingState(State):
 
         if self._context.test_on_barrier:
             self._context.logger.debug(
-                "Current reorder engine: {}"
-                .format(self._context.reorder_engine)
+                "Current reorder engine: {}".format(
+                    self._context.reorder_engine
+                )
             )
             for i, seq in enumerate(
                 self._context.reorder_engine.generate_sequence(flushed_stores)
             ):
                 self._context.logger.debug(
-                    "NEXT Sequence (no. {0}) with length: {1}"
-                    .format(i, len(seq))
+                    "NEXT Sequence (no. {0}) with length: {1}".format(
+                        i, len(seq)
+                    )
                 )
                 for j, op in enumerate(seq):
                     self._context.logger.debug(

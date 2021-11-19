@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 
 import logging
 
@@ -45,7 +45,6 @@ class DefaultFileLogger(LoggingBase):
 
 
 class DefaultPrintLogger(LoggingBase):
-
     def debug(self, text):
         print("DEBUG:", text)
 
@@ -68,7 +67,7 @@ def get_logger(log_output, log_level=None):
     log_level = "warning" if log_level is None else log_level
     numeric_level = getattr(logging, log_level.upper())
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: {}'.format(log_level.upper()))
+        raise ValueError("Invalid log level: {}".format(log_level.upper()))
 
     if log_output is None:
         logger = DefaultPrintLogger()
