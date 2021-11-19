@@ -255,6 +255,6 @@ class Ndctl:
 
     def is_emulated(self, dev_path):
         emulated_devices = self._get_emulated_devices()
-        dev = self._get_path_device(dev_path)
+        dev = self._get_path_device(dev_path).replace('/dev/', '')
 
         return (dev in emulated_devices)
