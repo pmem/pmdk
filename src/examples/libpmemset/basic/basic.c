@@ -55,13 +55,13 @@ main(int argc, char *argv[])
 	/*
 	 * This function initializes the config of the entire set.
 	 * The only required parameter in the set configuration is
-	 * granularity. But more attributes can be specified eg.
+	 * granularity. More attributes can be specified, e.g.,
 	 * memory reservation, events, acceptable part states,
-	 * part coalescing.
+	 * or part coalescing.
 	 *
 	 * For more details about the granularity concept, especially other
-	 * types like PMEM2_GRANULARITY_CACHE_LINE, PMEM2_GRANULARITY_BYTE see
-	 * libpmem2(7) man page.
+	 * types like PMEM2_GRANULARITY_CACHE_LINE or PMEM2_GRANULARITY_BYTE
+	 * see libpmem2(7) man page.
 	 */
 	ret = pmemset_config_new(&cfg);
 	if (ret) {
@@ -70,8 +70,8 @@ main(int argc, char *argv[])
 	}
 
 	/* Set required store granularity in the config. */
-	enum pmem2_granularity graunlarity = PMEM2_GRANULARITY_PAGE;
-	ret = pmemset_config_set_required_store_granularity(cfg, graunlarity);
+	enum pmem2_granularity granularity = PMEM2_GRANULARITY_PAGE;
+	ret = pmemset_config_set_required_store_granularity(cfg, granularity);
 	if (ret) {
 		pmemset_perror("pmemset_config_set_required_store_granularity");
 		goto exit_cfg_del;
@@ -85,7 +85,7 @@ main(int argc, char *argv[])
 	}
 
 	/*
-	 * This function creates new map configuration.
+	 * This function creates a new map configuration.
 	 *
 	 * Map configuration is not required to create a new mapping,
 	 * however, can extend the functionality by defining the mapping length
@@ -119,10 +119,10 @@ main(int argc, char *argv[])
 	/*
 	 * Map a few parts based on the prepared configuration.
 	 *
-	 * The last parameter to the pmemset_map function is also optional.
+	 * The last parameter to the pmemset_map function is optional.
 	 * It represents part descriptor - structure describing the
 	 * created mapping. There is also another way to read
-	 * information about this structure, using the function
+	 * information about this structure: using the function
 	 * pmemset_descriptor_part_map(3) directly on created part_map,
 	 * as in the example below.
 	 */
@@ -149,8 +149,7 @@ main(int argc, char *argv[])
 	 * the next one by parameter.
 	 *
 	 * In the libpmemset API exists additional function to
-	 * find part map object in the set,
-	 * it is pmemset_part_map_by_address(3).
+	 * find part map object in the set - pmemset_part_map_by_address(3).
 	 * For more information see the man page of this function.
 	 */
 	for (int i = 1; i < NUMBER_OF_PARTS; i++) {
