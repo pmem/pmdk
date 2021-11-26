@@ -917,6 +917,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_remove", "test\obj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_defrag", "test\obj_defrag\obj_defrag.vcxproj", "{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_eADR_functions", "test\pmem_eADR_functions\pmem_eADR_functions.vcxproj", "{86FF3773-B40A-4392-8C5F-DED1141401E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -2072,6 +2074,10 @@ Global
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}.Debug|x64.Build.0 = Debug|x64
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}.Release|x64.ActiveCfg = Release|x64
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}.Release|x64.Build.0 = Release|x64
+		{86FF3773-B40A-4392-8C5F-DED1141401E5}.Debug|x64.ActiveCfg = Debug|x64
+		{86FF3773-B40A-4392-8C5F-DED1141401E5}.Debug|x64.Build.0 = Debug|x64
+		{86FF3773-B40A-4392-8C5F-DED1141401E5}.Release|x64.ActiveCfg = Release|x64
+		{86FF3773-B40A-4392-8C5F-DED1141401E5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2402,6 +2408,7 @@ Global
 		{FEA09B48-34C2-4963-8A5A-F97BDA136D72} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{86FF3773-B40A-4392-8C5F-DED1141401E5} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5E690324-2D48-486A-8D3C-DCB520D3F693}
