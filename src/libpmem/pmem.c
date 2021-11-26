@@ -880,8 +880,6 @@ pmem_init(void)
 			Funcs.memmove_nodrain = memmove_nodrain_generic;
 			LOG(3, "using generic memmove");
 		}
-	} else {
-		Funcs.memmove_nodrain = info.memmove_nodrain;
 	}
 
 	if (info.memset_nodrain == NULL) {
@@ -892,8 +890,6 @@ pmem_init(void)
 			Funcs.memset_nodrain = memset_nodrain_generic;
 			LOG(3, "using generic memset");
 		}
-	} else {
-		Funcs.memset_nodrain = info.memset_nodrain;
 	}
 
 	if (Funcs.flush == flush_empty)
