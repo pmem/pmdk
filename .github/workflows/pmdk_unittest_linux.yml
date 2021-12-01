@@ -82,10 +82,10 @@ jobs:
           
         - name: Prepare namespaces
           run: |
-            dos2unix u+x utils/gha-runners/createNamespaceConfig.sh
-            dos2unix u+x utils/gha-runners/removeNamespace.sh
-            chmod utils/gha-runners/createNamespaceConfig.sh
-            chmod utils/gha-runners/removeNamespace.sh
+            dos2unix utils/gha-runners/createNamespaceConfig.sh
+            dos2unix utils/gha-runners/removeNamespace.sh
+            chmod u+x utils/gha-runners/createNamespaceConfig.sh
+            chmod u+x utils/gha-runners/removeNamespace.sh
             cd utils/gha-runners && ./createNamespaceConfig.sh -u
         
         # - name: build pmdk
