@@ -1,0 +1,183 @@
+test -f .skip-doc || make -C doc all
+make[1]: Entering directory '/home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/doc'
+../utils/md2man.sh libpmem/libpmem.7.md default.man libpmem/libpmem.7
+D_FORTIFY_SOURCE=2 -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1   -I. -I../include -I../common/  -fPIC  config.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../nondebug/common/alloc.o  alloc.c
+cc -MD -c -o ../nondebug/libpmem2/config_posix.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1   -I. -I../include -I../common/  -fPIC  config_posix.c
+cc -MD -c -o ../nondebug/common/ctl_cow.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1    -DUSE_LIBDL -I../include -I../common/  -fPIC  ctl_cow.c
+cc -MD -c -o ../nondebug/librpmem/rpmem.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1    -I. -I../rpmem_common -DRPMEMC_LOG_RPMEM -I../include -I../common/  -fPIC  rpmem.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../nondebug/common/ctl_fallocate.o  ctl_fallocate.c
+mkdir -p ../nondebug/libpmem
+mkdir -p ../nondebug/libpmem/..
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../nondebug/common/ctl_cow.o  ctl_cow.c
+cc -MD -c -o ../nondebug/common/out.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -O2 -U_FORTIFY_SOURCE -memcpy_nt_avx_clflush.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../nondebug/common/out.o  out.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../nondebug/libpmem/os_thread_posix.o  ../../src/../src/common/os_thread_posix.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../nondebug/common/os_dimm_ndctl.o  os_dimm_ndctl.c
+cc -MD -c -o ../nondebug/libpmem/memcpy_nt_avx_clflushopt.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1   -Ix86_64 -DAVX512F_AVAILABLE=1 -I. -mavx -I../include -I../common/  -fPIC  ../../src/../src/libpmem/x86_64/memcpy/memcpy_nt_avx_clflushopt.c
+cc -MD -c -o ../debug/libpmem/memset_t_avx512f_clwb.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1   -Wp,-U_FORTIFY_SOURCE -O0 -ggdb -DDEBUG -Ix86_64 -DAVX512F_AVAILABLE=1 -I. -mavx512f -I../include -I../common/  -fPIC  ../../src/../src/libpmem/x86_64/memset/memset_t_avx512f_clwb.c
+fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1   -Wp,-U_FORTIFY_SOURCE -O0 -ggdb -DDEBUG -Ix86_64 -DAVX512F_AVAILABLE=1 -I. -mavx512f -I../include -I../common/  -fPIC  ../../src/../src/libpmem/x86_64/memset/memset_t_avx512f_noflush.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../debug/libpmem/memcpy_t_sse2_clflushopt.o  ../../src/../src/libpmem/x86_64/memcpy/memcpy_t_sse2_clflushopt.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../debug/libpmem/memset_nt_sse2_empty.o  ../../src/../src/libpmem/x86_64/memset/memset_nt_sse2_empty.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../debug/libpmem/memcpy_t_avx_noflush.o  ../../src/../src/libpmem/x86_64/memcpy/memcpy_t_avx_noflush.c
+cc -MD -c -o ../nondebug/libpmemlog/util_posix.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1    -I../include -I../common/  -fPIC  ../../src/../src/common/util_posix.c
+cc -MD -c -o ../debug/libpmempool/os_auto_flush_linux.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1   -Wp,-U_FORTIFY_SOURCE -O0 -ggdb -DDEBUG  -DUSE_LIBDL -DUSE_RPMEM -I../../src/../src/libpmemlog -I../../src/../src/libpmemblk -I../../src/../src/libpmemobj -I../../src/../src/rpmem_common -I../../src/../src/librpmem -I../include -I../common/  -fPIC  ../../src/../src/common/os_auto_flush_linux.c
+cc -MD -c -o ../debug/libpmempool/libpmempool.o -std=gnu99 -Wall -Werror -Wmissing-prototypes -Wpointer-arith -Wsign-conversion -Wsign-compare -Wconversion -Wunused-macros -Wmissing-field-initializers -Wfloat-equal -Wswitch-default -std=gnu99 -fno-common -pthread -DSRCVERSION=\"1.8-rc2\" -DSDS_ENABLED -DNDCTL_ENABLED=1   -Wp,-U_FORTIFY_SOURCE -O0 -ggdb -DDEBUG  -DUSE_LIBDL -DUSE_RPMEM -I../../src/../src/libpmemlog -I../../src/../src/libpmemblk -I../../src/../src/libpmemobj -I../../src/../src/rpmem_common -I../../src/../src/librpmem -I../include -I../common/  -fPIC  libpmempool.c
+../../src/../utils/check-os.sh ../../src/../utils/os-banned  ../debug/libpmempool/out.o  ../../src/../src/common/out.c
+make -C queue all
+make[4]: Entering directory '/home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/examples/libpmemlog/logfile'
+make[4]: Nothing to be done for 'all'.
+make[4]: Leaving directory '/home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/examples/libpmemlog/logfile'
+make -C pmemobjfs all
+====================================================================================
+====================================================================================
+make -C test pycheck
+make[2]: Entering directory '/home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test'
+obj_basic_integration/TEST0: SETUP	(medium/pmem/debug/drd)
+obj_basic_integration/TEST0: [92mPASS[0m 			[02.534 s]
+obj_basic_integration/TEST0: SETUP	(medium/nonpmem/debug/drd)
+
+Error 134
+Last 9 lines of /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_basic_integration/drd0.log below (whole file has 9 lines):
+==16669== drd, a thread error detector
+==16669== Copyright (C) 2006-2017, and GNU GPL'd, by Bart Van Assche.
+==16669== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==16669== Command: /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_basic_integration/obj_basic_integration /tmp/obj_basic_integration_0/testfile1
+==16669== Parent PID: 16593
+==16669== 
+==16669== 
+==16669== For lists of detected and suppressed errors, rerun with: -s
+==16669== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+Last 2 lines of /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_basic_integration/out0.log below (whole file has 2 lines):
+obj_basic_integration/TEST0: START: obj_basic_integration
+ /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_basic_integration/obj_basic_integration /tmp/obj_basic_integration_0/testfile1
+Last 1 lines of /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_basic_integration/err0.log below (whole file has 1 lines):
+{obj_basic_integration.c:668 main} obj_basic_integration/TEST0: Error: pmemobj_create: /tmp/obj_basic_integration_0/testfile1: Resource temporarily unavailable
+Last 3 lines of /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_basic_integration/trace0.log below (whole file has 3 lines):
+{obj_basic_integration.c:654 main} obj_basic_integration/TEST0: START: obj_basic_integration
+ /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_basic_integration/obj_basic_integration /tmp/obj_basic_integration_0/testfile1
+{obj_basic_integration.c:668 main} obj_basic_integration/TEST0: Error: pmemobj_create: /tmp/obj_basic_integration_0/testfile1: Resource temporarily unavailable
+obj_basic_integration/TEST0: [91mFAILED[0m	(medium/nonpmem/debug/drd)
+obj_basic_integration/TEST1: SKIP: test enables the 'pmemcheck' Valgrind tool while execution configuration forces 'drd'
+obj_defrag/TEST0: SETUP	(medium/pmem/debug/drd)
+obj_defrag/TEST0: [92mPASS[0m 			[03.794 s]
+obj_defrag/TEST0: SETUP	(medium/nonpmem/debug/drd)
+obj_defrag/TEST0: [92mPASS[0m 			[06.563 s]
+obj_defrag_advanced/TEST0: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_defrag_advanced/TEST1: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_defrag_advanced/TEST2: SETUP	(medium/pmem/debug/drd)
+obj_defrag_advanced/TEST2: [92mPASS[0m 			[266.408 s]
+obj_defrag_advanced/TEST3: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_defrag_advanced/TEST4: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_defrag_advanced/TEST5: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST0: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST1: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST2: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST3: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST4: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST5: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST6: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST7: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_fragmentation2/TEST8: SKIP: forced Valgrind tool 'drd' is disabled by test
+obj_tx_add_range/TEST0: SETUP	(medium/pmem/debug/drd)
+obj_tx_add_range/TEST0: [92mPASS[0m 			[01.204 s]
+obj_tx_add_range/TEST0: SETUP	(medium/nonpmem/debug/drd)
+obj_tx_add_range/TEST0: [92mPASS[0m 			[02.414 s]
+obj_tx_add_range/TEST1: SKIP: test enables the 'pmemcheck' Valgrind tool while execution configuration forces 'drd'
+obj_tx_add_range/TEST2: SETUP	(medium/pmem/debug/drd)
+obj_tx_add_range/TEST2: [92mPASS[0m 			[07.908 s]
+obj_tx_add_range/TEST3: SKIP: test enables the 'memcheck' Valgrind tool while execution configuration forces 'drd'
+obj_tx_add_range_direct/TEST0: SETUP	(medium/pmem/debug/drd)
+obj_tx_add_range_direct/TEST0: [92mPASS[0m 			[01.311 s]
+obj_tx_add_range_direct/TEST0: SETUP	(medium/nonpmem/debug/drd)
+
+Error 134
+Last 9 lines of /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_tx_add_range_direct/drd0.log below (whole file has 9 lines):
+==16915== drd, a thread error detector
+==16915== Copyright (C) 2006-2017, and GNU GPL'd, by Bart Van Assche.
+==16915== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
+==16915== Command: /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_tx_add_range_direct/obj_tx_add_range_direct /tmp/obj_tx_add_range_direct_0/testfile0
+==16915== Parent PID: 16593
+==16915== 
+==16915== 
+==16915== For lists of detected and suppressed errors, rerun with: -s
+==16915== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+Last 2 lines of /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_tx_add_range_direct/out0.log below (whole file has 2 lines):
+obj_tx_add_range_direct/TEST0: START: obj_tx_add_range_direct
+ /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_tx_add_range_direct/obj_tx_add_range_direct /tmp/obj_tx_add_range_direct_0/testfile0
+Last 1 lines of /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_tx_add_range_direct/err0.log below (whole file has 1 lines):
+{obj_tx_add_range_direct.c:855 main} obj_tx_add_range_direct/TEST0: Error: pmemobj_create: No such file or directory
+Last 3 lines of /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_tx_add_range_direct/trace0.log below (whole file has 3 lines):
+{obj_tx_add_range_direct.c:846 main} obj_tx_add_range_direct/TEST0: START: obj_tx_add_range_direct
+ /home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test/obj_tx_add_range_direct/obj_tx_add_range_direct /tmp/obj_tx_add_range_direct_0/testfile0
+{obj_tx_add_range_direct.c:855 main} obj_tx_add_range_direct/TEST0: Error: pmemobj_create: No such file or directory
+obj_tx_add_range_direct/TEST0: [91mFAILED[0m	(medium/nonpmem/debug/drd)
+obj_tx_add_range_direct/TEST1: SKIP: test enables the 'pmemcheck' Valgrind tool while execution configuration forces 'drd'
+obj_tx_add_range_direct/TEST2: SKIP: test enables the 'memcheck' Valgrind tool while execution configuration forces 'drd'
+obj_tx_user_data/TEST0: SETUP	(short/pmem/debug/drd)
+obj_tx_user_data/TEST0: [92mPASS[0m 			[01.102 s]
+obj_tx_user_data/TEST0: SETUP	(short/nonpmem/debug/drd)
+obj_tx_user_data/TEST0: [92mPASS[0m 			[01.083 s]
+obj_ulog_size/TEST0: SETUP	(medium/pmem/debug/drd)
+obj_ulog_size/TEST0: [92mPASS[0m 			[06.495 s]
+obj_ulog_size/TEST0: SETUP	(medium/nonpmem/debug/drd)
+obj_ulog_size/TEST0: [92mPASS[0m 			[09.235 s]
+obj_ulog_size/TEST1: SKIP: test enables the 'memcheck' Valgrind tool while execution configuration forces 'drd'
+obj_ulog_size/TEST2: SKIP: test enables the 'pmemcheck' Valgrind tool while execution configuration forces 'drd'
+pmem2_config/TEST0: SETUP	(short/pmem/debug/drd)
+pmem2_config/TEST0: [92mPASS[0m 			[00.274 s]
+pmem2_config/TEST0: SETUP	(short/nonpmem/debug/drd)
+pmem2_config/TEST0: [92mPASS[0m 			[00.269 s]
+pmem2_config/TEST1: SETUP	(short/pmem/debug/drd)
+pmem2_config/TEST1: [92mPASS[0m 			[00.278 s]
+pmem2_config/TEST1: SETUP	(short/nonpmem/debug/drd)
+pmem2_config/TEST1: [92mPASS[0m 			[00.277 s]
+pmem2_config/TEST2: SETUP	(short/pmem/debug/drd)
+pmem2_config/TEST2: [92mPASS[0m 			[00.269 s]
+pmem2_config/TEST2: SETUP	(short/nonpmem/debug/drd)
+pmem2_config/TEST2: [92mPASS[0m 			[00.272 s]
+pmem2_config/TEST3: SETUP	(short/pmem/debug/drd)
+pmem2_config/TEST3: [92mPASS[0m 			[00.256 s]
+pmem2_config/TEST3: SETUP	(short/nonpmem/debug/drd)
+pmem2_config/TEST3: [92mPASS[0m 			[00.255 s]
+pmem2_config/TEST4: SETUP	(short/pmem/debug/drd)
+pmem2_config/TEST4: [92mPASS[0m 			[00.259 s]
+pmem2_config/TEST4: SETUP	(short/nonpmem/debug/drd)
+pmem2_config/TEST4: [92mPASS[0m 			[00.279 s]
+pmem2_config/TEST5: SETUP	(short/pmem/debug/drd)
+pmem2_config/TEST5: [92mPASS[0m 			[00.269 s]
+pmem2_config/TEST5: SETUP	(short/nonpmem/debug/drd)
+pmem2_config/TEST5: [92mPASS[0m 			[00.261 s]
+pmem2_config/TEST6: SETUP	(short/pmem/debug/drd)
+pmem2_config/TEST6: [92mPASS[0m 			[00.255 s]
+pmem2_config/TEST6: SETUP	(short/nonpmem/debug/drd)
+pmem2_config/TEST6: [92mPASS[0m 			[00.263 s]
+pmem2_config/TEST7: SETUP	(short/pmem/debug/drd)
+pmem2_config/TEST7: [92mPASS[0m 			[00.258 s]
+pmem2_config/TEST7: SETUP	(short/nonpmem/debug/drd)
+pmem2_config/TEST7: [92mPASS[0m 			[00.282 s]
+pmem2_map/TEST0: SETUP	(short/pmem/debug/drd)
+pmem2_map/TEST0: [92mPASS[0m 			[00.273 s]
+pmem2_map/TEST0: SETUP	(short/nonpmem/debug/drd)
+pmem2_map/TEST0: [92mPASS[0m 			[00.280 s]
+pmem_map_file_trunc/TEST0: SETUP	(short/pmem/debug/drd)
+pmem_map_file_trunc/TEST0: [92mPASS[0m 			[00.236 s]
+pmem_map_file_trunc/TEST0: SETUP	(short/nonpmem/debug/drd)
+pmem_map_file_trunc/TEST0: [92mPASS[0m 			[00.236 s]
+scope/TEST2: SETUP	(medium/non/debug/drd)
+scope/TEST2: [92mPASS[0m 			[00.003 s]
+scope/TEST3: SETUP	(medium/non/debug/drd)
+scope/TEST3: [92mPASS[0m 			[00.006 s]
+scope/TEST4: SETUP	(medium/non/debug/drd)
+scope/TEST4: [92mPASS[0m 			[00.003 s]
+scope/TEST5: SETUP	(medium/non/debug/drd)
+scope/TEST5: [92mPASS[0m 			[00.007 s]
+scope/TEST6: SETUP	(medium/non/debug/drd)
+scope/TEST6: [92mPASS[0m 			[00.005 s]
+scope/TEST13: SETUP	(medium/non/debug/drd)
+scope/TEST13: [92mPASS[0m 			[00.004 s]
+make[2]: *** [Makefile:413: pycheck] Error 1
+make[2]: Leaving directory '/home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src/test'
+make[1]: *** [Makefile:194: pycheck] Error 2
+make[1]: Leaving directory '/home/jenkins-slave/workspace/PMDK-unittests-linux-py/pmdk_0/src'
+make: *** [Makefile:111: pycheck] Error 2

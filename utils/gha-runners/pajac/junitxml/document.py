@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +29,37 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-set -e
 
-MOUNT_POINT[0]="/mnt/pmem0"
-MOUNT_POINT[1]="/mnt/pmem1"
+from junitxml import xmlHelpers, testsuite
 
-sudo umount ${MOUNT_POINT[0]} || true
-sudo umount ${MOUNT_POINT[1]} || true
 
-namespace_names=$(ndctl list -X | jq -r '.[].dev')
+class Document:
+    def __init__(self, test_suites: [testsuite.TestSuite] = None):
 
-for n in $namespace_names
-do
-	sudo ndctl clear-errors $n -v
-done
-sudo ndctl disable-namespace all || true
-sudo ndctl destroy-namespace all || true
+        if test_suites is not None and len(test_suites) > 0:
+            self.test_suites = test_suites
+            self.tests = sum(suite.tests for suite in self.test_suites)
+            self.time = sum(suite.time for suite in self.test_suites)
+            self.errors = sum(suite.errors for suite in self.test_suites)
+            self.failures = sum(suite.failures for suite in self.test_suites)
+            self.skipped = sum(suite.skipped for suite in self.test_suites)
+        else:
+            self.test_suites = []
+            self.tests = 0
+            self.time = 0
+            self.errors = 0
+            self.failures = 0
+            self.skipped = 0
+
+    def to_xml(self):
+        xml = xmlHelpers.create_root("testsuites")
+        xmlHelpers.add_attribute(xml, "tests", self.tests)
+        xmlHelpers.add_attribute(xml, "time", self.time)
+        xmlHelpers.add_attribute(xml, "errors", self.errors)
+        xmlHelpers.add_attribute(xml, "failures", self.failures)
+        xmlHelpers.add_attribute(xml, "skipped", self.skipped)
+
+        for suite in self.test_suites:
+            xmlHelpers.add_child(xml, suite.to_xml())
+
+        return xml

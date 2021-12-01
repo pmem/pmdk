@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +29,36 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-set -e
 
-MOUNT_POINT[0]="/mnt/pmem0"
-MOUNT_POINT[1]="/mnt/pmem1"
+from postprocess.postprocess import postprocess
+from preprocess.preprocess import preprocess
+from processors import pmdkJemallocProcessor, pmdkMainProcessor
+from junitxml import xmlHelpers, testsuite, document
+from typing import List
 
-sudo umount ${MOUNT_POINT[0]} || true
-sudo umount ${MOUNT_POINT[1]} || true
 
-namespace_names=$(ndctl list -X | jq -r '.[].dev')
+def to_test_suites(input_string: str) -> List[testsuite.TestSuite]:
+    test_suites = []
 
-for n in $namespace_names
-do
-	sudo ndctl clear-errors $n -v
-done
-sudo ndctl disable-namespace all || true
-sudo ndctl destroy-namespace all || true
+    jemallocs = pmdkJemallocProcessor.process(input_string)
+    if len(jemallocs) > 0:
+        test_suites.append(testsuite.TestSuite("PMDK jemalloc tests", jemallocs))
+
+    pmdk_unit_tests = pmdkMainProcessor.process(input_string)
+    if len(pmdk_unit_tests) > 0:
+        test_suites.append(testsuite.TestSuite("PMDK unit tests", pmdk_unit_tests))
+
+    return test_suites
+
+
+def from_test_suites_to_xml(test_suites: testsuite.TestSuite) -> str:
+    xml = document.Document(test_suites).to_xml()
+    return xmlHelpers.to_pretty_string(xml)
+
+
+def process(input_string: str) -> str:
+    preprocessed_input_string = preprocess(input_string)
+    test_suites = to_test_suites(preprocessed_input_string)
+    postprocessed_test_suites = postprocess(test_suites)
+    xml_content = from_test_suites_to_xml(postprocessed_test_suites)
+    return xml_content

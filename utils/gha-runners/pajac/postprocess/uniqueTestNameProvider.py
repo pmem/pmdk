@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +29,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-set -e
 
-MOUNT_POINT[0]="/mnt/pmem0"
-MOUNT_POINT[1]="/mnt/pmem1"
 
-sudo umount ${MOUNT_POINT[0]} || true
-sudo umount ${MOUNT_POINT[1]} || true
+class UniqueTestNameProvider:
+    """ Class guarding that all the testcases will have unique names. """
+    test_names = []
 
-namespace_names=$(ndctl list -X | jq -r '.[].dev')
+    @staticmethod
+    def clear():
+        UniqueTestNameProvider.test_names.clear()
 
-for n in $namespace_names
-do
-	sudo ndctl clear-errors $n -v
-done
-sudo ndctl disable-namespace all || true
-sudo ndctl destroy-namespace all || true
+    @staticmethod
+    def provide(test_group_name: str, test_name: str, test_parameters: str = None):
+        """ Static method for returning unique test name. It appends:
+        "(run number #)" and parameters (if supplied) to the test name."""
+
+        if test_parameters is not None:
+            parameter_string = " with parameters: " + test_parameters
+        else:
+            parameter_string = ""
+
+        suffix_iterator = 0
+        while True:
+            new_test_name = test_name + " (run number " + str(suffix_iterator) + ")" + parameter_string
+            new_full_test_name = test_group_name + new_test_name
+            suffix_iterator += 1
+            if new_full_test_name not in UniqueTestNameProvider.test_names:
+                UniqueTestNameProvider.test_names.append(new_full_test_name)
+                return new_test_name

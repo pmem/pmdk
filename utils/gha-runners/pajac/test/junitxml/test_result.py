@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +29,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-set -e
 
-MOUNT_POINT[0]="/mnt/pmem0"
-MOUNT_POINT[1]="/mnt/pmem1"
+import unittest
+from junitxml import result
+from test.unitTestHelpers import assert_result
 
-sudo umount ${MOUNT_POINT[0]} || true
-sudo umount ${MOUNT_POINT[1]} || true
 
-namespace_names=$(ndctl list -X | jq -r '.[].dev')
+class TestResultUnitTests(unittest.TestCase):
+    def test_passed(self):
+        assert_result(self, result.Passed(), "", False)
 
-for n in $namespace_names
-do
-	sudo ndctl clear-errors $n -v
-done
-sudo ndctl disable-namespace all || true
-sudo ndctl destroy-namespace all || true
+    def test_failure(self):
+        assert_result(self, result.Failure("failure message", "type name"), '<failure message="failure message" type="type name"/>')
+
+    def test_failure_with_data(self):
+        assert_result(self, result.Failure("failure message", "type name", "value"), '<failure message="failure message" type="type name">value</failure>')
+
+    def test_error(self):
+        assert_result(self, result.Error("error message", "type name"), '<error message="error message" type="type name"/>')
+
+    def test_error_with_data(self):
+        assert_result(self, result.Error("error message", "type name", "value\nnewline"), '<error message="error message" type="type name">value\nnewline</error>')
+
+    def test_skipped(self):
+        assert_result(self, result.Skipped("skip message"), '<skipped message="skip message"/>')

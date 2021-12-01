@@ -30,19 +30,51 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-set -e
 
-MOUNT_POINT[0]="/mnt/pmem0"
-MOUNT_POINT[1]="/mnt/pmem1"
 
-sudo umount ${MOUNT_POINT[0]} || true
-sudo umount ${MOUNT_POINT[1]} || true
+function create_namespace_and_config() {
+    echo "Setup & create config"
+    conf_path="${1}"
+    test_type_path="${2}"
+    test_type_parameter="${3}"
+    gha_utils_path="${4}"
+    
 
-namespace_names=$(ndctl list -X | jq -r '.[].dev')
+ 	mkdir --parents ${conf_path}
+ 	${gha_utils_path}/createNamespaceConfig.sh -${test_type_parameter} --conf-pmdk-nondebug-lib-path=${nondebug_lib_path} --conf-path_0=${conf_path}
 
-for n in $namespace_names
+    echo "${test_type_path}"
+
+    cat ${conf_path}/${test_type_path}
+
+}
+
+
+
+while getopts b: flag
 do
-	sudo ndctl clear-errors $n -v
+    case "${flag}" in
+        b) badblock=${OPTARG};;
+    esac
 done
-sudo ndctl disable-namespace all || true
-sudo ndctl destroy-namespace all || true
+
+echo "Start setup and create config script";
+
+echo "badblock: $badblock";
+
+
+FULL_PATH=$(readlink -f .)
+PMDK_0_PATH=$(dirname $FULL_PATH)
+PMDK_PATH=${PMDK_0_PATH}/pmdk
+echo "Fullpath"
+echo ${PMDK_PATH}
+
+
+create_namespace_and_config "$PMDK_PATH/src/test" 'testconfig.sh' 'u' "${PMDK_PATH}/utils/gha-runners"
+if [  $badblock == 'yes' ]
+then
+    echo "BADBLOCK_TEST_TYPE=real_pmem" >> $PMDK_PATH/src/test/testconfig.sh
+ 	echo "TEST_TIMEOUT=20m" >> $PMDK_PATH/src/test/testconfig.sh
+fi
+
+

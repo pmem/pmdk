@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +29,35 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-set -e
 
-MOUNT_POINT[0]="/mnt/pmem0"
-MOUNT_POINT[1]="/mnt/pmem1"
+from junitxml import xmlHelpers
 
-sudo umount ${MOUNT_POINT[0]} || true
-sudo umount ${MOUNT_POINT[1]} || true
 
-namespace_names=$(ndctl list -X | jq -r '.[].dev')
+class TestCase:
+    def __init__(self, name: str = None, classname: str = None, time: float = None, result=None,
+                 stdout: str = None):
+        if name is None:
+            name = ""
+        if classname is None:
+            classname = ""
+        if time is None:
+            time = 0.0
 
-for n in $namespace_names
-do
-	sudo ndctl clear-errors $n -v
-done
-sudo ndctl disable-namespace all || true
-sudo ndctl destroy-namespace all || true
+        self.name = name
+        self.classname = classname
+        self.time = time
+        self.result = result
+        self.stdout = stdout
+
+    def to_xml(self):
+        xml = xmlHelpers.create_root("testcase")
+        xmlHelpers.add_attribute(xml, "name", self.name)
+        xmlHelpers.add_attribute(xml, "classname", self.classname)
+        xmlHelpers.add_attribute(xml, "time", self.time)
+
+        if self.result is not None:
+            xmlHelpers.add_child(xml, self.result.to_xml())
+
+        if self.stdout is not None:
+            xmlHelpers.add_child_by_name_and_value(xml, "system-out", self.stdout)
+        return xml

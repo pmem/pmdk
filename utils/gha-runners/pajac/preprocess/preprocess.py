@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +29,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-set -e
 
-MOUNT_POINT[0]="/mnt/pmem0"
-MOUNT_POINT[1]="/mnt/pmem1"
 
-sudo umount ${MOUNT_POINT[0]} || true
-sudo umount ${MOUNT_POINT[1]} || true
+def preprocess(input_string: str) -> str:
+    strings_to_remove = [
+        # color tags from python's execution:
+        '\33[91m',
+        '\33[92m',
+        '\33[0m',
+        # non-printable character from Windows failure log - has to be removed because python's xml parser will throw otherwise:
+        chr(7)
+    ]
 
-namespace_names=$(ndctl list -X | jq -r '.[].dev')
+    for string_to_remove in strings_to_remove:
+        input_string = input_string.replace(string_to_remove, "")
 
-for n in $namespace_names
-do
-	sudo ndctl clear-errors $n -v
-done
-sudo ndctl disable-namespace all || true
-sudo ndctl destroy-namespace all || true
+    return input_string
+

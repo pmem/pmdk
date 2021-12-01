@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +29,23 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-set -e
 
-MOUNT_POINT[0]="/mnt/pmem0"
-MOUNT_POINT[1]="/mnt/pmem1"
+from junitxml.xmlHelpers import to_pretty_string
 
-sudo umount ${MOUNT_POINT[0]} || true
-sudo umount ${MOUNT_POINT[1]} || true
 
-namespace_names=$(ndctl list -X | jq -r '.[].dev')
+def add_pretty_xml_header_and_footer(string: str):
+    string_header = '<?xml version="1.0" ?>\n'
+    string_footer = "\n"
+    ret_string = string_header + string + string_footer
+    return ret_string
 
-for n in $namespace_names
-do
-	sudo ndctl clear-errors $n -v
-done
-sudo ndctl disable-namespace all || true
-sudo ndctl destroy-namespace all || true
+
+def assert_result(obj_assert_equal, obj_to_xml, expected_xml_string, fill_placeholders=True):
+    xml = obj_to_xml.to_xml()
+
+    pretty_xml = to_pretty_string(xml)
+
+    if fill_placeholders:
+        expected_xml_string = add_pretty_xml_header_and_footer(expected_xml_string)
+
+    obj_assert_equal.assertEqual(expected_xml_string, pretty_xml)

@@ -40,10 +40,6 @@ on:
                 description: 'please select one: auto, force-enable'
                 required: true
                 default: 'auto'
-            dual_exec:
-                description: 'please select one: nope, dbg_st-nondbg_vs_nondbg-st-dbg'
-                required: true
-                default: 'nope'
         
 env:
     GITHUB_REPO: pmem/pmdk
@@ -54,53 +50,22 @@ jobs:
   linux:
     name: Linux
     runs-on: [self-hosted, linux, x64, '${{ github.event.inputs.label }}' ]
-    env:
-      # use org's Private Access Token to log in to GitHub Container Registry
-      GH_CR_USER:  ${{ secrets.GH_CR_USER }}
-      SCRIPT_DIR:   /home/runner/work/pmdk/pmdk/utils/gha-runners
-      HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
- 
    
     steps:
-    
-        - name: Print configaration data
-          run: |
-            echo "label: ${{ github.event.inputs.label }}" 
-            echo "test_folders: ${{ github.event.inputs.test_folders }}"
-            echo "test_type: ${{ github.event.inputs.test_type }}" 
-            echo "test_build: ${{ github.event.inputs.test_build }}"
-            echo "fs_type: ${{ github.event.inputs.fs_type }}" 
-            echo "badblock: ${{ github.event.inputs.badblock }}"
-            echo "drd: ${{ github.event.inputs.drd }}" 
-            echo "memcheck: ${{ github.event.inputs.memcheck }}"
-            echo "helgrind: ${{ github.event.inputs.helgrind }}" 
-            echo "dual_exec: ${{ github.event.inputs.dual_exec }}"
-            echo "email_recipients: ${{ env.EMAIL_RECIPIENTS }}"
             
         - name: Clone the git repo
           uses: actions/checkout@v2
-          
-        - name: Prepare namespaces
+            
+        - name: Setup and prepare config
           run: |
-            dos2unix utils/gha-runners/createNamespaceConfig.sh
-            dos2unix utils/gha-runners/removeNamespace.sh
-            chmod u+x utils/gha-runners/createNamespaceConfig.sh
-            chmod u+x utils/gha-runners/removeNamespace.sh
-            cd utils/gha-runners && ./createNamespaceConfig.sh -u
+            ./utils/gha-runners/setupAndCreateConfig.sh -b '${{ github.event.inputs.badblock }}'
         
-        - name: build
+        - name: Build
           run: |
-            make
+            ./utils/gha-runners/buildPmdk.sh
+            
+        - name: Test
+          run: |
+            ./utils/gha-runners/runTest.sh --test-type=${{ github.event.inputs.test_type }} --test-build=${{ github.event.inputs.test_build }} --drd=${{ github.event.inputs.drd }} --memcheck=${{ github.event.inputs.memcheck }} --pmemcheck=auto --helgrind=${{ github.event.inputs.helgrind }} --fs-type=${{ github.event.inputs.fs_type }} --test-folders=${{ github.event.inputs.test_folders }}
 
-        # - name: build pmdk
-        #   run: ${SCRIPT_DIR}/docker/build_pmdk --pmdk-path=${HOST_WORKDIR}"
-          
-        # - name: build pmdk
-        #   uses: actions/checkout@v2
-          
-        # - name: Configure tests
-        #   run: ${SCRIPT_DIR}/docker/configure-tests.sh
-          
-        # - name: run tests
-        #   run:  ${SCRIPT_DIR}/pmdk/utils/docker/run-coverage.sh
-          
+
