@@ -88,6 +88,10 @@ jobs:
             chmod utils/gha-runners/removeNamespace.sh
             cd utils/gha-runners && ./createNamespaceConfig.sh -u
         
+        - name: build
+          run: |
+            make
+
         # - name: build pmdk
         #   run: ${SCRIPT_DIR}/docker/build_pmdk --pmdk-path=${HOST_WORKDIR}"
           
