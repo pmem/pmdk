@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2021, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of fedora-based
@@ -22,6 +22,10 @@ ENV VALGRIND_DEPS "\
 	automake \
 	file \
 	findutils \
+	git"
+
+ENV MINIASYNC_DEPS "\
+	cmake \
 	git"
 
 # pmdk base
@@ -87,9 +91,13 @@ COPY install-valgrind.sh install-valgrind.sh
 # Copy install libfabric script
 COPY install-libfabric.sh install-libfabric.sh
 
+# Copy install miniasync script
+COPY install-miniasync.sh install-miniasync.sh
+
 RUN dnf update -y && dnf install -y \
 	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
+	$MINIASYNC_DEPS \
 	$BASE_DEPS \
 	$BENCH_DEPS \
 	$EXAMPLES_DEPS \
@@ -101,6 +109,7 @@ RUN dnf update -y && dnf install -y \
 	$TESTS_DEPS \
 	&& ./install-valgrind.sh fedora \
 	&& ./install-libfabric.sh fedora \
+	&& ./install-miniasync.sh \
 	&& dnf clean all
 
 # Add user
