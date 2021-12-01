@@ -80,11 +80,13 @@ jobs:
         - name: Clone the git repo
           uses: actions/checkout@v2
           
-        - name: Add permisions
-          run: chmod u+x utils/gha-runners/createNamespaceConfig.sh
-        
         - name: Prepare namespaces
-          run: cd utils/gha-runners && ls && ./createNamespaceConfig.sh -u
+          run: |
+            dos2unix u+x utils/gha-runners/createNamespaceConfig.sh
+            dos2unix u+x utils/gha-runners/removeNamespace.sh
+            chmod utils/gha-runners/createNamespaceConfig.sh
+            chmod utils/gha-runners/removeNamespace.sh
+            cd utils/gha-runners && ./createNamespaceConfig.sh -u
         
         # - name: build pmdk
         #   run: ${SCRIPT_DIR}/docker/build_pmdk --pmdk-path=${HOST_WORKDIR}"
