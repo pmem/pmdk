@@ -15,7 +15,6 @@ class PMEM_EADR(t.Test):
     envs0 = ()
     envs1 = ()
 
-    functionname = None
     isa = "((sse2)|(avx)|(avx512f))"
     perfbarrier = "((_wcbarrier)|(_nobarrier)|())"
 
