@@ -285,6 +285,18 @@ class Test(BaseTest):
                 log_files.append(log)
         return log_files
 
+    def get_log_file_by_prefix(self, prefix):
+        """
+        Returns path of a log file with specific prefix and number
+        corresponding to self.testnum
+        """
+        pattern = r'.*{}_{}\.log'
+        log_files = self.get_log_files()
+        for file in log_files:
+            match = re.fullmatch(pattern.format(prefix, self.testnum), file)
+            if match:
+                return file
+
     def _print_log_files(self):
         """
         Prints all log files for given test

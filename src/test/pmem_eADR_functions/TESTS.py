@@ -7,7 +7,6 @@ import testframework as t
 from testframework import granularity as g
 import futils
 import re
-import os
 
 
 @g.require_granularity(g.ANY)
@@ -26,12 +25,9 @@ class PMEM_EADR(t.Test):
         for env in self.envs1:
             ctx.env[env] = '1'
 
-        log_file = os.path.join(self.cwd, F'pmem_{self.testnum}.log')
         file_path = ctx.create_holey_file(16 * t.MiB, 'testfile')
         ctx.env['PMEM_LOG_LEVEL'] = '15'
         ctx.exec('pmem_eADR_functions', self.test_case, file_path,)
-
-        log_content = open(log_file).read()
 
         regex1 = F"{self.function_name}_mov_{self.isa}_noflush"
         regex2 = F"{self.function_name}_movnt_{self.isa}" \
@@ -39,6 +35,8 @@ class PMEM_EADR(t.Test):
         regex3 = F"{self.function_name}_mov_{self.isa}_empty"
         regex = F"({regex1})|({regex2})|({regex3})"
 
+        log_file = self.get_log_file_by_prefix("pmem")
+        log_content = open(log_file).read()
         match = re.search(regex, log_content)
 
         if match is None:

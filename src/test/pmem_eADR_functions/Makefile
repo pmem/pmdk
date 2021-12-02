@@ -9,7 +9,6 @@ TOP = ../../..
 
 include ../../common.inc
 
-LIBPMEMCOMMON=internal-debug
 LIBPMEM=y
 
 TARGET = pmem_eADR_functions

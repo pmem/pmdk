@@ -27,14 +27,14 @@ test_eADR_memmove_256B(const struct test_case *tc, int argc,
 	if (mapped_len <= 0)
 		UT_FATAL("mapped_length(%ld) is less or equal 0", mapped_len);
 
-	void *const src = malloc(test_len);
+	void *const src = MALLOC(test_len);
 	memset(src, 15, test_len);
 
 	pmem_memcpy_nodrain(pmemdest, src, test_len);
 
 	pmem_drain();
 
-	free(src);
+	FREE(src);
 	if (pmem_unmap(pmemdest, mapped_len) < 0)
 		UT_FATAL("unmap error");
 
@@ -63,14 +63,14 @@ test_eADR_memmove_16MiB(const struct test_case *tc, int argc,
 	if (mapped_len < test_len)
 		UT_FATAL("mapped_len(%ld) is less than test_len", mapped_len);
 
-	void *const src = malloc(test_len);
+	void *const src = MALLOC(test_len);
 	memset(src, 15, test_len);
 
 	pmem_memcpy_nodrain(pmemdest, src, test_len);
 
 	pmem_drain();
 
-	free(src);
+	FREE(src);
 	if (pmem_unmap(pmemdest, mapped_len) < 0)
 		UT_FATAL("unmap error");
 
@@ -153,11 +153,7 @@ main(int argc, char **argv)
 {
 	START(argc, argv, "pmem_eADR_functions");
 
-	util_init();
-	out_init("pmem_eADR_functions", "TEST_LOG_LEVEL",
-		"TEST_LOG_FILE", 0, 0);
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
-	out_fini();
 
 	DONE(NULL);
 }
