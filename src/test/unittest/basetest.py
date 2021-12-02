@@ -290,12 +290,10 @@ class Test(BaseTest):
         Returns path of a log file with specific prefix and number
         corresponding to self.testnum
         """
-        pattern = r'.*{}_{}\.log'
-        log_files = self.get_log_files()
-        for file in log_files:
-            match = re.fullmatch(pattern.format(prefix, self.testnum), file)
-            if match:
-                return file
+        return next(filter(
+            lambda x: os.path.basename(x).startswith(
+                F"{prefix}_{self.testnum}"), self.get_log_files()
+        ))
 
     def _print_log_files(self):
         """
