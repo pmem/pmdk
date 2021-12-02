@@ -42,7 +42,7 @@ class PMEM_EADR(t.Test):
         match = re.search(regex, log_content)
 
         if match is None:
-            futils.fail("Failed to find any occurence of memove "
+            futils.fail(F"Failed to find any occurence of {self.function_name} "
                         F"with eADR in pmem_{self.testnum}.log")
 
 
