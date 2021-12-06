@@ -872,7 +872,7 @@ pmem_init(void)
 	if (ptr)
 		no_generic = atoll(ptr);
 
-	if (info.memmove_nodrain == NULL) {
+	if (Funcs.memmove_nodrain == NULL) {
 		if (no_generic) {
 			Funcs.memmove_nodrain = memmove_nodrain_libc;
 			LOG(3, "using libc memmove");
@@ -880,11 +880,9 @@ pmem_init(void)
 			Funcs.memmove_nodrain = memmove_nodrain_generic;
 			LOG(3, "using generic memmove");
 		}
-	} else {
-		Funcs.memmove_nodrain = info.memmove_nodrain;
 	}
 
-	if (info.memset_nodrain == NULL) {
+	if (Funcs.memset_nodrain == NULL) {
 		if (no_generic) {
 			Funcs.memset_nodrain = memset_nodrain_libc;
 			LOG(3, "using libc memset");
@@ -892,8 +890,6 @@ pmem_init(void)
 			Funcs.memset_nodrain = memset_nodrain_generic;
 			LOG(3, "using generic memset");
 		}
-	} else {
-		Funcs.memset_nodrain = info.memset_nodrain;
 	}
 
 	if (Funcs.flush == flush_empty)
