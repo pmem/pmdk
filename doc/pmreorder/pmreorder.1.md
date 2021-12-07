@@ -87,12 +87,12 @@ Set the logger output file.
 
 Set the output log level.
 
-`-r, --default-engine <NoReorderNoCheck |
-NoReorderDoCheck |
-ReorderFull |
-ReorderPartial |
-ReorderAccumulative |
-ReorderReverseAccumulative>`
+`-r, --default-engine <NoReorderNoCheck |`
+`NoReorderDoCheck |`
+`ReorderFull |`
+`ReorderPartial |`
+`ReorderAccumulative |`
+`ReorderReverseAccumulative>`
 
 Set the initial reorder engine. Default value is `NoReorderNoCheck`.
 
