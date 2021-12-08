@@ -179,6 +179,7 @@ devdax_read(struct pmem2_source *src, void *buf, size_t size, size_t offset)
 	ret = pmem2_map_new(&map, cfg, src);
 	if (ret)
 		goto clnup_cfg_delete;
+	ASSERTne(map, NULL);
 
 	void *addr = pmem2_map_get_address(map);
 	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
@@ -217,6 +218,7 @@ devdax_write(struct pmem2_source *src, void *buf, size_t size, size_t offset)
 	ret = pmem2_map_new(&map, cfg, src);
 	if (ret)
 		goto clnup_cfg_delete;
+	ASSERTne(map, NULL);
 
 	void *addr = pmem2_map_get_address(map);
 	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
