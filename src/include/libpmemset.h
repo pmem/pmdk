@@ -381,7 +381,7 @@ enum pmemset_part_state {
 #define PMEMSET_SDS_DEVICE_ID_LEN ((size_t)512ULL)
 
 struct pmemset_sds {
-	char id[PMEMSET_SDS_DEVICE_ID_LEN]; /* DIMM device id */
+	char id[PMEMSET_SDS_DEVICE_ID_LEN + 1]; /* DIMM device id + '\0' */
 	uint64_t usc; /* unsafe shutdown count */
 	int refcount;
 };

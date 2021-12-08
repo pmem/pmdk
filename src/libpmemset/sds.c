@@ -190,7 +190,7 @@ pmemset_sds_read_values(struct pmemset_sds *sds, struct pmemset_source *src)
 	if (ret)
 		goto err_translate;
 
-	memset(sds->id, 0, PMEMSET_SDS_DEVICE_ID_LEN);
+	memset(sds->id, 0, PMEMSET_SDS_DEVICE_ID_LEN + 1);
 
 	/* read device ID length */
 	size_t len = 0;
@@ -204,6 +204,9 @@ pmemset_sds_read_values(struct pmemset_sds *sds, struct pmemset_source *src)
 			len, PMEMSET_SDS_DEVICE_ID_LEN);
 		return PMEMSET_E_SDS_DEVICE_ID_LEN_TOO_BIG;
 	}
+
+	/* in case of string operations on the id */
+	sds->id[len] = '\0';
 
 	/* read device ID */
 	ret = pmem2_source_device_id(pmem2_src, (char *)&sds->id, &len);
@@ -279,8 +282,8 @@ pmemset_sds_check_and_possible_refresh(struct pmemset_source *src,
 	int src_use_count = pmemset_source_get_use_count(src);
 	struct pmemset_sds *sds = pmemset_source_get_sds(src);
 
-	struct pmemset_sds sds_curr;
-	int ret = pmemset_sds_read_values(&sds_curr, src);
+	struct pmemset_sds sds_cur;
+	int ret = pmemset_sds_read_values(&sds_cur, src);
 	if (ret)
 		return ret;
 
@@ -294,26 +297,26 @@ pmemset_sds_check_and_possible_refresh(struct pmemset_source *src,
 		state = PMEMSET_PART_STATE_OK;
 	}
 
-	bool initialized = pmemset_sds_is_initialized(sds, &sds_curr);
+	bool initialized = pmemset_sds_is_initialized(sds, &sds_cur);
 	if (initialized) {
-		if (!pmemset_sds_is_consistent(sds, &sds_curr) &&
+		if (!pmemset_sds_is_consistent(sds, &sds_cur) &&
 				sds->refcount != 0) {
 			/*
 			 * The pool is corrupted only if it wasn't closed
 			 * cleanly and the SDS is inconsistent.
 			 */
 			state = PMEMSET_PART_STATE_CORRUPTED;
-		} else if (!pmemset_sds_is_consistent(sds, &sds_curr)) {
+		} else if (!pmemset_sds_is_consistent(sds, &sds_cur)) {
 			/*
 			 * If SDS indicates inconsistency but the pool was not
 			 * in use, then just reinitialize the SDS usc value.
 			 */
-			sds->usc = sds_curr.usc;
+			sds->usc = sds_cur.usc;
 		}
 	} else if (sds->refcount == 0) {
 		/* reinitialize SDS on new device */
-		strncpy(sds->id, sds_curr.id, PMEMSET_SDS_DEVICE_ID_LEN);
-		sds->usc = sds_curr.usc;
+		memcpy(sds->id, sds_cur.id, PMEMSET_SDS_DEVICE_ID_LEN);
+		sds->usc = sds_cur.usc;
 	} else {
 		state = PMEMSET_PART_STATE_INDETERMINATE;
 	}

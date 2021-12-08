@@ -142,6 +142,8 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 	if (ret)
 		return ret;
 
+	ASSERTne(srcp, NULL);
+
 	srcp->type = PMEMSET_SOURCE_FILE;
 	srcp->file.path = Strdup(file);
 	srcp->extras.sds = NULL;
