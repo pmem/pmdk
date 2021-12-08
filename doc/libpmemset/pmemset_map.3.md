@@ -136,8 +136,8 @@ When SDS feature is set for the source *src* with **pmemset_source_set_sds**(3):
 does not support unsafe shutdown feature that SDS depends on. To avoid this error user should not
 reference the *struct pmemset_sds* in the source using **pmemset_source_set_sds**(3) function.
 
-* **PMEMSET_E_SDS_DEVICE_ID_LEN_TOO_BIG** - device id is too big and can't fit into the buffer
-with predefined size *PMEMSET_SDS_DEVICE_ID_LEN*.
+* **PMEMSET_E_SDS_DEVICE_ID_LEN_TOO_BIG** - device id is too big, buffer can't fit ids with size
+bigger than *PMEMSET_SDS_DEVICE_ID_LEN*.
 
 * **PMEMSET_E_UNDESIRABLE_PART_STATE** - determined state of the part to be mapped does not
 match any of the acceptable states set in the SDS structure. For more information please see
