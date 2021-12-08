@@ -33,7 +33,7 @@ date: pmemset API version 1.0
 PMEMSET_SDS_INITIALIZE()
 
 struct pmemset_sds {
-	char id[PMEMSET_SDS_DEVICE_ID_LEN];
+	char id[PMEMSET_SDS_DEVICE_ID_LEN + 1];
 	uint64_t usc;
 	int refcount;
 };
