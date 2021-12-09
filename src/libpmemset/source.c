@@ -153,8 +153,8 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 
 	if (srcp->file.path == NULL) {
 		ERR("!strdup");
-		Free(srcp);
-		return PMEMSET_E_ERRNO;
+		ret = PMEMSET_E_ERRNO;
+		goto free_srcp;
 	}
 
 	ret = pmemset_source_open_file(srcp, flags);
@@ -162,6 +162,7 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 		goto free_srcp;
 
 	*src = srcp;
+	ASSERTne(*src, NULL);
 
 	return 0;
 
