@@ -26,6 +26,7 @@ ENV VALGRIND_DEPS "\
 
 # pmdk base
 ENV BASE_DEPS "\
+	cmake \
 	git \
 	daxctl-devel \
 	make \
