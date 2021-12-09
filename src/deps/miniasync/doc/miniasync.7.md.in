@@ -1,0 +1,32 @@
+---
+layout: manual
+Content-Style: 'text/css'
+title: _MP(MINIASYNC, 7)
+collection: miniasync
+header: MINIASYNC
+secondary_title: miniasync
+...
+
+[comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
+[comment]: <> (Copyright 2021, Intel Corporation)
+
+[comment]: <> (miniasync.7 -- man page for miniasync)
+
+[NAME](#name)<br />
+[DESCRIPTION](#description)<br />
+[SEE ALSO](#see-also)<br />
+
+
+# NAME #
+
+**miniasync** - Mini Library for Asynchronous Programming in C
+
+
+# DESCRIPTION #
+
+XXX: add description here.
+
+
+# SEE ALSO #
+
+**miniasync_future**(3), **miniasync_runtime**(3), **miniasync_vdm**(3) and **<https://pmem.io>**
