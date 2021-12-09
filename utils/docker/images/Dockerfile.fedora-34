@@ -1,0 +1,86 @@
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2016-2021, Intel Corporation
+#
+
+#
+# Dockerfile - a 'recipe' for Docker to build an image of fedora-based
+#              environment prepared for running tests of miniasync.
+#
+
+# Pull base image
+FROM fedora:34
+MAINTAINER piotr.balcer@intel.com
+
+# Update all packages
+RUN dnf update -y
+
+# base deps
+ENV BASE_DEPS "\
+	clang \
+	gcc \
+	git \
+	make \
+	patch \
+	pkg-config \
+	rpm-build \
+	which"
+
+ENV TOOLS_DEPS "\
+	python3-jinja2"
+
+ENV TESTS_DEPS "\
+	pylint \
+	python3-pip \
+	valgrind \
+	python3-pytest"
+
+ENV PYTHON_DEPS "\
+	markdown2 \
+	matplotlib \
+	pandas"
+
+# MINIASYNC deps
+ENV MINIASYNC_DEPS "\
+	cmake \
+	file \
+	gawk \
+	groff \
+	graphviz \
+	pandoc "
+
+# doc update deps
+ENV DOC_UPDATE_DEPS "\
+	hub"
+
+# Install all required packages
+RUN dnf install -y \
+	$BASE_DEPS \
+	$TOOLS_DEPS \
+	$TESTS_DEPS \
+	$MINIASYNC_DEPS \
+	$DOC_UPDATE_DEPS \
+&& dnf clean all
+
+RUN pip3 install --upgrade pip
+
+# Install txt2man
+COPY install-txt2man.sh install-txt2man.sh
+RUN ./install-txt2man.sh
+
+# Add user
+ENV USER user
+ENV USERPASS p1a2s3s4
+RUN useradd -m $USER
+RUN echo "$USER:$USERPASS" | chpasswd
+RUN gpasswd wheel -a $USER
+USER $USER
+
+# Set required environment variables
+ENV OS fedora
+ENV OS_VER 34
+ENV PACKAGE_MANAGER rpm
+ENV NOTTY 1
+
+# install python modules for the default user
+RUN pip3 install --user $PYTHON_DEPS
