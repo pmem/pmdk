@@ -1,0 +1,11 @@
+.*
+!.gitignore
+!.gitattributes
+!.github/
+!.travis.yml
+!.mailmap
+!.version
+build/
+*~
+*.swp
+~*
