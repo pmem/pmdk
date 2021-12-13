@@ -1,0 +1,70 @@
+---
+layout: manual
+Content-Style: 'text/css'
+title: _MP(MINIASYNC_VDM, 3)
+collection: miniasync
+header: MINIASYNC_VDM
+secondary_title: miniasync
+...
+
+[comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
+[comment]: <> (Copyright 2021, Intel Corporation)
+
+[comment]: <> (miniasync_vdm.3 -- man page for miniasync vdm API)
+
+[NAME](#name)<br />
+[SYNOPSIS](#synopsis)<br />
+[DESCRIPTION](#description)<br />
+[ERRORS](#errors)<br />
+[SEE ALSO](#see-also)<br />
+
+
+# NAME #
+
+**miniasync_vdm** - Virtual data mover API for miniasync library
+
+
+# SYNOPSIS #
+
+```c
+#include <libminiasync.h>
+
+struct vdm_descriptor *vdm_descriptor_synchronous(void);
+struct vdm_descriptor *vdm_descriptor_pthreads(void);
+
+struct vdm *vdm_new(struct vdm_descriptor *descriptor);
+void vdm_delete(struct vdm *vdm);
+```
+
+For general description of miniasync see **miniasync**(7).
+
+
+# DESCRIPTION #
+
+XXX: add description here.
+
+`struct vdm_descriptor *vdm_descriptor_synchronous(void);`
+
+:	XXX add description here.
+
+`struct vdm_descriptor *vdm_descriptor_pthreads(void);`
+
+:	XXX add description here.
+
+`struct vdm *vdm_new(struct vdm_descriptor *descriptor);`
+
+:	XXX add description here.
+
+`void vdm_delete(struct vdm *vdm);`
+
+:	XXX add description here.
+
+
+## ERRORS ##
+
+XXX add description here.
+
+
+# SEE ALSO #
+
+**miniasync**(7), **miniasync_future**(3), **miniasync_runtime**(3) and **<https://pmem.io>**
