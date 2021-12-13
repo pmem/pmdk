@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+
+Name: libminiasync
+Description: libminiasync - C low-level concurrency library for asynchronous functions
+Version: @VERSION@
+URL: https://github.com/pmem/miniasync
+Cflags: -I${includedir}
+Libs: -L${libdir} -lminiasync
