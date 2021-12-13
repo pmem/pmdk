@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2021, Intel Corporation
 
 #
 # Used to check whether all the commit messages in a pull request
@@ -17,6 +17,7 @@ fi
 echo "Checking $1"
 
 subject=$(git log --format="%s" -n 1 $1)
+body=$(git log --format="%b" -n 1 $1)
 
 if [[ $subject =~ ^Merge.* ]]; then
 	# skip
@@ -24,6 +25,11 @@ if [[ $subject =~ ^Merge.* ]]; then
 fi
 
 if [[ $subject =~ ^Revert.* ]]; then
+	# skip
+	exit 0
+fi
+
+if [[ $body =~ ^git-subtree-dir.* ]]; then
 	# skip
 	exit 0
 fi
