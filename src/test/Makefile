@@ -267,7 +267,8 @@ EXAMPLES_TESTS = \
 	ex_libpmemlog\
 	ex_libpmemobj\
 	ex_libpmemset\
-	ex_linkedlist
+	ex_linkedlist\
+	ex_pmreorder
 
 RPMEM_EXAMPLES_TESTS = \
 	ex_librpmem_manpage\
