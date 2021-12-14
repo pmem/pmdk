@@ -1,0 +1,120 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2016-2020, Intel Corporation
+
+#
+# Dockerfile - a 'recipe' for Docker to build an image of fedora-based
+#              environment for building the PMDK project.
+#
+
+# Pull base image
+FROM fedora:35
+MAINTAINER piotr.balcer@intel.com
+
+# libfabric (optional if libfabric-dev >= 1.4.2 is installed)
+ENV FABRIC_DEPS "\
+	autoconf \
+	automake \
+	libtool \
+	wget"
+
+ENV VALGRIND_DEPS "\
+	autoconf \
+	automake \
+	file \
+	findutils \
+	git"
+
+# pmdk base
+ENV BASE_DEPS "\
+	git \
+	daxctl-devel \
+	make \
+	ndctl-devel \
+	pkgconfig"
+
+# benchmarks (optional)
+ENV BENCH_DEPS "\
+	glib2-devel"
+
+# examples (optional)
+ENV EXAMPLES_DEPS "\
+	fuse \
+	fuse-devel \
+	ncurses-devel \
+	libuv-devel"
+
+# documentation (optional)
+ENV DOC_DEPS "\
+	pandoc"
+
+# tests
+ENV TESTS_DEPS "\
+	bc \
+	gdb \
+	libunwind-devel \
+	ndctl \
+	openssh-server \
+	strace"
+
+# packaging
+ENV PACKAGING_DEPS "\
+	rpm-build \
+	rpm-build-libs \
+	rpmdevtools"
+
+# Coverity
+ENV COVERITY_DEPS "\
+	gcc \
+	wget"
+
+# misc
+ENV MISC_DEPS "\
+	clang \
+	hub \
+	lbzip2 \
+	man \
+	python3-flake8 \
+	rsync \
+	shadow-utils \
+	sudo \
+	tar \
+	which \
+	xmlto"
+
+# Copy install valgrind script
+COPY install-valgrind.sh install-valgrind.sh
+
+# Copy install libfabric script
+COPY install-libfabric.sh install-libfabric.sh
+
+RUN dnf update -y && dnf install -y \
+	$FABRIC_DEPS \
+	$VALGRIND_DEPS \
+	$BASE_DEPS \
+	$BENCH_DEPS \
+	$EXAMPLES_DEPS \
+	$DOC_DEPS \
+	$TESTS_DEPS \
+	$PACKAGING_DEPS \
+	$COVERITY_DEPS \
+	$MISC_DEPS \
+	$TESTS_DEPS \
+	&& ./install-valgrind.sh fedora \
+	&& ./install-libfabric.sh fedora \
+	&& dnf clean all
+
+# Add user
+ENV USER pmdkuser
+ENV USERPASS pmdkpass
+RUN useradd -m $USER
+RUN echo "$USER:$USERPASS" | chpasswd
+RUN gpasswd wheel -a $USER
+RUN echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+USER $USER
+
+# Set required environment variables
+ENV OS fedora
+ENV OS_VER 35
+ENV START_SSH_COMMAND /usr/sbin/sshd
+ENV PACKAGE_MANAGER rpm
+ENV NOTTY 1
