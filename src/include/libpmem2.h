@@ -16,7 +16,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
+#include <libminiasync/vdm.h>
 #ifdef _WIN32
 #include <pmemcompat.h>
 
@@ -174,8 +174,9 @@ int pmem2_config_set_protection(struct pmem2_config *cfg,
 int pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 		struct pmem2_vm_reservation *rsv, size_t offset);
 
-/* mapping */
+int pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm);
 
+/* mapping */
 struct pmem2_map;
 int pmem2_map_from_existing(struct pmem2_map **map,
 	const struct pmem2_source *src, void *addr, size_t len,
@@ -237,6 +238,12 @@ pmem2_memmove_fn pmem2_get_memmove_fn(struct pmem2_map *map);
 pmem2_memcpy_fn pmem2_get_memcpy_fn(struct pmem2_map *map);
 
 pmem2_memset_fn pmem2_get_memset_fn(struct pmem2_map *map);
+
+/* XXX: this function is temporary implemented for windows yet */
+#ifndef __WIN32
+struct vdm_memcpy_future pmem2_memcpy_async(struct pmem2_map *map,
+	void *pmemdest, const void *src, size_t len, unsigned flags);
+#endif
 
 /* RAS */
 

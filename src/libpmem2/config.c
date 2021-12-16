@@ -26,6 +26,7 @@ pmem2_config_init(struct pmem2_config *cfg)
 	cfg->protection_flag = PMEM2_PROT_READ | PMEM2_PROT_WRITE;
 	cfg->reserv = NULL;
 	cfg->reserv_offset = 0;
+	cfg->vdm = NULL;
 }
 
 /*
@@ -213,3 +214,17 @@ pmem2_config_set_protection(struct pmem2_config *cfg,
 	cfg->protection_flag = prot;
 	return 0;
 }
+
+#ifndef _WIN32
+/*
+ * pmem2_config_set_vdm -- set virtual data mover in the config struct
+ */
+int
+
+pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm)
+{
+	cfg->vdm = vdm;
+
+	return 0;
+}
+#endif

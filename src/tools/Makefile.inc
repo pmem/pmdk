@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 #
 # src/tools/Makefile.inc -- Makefile include for all tools
 #
@@ -176,8 +176,8 @@ ifeq ($(LIBPMEM2),y)
 DYNAMIC_LIBS += -lpmem2
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmem2.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmem2.a
-CFLAGS += $(LIBNDCTL_CFLAGS)
-LIBS += $(LIBNDCTL_LIBS)
+CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS)
+LIBS += $(LIBNDCTL_LIBS) $(MINIASYNC_LIBS)
 endif
 
 # If any of these libraries is required, we need to link libpthread
