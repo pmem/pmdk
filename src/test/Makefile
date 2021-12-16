@@ -212,6 +212,7 @@ PMEM2_TESTS = \
 	pmem2_map\
 	pmem2_map_from_existing\
 	pmem2_map_prot\
+	pmem2_mover\
 	pmem2_persist\
 	pmem2_persist_valgrind\
 	pmem2_perror\

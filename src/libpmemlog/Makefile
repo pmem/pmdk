@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 
 #
 # src/libpmemlog/Makefile -- Makefile for libpmemlog
@@ -18,6 +18,6 @@ SOURCE +=\
 
 include ../Makefile.inc
 
-CFLAGS += $(LIBNDCTL_CFLAGS)
+CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
 
 LIBS += -pthread -lpmem $(LIBNDCTL_LIBS)
