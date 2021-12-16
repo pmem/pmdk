@@ -13,6 +13,7 @@
 #include "auto_flush.h"
 #include "config.h"
 #include "map.h"
+#include "mover.h"
 #include "os_thread.h"
 #include "out.h"
 #include "persist.h"
@@ -381,6 +382,22 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	if (!map)
 		goto err_undo_mapping;
 
+	map->custom_vdm = true;
+	struct vdm *vdm = cfg->vdm;
+
+	if (vdm == NULL) {
+		/*
+		 * user did not provided custom vdm,
+		 * so we have to use the fallback one.
+		 */
+		ret = mover_new(map, &vdm);
+		if (ret)
+			goto err_free_map_struct;
+		map->custom_vdm = false;
+	}
+
+	map->vdm = vdm;
+
 	map->addr = base;
 	/*
 	 * XXX probably in some cases the reserved length > the content length.
@@ -396,7 +413,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 	ret = pmem2_register_mapping(map);
 	if (ret) {
-		goto err_free_map_struct;
+		goto err_free_vdm;
 	}
 
 	if (rsv) {
@@ -412,6 +429,9 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 err_unregister_map:
 	pmem2_unregister_mapping(map);
+err_free_vdm:
+	if (!map->custom_vdm)
+		mover_delete(map->vdm);
 err_free_map_struct:
 	free(map);
 err_undo_mapping:
