@@ -210,6 +210,7 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/config.o\
 	$(TOP)/src/debug/libpmem2/errormsg.o\
 	$(TOP)/src/debug/libpmem2/libpmem2.o\
+	$(TOP)/src/debug/libpmem2/mover.o\
 	$(TOP)/src/debug/libpmem2/map.o\
 	$(TOP)/src/debug/libpmem2/mcsafe_ops_posix.o\
 	$(TOP)/src/debug/libpmem2/map_posix.o\
@@ -255,6 +256,8 @@ OBJS += $(addprefix $(TOP)/src/nondebug/libpmem2/, ${OBJS_MEM})
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/libpmem2
 INCS += -I$(TOP)/src/libpmem2/$(ARCH)
+INCS += $(MINIASYNC_CFLAGS)
+
 endif
 
 ifeq ($(LIBPMEM2), internal-nondebug)
@@ -268,6 +271,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/source_posix.o\
 	$(TOP)/src/nondebug/libpmem2/errormsg.o\
 	$(TOP)/src/nondebug/libpmem2/map.o\
+	$(TOP)/src/nondebug/libpmem2/mover.o\
 	$(TOP)/src/nondebug/libpmem2/mcsafe_ops_posix.o\
 	$(TOP)/src/nondebug/libpmem2/map_posix.o\
 	$(TOP)/src/nondebug/libpmem2/memops_generic.o\
@@ -310,12 +314,14 @@ OBJS += $(addprefix $(TOP)/src/debug/libpmem2/, ${OBJS_MEM})
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/libpmem2
 INCS += -I$(TOP)/src/libpmem2/$(ARCH)
+INCS += $(MINIASYNC_CFLAGS)
 endif
 
 ifeq ($(LIBPMEM2),y)
 DYNAMIC_LIBS += -lpmem2
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem2.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem2.a
+INCS += $(MINIASYNC_CFLAGS)
 endif
 
 ifeq ($(LIBPMEMCOMMON), y)
@@ -445,6 +451,7 @@ ifeq ($(LIBPMEMCORE), y)
 LIBPMEM=y
 OBJS += $(LIBS_DIR)/debug/libpmemcore.a
 INCS += -I$(TOP)/src/core
+INCS += $(MINIASYNC_CFLAGS)
 endif
 
 ifeq ($(LIBPMEMCORE), internal-nondebug)
@@ -460,6 +467,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/core/util_posix.o
 
 INCS += -I$(TOP)/src/core
+INCS += $(MINIASYNC_CFLAGS)
 endif
 
 ifeq ($(LIBPMEMCORE), internal-debug)
@@ -475,6 +483,7 @@ OBJS +=\
 	$(TOP)/src/debug/core/util_posix.o
 
 INCS += -I$(TOP)/src/core
+INCS += $(MINIASYNC_CFLAGS)
 endif
 
 ifeq ($(LIBPMEM),y)

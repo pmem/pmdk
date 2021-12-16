@@ -7,6 +7,7 @@
   <PropertyGroup>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\tests\</OutDir>
     <ExecutablePath>$(FrameworkSDKdir)bin\$(TargetPlatformVersion)\$(Platform);$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(solutionDir)deps\miniasync\src\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
