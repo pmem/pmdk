@@ -10,13 +10,14 @@
 #include "alloc.h"
 #include "config.h"
 #include "map.h"
-#include "ravl_interval.h"
+#include "mover.h"
 #include "os.h"
 #include "os_thread.h"
 #include "persist.h"
 #include "pmem2.h"
 #include "pmem2_utils.h"
 #include "ravl.h"
+#include "ravl_interval.h"
 #include "sys_util.h"
 #include "valgrind_internal.h"
 
@@ -269,20 +270,26 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 	pmem2_set_mem_fns(map);
 	map->source = *src;
 
+	/* XXX: there is no way to set custom vdm in this function */
+	ret = mover_new(map, &map->vdm);
+	if (ret) {
+		goto err_map;
+	}
+	map->custom_vdm = false;
+
 #ifndef _WIN32
 	/* fd should not be used after map */
 	map->source.value.fd = INVALID_FD;
 #endif
 	ret = pmem2_register_mapping(map);
 	if (ret) {
-		Free(map);
 		if (ret == -EEXIST) {
 			ERR(
 				"Provided mapping(addr %p len %zu) is already registered by libpmem2",
 				addr, len);
-			return PMEM2_E_MAP_EXISTS;
+			ret = PMEM2_E_MAP_EXISTS;
 		}
-		return ret;
+		goto err_vdm;
 	}
 #ifndef _WIN32
 	if (src->type == PMEM2_SOURCE_FD) {
@@ -292,4 +299,10 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 #endif
 	*map_ptr = map;
 	return 0;
+err_vdm:
+	mover_delete(map->vdm);
+err_map:
+	Free(map);
+
+	return ret;
 }

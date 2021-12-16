@@ -118,12 +118,21 @@
     <ClCompile Include="..\..\core\ravl_interval.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem2\mover.c">
+      <Filter>Source Files\pmem2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\membuf.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mocks_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\unittest\ut_pmem2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\core\membuf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

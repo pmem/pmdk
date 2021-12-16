@@ -44,7 +44,6 @@ pmem2_memcpy_fn pmem2_get_memcpy_fn(struct pmem2_map *map);
 ```
 
 # DESCRIPTION #
-
 The **pmem2_get_memmove_fn**(), **pmem2_get_memset_fn**(),
 **pmem2_get_memcpy_fn**() functions return a pointer to a function
 responsible for efficient storing and flushing of data for mapping *map*.

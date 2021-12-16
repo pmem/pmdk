@@ -21,6 +21,8 @@
     <ClCompile Include="..\..\libpmem2\persist_windows.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
     <ClCompile Include="..\..\libpmem2\libpmem2.c" />
+    <ClCompile Include="..\..\libpmem2\mover.c" />
+    <ClCompile Include="..\..\core\membuf.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmem2\config.h" />
@@ -28,5 +30,6 @@
     <ClInclude Include="..\..\libpmem2\pmem2_utils.h" />
     <ClInclude Include="..\unittest\ut_pmem2_config.h" />
     <ClInclude Include="..\unittest\ut_pmem2_utils.h" />
+    <ClInclude Include="..\..\core\membuf.h" />
   </ItemGroup>
 </Project>
