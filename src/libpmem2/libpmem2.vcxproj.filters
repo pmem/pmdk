@@ -141,6 +141,12 @@
     <ClCompile Include="mcsafe_ops_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mover.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\membuf.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\core\os_thread.h">
@@ -213,6 +219,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vm_reservation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="x86_64\memset\memset_movdir64b.h">
+      <Filter>Header Files\x86_64</Filter>
+    </ClInclude>
+    <ClInclude Include="x86_64\memcpy\memcpy_movdir64b.h">
+      <Filter>Header Files\x86_64</Filter>
+    </ClInclude>
+    <ClInclude Include="mover.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

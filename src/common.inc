@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 #
 # src/common.inc -- common Makefile rules for PMDK
 #
@@ -341,6 +341,9 @@ else
 export USE_LIBUNWIND
 export LIBUNWIND_LIBS
 endif
+
+export MINIASYNC_CFLAGS := -I$(TOP)/src/deps/miniasync/src/include/
+export MINIASYNC_LIBS := -lminiasync
 
 ifeq ($(OS_KERNEL_NAME),FreeBSD)
 
