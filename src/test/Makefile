@@ -225,13 +225,20 @@ PMEM2_TESTS = \
 	pmem2_vm_reservation\
 	pmem2_usc
 
-ifeq ($(OS_DIMM),ndctl)
+ifeq ($(OS_DIMM),ndctf)
 PMEM2_TESTS += \
 	pmem2_badblock_mocks\
 	pmem2_source_numa
 else
 $(info NOTE: Skipping tests because libndctl is disabled (see NDCTL_ENABLE)\
 		Skipped tests: pmem2_badblock_mocks pmem2_source_numa)
+endif
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+PMEM2_TESTS += pmem2_mover
+else
+$(info NOTE: Skipping tests because miniasync is not supported on this os.\
+		Skipped tests: pmem2_mover)
 endif
 
 PMEMPOOL_TESTS = \

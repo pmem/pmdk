@@ -97,12 +97,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);.;</IncludePath>
+    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);.;$(SolutionDir)deps\miniasync\src\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);.;</IncludePath>
+    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);.;$(SolutionDir)deps\miniasync\src\include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

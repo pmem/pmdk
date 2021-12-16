@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # src/libpmempool/Makefile -- Makefile for libpmempool
@@ -51,7 +51,7 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 
 include ../Makefile.inc
 
-CFLAGS += $(LIBNDCTL_CFLAGS)
+CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
 LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL_LIBS)
 CFLAGS += -DUSE_LIBDL
 CFLAGS += -DUSE_RPMEM

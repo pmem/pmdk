@@ -62,6 +62,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\core\membuf.c" />
     <ClCompile Include="..\..\core\ravl.c" />
     <ClCompile Include="..\..\common\shutdown_state.c" />
     <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
@@ -73,6 +74,7 @@
     <ClCompile Include="..\..\libpmem2\map.c" />
     <ClCompile Include="..\..\libpmem2\map_windows.c" />
     <ClCompile Include="..\..\libpmem2\memops_generic.c" />
+    <ClCompile Include="..\..\libpmem2\mover.c" />
     <ClCompile Include="..\..\libpmem2\persist.c" />
     <ClCompile Include="..\..\libpmem2\persist_windows.c" />
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
@@ -124,6 +126,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\core\membuf.h" />
     <ClInclude Include="..\unittest\ut_pmem2.h" />
     <ClInclude Include="mocks_windows.h" />
   </ItemGroup>

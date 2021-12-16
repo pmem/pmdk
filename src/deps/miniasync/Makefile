@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2022, Intel Corporation
 
 #
-# src/deps/miniasyc/makefile -- build miniasync
+# src/deps/miniasync/makefile -- build miniasync
 #
 
 # WARNING: This file is created in the pmdk repository
-# and doens't belong to the pmem/miniasyc repository.
+# and doesn't belong to the pmem/miniasync repository.
 #
 
 dir = build
