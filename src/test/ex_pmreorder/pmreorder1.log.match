@@ -1,27 +1,27 @@
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): list_insert_inconsistent (pmreorder_list.c:$(N))
     by	0x$(nW): main (pmreorder_list.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
 WARNING:pmreorder:Call trace:
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
-WARNING:pmreorder:Call trace:
-Store [0]:
-    by	0x$(nW): list_insert_inconsistent (pmreorder_list.c:$(N))
-    by	0x$(nW): main (pmreorder_list.c:$(N))
-
-WARNING:pmreorder:File $(nW)/testfile inconsistent
-WARNING:pmreorder:Call trace:
-
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
     by	0x$(nW): list_insert_inconsistent (pmreorder_list.c:$(N))
     by	0x$(nW): main (pmreorder_list.c:$(N))
 
-WARNING:pmreorder:File $(nW)/testfile inconsistent
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:Call trace:
+
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:Call trace:
+Store [0]:
+    by	0x$(nW): list_insert_inconsistent (pmreorder_list.c:$(N))
+    by	0x$(nW): main (pmreorder_list.c:$(N))
+
+WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
 WARNING:pmreorder:Call trace:
 
