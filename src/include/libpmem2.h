@@ -16,7 +16,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
+#ifdef PMEM2_USE_MINIASYNC
+#include <libminiasync/vdm.h>
+#endif
 #ifdef _WIN32
 #include <pmemcompat.h>
 
@@ -175,7 +177,6 @@ int pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 		struct pmem2_vm_reservation *rsv, size_t offset);
 
 /* mapping */
-
 struct pmem2_map;
 int pmem2_map_from_existing(struct pmem2_map **map,
 	const struct pmem2_source *src, void *addr, size_t len,
@@ -275,6 +276,13 @@ void pmem2_badblock_context_delete(
 
 int pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 		const struct pmem2_badblock *bb);
+
+#ifdef PMEM2_USE_MINIASYNC
+int pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm);
+
+struct vdm_operation_future pmem2_memcpy_async(struct pmem2_map *map,
+	void *pmemdest, const void *src, size_t len, unsigned flags);
+#endif
 
 /* error handling */
 
