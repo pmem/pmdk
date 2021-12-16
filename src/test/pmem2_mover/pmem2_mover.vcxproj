@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{EF951090-8938-4F7D-8674-7F6FB1F2C25E}</ProjectGuid>
-    <RootNamespace>pmem2_granularity</RootNamespace>
+    <ProjectGuid>{4870E3C3-63A1-4702-9E61-47ABCFF3AB0F}</ProjectGuid>
+    <RootNamespace>pmem2_mover</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -43,16 +43,23 @@
     <Import Project="..\test_release.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>$(solutionDir)deps\miniasync\build\src\Release;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>$(solutionDir)deps\miniasync\build\src\Release;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>PMDK_UTF8_API;SDS_ENABLED;NTDDI_VERSION=NTDDI_WIN10_RS1;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>mocks_dax_windows.h;$(SolutionDir)\test\pmem_has_auto_flush_win\mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;PMDK_UTF8_API;SDS_ENABLED;NTDDI_VERSION=NTDDI_WIN10_RS1;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>miniasync.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -62,63 +69,34 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>mocks_dax_windows.h;$(SolutionDir)\test\pmem_has_auto_flush_win\mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;PMDK_UTF8_API;SDS_ENABLED;NTDDI_VERSION=NTDDI_WIN10_RS1;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>miniasync.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_source.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_setup_integration.c" />
+    <ClCompile Include="pmem2_mover.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\unittest\unittest.h" />
+    <ClInclude Include="..\unittest\ut_pmem2.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\libpmem2\libpmem2.vcxproj">
+      <Project>{f596c36c-5c96-4f08-b420-8908af500954}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\core\membuf.c" />
-    <ClCompile Include="..\..\core\ravl.c" />
-    <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
-    <ClCompile Include="..\..\libpmem2\deep_flush_windows.c" />
-    <ClCompile Include="..\..\libpmem2\errormsg.c" />
-    <ClCompile Include="..\..\libpmem2\libpmem2.c" />
-    <ClCompile Include="..\..\libpmem2\map.c" />
-    <ClCompile Include="..\..\libpmem2\map_windows.c" />
-    <ClCompile Include="..\..\libpmem2\memops_generic.c" />
-    <ClCompile Include="..\..\libpmem2\mover.c" />
-    <ClCompile Include="..\..\libpmem2\persist.c" />
-    <ClCompile Include="..\..\libpmem2\persist_windows.c" />
-    <ClCompile Include="..\..\core\ravl_interval.c" />
-    <ClCompile Include="..\..\libpmem2\vm_reservation.c" />
-    <ClCompile Include="..\..\libpmem2\vm_reservation_windows.c" />
-    <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
-    <ClCompile Include="..\..\libpmem2\x86_64\init.c" />
-    <ClCompile Include="..\pmem_has_auto_flush_win\mocks_windows.c">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-    </ClCompile>
-    <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
-    <ClCompile Include="mocks_dax_windows.c">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-    </ClCompile>
-    <ClCompile Include="pmem2_granularity.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\core\membuf.h" />
-    <ClInclude Include="..\..\libpmem2\config.h" />
-    <ClInclude Include="..\..\libpmem2\map.h" />
-    <ClInclude Include="..\..\core\ravl_interval.h" />
-    <ClInclude Include="..\pmem_has_auto_flush_win\mocks_windows.h" />
-    <ClInclude Include="..\unittest\unittest.h" />
-    <ClInclude Include="..\unittest\ut_pmem2_utils.h" />
-    <ClInclude Include="mocks_dax_windows.h" />
-    <ClInclude Include="pmem2_granularity.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="err1.log.match" />
-    <None Include="err2.log.match" />
-    <None Include="err5.log.match" />
+    <None Include="pmemcheck4.log.match" />
     <None Include="TESTS.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

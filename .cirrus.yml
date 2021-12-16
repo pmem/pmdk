@@ -4,7 +4,7 @@ freebsd_instance:
 task:
   install_script: ASSUME_ALWAYS_YES=yes pkg bootstrap -f;
     pkg install -y
-    autoconf bash binutils coreutils e2fsprogs-libuuid
+    autoconf bash binutils cmake coreutils e2fsprogs-libuuid
     git gmake libunwind ncurses pkgconf hs-pandoc
 
   script: CFLAGS="-Wno-unused-value" gmake
