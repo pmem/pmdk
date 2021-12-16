@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 
 #
 # src/libpmemobj/Makefile -- Makefile for libpmemobj
@@ -36,6 +36,6 @@ SOURCE +=\
 
 include ../Makefile.inc
 
-CFLAGS += -DUSE_LIBDL -D_PMEMOBJ_INTRNL $(LIBNDCTL_CFLAGS)
+CFLAGS += -DUSE_LIBDL -D_PMEMOBJ_INTRNL $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
 
 LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL_LIBS)
