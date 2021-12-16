@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 
 #
 # src/libpmem/Makefile -- Makefile for libpmem
@@ -68,5 +68,5 @@ include ../Makefile.inc
 
 include $(PMEM2)/$(ARCH)/flags.inc
 
-CFLAGS += -I.
+CFLAGS += -I. $(MINIASYNC_CFLAGS)
 LIBS += -pthread

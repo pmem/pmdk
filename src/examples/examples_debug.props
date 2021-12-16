@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="PropertySheets"/>
+  <ImportGroup Label="PropertySheets" />
   <PropertyGroup>
     <IntDir>$(Platform)\$(Configuration)\$(TargetName)\</IntDir>
     <TargetName>ex_$(RootNamespace)_$(ProjectName)</TargetName>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\examples\</OutDir>
-    <IncludePath>.;$(solutionDir)include;$(solutionDir)..\include;$(ProjectDir)..\..\;$(ProjectDir)..\;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>.;$(solutionDir)include;$(solutionDir)..\include;$(ProjectDir)..\..\;$(ProjectDir)..\;$(IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)..\..\x64\$(Configuration)\libs;$(ProjectDir)..\..\..\x64\$(Configuration)\libs;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
