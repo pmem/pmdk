@@ -19,4 +19,5 @@ SOURCE +=\
 include ../Makefile.inc
 
 CFLAGS += $(LIBNDCTL_CFLAGS)
-LIBS += -pthread -lpmem $(LIBNDCTL_LIBS)
+CFLAGS += $(MINIASYNC_CFLAGS)
+LIBS += -pthread -lpmem $(LIBNDCTL_LIBS) $(MINIASYNC_LIBS)

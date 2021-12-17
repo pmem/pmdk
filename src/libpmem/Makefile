@@ -69,4 +69,5 @@ include ../Makefile.inc
 include $(PMEM2)/$(ARCH)/flags.inc
 
 CFLAGS += -I.
+CFLAGS +=  $(MINIASYNC_CFLAGS)
 LIBS += -pthread

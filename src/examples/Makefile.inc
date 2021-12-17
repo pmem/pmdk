@@ -8,7 +8,7 @@ TOP_SRC := $(dir $(lastword $(MAKEFILE_LIST)))..
 TOP := $(TOP_SRC)/..
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 
-INCDIR = $(TOP_SRC)/include
+INCDIR = $(TOP_SRC)/include $(MINIASYNC_CFLAGS)
 LIBDIR = $(TOP_SRC)/debug
 
 include $(TOP)/src/common.inc

@@ -22,7 +22,7 @@ vpath %.c $(CORE)
 PMEM2 = $(TOP)/src/libpmem2
 vpath %.c $(PMEM2)
 
-INCS += -I../include -I../common/ -I../core/ $(OS_INCS)
+INCS += -I../include -I../common/ -I../core/ $(OS_INCS) $(MINIASYNC_CFLAGS)
 
 # default CFLAGS
 DEFAULT_CFLAGS += -std=gnu99

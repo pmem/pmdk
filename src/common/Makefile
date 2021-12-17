@@ -13,3 +13,4 @@ include ../Makefile.inc
 
 CFLAGS += $(LIBNDCTL_CFLAGS)
 CFLAGS += -DUSE_LIBDL
+CFLAGS +=  $(MINIASYNC_CFLAGS)
