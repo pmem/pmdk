@@ -18,8 +18,7 @@ configure: | $(dir)
 	cd ./build && cmake .. -DCMAKE_BUILD_TYPE=Release
 
 all: configure
-	mkdir -p ./build
-	cd ./build && cmake .. -DCMAKE_BUILD_TYPE=Release
+	$(MAKE) -C build $@
 
 clean: configure
 	cd ./build && make clean

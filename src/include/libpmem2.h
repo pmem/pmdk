@@ -16,7 +16,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#ifndef _WIN32
 #include <libminiasync/vdm.h>
+#endif
 #ifdef _WIN32
 #include <pmemcompat.h>
 

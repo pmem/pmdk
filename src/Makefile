@@ -10,16 +10,16 @@ include $(TOP)/src/common.inc
 # core targets
 TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools libpmem2
 # make all targets
-ALL_TARGETS = $(TARGETS) common core librpmem libpmemset deps
+ALL_TARGETS = $(TARGETS) common core deps librpmem libpmemset
 # all available targets
-POSSIBLE_TARGETS = $(TARGETS) common core librpmem rpmem_common test\
+POSSIBLE_TARGETS = $(TARGETS) common core deps librpmem rpmem_common test\
 	examples benchmarks libpmemset
 
 SCOPE_DIRS = $(TARGETS) common core librpmem rpmem_common
 
 DEBUG_RELEASE_TARGETS = common core libpmem libpmemblk libpmemlog libpmemobj\
 	libpmempool librpmem libpmem2 libpmemset
-RELEASE_TARGETS = tools
+RELEASE_TARGETS = deps tools
 
 ifneq ($(BUILD_EXAMPLES),n)
 	ALL_TARGETS += examples
@@ -118,6 +118,7 @@ tools: libpmem libpmemblk libpmemlog libpmemobj libpmempool
 libpmemblk libpmemlog libpmemobj: libpmem
 libpmempool: libpmemblk
 libpmemset: libpmem2
+libpmem2: deps
 benchmarks test tools: common core
 
 pkg-cfg-common:

@@ -342,8 +342,8 @@ export USE_LIBUNWIND
 export LIBUNWIND_LIBS
 endif
 
-export MINIASYNC_CFLAGS := -I../deps/miniasync/src/include/
-export MINIASYNC_LIBS :=  -lminiasync
+MINIASYNC_CFLAGS := -I$(TOP)/src/deps/miniasync/src/include/
+MINIASYNC_LIBS :=  -L$(TOP)/src/deps/miniasync/build/src/ -lminiasync
 
 ifeq ($(OS_KERNEL_NAME),FreeBSD)
 

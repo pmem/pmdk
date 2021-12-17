@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2015-2021, Intel Corporation
 
 #
 # examples/Makefile.inc -- build the Persistent Memory Development Kit examples
@@ -8,8 +8,9 @@ TOP_SRC := $(dir $(lastword $(MAKEFILE_LIST)))..
 TOP := $(TOP_SRC)/..
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 
-INCDIR = $(TOP_SRC)/include
+INCDIR = $(TOP_SRC)/include $(MINIASYNC_CFLAGS)
 LIBDIR = $(TOP_SRC)/debug
+MINIASYNCDIR = $(TOP_SRC)/deps/miniasync/build/src
 
 include $(TOP)/src/common.inc
 
@@ -17,7 +18,7 @@ CXXFLAGS = -std=c++11 -ggdb -Wall -Werror
 CXXFLAGS += $(GLIBC_CXXFLAGS)
 CXXFLAGS +=  $(EXTRA_CXXFLAGS)
 CFLAGS = -std=gnu99 -ggdb -Wall -Werror -Wmissing-prototypes $(EXTRA_CFLAGS)
-LDFLAGS = -Wl,-rpath=$(LIBDIR) -L$(LIBDIR) $(EXTRA_LDFLAGS)
+LDFLAGS = -Wl,-rpath=$(LIBDIR),-rpath=$(MINIASYNCDIR) -L$(LIBDIR) $(EXTRA_LDFLAGS)
 ifneq ($(SANITIZE),)
 CFLAGS += -fsanitize=$(SANITIZE)
 CXXFLAGS += -fsanitize=$(SANITIZE)

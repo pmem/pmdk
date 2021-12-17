@@ -35,6 +35,7 @@ endif
 
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -pthread $(LIBUTIL)
+INCS += $(MINIASYNC_CFLAGS)
 
 ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
@@ -315,8 +316,6 @@ OBJS += $(addprefix $(TOP)/src/debug/libpmem2/, ${OBJS_MEM})
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/libpmem2
 INCS += -I$(TOP)/src/libpmem2/$(ARCH)
-INCS += $(MINIASYNC_CFLAGS)
-
 LIBS =+ $(MINIASYNC_LIBS)
 endif
 

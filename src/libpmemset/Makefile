@@ -28,5 +28,5 @@ SOURCE =\
 include ../core/pmemcore.inc
 include ../Makefile.inc
 
-CFLAGS += -I.
-LIBS += -pthread -lpmem2
+CFLAGS += -I. $(MINIASYNC_CFLAGS)
+LIBS += -pthread -lpmem2 $(MINIASYNC_LIBS)

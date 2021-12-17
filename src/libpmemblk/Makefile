@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 
 #
 # src/libpmemblk/Makefile -- Makefile for libpmemblk
@@ -19,4 +19,5 @@ SOURCE +=\
 include ../Makefile.inc
 
 CFLAGS += $(LIBNDCTL_CFLAGS)
+
 LIBS += -pthread -lpmem $(LIBNDCTL_LIBS)

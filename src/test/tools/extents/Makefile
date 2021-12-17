@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2021, Intel Corporation
 #
 # Makefile -- Makefile for extents tool
 #
@@ -11,7 +11,7 @@ TOP = ../../../..
 INCS += -I$(TOP)/src/core
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/libpmem2
-
+INCS += -I$(TOP)/src/deps/miniasync/src/include/
 vpath %.c $(TOP)/src/libpmem2
 
 TARGET = extents

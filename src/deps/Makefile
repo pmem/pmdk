@@ -7,3 +7,6 @@
 
 all clean clobber:
 	$(MAKE) -C miniasync $@
+
+cstyle:
+# do nothing

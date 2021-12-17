@@ -62,7 +62,6 @@ test_mover_basic(const struct test_case *tc, int argc, char *argv[])
 	return 1;
 }
 
-
 /*
  * test_cases -- available test cases
  */

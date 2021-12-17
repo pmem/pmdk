@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 
 #
 # src/test/unittest/Makefile -- build unittest support library
@@ -29,6 +29,7 @@ CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/core
 CFLAGS += -I$(TOP)/src/libpmem2
 CFLAGS += -I$(TOP)/src/libpmemset
+CFLAGS += -I$(TOP)/src/deps/miniasync/src/include
 CFLAGS += $(OS_INCS)
 CFLAGS += -std=gnu99
 CFLAGS += -ggdb
