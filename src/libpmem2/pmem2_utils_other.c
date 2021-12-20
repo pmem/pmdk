@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 #include <errno.h>
 #include <sys/stat.h>
@@ -37,6 +37,7 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 int
 pmem2_device_dax_size(const struct pmem2_source *src, size_t *size)
 {
+	SUPPRESS_UNUSED(src, size);
 	const char *err =
 		"BUG: pmem2_device_dax_size should never be called on this OS";
 	ERR("%s", err);
@@ -51,6 +52,7 @@ pmem2_device_dax_size(const struct pmem2_source *src, size_t *size)
 int
 pmem2_device_dax_alignment(const struct pmem2_source *src, size_t *alignment)
 {
+	SUPPRESS_UNUSED(src, alignment);
 	const char *err =
 		"BUG: pmem2_device_dax_alignment should never be called on this OS";
 	ERR("%s", err);
