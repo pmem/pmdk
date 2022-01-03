@@ -287,6 +287,7 @@ use_sse2_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl,
 	}
 
 #else
+	SUPPRESS_UNUSED(info, impl);
 	LOG(3, "sse2 disabled at build time");
 #endif
 
@@ -369,6 +370,7 @@ use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl,
 			ASSERT(0);
 	}
 #else
+	SUPPRESS_UNUSED(info, impl);
 	LOG(3, "avx supported, but disabled at build time");
 #endif
 }
@@ -412,6 +414,7 @@ use_avx512f_memcpy_memset(struct pmem2_arch_info *info,
 	else
 		ASSERT(0);
 #else
+	SUPPRESS_UNUSED(info, impl);
 	LOG(3, "avx512f supported, but disabled at build time");
 #endif
 }
