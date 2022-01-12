@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * obj_tx_alloc.c -- unit test for pmemobj_tx_alloc and pmemobj_tx_zalloc
@@ -648,7 +648,7 @@ do_tx_xalloc_huge(PMEMobjpool *pop)
 	 * do xalloc until overfilled and then
 	 * free last successful allocation
 	 */
-	uint64_t tot_allocated = 0, alloc_size = (5 * 1024 *1024);
+	uint64_t alloc_size = (5 * 1024 *1024);
 	int rc = 0;
 	PMEMoid oid, prev_oid;
 	POBJ_FOREACH_SAFE(pop, oid, prev_oid) {
@@ -663,10 +663,8 @@ do_tx_xalloc_huge(PMEMobjpool *pop)
 					POBJ_XALLOC_NO_ABORT);
 			if (oid.off == 0)
 				rc = -1;
-			else {
-				tot_allocated += alloc_size;
+			else
 				prev_oid = oid;
-			}
 		}
 		rc = pmemobj_tx_free(prev_oid);
 	} TX_ONCOMMIT {
