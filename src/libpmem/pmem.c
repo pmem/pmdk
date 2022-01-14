@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * pmem.c -- pmem entry points for libpmem
@@ -154,6 +154,8 @@
 #include "auto_flush.h"
 
 struct pmem_funcs {
+	struct memmove_nodrain memmove_funcs;
+	struct memset_nodrain memset_funcs;
 	memmove_nodrain_func memmove_nodrain;
 	memset_nodrain_func memset_nodrain;
 
@@ -603,7 +605,7 @@ pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags)
 #endif
 	PMEM_API_START();
 	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
-			Funcs.flush);
+			Funcs.flush, &Funcs.memmove_funcs);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -627,7 +629,7 @@ pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags)
 #endif
 	PMEM_API_START();
 	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
-			Funcs.flush);
+			Funcs.flush, &Funcs.memmove_funcs);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -652,7 +654,7 @@ pmem_memset(void *pmemdest, int c, size_t len, unsigned flags)
 
 	PMEM_API_START();
 	Funcs.memset_nodrain(pmemdest, c, len, flags & ~PMEM_F_MEM_NODRAIN,
-			Funcs.flush);
+			Funcs.flush, &Funcs.memset_funcs);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -671,7 +673,8 @@ pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush,
+			&Funcs.memmove_funcs);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -687,7 +690,8 @@ pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush,
+			&Funcs.memmove_funcs);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -703,7 +707,8 @@ pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush,
+			&Funcs.memmove_funcs);
 	pmem_drain();
 
 	PMEM_API_END();
@@ -720,7 +725,8 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush,
+			&Funcs.memmove_funcs);
 	pmem_drain();
 
 	PMEM_API_END();
@@ -737,7 +743,8 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memset_nodrain(pmemdest, c, len, 0, Funcs.flush);
+	Funcs.memset_nodrain(pmemdest, c, len, 0, Funcs.flush,
+			&Funcs.memset_funcs);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -753,7 +760,8 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memset_nodrain(pmemdest, c, len, 0, Funcs.flush);
+	Funcs.memset_nodrain(pmemdest, c, len, 0, Funcs.flush,
+			&Funcs.memset_funcs);
 	pmem_drain();
 
 	PMEM_API_END();
@@ -765,10 +773,13 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
  */
 static void *
 memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
-		unsigned flags, flush_func flush)
+		unsigned flags, flush_func flush,
+		const struct memmove_nodrain *memmove_funcs)
 {
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
 			flags);
+
+	SUPPRESS_UNUSED(memmove_funcs);
 
 	memmove(pmemdest, src, len);
 
@@ -783,10 +794,12 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
  */
 static void *
 memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
-		flush_func flush)
+		flush_func flush, const struct memset_nodrain *memset_funcs)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
 			flags);
+
+	SUPPRESS_UNUSED(memset);
 
 	memset(pmemdest, c, len);
 
@@ -851,6 +864,8 @@ pmem_init(void)
 		LOG(3, "Flushing CPU cache");
 	}
 
+	Funcs.memmove_funcs = info.memmove_funcs;
+	Funcs.memset_funcs = info.memset_funcs;
 	Funcs.deep_flush = info.flush;
 	if (flush) {
 		Funcs.flush = info.flush;

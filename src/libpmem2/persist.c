@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 /*
  * persist.c -- pmem2_get_[persist|flush|drain]_fn
@@ -25,7 +25,8 @@ static struct pmem2_arch_info Info;
  */
 static void *
 memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
-		unsigned flags, flush_func flush)
+		unsigned flags, flush_func flush,
+		const struct memmove_nodrain *memmove_funcs)
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
@@ -33,6 +34,8 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
 #endif
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
 			flags);
+
+	SUPPRESS_UNUSED(memmove_funcs);
 
 	memmove(pmemdest, src, len);
 
@@ -47,7 +50,7 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
  */
 static void *
 memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
-		flush_func flush)
+		flush_func flush, const struct memset_nodrain *memset_funcs)
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
@@ -55,6 +58,8 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
 #endif
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
 			flags);
+
+	SUPPRESS_UNUSED(memset_funcs);
 
 	memset(pmemdest, c, len);
 
@@ -434,7 +439,7 @@ pmem2_memmove_nonpmem(void *pmemdest, const void *src, size_t len,
 #endif
 	PMEM2_API_START("pmem2_memmove");
 	Info.memmove_nodrain(pmemdest, src, len, flags & ~PMEM2_F_MEM_NODRAIN,
-			Info.flush);
+			Info.flush, &Info.memmove_funcs);
 
 	pmem2_persist_pages(pmemdest, len);
 
@@ -454,7 +459,7 @@ pmem2_memset_nonpmem(void *pmemdest, int c, size_t len, unsigned flags)
 #endif
 	PMEM2_API_START("pmem2_memset");
 	Info.memset_nodrain(pmemdest, c, len, flags & ~PMEM2_F_MEM_NODRAIN,
-			Info.flush);
+			Info.flush, &Info.memset_funcs);
 
 	pmem2_persist_pages(pmemdest, len);
 
@@ -474,7 +479,8 @@ pmem2_memmove(void *pmemdest, const void *src, size_t len,
 		ERR("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memmove");
-	Info.memmove_nodrain(pmemdest, src, len, flags, Info.flush);
+	Info.memmove_nodrain(pmemdest, src, len, flags, Info.flush,
+			&Info.memmove_funcs);
 	if ((flags & (PMEM2_F_MEM_NODRAIN | PMEM2_F_MEM_NOFLUSH)) == 0)
 		pmem2_drain();
 
@@ -493,7 +499,8 @@ pmem2_memset(void *pmemdest, int c, size_t len, unsigned flags)
 		ERR("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memset");
-	Info.memset_nodrain(pmemdest, c, len, flags, Info.flush);
+	Info.memset_nodrain(pmemdest, c, len, flags, Info.flush,
+			&Info.memset_funcs);
 	if ((flags & (PMEM2_F_MEM_NODRAIN | PMEM2_F_MEM_NOFLUSH)) == 0)
 		pmem2_drain();
 
@@ -513,7 +520,8 @@ pmem2_memmove_eadr(void *pmemdest, const void *src, size_t len,
 		ERR("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memmove");
-	Info.memmove_nodrain_eadr(pmemdest, src, len, flags, Info.flush);
+	Info.memmove_nodrain_eadr(pmemdest, src, len, flags, Info.flush,
+			&Info.memmove_funcs);
 	if ((flags & (PMEM2_F_MEM_NODRAIN | PMEM2_F_MEM_NOFLUSH)) == 0)
 		pmem2_drain();
 
@@ -532,7 +540,8 @@ pmem2_memset_eadr(void *pmemdest, int c, size_t len, unsigned flags)
 		ERR("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memset");
-	Info.memset_nodrain_eadr(pmemdest, c, len, flags, Info.flush);
+	Info.memset_nodrain_eadr(pmemdest, c, len, flags, Info.flush,
+			&Info.memset_funcs);
 	if ((flags & (PMEM2_F_MEM_NODRAIN | PMEM2_F_MEM_NOFLUSH)) == 0)
 		pmem2_drain();
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2022, Intel Corporation */
 
 #ifndef PMEM2_MEMCPY_SSE2_H
 #define PMEM2_MEMCPY_SSE2_H
@@ -105,7 +105,7 @@ memmove_small_sse2(char *dest, const char *src, size_t len, flush_fn flush)
 	 */
 	if (On_pmemcheck) {
 		memmove_nodrain_generic(dest, src, len, PMEM2_F_MEM_NOFLUSH,
-				NULL);
+				NULL, NULL);
 	} else {
 		memmove_small_sse2_noflush(dest, src, len);
 	}
