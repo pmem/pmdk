@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2022, Intel Corporation */
 
 /*
  * memops_generic.c -- architecture-independent memmove & memset fallback
@@ -129,11 +129,14 @@ store8(uint64_t *dst, uint64_t c)
  * memmove_nodrain_generic -- generic memmove to pmem without hw drain
  */
 void *
-memmove_nodrain_generic(void *dst, const void *src, size_t len,
-		unsigned flags, flush_func flush)
+memmove_nodrain_generic(void *dst, const void *src, size_t len, unsigned flags,
+		flush_func flush, const struct memmove_nodrain *memmove_funcs)
 {
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", dst, src, len,
 			flags);
+
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(memmove_funcs);
 
 	char *cdst = dst;
 	const char *csrc = src;
@@ -257,10 +260,14 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
  */
 void *
 memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags,
-		flush_func flush)
+		flush_func flush, const struct memset_nodrain *memset_funcs)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", dst, c, len,
 			flags);
+
+	/* suppress unused-parameter errors */
+	SUPPRESS_UNUSED(memset_funcs);
+
 	(void) flags;
 
 	char *cdst = dst;
