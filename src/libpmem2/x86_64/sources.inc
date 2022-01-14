@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 #
 # src/libpmem2/x86_64/sources.inc -- list of files for libpmem2/x86_64
@@ -28,3 +28,12 @@ LIBPMEM2_ARCH_SOURCE += \
 	memset_t_avx512f.c
 endif
 
+MOVDIR64B_AVAILABLE=n
+
+ifeq ($(MOVDIR64B_AVAILABLE), y)
+LIBPMEM2_ARCH_SOURCE += \
+	memcpy_nt_movdir64b.c\
+	memset_nt_movdir64b.c\
+	memcpy_t_movdir64b.c\
+	memset_t_movdir64b.c
+endif

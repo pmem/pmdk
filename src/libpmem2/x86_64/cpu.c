@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * cpu.c -- CPU features detection
@@ -169,6 +169,18 @@ is_cpu_avx512f_present(void)
 {
 	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_AVX512F);
 	LOG(4, "AVX512f %ssupported", ret == 0 ? "not " : "");
+
+	return ret;
+}
+
+/*
+ * is_cpu_movdir64b_present -- checks if movdir64b instruction is supported
+ */
+int
+is_cpu_movdir64b_present(void)
+{
+	int ret = is_cpu_feature_present(0x7, ECX_IDX, bit_MOVDIR64B);
+	LOG(4, "movdir64b %ssupported", ret == 0 ? "not " : "");
 
 	return ret;
 }
