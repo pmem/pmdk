@@ -1,0 +1,52 @@
+name: unittest_linux
+
+on:
+    workflow_dispatch:
+        inputs:
+            label:
+                description: 'label of execution machine, for example dell004 or fedora34, remember to manually add labels on gha runners page.'
+                required: true
+                default: 'dell004'
+            test_folders:
+                description: 'please select one: all, remotes, nonremotes'
+                required: true
+                default: 'all'
+            test_type:
+                description: 'please select one: check, short, medium, long, all'
+                required: true
+                default: 'check'
+            test_build:
+                description: 'please select one: debug, nondebug, static-debug, static-nondebug, all'
+                required: true
+                default: 'all'
+            fs_type:
+                description: 'please select one: all, pmem, non-pmem, any, none'
+                required: true
+                default: 'all'
+            badblock:
+                description: 'please select one: yes, no'
+                required: true
+                default: 'no'
+            drd:
+                description: 'please select one: auto, force-enable'
+                required: true
+                default: 'auto'
+            memcheck:
+                description: 'please select one: auto, force-enable'
+                required: true
+                default: 'auto'
+            helgrind:
+                description: 'please select one: auto, force-enable'
+                required: true
+                default: 'auto'
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: [self-hosted, linux, x64, '${{ github.event.inputs.label }}' ]
+   
+    steps:
+        
+        - name: Clone the git repo
+          uses: actions/checkout@v2
+            
