@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 #include <string.h>
 #include <xmmintrin.h>
@@ -60,7 +60,7 @@ flush_clwb(const void *addr, size_t len)
 	flush_clwb_nolog(addr, len);
 }
 
-#if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
+#if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE || MOVDIR64B_AVAILABLE
 #define PMEM2_F_MEM_MOVNT (PMEM2_F_MEM_WC | PMEM2_F_MEM_NONTEMPORAL)
 #define PMEM2_F_MEM_MOV   (PMEM2_F_MEM_WB | PMEM2_F_MEM_TEMPORAL)
 
@@ -213,11 +213,24 @@ MEMSET_TEMPLATE(avx512f, clwb, /* */)
 MEMSET_TEMPLATE_EADR(avx512f, /* */)
 #endif
 
+#if MOVDIR64B_AVAILABLE
+MEMCPY_TEMPLATE(movdir64b, clflush, /* cstyle wa */)
+MEMCPY_TEMPLATE(movdir64b, clflushopt, /* */)
+MEMCPY_TEMPLATE(movdir64b, clwb, /* */)
+MEMCPY_TEMPLATE_EADR(movdir64b, /* */)
+
+MEMSET_TEMPLATE(movdir64b, clflush, /* */)
+MEMSET_TEMPLATE(movdir64b, clflushopt, /* */)
+MEMSET_TEMPLATE(movdir64b, clwb, /* */)
+MEMSET_TEMPLATE_EADR(movdir64b, /* */)
+#endif
+
 enum memcpy_impl {
 	MEMCPY_INVALID,
 	MEMCPY_SSE2,
 	MEMCPY_AVX,
-	MEMCPY_AVX512F
+	MEMCPY_AVX512F,
+	MEMCPY_MOVDIR64B
 };
 
 /*
@@ -420,6 +433,51 @@ use_avx512f_memcpy_memset(struct pmem2_arch_info *info,
 }
 
 /*
+ * use_movdir64b_memcpy_memset -- (internal) movdir64b detected, use it if
+ *                                           possible
+ */
+static void
+use_movdir64b_memcpy_memset(struct pmem2_arch_info *info,
+		enum memcpy_impl *impl)
+{
+#if MOVDIR64B_AVAILABLE
+	LOG(3, "movdir64b supported");
+
+	char *e = os_getenv("PMEM_MOVDIR64B");
+	if (e != NULL && strcmp(e, "0") == 0) {
+		LOG(3, "PMEM_MOVDIR64B set to 0");
+		return;
+	}
+
+	LOG(3, "PMEM_MOVDIR64B enabled");
+	*impl = MEMCPY_MOVDIR64B;
+
+	info->memmove_nodrain_eadr = memmove_nodrain_movdir64b_eadr;
+	if (info->flush == flush_clflush)
+		info->memmove_nodrain = memmove_nodrain_movdir64b_clflush;
+	else if (info->flush == flush_clflushopt)
+		info->memmove_nodrain = memmove_nodrain_movdir64b_clflushopt;
+	else if (info->flush == flush_clwb)
+		info->memmove_nodrain = memmove_nodrain_movdir64b_clwb;
+	else
+		ASSERT(0);
+
+	info->memset_nodrain_eadr = memset_nodrain_movdir64b_eadr;
+	if (info->flush == flush_clflush)
+		info->memset_nodrain = memset_nodrain_movdir64b_clflush;
+	else if (info->flush == flush_clflushopt)
+		info->memset_nodrain = memset_nodrain_movdir64b_clflushopt;
+	else if (info->flush == flush_clwb)
+		info->memset_nodrain = memset_nodrain_movdir64b_clwb;
+	else
+		ASSERT(0);
+#else
+	SUPPRESS_UNUSED(info, impl);
+	LOG(3, "movdir64b supported, but disabled at build time");
+#endif
+}
+
+/*
  * pmem_get_cpuinfo -- configure libpmem based on CPUID
  */
 static void
@@ -493,6 +551,9 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 
 		if (is_cpu_avx512f_present())
 			use_avx512f_memcpy_memset(info, impl);
+
+		if (is_cpu_movdir64b_present())
+			use_movdir64b_memcpy_memset(info, impl);
 	}
 }
 
@@ -534,7 +595,9 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 	else
 		FATAL("invalid deep flush function address");
 
-	if (impl == MEMCPY_AVX512F)
+	if (impl == MEMCPY_MOVDIR64B)
+		LOG(3, "using movnt MOVDIR64B");
+	else if (impl == MEMCPY_AVX512F)
 		LOG(3, "using movnt AVX512F");
 	else if (impl == MEMCPY_AVX)
 		LOG(3, "using movnt AVX");
