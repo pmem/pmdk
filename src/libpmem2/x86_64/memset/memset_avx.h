@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2022, Intel Corporation */
 
 #ifndef PMEM2_MEMSET_AVX_H
 #define PMEM2_MEMSET_AVX_H
@@ -86,7 +86,8 @@ memset_small_avx(char *dest, __m256i ymm, size_t len, flush_fn flush)
 	 */
 	if (On_pmemcheck) {
 		memset_nodrain_generic(dest, (uint8_t)m256_get2b(ymm),
-						len, PMEM2_F_MEM_NOFLUSH, NULL);
+						len, PMEM2_F_MEM_NOFLUSH, NULL,
+						NULL);
 	} else {
 		memset_small_avx_noflush(dest, ymm, len);
 	}
