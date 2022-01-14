@@ -84,10 +84,12 @@
     <ClInclude Include="x86_64\flush.h" />
     <ClInclude Include="x86_64\memcpy\memcpy_avx.h" />
     <ClInclude Include="x86_64\memcpy\memcpy_avx512f.h" />
+    <ClInclude Include="x86_64\memcpy\memcpy_movdir64b.h" />
     <ClInclude Include="x86_64\memcpy\memcpy_sse2.h" />
     <ClInclude Include="x86_64\memcpy_memset.h" />
     <ClInclude Include="x86_64\memset\memset_avx.h" />
     <ClInclude Include="x86_64\memset\memset_avx512f.h" />
+    <ClInclude Include="x86_64\memset\memset_movdir64b.h" />
     <ClInclude Include="x86_64\memset\memset_sse2.h" />
   </ItemGroup>
   <ItemGroup>
