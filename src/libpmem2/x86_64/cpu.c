@@ -70,6 +70,10 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 #define bit_AVX512F	(1 << 16)
 #endif
 
+#ifndef bit_MOVDIR64B
+#define bit_MOVDIR64B (1 << 28)
+#endif
+
 /*
  * is_cpu_feature_present -- (internal) checks if CPU feature is supported
  */

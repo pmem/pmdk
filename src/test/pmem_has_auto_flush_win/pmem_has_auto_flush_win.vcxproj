@@ -50,7 +50,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;MOVDIR64B_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
     </ClCompile>
@@ -61,7 +61,7 @@
       <CompileAs />
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;MOVDIR64B_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link />
   </ItemDefinitionGroup>
