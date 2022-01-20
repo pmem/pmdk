@@ -29,3 +29,5 @@ nbproject/
 *.aps
 tags
 *.link
+
+__pycache__/
