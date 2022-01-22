@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 #
 
 """Device dax context classes and utilities"""
@@ -217,7 +217,7 @@ def require_devdax(*dax_devices, **kwargs):
 
 def require_fs_exec(tc):
     """
-    Disable test if exec acess for device is not permitted
+    Disable test if exec access for device is not permitted
     """
     ctx.add_requirement(tc, 'require_fs_exec', True)
     return tc

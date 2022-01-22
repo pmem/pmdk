@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 /*
  * pmemset_persist.c -- pmemset_part unittests
@@ -86,7 +86,7 @@ test_deep_flush_single(const struct test_case *tc, int argc,
 
 /*
  * test_deep_flush_multiple_coal - test pmemset_deep_flush
- * conbinations on multiple part maps with coalescing
+ * combinations on multiple part maps with coalescing
  */
 static int
 test_deep_flush_multiple_coal(const struct test_case *tc, int argc,
@@ -194,7 +194,7 @@ end:
 }
 
 /*
- * test_deep_flush_multiple - test pmemset_deep_flush conbinations on multiple
+ * test_deep_flush_multiple - test pmemset_deep_flush combinations on multiple
  * part maps
  */
 static int

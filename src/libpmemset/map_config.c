@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 /*
  * map_config.c -- implementation of common map_config API
@@ -42,7 +42,7 @@ pmemset_map_config_new(struct pmemset_map_config **map_cfg)
 }
 
 /*
- * pmemset_map_config_set_offset -- sets offset in the map configuraton struct
+ * pmemset_map_config_set_offset -- sets offset in the map configuration struct
  */
 int
 pmemset_map_config_set_offset(struct pmemset_map_config *map_cfg,
@@ -63,7 +63,7 @@ pmemset_map_config_set_offset(struct pmemset_map_config *map_cfg,
 }
 
 /*
- * pmemset_map_config_set_length -- sets length in the map configuraton struct
+ * pmemset_map_config_set_length -- sets length in the map configuration struct
  */
 void
 pmemset_map_config_set_length(struct pmemset_map_config *map_cfg,

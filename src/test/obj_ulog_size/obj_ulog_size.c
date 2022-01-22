@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 /*
  * obj_ulog_size.c -- unit tests for pmemobj_action API and
@@ -902,7 +902,7 @@ do_ctl_snapshots_cache_size(PMEMobjpool *pop)
 	/*
 	 * manual clear of the previous cache_size value,
 	 * done in order to ensure ctl_get works properly
-	 * and that the test does not succeed accidently
+	 * and that the test does not succeed accidentally
 	 */
 	cache_size = 0;
 

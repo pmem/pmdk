@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 /*
  * source.c -- implementation of common config API
@@ -543,7 +543,7 @@ pmemset_source_get_badblock_detection(struct pmemset_source *src)
 
 /*
  * pmemset_source_get_use_count -- retrieve current use count (number of parts
- *                                 mapped from this source currenly in use)
+ *                                 mapped from this source currently in use)
  */
 int
 pmemset_source_get_use_count(struct pmemset_source *src)

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * check_util.c -- check utility functions
@@ -652,7 +652,7 @@ check_get_uuid_str(uuid_t uuid)
 
 	int ret = util_uuid_to_string(uuid, uuid_str);
 	if (ret != 0) {
-		ERR("failed to covert uuid to string");
+		ERR("failed to convert uuid to string");
 		return "";
 	}
 	return uuid_str;

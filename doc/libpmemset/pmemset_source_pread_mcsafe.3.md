@@ -8,7 +8,7 @@ date: pmemset API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2021, Intel Corporation)
+[comment]: <> (Copyright 2021-2022, Intel Corporation)
 
 [comment]: <> (pmemset_source_pread_mcsafe.3 -- man page for libpmemset machine safe read/write operations)
 
@@ -60,7 +60,7 @@ return 0 on success or a negative error code on failure.
 The **pmemset_source_pread_mcsafe**() and **pmemset_source_pwrite_mcsafe**() can fail
 with the following errors:
 
-* **PMEMSET_E_IO_FAIL** - a physical I/O error occured during the read/write operation,
+* **PMEMSET_E_IO_FAIL** - a physical I/O error occurred during the read/write operation,
 a possible bad block encountered.
 
 * **PMEMSET_E_LENGTH_OUT_OF_RANGE** - read/write operation size *size* from

@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2021, Intel Corporation)
+[comment]: <> (Copyright 2021-2022, Intel Corporation)
 
 [comment]: <> (pmem2_vm_reservation_map_find.3 -- man page for libpmem2 pmem2_vm_reservation_map_find operation)
 
@@ -48,7 +48,7 @@ int pmem2_vm_reservation_map_find_last(struct pmem2_vm_reservation *rsv,
 # DESCRIPTION #
 Mappings are inserted to the virtual memory reservation in the order of their virtual
 address space location. First mapping represents the earliest mapping in the virtual
-addres space contained in a reservation, whereas the last mapping represents the last one.
+address space contained in a reservation, whereas the last mapping represents the last one.
 
 The **pmem2_vm_reservation_map_find**() function searches for the earliest mapping,
 stored in the virtual memory reservation, intersecting with the interval defined by

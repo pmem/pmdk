@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 #include <errno.h>
 
@@ -22,7 +22,7 @@ static int
 mcsafe_op_none(struct pmem2_source *src, void *buf, size_t size,
 		size_t offset)
 {
-	/* suppres unused parameters */
+	/* suppress unused parameters */
 	SUPPRESS_UNUSED(src, buf, size, offset);
 
 	ASSERT(0);
