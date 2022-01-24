@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2022, Intel Corporation
 #
 
 import testframework as t
@@ -32,14 +32,14 @@ class TEST1(PMEMSET_PERSIST):
 
 
 class TEST2(PMEMSET_PERSIST):
-    """test pmemset_persist on region accross more than one part"""
+    """test pmemset_persist on region across more than one part"""
     test_case = "test_persist_multiple_parts"
 
 
 @t.windows_exclude
 @t.require_valgrind_enabled('pmemcheck')
 class TEST3(PMEMSET_PERSIST):
-    """test pmemset_persist on region accross more than one part"""
+    """test pmemset_persist on region across more than one part"""
     test_case = "test_persist_multiple_parts"
 
 

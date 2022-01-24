@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 /*
  * pmemset_part.c -- pmemset_part unittests
@@ -2050,7 +2050,7 @@ test_remove_coalesced_two_ranges(const struct test_case *tc, int argc,
 			range_first_to_second + 2);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	/* there should be two mappings left, each containg one part */
+	/* there should be two mappings left, each containing one part */
 	pmemset_first_part_map(set, &first_pmap);
 	UT_ASSERTne(first_pmap, NULL);
 	first_desc = pmemset_descriptor_part_map(first_pmap);

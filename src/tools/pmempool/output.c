@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * output.c -- definitions of output printing related functions
@@ -335,7 +335,7 @@ out_get_uuid_str(uuid_t uuid)
 
 	int ret = util_uuid_to_string(uuid, uuid_str);
 	if (ret != 0) {
-		outv(2, "failed to covert uuid to string");
+		outv(2, "failed to convert uuid to string");
 		return NULL;
 	}
 	return uuid_str;

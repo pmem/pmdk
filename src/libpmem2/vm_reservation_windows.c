@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 /*
  * vm_reservation_windows.c -- implementation of virtual memory
@@ -102,7 +102,7 @@ vm_reservation_merge_placeholders(struct pmem2_vm_reservation *rsv, void *addr,
 	LOG(3, "rsv_addr %p rsv_size %zu", rsv_addr, rsv_size);
 
 	/*
-	 * After unmapping from the reservation, it is neccessary to merge
+	 * After unmapping from the reservation, it is necessary to merge
 	 * the unoccupied neighbours so that the placeholders will be available
 	 * for splitting for the required size of the mapping.
 	 */
@@ -190,7 +190,7 @@ vm_reservation_split_placeholders(struct pmem2_vm_reservation *rsv, void *addr,
 	LOG(3, "rsv_addr %p rsv_size %zu", rsv_addr, rsv_size);
 
 	/*
-	 * Check wheter there is a mapping just beside the provided placeholder
+	 * Check whether there is a mapping just beside the provided placeholder
 	 * range (addr, addr + length). If the immediate neighboring ranges
 	 * are empty then split the provided range into separate placeholder.
 	 */

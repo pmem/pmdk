@@ -8,7 +8,7 @@ date: pmemset API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2021, Intel Corporation)
+[comment]: <> (Copyright 2021-2022, Intel Corporation)
 
 [comment]: <> (pmemset_source_set_sds.3 -- man page for pmemset_source_set_sds)
 
@@ -57,7 +57,7 @@ structure.
 
 Shutdown data state parameter *sds* can be initialized for the first time using
 **PMEMSET_SDS_INITIALIZE**() macro. Subsequent shutdown states *sds* can be retrieved via
-*PMEMSET_EVENT_SDS_UPDATE* event fired everytime an *sds* is updated. For more information
+*PMEMSET_EVENT_SDS_UPDATE* event fired every time an *sds* is updated. For more information
 please see **pmemset_config_set_event_callback**(3).
 
 When creating a new mapping using **pmemset_map**(3) function, current part state will

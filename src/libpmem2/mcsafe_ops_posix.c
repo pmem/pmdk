@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 #include <errno.h>
 #include <setjmp.h>
@@ -24,7 +24,7 @@ static int
 mcsafe_op_none(struct pmem2_source *src, void *buf, size_t size,
 		size_t offset)
 {
-	/* suppres unused parameters */
+	/* suppress unused parameters */
 	SUPPRESS_UNUSED(src, buf, size, offset);
 
 	ASSERT(0);
@@ -46,7 +46,7 @@ mcsafe_op_reg_read(struct pmem2_source *src, void *buf, size_t size,
 	ssize_t retsize = pread(fd, buf, size, (off_t)offset);
 	if (retsize == -1) {
 		if (errno == EIO) {
-			ERR("physical I/O error occured on read operation, "
+			ERR("physical I/O error occurred on read operation, "
 					"possible bad block");
 			return PMEM2_E_IO_FAIL;
 		}
@@ -72,7 +72,7 @@ mcsafe_op_reg_write(struct pmem2_source *src, void *buf, size_t size,
 	ssize_t retsize = pwrite(fd, buf, size, (off_t)offset);
 	if (retsize == -1) {
 		if (errno == EIO) {
-			ERR("physical I/O error occured on write operation, "
+			ERR("physical I/O error occurred on write operation, "
 					"possible bad block");
 			return PMEM2_E_IO_FAIL;
 		}
@@ -134,7 +134,7 @@ handle_sigbus_execute_mcsafe_op(struct pmem2_source *src, void *buf,
 
 	/* sigsetjmp returns nonzero only when returning from siglongjmp */
 	if (sigsetjmp(mcsafe_jmp_buf, 1)) {
-		ERR("physical I/O error occured, possible bad block");
+		ERR("physical I/O error occurred, possible bad block");
 		ret = PMEM2_E_IO_FAIL;
 		goto clnup_null_global_jmp;
 	}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 /*
  * ravl_interval.c -- ravl_interval implementation
@@ -293,7 +293,7 @@ ravl_interval_find_last(struct ravl_interval *ri)
 }
 
 /*
- * ravl_interval_find_next -- returns interval successing the one provided
+ * ravl_interval_find_next -- returns interval succeeding the one provided
  */
 struct ravl_interval_node *
 ravl_interval_find_next(struct ravl_interval *ri, void *addr)

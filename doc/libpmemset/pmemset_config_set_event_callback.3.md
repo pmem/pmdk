@@ -8,7 +8,7 @@ date: pmemset API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2021, Intel Corporation)
+[comment]: <> (Copyright 2021-2022, Intel Corporation)
 
 [comment]: <> (pmemset_config_set_event_callback.3 -- man page for pmemset_config_set_event_callback)
 
@@ -122,7 +122,7 @@ struct pmemset_event_set {
 before **pmemset_memcpy**(3), **pmemset_memmove**(3), **pmemset_memset**(3) completed its work.
 Similarly, *copy*, *move*, or *set* fields in the *data* union contain all arguments passed to these functions.
 If **PMEMSET_F_MEM_NODRAIN** flag is **not** passed to these functions, a single **PMEMSET_EVENT_DRAIN**
-will be fired on the end of opperation.
+will be fired on the end of operation.
 During these functions "flush" and "drain" operations are performed,
 but they will not trigger any additional events.
 **PMEMSET_EVENT_FLUSH** and **PMEMSET_EVENT_DRAIN**

@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2021, Intel Corporation)
+[comment]: <> (Copyright 2021-2022, Intel Corporation)
 
 [comment]: <> (pmem2_vm_reservation_extend.3 -- man page for libpmem2 pmem2_vm_reservation_extend and pmem2_vm_reservation_shrink operations)
 
@@ -49,7 +49,7 @@ The **pmem2_vm_reservation_shrink**() function shrinks the reservation by a regi
 by *offset* into the reservation and the *size*. For the function to succeed the *size* and
 *offset* variables have to be aligned to an appropriate allocation granularity. The region
 formed by *offset* and *size* has to belong to the reservation, be empty and it needs to cover
-the beggining or the end of the reservation.
+the beginning or the end of the reservation.
 Shrinking reservation from the middle or shrinking the whole reservation is not supported.
 
 If the **pmem2_vm_reservation_shrink**() succeeds in shrinking a reservation, it releases

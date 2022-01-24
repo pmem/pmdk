@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 /*
  * part.c -- implementation of common part API
@@ -208,7 +208,8 @@ pmemset_part_file_try_ensure_size(struct pmemset_file *f, size_t len,
 }
 
 /*
- * pmemset_part_map_find -- find the earliest pmem2 mapping in the provied range
+ * pmemset_part_map_find -- find the earliest pmem2 mapping in the provided
+ * range
  */
 int
 pmemset_part_map_find(struct pmemset_part_map *pmap, size_t offset, size_t size,
