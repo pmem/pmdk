@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2022, Intel Corporation
 #
 
 import testframework as t
@@ -97,3 +97,18 @@ class TEST9(MovntAlignCommonValgrind):
         ctx.env['PMEM_NO_MOVNT'] = '1'
         ctx.env['PMEM_NO_GENERIC_MEMCPY'] = '1'
         super().run(ctx)
+
+
+@t.require_architectures('x86_64')
+class TEST10(Pmem2MovntAlign):
+    envs0 = ("PMEM_MOVDIR64B",)
+
+
+@t.require_architectures('x86_64')
+class TEST11(Pmem2MovntAlign):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
+
+
+@t.require_architectures('x86_64')
+class TEST12(Pmem2MovntAlign):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)

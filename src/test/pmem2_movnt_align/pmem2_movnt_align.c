@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 /*
  * pmem2_movnt_align.c -- test for functions with non-temporal stores
@@ -61,11 +61,14 @@ main(int argc, char *argv[])
 	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	const char *avx = os_getenv("PMEM_AVX");
 	const char *avx512f = os_getenv("PMEM_AVX512F");
+	const char *movdir64b = os_getenv("PMEM_MOVDIR64B");
 
-	START(argc, argv, "pmem2_movnt_align %c %s %savx %savx512f", type,
+	START(argc, argv, "pmem2_movnt_align %c %s %savx %savx512f %smovdir64b",
+			type,
 			thr ? thr : "default",
 			avx ? "" : "!",
-			avx512f ? "" : "!");
+			avx512f ? "" : "!",
+			movdir64b ? "" : "!");
 
 	fd = OPEN(argv[1], O_RDWR);
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # src/test/pmem_memset/TEST0 -- unit test for pmem_memset
@@ -39,6 +39,10 @@ $Env:PMEM_NO_MOVNT = 1
 test_all
 
 $Env:PMEM_NO_GENERIC_MEMCPY = 1
+
+test_all
+
+$Env:PMEM_MOVDIR64B = 0
 
 test_all
 

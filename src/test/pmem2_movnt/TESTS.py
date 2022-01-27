@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2022, Intel Corporation
 #
 
 
@@ -59,3 +59,18 @@ class TEST4(Pmem2MovntCommon):
         ctx.env['PMEM_NO_MOVNT'] = '1'
         ctx.env['PMEM_NO_GENERIC_MEMCPY'] = '1'
         ctx.exec('pmem2_movnt', self.filepath)
+
+
+@t.require_architectures('x86_64')
+class TEST5(Pmem2Movnt):
+    envs0 = ("PMEM_MOVDIR64B",)
+
+
+@t.require_architectures('x86_64')
+class TEST6(Pmem2Movnt):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
+
+
+@t.require_architectures('x86_64')
+class TEST7(Pmem2Movnt):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)
