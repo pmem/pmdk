@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * ut_file.c -- unit test file operations
@@ -88,10 +88,8 @@ ut_fclose(const char *file, int line, const char *func, FILE *stream)
 {
 	int retval = os_fclose(stream);
 
-	if (retval != 0) {
-		ut_fatal(file, line, func, "!fclose: 0x%llx",
-			(unsigned long long)stream);
-	}
+	if (retval != 0)
+		ut_fatal(file, line, func, "!fclose");
 
 	return retval;
 }
