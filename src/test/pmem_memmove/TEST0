@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2015-2022, Intel Corporation
 
 #
 # src/test/pmem_memmove/TEST0 -- unit test for pmem_memmove
@@ -77,6 +77,10 @@ export PMEM_NO_MOVNT=1
 test_all
 
 export PMEM_NO_GENERIC_MEMCPY=1
+
+test_all
+
+export PMEM_MOVDIR64B=0
 
 test_all
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 /*
  * pmemset_memset.c -- test for doing a memset from libpmemset
@@ -45,12 +45,14 @@ main(int argc, char *argv[])
 	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	const char *avx = os_getenv("PMEM_AVX");
 	const char *avx512f = os_getenv("PMEM_AVX512F");
+	const char *movdir64b = os_getenv("PMEM_MOVDIR64B");
 
-	START(argc, argv, "pmem2_memset %s %s %s %savx %savx512f",
+	START(argc, argv, "pmem2_memset %s %s %s %savx %savx512f %smovdir64b",
 			argv[2], argv[3],
 			thr ? thr : "default",
 			avx ? "" : "!",
-			avx512f ? "" : "!");
+			avx512f ? "" : "!",
+			movdir64b ? "" : "!");
 
 	fd = OPEN(argv[1], O_RDWR);
 

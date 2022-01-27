@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2021, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
@@ -35,7 +35,7 @@ LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 
-CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
+CFLAGS += -DSRCVERSION="" -DDEBUG -DMOVDIR64B_AVAILABLE=0 -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
 CFLAGS += -I$(TOP)/src/libpmem
 CFLAGS += -I$(TOP)/src/libpmem/$(ARCH)
 CFLAGS += -I$(TOP)/src/libpmem2
