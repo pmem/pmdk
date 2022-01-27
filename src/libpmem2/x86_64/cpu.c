@@ -68,6 +68,7 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 
 #ifndef bit_AVX512F
 #define bit_AVX512F	(1 << 16)
+#endif
 
 #ifndef bit_MOVDIR64B
 #define bit_MOVDIR64B	(1 << 28)
