@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2022, Intel Corporation
 #
 
 import testframework as t
@@ -84,12 +84,14 @@ MATCH_PAGE_CACHELINE_BIG = \
 SSE2 = 1
 AVX = 2
 AVX512 = 3
+MOVDIR64B = 4
 
 VARIANT_LIBC = 'libc'
 VARIANT_GENERIC = 'generic'
 VARIANT_SSE2 = 'sse2'
 VARIANT_AVX = 'avx'
 VARIANT_AVX512F = 'avx512f'
+VARIANT_MOVDIR64B = 'movdir64b'
 
 
 @t.require_build('debug')
@@ -114,6 +116,14 @@ class Pmem2MemExt(t.Test):
         self.check_arch(ctx.variant(), ret.returncode)
 
     def check_arch(self, variant, available_arch):
+        if variant == VARIANT_MOVDIR64B:
+            if available_arch < MOVDIR64B:
+                raise futils.Skip("SKIP: MOVDIR64B unavailable")
+
+            # remove this when MSVC we use will support MOVDIR64B
+            if sys.platform.startswith('win32'):
+                raise futils.Skip("SKIP: MOVDIR64B not supported by MSVC")
+
         if variant == VARIANT_AVX512F:
             if available_arch < AVX512:
                 raise futils.Skip("SKIP: AVX512F unavailable")
@@ -172,8 +182,12 @@ class Pmem2MemExt(t.Test):
             match += "_sse2"
         elif variant == VARIANT_AVX:
             match += "_avx"
-        else:
+        elif variant == VARIANT_AVX512F:
             match += "_avx512f"
+        elif variant == VARIANT_MOVDIR64B:
+            match += "_movdir64b"
+        else:
+            assert False
 
         return match
 
@@ -193,12 +207,19 @@ class Pmem2MemExt(t.Test):
         elif ctx.variant() == VARIANT_SSE2:
             ctx.env['PMEM_AVX'] = '0'
             ctx.env['PMEM_AVX512F'] = '0'
+            ctx.env['PMEM_MOVDIR64B'] = '0'
         elif ctx.variant() == VARIANT_AVX:
             ctx.env['PMEM_AVX'] = '1'
             ctx.env['PMEM_AVX512F'] = '0'
+            ctx.env['PMEM_MOVDIR64B'] = '0'
         elif ctx.variant() == VARIANT_AVX512F:
             ctx.env['PMEM_AVX'] = '0'
             ctx.env['PMEM_AVX512F'] = '1'
+            ctx.env['PMEM_MOVDIR64B'] = '0'
+        elif ctx.variant() == VARIANT_MOVDIR64B:
+            ctx.env['PMEM_AVX'] = '0'
+            ctx.env['PMEM_AVX512F'] = '0'
+            ctx.env['PMEM_MOVDIR64B'] = '1'
 
         filepath = ctx.create_holey_file(self.filesize, 'testfile',)
 
@@ -219,28 +240,32 @@ class TEST0(Pmem2MemExt):
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
+                          VARIANT_MOVDIR64B])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST1(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_SMALL
 
 
 @g.require_granularity(g.BYTE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
+                          VARIANT_MOVDIR64B])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST2(Pmem2MemExt):
     test_case = MATCH_BYTE_SMALL
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
+                          VARIANT_MOVDIR64B])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST3(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_BIG
 
 
 @g.require_granularity(g.BYTE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
+                          VARIANT_MOVDIR64B])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST4(Pmem2MemExt):
     test_case = MATCH_BYTE_BIG

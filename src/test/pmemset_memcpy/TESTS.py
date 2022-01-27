@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2022, Intel Corporation
 #
 
 from collections import namedtuple
@@ -72,3 +72,21 @@ class TEST3(PmemsetMemcpy):
 @t.add_params('wc_workaround', ['default'])
 class TEST4(PmemsetMemcpy):
     envs1 = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
+
+
+@t.require_architectures('x86_64')
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST5(PmemsetMemcpy):
+    envs0 = ("PMEM_MOVDIR64B",)
+
+
+@t.require_architectures('x86_64')
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST6(PmemsetMemcpy):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
+
+
+@t.require_architectures('x86_64')
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST7(PmemsetMemcpy):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)

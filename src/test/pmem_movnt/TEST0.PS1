@@ -1,6 +1,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2015-2022, Intel Corporation
 #
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -76,5 +76,9 @@ $Env:PMEM_NO_MOVNT = 1
 $Env:PMEM_NO_GENERIC_MEMCPY = 1
 
 test
+
+$Env:PMEM_MOVDIR64B = 0
+
+test_all
 
 pass
