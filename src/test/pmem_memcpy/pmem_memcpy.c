@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * pmem_memcpy.c -- unit test for doing a memcpy
@@ -109,11 +109,13 @@ main(int argc, char *argv[])
 	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	const char *avx = os_getenv("PMEM_AVX");
 	const char *avx512f = os_getenv("PMEM_AVX512F");
+	const char *movdir64b = os_getenv("PMEM_MOVDIR64B");
 
-	START(argc, argv, "pmem_memcpy %s %s %s %s %savx %savx512f",
+	START(argc, argv, "pmem_memcpy %s %s %s %s %savx %savx512f %smovdir64b",
 			argv[2], argv[3], argv[4], thr ? thr : "default",
 			avx ? "" : "!",
-			avx512f ? "" : "!");
+			avx512f ? "" : "!",
+			movdir64b ? "" : "!");
 
 	fd = OPEN(argv[1], O_RDWR);
 	int dest_off = atoi(argv[2]);
