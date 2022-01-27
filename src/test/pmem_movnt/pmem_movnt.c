@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * pmem_movnt.c -- unit test for MOVNT threshold
@@ -19,11 +19,13 @@ main(int argc, char *argv[])
 	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	const char *avx = os_getenv("PMEM_AVX");
 	const char *avx512f = os_getenv("PMEM_AVX512F");
+	const char *movdir64b = os_getenv("PMEM_MOVDIR64B");
 
-	START(argc, argv, "pmem_movnt %s %savx %savx512f",
+	START(argc, argv, "pmem_movnt %s %savx %savx512f %smovdir64b",
 			thr ? thr : "default",
 			avx ? "" : "!",
-			avx512f ? "" : "!");
+			avx512f ? "" : "!",
+			movdir64b ? "" : "!");
 
 	src = MEMALIGN(64, 8192);
 	dst = MEMALIGN(64, 8192);
