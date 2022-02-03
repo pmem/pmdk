@@ -57,9 +57,6 @@
     <ClCompile Include="..\..\libpmemobj\pmalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\ravl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -84,6 +81,7 @@
     <ClCompile Include="..\..\common\ctl_sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\core\ravl.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1">

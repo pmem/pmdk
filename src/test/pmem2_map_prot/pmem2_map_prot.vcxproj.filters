@@ -20,9 +20,6 @@
     <ClCompile Include="..\unittest\ut_pmem2_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\ravl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -68,13 +65,16 @@
     <ClCompile Include="..\unittest\ut_pmem2_setup.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\ravl_interval.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmem2\vm_reservation.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem2\vm_reservation_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\ravl_interval.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -94,7 +94,7 @@
     <ClInclude Include="..\unittest\ut_pmem2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpmem2\ravl_interval.h">
+    <ClInclude Include="..\..\core\ravl_interval.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

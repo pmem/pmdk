@@ -52,14 +52,10 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
-      platform: x64
       solutionname: PMDK.sln
       ex_solutionname: Examples.sln
-      msbuild: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin"
-      # Platform Toolset for Visual Studio 2019
-      platform_toolset: "v142"
       perl: "C:\\Strawberry\\perl\\bin"
     strategy:
       matrix:
@@ -67,11 +63,15 @@ jobs:
     steps:
        - name: Update Path
          run: |
-           echo "${env:msbuild}" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
            echo "${env:perl}" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
        - name: Clone the git repo
          uses: actions/checkout@v2
+
+       - name: Setup MSBuild.exe
+         uses: microsoft/setup-msbuild@v1.1
+         with:
+           msbuild-architecture: x64
 
        - name: Unshallow it
          run: git fetch --prune --unshallow
@@ -105,8 +105,8 @@ jobs:
 
        - name: Build
          run: |
-           msbuild src\$Env:solutionname -property:Configuration=${{ matrix.CONFIG }},PlatformToolset=$Env:platform_toolset -m -v:m
-           msbuild src\examples\$Env:ex_solutionname -property:Configuration=${{ matrix.CONFIG }},PlatformToolset=$Env:platform_toolset -m -v:m
+           msbuild src\$Env:solutionname -property:Configuration=${{ matrix.CONFIG }} -m -v:m
+           msbuild src\examples\$Env:ex_solutionname -property:Configuration=${{ matrix.CONFIG }} -m -v:m
 
        - name: Create ZIP archive
          run: utils/CREATE-ZIP.ps1 -b ${{ matrix.CONFIG }}

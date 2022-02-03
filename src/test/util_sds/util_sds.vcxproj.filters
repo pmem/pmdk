@@ -100,23 +100,23 @@
     <ClCompile Include="..\..\libpmem2\x86_64\memset\memset_t_avx.c">
       <Filter>Source Files\pmem2\x86_64</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\ravl.c">
-      <Filter>Source Files\pmem2</Filter>
-    </ClCompile>
     <ClCompile Include="..\unittest\ut_pmem2_source.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem2\deep_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\ravl_interval.c">
-      <Filter>Source Files\pmem2</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmem2\vm_reservation.c">
       <Filter>Source Files\pmem2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem2\vm_reservation_windows.c">
       <Filter>Source Files\pmem2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\ravl_interval.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
