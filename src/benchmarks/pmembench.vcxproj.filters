@@ -55,9 +55,6 @@
     <ClCompile Include="..\libpmemobj\critnib.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\ravl.c">
-      <Filter>pmemobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\libpmemobj\bucket.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
@@ -152,6 +149,9 @@
       <Filter>pmemobj</Filter>
     </ClCompile>
     <ClCompile Include="..\common\ctl_fallocate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

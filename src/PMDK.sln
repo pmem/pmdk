@@ -879,7 +879,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmem", "libpmem", "{F837
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{F8CCA5AE-2D75-4C79-BEAB-2588CD5956C8}"
 	ProjectSection(SolutionItems) = preProject
-		..\appveyor.yml = ..\appveyor.yml
 		..\utils\CHECK_WHITESPACE.PS1 = ..\utils\CHECK_WHITESPACE.PS1
 		..\utils\CREATE-ZIP.PS1 = ..\utils\CREATE-ZIP.PS1
 		..\utils\cstyle = ..\utils\cstyle

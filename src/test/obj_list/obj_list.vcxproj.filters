@@ -60,9 +60,6 @@
     <ClCompile Include="..\..\libpmemobj\pmalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\ravl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,6 +93,7 @@
     <ClCompile Include="..\..\common\ctl_fallocate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\core\ravl.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mocks_windows.h">

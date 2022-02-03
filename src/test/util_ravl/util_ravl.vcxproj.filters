@@ -14,7 +14,7 @@
     <ClCompile Include="util_ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\ravl.c">
+    <ClCompile Include="..\..\core\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
