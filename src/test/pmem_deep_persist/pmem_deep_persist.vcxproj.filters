@@ -75,9 +75,6 @@
     <ClCompile Include="..\..\libpmemobj\pmalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\ravl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -97,6 +94,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
+    <ClCompile Include="..\..\core\ravl.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1">
@@ -206,9 +204,6 @@
     <ClInclude Include="..\..\libpmemobj\pmemops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\ravl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\libpmemobj\recycler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -230,5 +225,6 @@
     <ClInclude Include="..\..\windows\include\win_mmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\core\ravl.h" />
   </ItemGroup>
 </Project>

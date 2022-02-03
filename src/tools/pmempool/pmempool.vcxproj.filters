@@ -95,9 +95,6 @@
     <ClCompile Include="..\..\libpmemobj\pmalloc.c">
       <Filter>libs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\ravl.c">
-      <Filter>libs</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\recycler.c">
       <Filter>libs</Filter>
     </ClCompile>
@@ -111,6 +108,9 @@
       <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem2/badblocks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
