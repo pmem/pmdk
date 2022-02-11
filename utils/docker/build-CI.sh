@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2021, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # build-CI.sh - runs a Docker container from a Docker image with environment
@@ -61,6 +61,10 @@ if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUIL
 if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_ENABLE=$NDCTL_ENABLE"; fi
 if [ -z "$PMEMSET_INSTALL" ]; then pmemset_install=; else pmemset_install="--env PMEMSET_INSTALL=$PMEMSET_INSTALL"; fi
 if [[ $UBSAN -eq 1 ]]; then for x in C CPP LD; do declare EXTRA_${x}FLAGS=-fsanitize=undefined; done; fi
+
+# XXX: Disable auto doc update to unblock builds until the script is updated
+# to push to the new website
+AUTO_DOC_UPDATE=0
 
 # Only run auto doc update on push events on "upstream" repo
 if [[ "${CI_EVENT_TYPE}" != "push" || "${CI_REPO_SLUG}" != "${GITHUB_REPO}" ]]; then
