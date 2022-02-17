@@ -7,6 +7,10 @@ set(DIR ${PARENT_DIR})
 set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/)
 set(EXAMPLES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../examples)
 
+if(NOT WIN32)
+	set(BUILD "")
+endif()
+
 function(setup)
 	execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${DIR})
 	execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${DIR})

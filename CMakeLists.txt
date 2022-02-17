@@ -1,12 +1,15 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2022, Intel Corporation
 #
 
 cmake_minimum_required(VERSION 3.3)
 
 project(miniasync C)
 set(MINIASYNC_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out CACHE STRING "")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out CACHE STRING "")
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 1)
@@ -16,10 +19,17 @@ set(VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 set(MINIASYNC_SOURCE_DIR ${MINIASYNC_ROOT_DIR}/src)
 set(MINIASYNC_INCLUDE_DIR ${MINIASYNC_ROOT_DIR}/src/include)
 set(EXAMPLES_DIR ${MINIASYNC_ROOT_DIR}/examples/)
+set(CORE_SOURCE_DIR ${MINIASYNC_SOURCE_DIR}/core)
+set(MINIASYNC_DML_SOURCE_DIR ${MINIASYNC_ROOT_DIR}/extras/dml)
+set(MINIASYNC_DML_INCLUDE_DIR ${MINIASYNC_ROOT_DIR}/extras/dml/include)
 
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set(TEST_DIR ${CMAKE_CURRENT_BINARY_DIR}/test
 	CACHE STRING "working directory for tests")
+
+if(WIN32)
+	set(MINIASYNC_INCLUDE_DIR_WIN ${CMAKE_SOURCE_DIR}/src/windows/include/)
+endif()
 
 option(COVERAGE "run coverage test" OFF)
 option(DEVELOPER_MODE "enable developer checks" OFF)
@@ -31,6 +41,7 @@ option(BUILD_DOC "build documentation" ON)
 option(BUILD_EXAMPLES "build examples" ON)
 option(BUILD_TESTS "build tests" ON)
 option(TESTS_USE_VALGRIND "enable tests with valgrind (if found)" ON)
+option(COMPILE_DML "compile miniasync dml implementation library" OFF)
 
 include(FindPerl)
 include(FindThreads)
@@ -40,7 +51,9 @@ include(GNUInstallDirs)
 include(${CMAKE_SOURCE_DIR}/cmake/functions.cmake)
 
 # look for pkg config (use it later for managing valgrind)
-find_package(PkgConfig REQUIRED)
+if(NOT WIN32)
+	find_package(PkgConfig REQUIRED)
+endif()
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Debug")
@@ -82,6 +95,14 @@ add_flag(-ggdb DEBUG)
 add_flag(-DDEBUG DEBUG)
 add_flag("-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2" RELEASE)
 
+if(WIN32)
+# It looks like the issue is still unfixed:
+# https://developercommunity.visualstudio.com/t/several-warnings-in-windows-sdk-100177630-in-windo/435362
+	add_flag(-DWIN32_LEAN_AND_MEAN)
+# Enable when all Warnings are fixed.
+	#add_flag(-WX)
+endif()
+
 if(USE_ASAN)
 	add_sanitizer_flag(address)
 endif()
@@ -108,7 +129,7 @@ endif()
 
 # add checkers for the root CMakeLists file and for cmake helper files
 add_check_whitespace(cmake-main ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt)
-add_check_whitespace(cmake-helpers ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
+add_check_whitespace(cmake-helpers "${CMAKE_CURRENT_SOURCE_DIR}/cmake/*[.cmake]")
 
 # add checkers for utils and subdirectories
 add_check_whitespace(utils-all
@@ -119,13 +140,23 @@ add_check_whitespace(utils-all
 		${CMAKE_CURRENT_SOURCE_DIR}/utils/md2man/*)
 
 # look for and enable valgrind
-pkg_check_modules(VALGRIND valgrind)
+if(NOT WIN32)
+	pkg_check_modules(VALGRIND valgrind)
+endif()
 
 configure_file(${CMAKE_SOURCE_DIR}/cmake/libminiasync.pc.in
 	${CMAKE_CURRENT_BINARY_DIR}/libminiasync.pc @ONLY)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libminiasync.pc
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+
+configure_file(
+	"${MINIASYNC_ROOT_DIR}/cmake/cmake_uninstall.cmake.in"
+	"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+	IMMEDIATE @ONLY)
+
+add_custom_target(uninstall
+	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
 configure_package_config_file(${CMAKE_SOURCE_DIR}/cmake/libminiasync-config.cmake.in
 	${CMAKE_CURRENT_BINARY_DIR}/libminiasync-config.cmake
@@ -173,4 +204,9 @@ endif()
 
 if(NOT "${CPACK_GENERATOR}" STREQUAL "")
 	include(${CMAKE_SOURCE_DIR}/cmake/packages.cmake)
+endif()
+
+# add CMakeLists.txt from the extras dml directory
+if (COMPILE_DML)
+	add_subdirectory(extras/dml)
 endif()

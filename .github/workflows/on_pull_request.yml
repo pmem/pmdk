@@ -26,8 +26,7 @@ jobs:
       matrix:
         CONFIG: ["N=1 OS=ubuntu OS_VER=21.04 TYPE=normal CC=gcc   COVERAGE=1",
                  "N=2 OS=ubuntu OS_VER=21.04 TYPE=normal CC=clang PUSH_IMAGE=1",
-                 "N=3 OS=fedora OS_VER=34    TYPE=normal CC=gcc   PUSH_IMAGE=1"]
-                 #"N=4 OS=fedora OS_VER=34    TYPE=normal CC=clang AUTO_DOC_UPDATE=1"]
+                 "N=3 OS=fedora OS_VER=35    TYPE=normal CC=gcc   PUSH_IMAGE=1"]
     steps:
        - name: Clone the git repo
          uses: actions/checkout@v1
@@ -40,3 +39,52 @@ jobs:
 
        - name: Push the image
          run: cd $WORKDIR && source ./set-vars.sh && ${{ matrix.CONFIG }} /bin/bash -c "if [[ -f ${CI_FILE_PUSH_IMAGE_TO_REPO} ]]; then images/push-image.sh; fi"
+
+  windows:
+    name: Windows
+    runs-on: windows-2022
+    env:
+      GENERATOR: "Visual Studio 17 2022"
+      ARCH:      "x64"
+      platform: x64
+      msbuild: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin"
+      # Platform Toolset for Visual Studio 2022
+      platform_toolset: "v143"
+      perl: "C:\\Strawberry\\perl\\bin"
+    strategy:
+      matrix:
+        BUILD_TYPE: [Debug, Release]
+    steps:
+        - name: Update Path
+          run: |
+            echo "${env:msbuild}" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        - name: Clone the git repo
+          uses: actions/checkout@v2
+
+        - name: Setup MSBuild.exe
+          uses: microsoft/setup-msbuild@v1.1
+          with:
+            msbuild-architecture: x64
+
+        - name: Unshallow it
+          run: git fetch --prune --unshallow
+
+        - name: Configure
+          run: cmake . -Bbuild
+                  -G "${env:GENERATOR}"
+                  -A "${env:ARCH}"
+                  -DCMAKE_BUILD_TYPE="${{ matrix.BUILD_TYPE }}"
+                  -DTESTS_USE_VALGRIND=OFF
+                  -DDEVELOPER_MODE=ON
+
+        - name: Build
+          run: msbuild build/ALL_BUILD.vcxproj /property:Configuration=${{ matrix.BUILD_TYPE }} /verbosity:minimal /m
+
+        - name: Tests
+          working-directory: build
+          run: ctest -C ${{ matrix.BUILD_TYPE }} --output-on-failure --timeout "${env:TEST_TIMEOUT}"
+
+        #- name: Examples
+          #working-directory: examples
+          #run: cmake .
+               #msbuild
