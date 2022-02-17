@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2022, Intel Corporation
 
 #
 # doc/CMakeLists.txt - prepares 'make doc' command for documentation
@@ -68,8 +68,27 @@ if(PANDOC)
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_vdm.3.md.in
 		${MAN_DIR}/tmp/miniasync_vdm.3.md)
 	configure_man(miniasync_vdm.3 ${MAN_DIR}/tmp/miniasync_vdm.3.md)
-	add_manpage_links(miniasync_vdm.3
-		vdm_descriptor_synchronous vdm_descriptor_pthreads vdm_new vdm_delete)
+	add_manpage_links(miniasync_vdm.3 vdm_memcpy vdm_new vdm_delete)
+
+	# miniasync_vdm_synchronous.3
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_vdm_synchronous.3.md.in
+			${MAN_DIR}/tmp/miniasync_vdm_synchronous.3.md)
+	configure_man(miniasync_vdm_synchronous.3 ${MAN_DIR}/tmp/miniasync_vdm_synchronous.3.md)
+	add_manpage_links(miniasync_vdm_synchronous.3 vdm_descriptor_synchronous)
+
+	# miniasync_vdm_threads.3
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_vdm_threads.3.md.in
+			${MAN_DIR}/tmp/miniasync_vdm_threads.3.md)
+	configure_man(miniasync_vdm_threads.3 ${MAN_DIR}/tmp/miniasync_vdm_threads.3.md)
+	add_manpage_links(miniasync_vdm_threads.3
+		vdm_descriptor_threads vdm_descriptor_threads_polled)
+
+	# miniasync_vdm_dml.3
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_vdm_dml.3.md.in
+	${MAN_DIR}/tmp/miniasync_vdm_dml.3.md)
+	configure_man(miniasync_vdm_dml.3 ${MAN_DIR}/tmp/miniasync_vdm_dml.3.md)
+	add_manpage_links(miniasync_vdm_dml.3
+		vdm_descriptor_dml vdm_descriptor_dml_async)
 
 	# install manpages
 	install(FILES ${MAN_DIR}/miniasync.7

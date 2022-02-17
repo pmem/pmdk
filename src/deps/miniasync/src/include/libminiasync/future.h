@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 /*
  * future.h - public definitions for the future type, its associated state and
@@ -31,9 +31,6 @@
  * indicates otherwise, futures can be moved in memory and don't always have
  * to be polled by the same thread.
  *
- * TODO: Any future with an inline value that is updated externally,
- * like in DSA or io_uring, is not safe to move in memory.
- *
  * Optionally, future implementations can accept wakers for use in polling.
  * A future can use a waker to signal the caller that some progress can be made
  * and the future should be polled again. This is useful to avoid busy polling
@@ -64,8 +61,13 @@
 #ifndef FUTURE_H
 #define FUTURE_H 1
 
-#include <unistd.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <emmintrin.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum future_state {
 	FUTURE_STATE_IDLE,
@@ -74,9 +76,10 @@ enum future_state {
 };
 
 struct future_context {
-	enum future_state state;
 	size_t data_size;
 	size_t output_size;
+	enum future_state state;
+	uint32_t padding;
 };
 
 typedef void (*future_waker_wake_fn)(void *data);
@@ -84,6 +87,23 @@ typedef void (*future_waker_wake_fn)(void *data);
 struct future_waker {
 	void *data;
 	future_waker_wake_fn wake;
+};
+
+struct future_poller {
+	uint64_t *ptr_to_monitor;
+};
+
+enum future_notifier_type {
+	FUTURE_NOTIFIER_NONE,
+	FUTURE_NOTIFIER_WAKER,
+	FUTURE_NOTIFIER_POLLER,
+};
+
+struct future_notifier {
+	struct future_waker waker;
+	struct future_poller poller;
+	enum future_notifier_type notifier_used;
+	uint32_t padding;
 };
 
 void *future_context_get_data(struct future_context *context);
@@ -96,7 +116,7 @@ size_t future_context_get_size(struct future_context *context);
 ((_wakerp)->wake((_wakerp)->data))
 
 typedef enum future_state (*future_task_fn)(struct future_context *context,
-			struct future_waker waker);
+			struct future_notifier *notifier);
 
 struct future {
 	future_task_fn task;
@@ -136,7 +156,7 @@ struct {\
 	future_map_fn map;\
 	void *arg;\
 	_future_type fut;\
-} _name;
+} _name
 
 #define FUTURE_CHAIN_ENTRY_INIT(_entry, _fut, _map, _map_arg)\
 do {\
@@ -145,18 +165,25 @@ do {\
 	(_entry)->arg = _map_arg;\
 } while (0)
 
-struct future_waker future_noop_waker(void);
-
-enum future_state future_poll(struct future *fut, struct future_waker waker);
+/*
+ * TODO: Notifiers have to be copied into the state of the future, so we might
+ * consider just passing it by copy here... Needs to be evaluated for
+ * performance.
+ */
+enum future_state future_poll(struct future *fut,
+	struct future_notifier *notifier);
 
 #define FUTURE_BUSY_POLL(_futurep)\
-while (future_poll(FUTURE_AS_RUNNABLE((_futurep)), future_noop_waker()) !=\
-	FUTURE_STATE_COMPLETE) {}
+while (future_poll(FUTURE_AS_RUNNABLE((_futurep)), NULL) !=\
+	FUTURE_STATE_COMPLETE) { _mm_pause(); }
 
 enum future_state async_chain_impl(struct future_context *ctx,
-	struct future_waker waker);
+	struct future_notifier *notifier);
 
 #define FUTURE_CHAIN_INIT(_futurep)\
 FUTURE_INIT((_futurep), async_chain_impl)
 
+#ifdef __cplusplus
+}
 #endif
+#endif /* FUTURE_H */

@@ -42,6 +42,7 @@ List of options provided by CMake:
 | TESTS_USE_VALGRIND | Enable tests with valgrind | ON/OFF | ON |
 | TEST_DIR | Working directory for tests | *dir path* | ./build/tests |
 | CMAKE_BUILD_TYPE | Choose the type of build | None/Debug/Release/RelWithDebInfo | Debug |
+| COMPILE_DML | Compile DML implementation of miniasync | ON/OFF | OFF |
 
 ## Running
 

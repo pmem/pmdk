@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2022, Intel Corporation
 #
 
 #
@@ -143,6 +143,28 @@ rm -rf $WORKDIR/build
 
 echo
 echo "##################################################################"
+echo "### Verify build with ASAN and UBSAN ($CC, DEBUG, DML)"
+echo "##################################################################"
+
+mkdir -p $WORKDIR/build
+cd $WORKDIR/build
+
+CC=$CC \
+cmake .. -DCMAKE_BUILD_TYPE=Debug \
+	-DCHECK_CSTYLE=${CHECK_CSTYLE} \
+	-DDEVELOPER_MODE=1 \
+	-DUSE_ASAN=${CI_SANITS} \
+	-DUSE_UBSAN=${CI_SANITS} \
+	-DTEST_DIR=$TEST_DIR \
+	-DCOMPILE_DML=1
+make -j$(nproc)
+ctest --output-on-failure
+
+cd $WORKDIR
+rm -rf $WORKDIR/build
+
+echo
+echo "##################################################################"
 echo "### Verify build and install (in dir: ${PREFIX}) ($CC, DEBUG)"
 echo "##################################################################"
 
@@ -156,10 +178,9 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug \
 	-DCHECK_CSTYLE=${CHECK_CSTYLE} \
 	-DDEVELOPER_MODE=1 \
 	-DTEST_DIR=$TEST_DIR
-
 make -j$(nproc)
 ctest --output-on-failure
-#sudo_password -S make -j$(nproc) install
+sudo_password -S make -j$(nproc) install
 
 if [ "$COVERAGE" == "1" ]; then
 	upload_codecov tests
@@ -175,7 +196,46 @@ fi
 
 # Uninstall libraries
 cd $WORKDIR/build
-#sudo_password -S make uninstall
+sudo_password -S make uninstall
+
+cd $WORKDIR
+rm -rf $WORKDIR/build
+
+echo
+echo "##################################################################"
+echo "### Verify build and install (in dir: ${PREFIX}) ($CC, DEBUG, DML)"
+echo "##################################################################"
+
+mkdir -p $WORKDIR/build
+cd $WORKDIR/build
+
+CC=$CC \
+cmake .. -DCMAKE_BUILD_TYPE=Debug \
+	-DCMAKE_INSTALL_PREFIX=$PREFIX \
+	-DCOVERAGE=$COVERAGE \
+	-DCHECK_CSTYLE=${CHECK_CSTYLE} \
+	-DDEVELOPER_MODE=1 \
+	-DTEST_DIR=$TEST_DIR \
+	-DCOMPILE_DML=1
+make -j$(nproc)
+ctest --output-on-failure
+sudo_password -S make -j$(nproc) install
+
+if [ "$COVERAGE" == "1" ]; then
+	upload_codecov tests
+fi
+
+# Create a PR with generated docs
+if [ "$AUTO_DOC_UPDATE" == "1" ]; then
+	echo "Running auto doc update"
+	../utils/docker/run-doc-update.sh
+fi
+
+#test_compile_all_examples_standalone
+
+# Uninstall libraries
+cd $WORKDIR/build
+sudo_password -S make uninstall
 
 cd $WORKDIR
 rm -rf $WORKDIR/build
@@ -195,7 +255,6 @@ cmake .. -DCMAKE_BUILD_TYPE=Release \
 	-DCHECK_CSTYLE=${CHECK_CSTYLE} \
 	-DDEVELOPER_MODE=1 \
 	-DTEST_DIR=$TEST_DIR
-
 make -j$(nproc)
 ctest --output-on-failure
 
@@ -240,8 +299,8 @@ fi
 if [ "$PACKAGE_MANAGER" = "" ]; then
 	:
 	# uninstall the library, since it was installed from sources
-	# cd $WORKDIR/build
-	# sudo_password -S make uninstall
+	cd $WORKDIR/build
+	sudo_password -S make uninstall
 elif [ $PACKAGE_MANAGER = "deb" ]; then
 	echo "sudo -S dpkg --remove libminiasync-dev"
 	echo $USERPASS | sudo -S dpkg --remove libminiasync-dev

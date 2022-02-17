@@ -20,6 +20,10 @@
 
 #include "future.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct runtime;
 
 struct runtime *runtime_new(void);
@@ -30,4 +34,7 @@ void runtime_wait_multiple(struct runtime *runtime, struct future *futs[],
 
 void runtime_wait(struct runtime *runtime, struct future *fut);
 
+#ifdef __cplusplus
+}
 #endif
+#endif /* RUNTIME_H */

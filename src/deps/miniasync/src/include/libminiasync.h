@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 /*
  * libminiasync.h -- definition of libminiasync
@@ -13,6 +13,8 @@
 
 #include "libminiasync/future.h"
 #include "libminiasync/vdm.h"
+#include "libminiasync/data_mover_threads.h"
+#include "libminiasync/data_mover_sync.h"
 #include "libminiasync/runtime.h"
 
 #ifdef __cplusplus

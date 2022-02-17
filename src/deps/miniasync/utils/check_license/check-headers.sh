@@ -5,7 +5,6 @@
 # check-headers.sh - check copyright and license in source files
 
 SELF=$0
-DIR=$(pwd)/$(dirname $SELF)
 
 function usage() {
 	echo "Usage: $SELF <source_root_path> <license_tag> [-h|-v|-a]"
@@ -35,13 +34,7 @@ if [ "$1" == "-h" -o "$1" == "--help" ]; then
 	exit 0
 fi
 
-#
-# "git -C ${SOURCE_ROOT}" is not supported on CentOS-7,
-# so let's do it using the 'cd' command.
-# Leave 'export GIT="git"' for consistency with the PMDK's version.
-#
-cd ${SOURCE_ROOT}
-export GIT="git"
+export GIT="git -C ${SOURCE_ROOT}"
 $GIT rev-parse || exit 1
 
 if [ -f $SOURCE_ROOT/.git/shallow ]; then
@@ -73,7 +66,7 @@ if [ $CHECK_ALL -eq 0 ]; then
 	MERGE_BASE=$($GIT merge-base HEAD origin/master 2>/dev/null)
 	[ -z $MERGE_BASE ] && \
 		MERGE_BASE=$($GIT log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
-	[ -z "$MERGE_BASE" -o "$CURRENT_COMMIT" == "$MERGE_BASE" ] && \
+	[ -z $MERGE_BASE -o "$CURRENT_COMMIT" = "$MERGE_BASE" ] && \
 		CHECK_ALL=1
 fi
 
@@ -97,7 +90,7 @@ FILES=$($GIT $GIT_COMMAND | ${SOURCE_ROOT}/utils/check_license/file-exceptions.s
 	grep    -E -e '*\.[chs]$' -e '*\.[ch]pp$' -e '*\.sh$' \
 		   -e '*\.py$' -e '*\.link$' -e 'Makefile*' -e 'TEST*' \
 		   -e '/common.inc$' -e '/match$' -e '/check_whitespace$' \
-		   -e 'LICENSE$' -e 'CMakeLists.txt$' -e '*\.cmake$' -e '/Dockerfile.*' | \
+		   -e 'LICENSE$' -e 'CMakeLists.txt$' -e '*\.cmake$' | \
 	xargs)
 
 RV=0
@@ -111,21 +104,21 @@ for file in $FILES ; do
 	iconv -f $ENCODING -t "UTF-8" $src_path > $TEMPFILE
 
 	if ! grep -q "SPDX-License-Identifier: $LICENSE" $src_path; then
-		echo "error: no $LICENSE SPDX tag in file: $src_path" >&2
+		echo "$src_path:1: no $LICENSE SPDX tag found " >&2
 		RV=1
-	elif [[ $file == *.c ]]; then
+	elif [[ $file == *.c ]] || [[ $file == *.cpp ]]; then
 		if ! grep -q -e "\/\/ SPDX-License-Identifier: $LICENSE" $src_path; then
-			echo "error: wrong format of SPDX tag in the file: $src_path" >&2
+			echo "$src_path:1: wrong format of $LICENSE SPDX tag" >&2
 			RV=1
 		fi
-	elif [[ $file == *.h ]]; then
+	elif [[ $file == *.h ]] || [[ $file == *.hpp ]]; then
 		if ! grep -q -e "\/\* SPDX-License-Identifier: $LICENSE \*\/" $src_path; then
-			echo "error: wrong format of SPDX tag in the file: $src_path" >&2
+			echo "$src_path:1: wrong format of $LICENSE SPDX tag" >&2
 			RV=1
 		fi
 	elif [[ $file != LICENSE ]]; then
 		if ! grep -q -e "# SPDX-License-Identifier: $LICENSE" $src_path; then
-			echo "error: wrong format of SPDX tag in the file: $src_path" >&2
+			echo "$src_path:1: wrong format of $LICENSE SPDX tag" >&2
 			RV=1
 		fi
 	fi
@@ -157,7 +150,7 @@ for file in $FILES ; do
 s/.*Copyright \([0-9]\+\)-\([0-9]\+\),.*/\1-\2/
 s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 	if [ -z "$YEARS" ]; then
-		echo >&2 "No copyright years in $src_path"
+		echo >&2 "$src_path:1: No copyright years found"
 		RV=1
 		continue
 	fi
@@ -182,13 +175,13 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 			RV=1
 		fi
 	else
-		echo "error: unknown commit dates in file: $file" >&2
+		echo "$file:1: unknown commit dates" >&2
 		RV=1
 	fi
 done
 rm -f $TMP $TMP2 $TEMPFILE
 
-$DIR/check-ms-license.pl $FILES
+$(dirname "$0")/check-ms-license.pl $FILES
 
 # check if error found
 if [ $RV -eq 0 ]; then
