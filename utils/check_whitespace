@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2015-2022, Intel Corporation
 
 #
 # check_whitespace -- scrub source tree for whitespace errors
@@ -111,6 +111,7 @@ sub check_whitespace_with_exc {
 
 	return 0 if /^[.\/]*src\/common\/queue\.h/;
 	return 0 if /^[.\/]*src\/core\/valgrind\/.*\.h/;
+	return 0 if /^[.\/]*src\/deps\/miniasync\/src\/core\/valgrind\/.*\.h/;
 
 	$_ = basename($full);
 

@@ -8,13 +8,13 @@ include(${SRC_DIR}/cmake/test_helpers.cmake)
 setup()
 
 # compare expected exit code with the actual exit code
-execute(1 ${TEST_DIR}/dummy_negative)
+execute(1 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/dummy_negative)
 
 # If we don't know the exact expected exit code, we can use
 # execute_assert_fail function, which checks if the
 # exit code is different than zero, in which case,
 # the test passes. This function cannot be used with a tracer.
 # When used with a tracer assert_fail will be skipped.
-execute_assert_fail(${TEST_DIR}/dummy_negative)
+execute_assert_fail(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/dummy_negative)
 
 cleanup()
