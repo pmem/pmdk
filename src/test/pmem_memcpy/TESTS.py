@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2022, Intel Corporation
 
 from collections import namedtuple
 
@@ -58,3 +58,18 @@ class TEST3(PmemMemcpy):
 
 class TEST4(PmemMemcpy):
     envs1 = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
+
+
+@t.require_architectures('x86_64')
+class TEST5(PmemMemcpy):
+    envs0 = ("PMEM_MOVDIR64B",)
+
+
+@t.require_architectures('x86_64')
+class TEST6(PmemMemcpy):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
+
+
+@t.require_architectures('x86_64')
+class TEST7(PmemMemcpy):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)

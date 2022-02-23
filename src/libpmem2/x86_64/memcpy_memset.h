@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 #ifndef MEMCPY_MEMSET_H
 #define MEMCPY_MEMSET_H
@@ -68,6 +68,17 @@ static force_inline void
 no_barrier(void)
 {
 }
+
+#ifndef MOVDIR64B_AVAILABLE
+/*
+ * XXX not supported in MSVC version we currently use.
+ */
+#ifdef _MSC_VER
+#define MOVDIR64B_AVAILABLE 0
+#else
+#define MOVDIR64B_AVAILABLE 1
+#endif
+#endif
 
 #ifndef AVX512F_AVAILABLE
 /*
@@ -207,6 +218,30 @@ void memset_movnt_avx512f_clflushopt(char *dest, int c, size_t len);
 void memset_movnt_avx512f_clwb(char *dest, int c, size_t len);
 void memset_movnt_avx512f_empty(char *dest, int c, size_t len);
 void memset_movnt_avx512f_noflush(char *dest, int c, size_t len);
+#endif
+
+#if MOVDIR64B_AVAILABLE
+void memmove_mov_movdir64b_clflush(char *dest, const char *src, size_t len);
+void memmove_mov_movdir64b_clflushopt(char *dest, const char *src, size_t len);
+void memmove_mov_movdir64b_clwb(char *dest, const char *src, size_t len);
+void memmove_mov_movdir64b_empty(char *dest, const char *src, size_t len);
+void memmove_mov_movdir64b_noflush(char *dest, const char *src, size_t len);
+void memmove_movnt_movdir64b_clflush(char *dest, const char *src, size_t len);
+void memmove_movnt_movdir64b_clflushopt(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_movdir64b_clwb(char *dest, const char *src, size_t len);
+void memmove_movnt_movdir64b_empty(char *dest, const char *src, size_t len);
+void memmove_movnt_movdir64b_noflush(char *dest, const char *src, size_t len);
+void memset_mov_movdir64b_clflush(char *dest, int c, size_t len);
+void memset_mov_movdir64b_clflushopt(char *dest, int c, size_t len);
+void memset_mov_movdir64b_clwb(char *dest, int c, size_t len);
+void memset_mov_movdir64b_empty(char *dest, int c, size_t len);
+void memset_mov_movdir64b_noflush(char *dest, int c, size_t len);
+void memset_movnt_movdir64b_clflush(char *dest, int c, size_t len);
+void memset_movnt_movdir64b_clflushopt(char *dest, int c, size_t len);
+void memset_movnt_movdir64b_clwb(char *dest, int c, size_t len);
+void memset_movnt_movdir64b_empty(char *dest, int c, size_t len);
+void memset_movnt_movdir64b_noflush(char *dest, int c, size_t len);
 #endif
 
 extern size_t Movnt_threshold;

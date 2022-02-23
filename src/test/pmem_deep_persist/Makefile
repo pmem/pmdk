@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2021, Intel Corporation
+# Copyright 2017-2022, Intel Corporation
 
 #
 # src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
@@ -38,7 +38,7 @@ LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 
-CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
+CFLAGS += -DSRCVERSION="" -DDEBUG -DMOVDIR64B_AVAILABLE=0 -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
 CFLAGS += -I$(TOP)/src/libpmem
 CFLAGS += -I$(TOP)/src/libpmem2
 CFLAGS += -I$(TOP)/src/libpmemobj/

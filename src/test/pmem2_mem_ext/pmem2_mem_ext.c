@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 /*
  * pmem2_mem_ext.c -- test for low level functions from libpmem2
@@ -77,11 +77,13 @@ main(int argc, char *argv[])
 	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	const char *avx = os_getenv("PMEM_AVX");
 	const char *avx512f = os_getenv("PMEM_AVX512F");
+	const char *movdir64b = os_getenv("PMEM_MOVDIR64B");
 
-	START(argc, argv, "pmem2_mem_ext %s %savx %savx512f",
+	START(argc, argv, "pmem2_mem_ext %s %savx %savx512f %smovdir64b",
 			thr ? thr : "default",
 			avx ? "" : "!",
-			avx512f ? "" : "!");
+			avx512f ? "" : "!",
+			movdir64b ? "" : "!");
 	util_init();
 
 	char type = argv[2][0];

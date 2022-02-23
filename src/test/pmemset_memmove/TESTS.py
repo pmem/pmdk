@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2022, Intel Corporation
 #
 
 import testframework as t
@@ -83,3 +83,18 @@ class TEST3(PmemsetMemmove):
 
 class TEST4(PmemsetMemmove):
     envs1 = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
+
+
+@t.require_architectures('x86_64')
+class TEST5(PmemsetMemmove):
+    envs0 = ("PMEM_MOVDIR64B",)
+
+
+@t.require_architectures('x86_64')
+class TEST6(PmemsetMemmove):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
+
+
+@t.require_architectures('x86_64')
+class TEST7(PmemsetMemmove):
+    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)
