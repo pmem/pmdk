@@ -121,8 +121,10 @@ membuf_get_threadbuf(struct membuf *membuf)
 		 * from contained pointers to access metadata (like user_data).
 		 */
 		tbuf = util_aligned_malloc(MEMBUF_ALIGNMENT, MEMBUF_LEN);
-		if (tbuf == NULL)
+		if (tbuf == NULL) {
+			os_mutex_unlock(&membuf->lists_lock);
 			return NULL;
+		}
 
 		tbuf->next = membuf->tbuf_first;
 		membuf->tbuf_first = tbuf;

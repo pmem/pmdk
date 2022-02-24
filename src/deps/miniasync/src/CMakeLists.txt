@@ -19,9 +19,7 @@ add_check_whitespace(src
 	${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt)
 
 set(SOURCES
-    future.c
     runtime.c
-    vdm.c
     data_mover_threads.c
     data_mover_sync.c
 )
@@ -39,7 +37,6 @@ else()
 endif()
 
 set(CORE_DEPS ${CORE_DEPS}
-	${CORE_SOURCE_DIR}/alloc.c
 	${CORE_SOURCE_DIR}/cpu.c
 	${CORE_SOURCE_DIR}/membuf.c
 	${CORE_SOURCE_DIR}/out.c

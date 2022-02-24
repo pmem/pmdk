@@ -113,7 +113,15 @@ main(void)
 	size_t otherbuf_size = strlen("otherbuf");
 
 	char *buf_a = malloc(testbuf_size + 1);
+	if (buf_a == NULL) {
+		fprintf(stderr, "Failed to create buf_a\n");
+		return 1;
+	}
 	char *buf_b = malloc(otherbuf_size + 1);
+	if (buf_b == NULL) {
+		fprintf(stderr, "Failed to create buf_b\n");
+		return 1;
+	}
 
 	memcpy(buf_a, "testbuf", testbuf_size + 1);
 	memcpy(buf_b, "otherbuf", otherbuf_size + 1);
@@ -121,6 +129,11 @@ main(void)
 	struct runtime *r = runtime_new();
 
 	struct data_mover_threads *dmt = data_mover_threads_default();
+	if (dmt == NULL) {
+		fprintf(stderr, "Failed to allocate data mover.\n");
+		runtime_delete(r);
+		return 1;
+	}
 	struct vdm *thread_mover = data_mover_threads_get_vdm(dmt);
 
 	/*

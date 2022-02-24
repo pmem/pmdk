@@ -146,6 +146,8 @@ data_mover_threads_operation_new(struct vdm *vdm,
 	struct data_mover_threads_op *op =
 		membuf_alloc(dmt_threads->membuf,
 		sizeof(struct data_mover_threads_op));
+	if (op == NULL)
+		return NULL;
 
 	op->complete = 0;
 	op->started = 0;

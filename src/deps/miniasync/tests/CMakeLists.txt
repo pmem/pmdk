@@ -46,15 +46,17 @@ add_check_whitespace(tests-all
 
 include_directories(
 		${MINIASYNC_SOURCE_DIR}
-		${MINIASYNC_INCLUDE_DIR})
+		${MINIASYNC_INCLUDE_DIR}
+		${CMAKE_CURRENT_SOURCE_DIR})
+
 # add and link all the executables for tests
 add_link_executable(dummy
 		"${SOURCES_DUMMY_TEST}"
-        "${LIBS_BASIC}")
+		"${LIBS_BASIC}")
 
 add_link_executable(dummy_negative
 		"${SOURCES_DUMMY_NEGATIVE_TEST}"
-        "${LIBS_BASIC}")
+		"${LIBS_BASIC}")
 
 add_link_executable(memcpy_threads
 		"${SOURCES_MEMCPY_PTHREADS_TEST}"

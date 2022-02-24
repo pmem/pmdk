@@ -19,6 +19,11 @@ main(void)
 	struct runtime *r = runtime_new();
 
 	struct data_mover_threads *dmt = data_mover_threads_default();
+	if (dmt == NULL) {
+			fprintf(stderr, "Failed to allocate data mover.\n");
+			runtime_delete(r);
+			return 1;
+	}
 	struct vdm *vdm = data_mover_threads_get_vdm(dmt);
 
 	/*
@@ -31,6 +36,13 @@ main(void)
 		char *dst1 = malloc(TEST_SIZE * sizeof(char));
 		char *src2 = malloc(TEST_SIZE * 2 * sizeof(char));
 		char *dst2 = malloc(TEST_SIZE * 2 * sizeof(char));
+		if (src1 == NULL || dst1 == NULL ||
+			src2 == NULL || dst2 == NULL) {
+			fprintf(stderr, "Failed to allocate memory.\n");
+			runtime_delete(r);
+			data_mover_threads_delete(dmt);
+			return 1;
+		}
 
 		memset(src1, 7, TEST_SIZE);
 		memset(src2, 6, TEST_SIZE * 2);

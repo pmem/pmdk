@@ -15,7 +15,6 @@
 #include "os.h"
 #include "os_thread.h"
 #include "sys_util.h"
-#include "alloc.h"
 
 #ifdef _WIN32
 #define __sync_synchronize() MemoryBarrier()
@@ -61,18 +60,18 @@ ringbuf_new(unsigned length)
 		return NULL;
 
 	struct ringbuf *rbuf =
-		Zalloc(sizeof(*rbuf) + (length * sizeof(void *)));
+		calloc(length * sizeof(void *), sizeof(*rbuf));
 	if (rbuf == NULL)
 		return NULL;
 
 	if (os_semaphore_init(&rbuf->nfree, length)) {
-		Free(rbuf);
+		free(rbuf);
 		return NULL;
 	}
 
 	if (os_semaphore_init(&rbuf->nused, 0)) {
 		util_semaphore_destroy(&rbuf->nfree);
-		Free(rbuf);
+		free(rbuf);
 		return NULL;
 	}
 
@@ -131,7 +130,7 @@ ringbuf_delete(struct ringbuf *rbuf)
 	ASSERTeq(rbuf->read_pos, rbuf->write_pos);
 	util_semaphore_destroy(&rbuf->nfree);
 	util_semaphore_destroy(&rbuf->nused);
-	Free(rbuf);
+	free(rbuf);
 }
 
 /*

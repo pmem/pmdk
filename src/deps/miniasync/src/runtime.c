@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 #include "libminiasync/runtime.h"
 #include "core/os_thread.h"
@@ -32,6 +32,9 @@ struct runtime *
 runtime_new(void)
 {
 	struct runtime *runtime = malloc(sizeof(struct runtime));
+	if (runtime == NULL)
+		return NULL;
+
 	os_cond_init(&runtime->cond);
 	os_mutex_init(&runtime->lock);
 	runtime->spins_before_sleep = 1000;

@@ -1,14 +1,9 @@
 LIBRARY MINIASYNC
 EXPORTS
-    future_context_get_data
-    future_context_get_output
-    future_poll
-    async_chain_impl
     runtime_new
     runtime_delete
     runtime_wait_multiple
     runtime_wait
-    vdm_memcpy
     data_mover_sync_new
     data_mover_sync_get_vdm
     data_mover_sync_delete
