@@ -565,9 +565,9 @@ void
 os_cpu_set(size_t cpu, os_cpu_set_t *set)
 {
 	internal_os_cpu_set_t *internal_set = (internal_os_cpu_set_t *)set;
-	int sum = 0;
-	int group_max = GetActiveProcessorGroupCount();
-	int group = 0;
+	size_t sum = 0;
+	WORD group_max = GetActiveProcessorGroupCount();
+	WORD group = 0;
 	while (group < group_max) {
 		sum += GetActiveProcessorCount(group);
 		if (sum > cpu) {

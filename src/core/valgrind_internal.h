@@ -8,13 +8,12 @@
 #ifndef MINIASYNC_VALGRIND_INTERNAL_H
 #define MINIASYNC_VALGRIND_INTERNAL_H 1
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-function"
-
 #if !defined(_WIN32) && !defined(__FreeBSD__) && !defined(__riscv)
 #ifndef VALGRIND_ENABLED
 #define VALGRIND_ENABLED 1
 #endif
+#else
+#define VALGRIND_ENABLED 0
 #endif
 
 #if VALGRIND_ENABLED
@@ -22,6 +21,11 @@
 #define VG_HELGRIND_ENABLED 1
 #define VG_MEMCHECK_ENABLED 1
 #define VG_DRD_ENABLED 1
+#else
+#define VG_PMEMCHECK_ENABLED 0
+#define VG_HELGRIND_ENABLED 0
+#define VG_MEMCHECK_ENABLED 0
+#define VG_DRD_ENABLED 0
 #endif
 
 #if VG_PMEMCHECK_ENABLED || VG_HELGRIND_ENABLED || VG_MEMCHECK_ENABLED || \
@@ -434,7 +438,5 @@ extern unsigned _On_memcheck;
 	do { (void) (addr); (void) (len); } while (0)
 
 #endif
-
-#pragma GCC diagnostic pop
 
 #endif

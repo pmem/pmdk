@@ -43,7 +43,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "alloc.h"
 #include "util.h"
 #include "os.h"
 #include "out.h"
@@ -268,7 +267,7 @@ os_mkstemp(char *temp)
 		return -1;
 	}
 
-	wchar_t *npath = Malloc(sizeof(*npath) * wcslen(path) + _MAX_FNAME);
+	wchar_t *npath = malloc(sizeof(*npath) * wcslen(path) + _MAX_FNAME);
 	if (npath == NULL) {
 		util_free_UTF16(utemp);
 		return -1;
@@ -299,7 +298,7 @@ os_mkstemp(char *temp)
 		S_IWRITE | S_IREAD);
 
 out:
-	Free(npath);
+	free(npath);
 	return ret;
 }
 
@@ -620,7 +619,7 @@ os_execv(const char *path, char *const argv[])
 		argc++;
 
 	int ret;
-	wchar_t **wargv = Zalloc((argc + 1) * sizeof(wargv[0]));
+	wchar_t **wargv = calloc(argc + 1, sizeof(wargv[0]));
 	if (!wargv) {
 		ret = -1;
 		goto wargv_alloc_failed;
@@ -643,7 +642,7 @@ os_execv(const char *path, char *const argv[])
 end:
 	for (int i = 0; i < argc; ++i)
 		util_free_UTF16(wargv[i]);
-	Free(wargv);
+	free(wargv);
 
 wargv_alloc_failed:
 	util_free_UTF16(wpath);

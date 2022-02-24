@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * util_windows.c -- misc utilities with OS-specific implementation
@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <tchar.h>
 
-#include "alloc.h"
 #include "util.h"
 #include "out.h"
 #include "os.h"
@@ -123,14 +122,14 @@ util_tmpfile(const char *dir, const char *templ, int flags)
 	int fd = -1;
 
 	size_t len = strlen(dir) + strlen(templ) + 1;
-	char *fullname = Malloc(sizeof(*fullname) * len);
+	char *fullname = malloc(sizeof(*fullname) * len);
 	if (fullname == NULL) {
-		ERR("!Malloc");
+		ERR("!malloc");
 		return -1;
 	}
 
 	int ret = _snprintf(fullname, len, "%s%s", dir, templ);
-	if (ret < 0 || ret >= len) {
+	if (ret < 0 || (size_t)ret >= len) {
 		ERR("snprintf: %d", ret);
 		goto err;
 	}
@@ -157,11 +156,11 @@ util_tmpfile(const char *dir, const char *templ, int flags)
 	 * the filesystem.
 	 */
 
-	Free(fullname);
+	free(fullname);
 	return fd;
 
 err:
-	Free(fullname);
+	free(fullname);
 	oerrno = errno;
 	if (fd != -1)
 		(void) os_close(fd);
@@ -198,13 +197,13 @@ util_toUTF8(const wchar_t *wstr)
 	if (size == 0)
 		goto err;
 
-	char *str = Malloc(size * sizeof(char));
+	char *str = malloc(size * sizeof(char));
 	if (str == NULL)
 		goto out;
 
 	if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1, str,
 		size, NULL, NULL) == 0) {
-		Free(str);
+		free(str);
 		goto err;
 	}
 
@@ -220,7 +219,7 @@ err:
  * util_free_UTF8 -- free UTF8 string
  */
 void util_free_UTF8(char *str) {
-	Free(str);
+	free(str);
 }
 
 /*
@@ -234,13 +233,13 @@ util_toUTF16(const char *str)
 	if (size == 0)
 		goto err;
 
-	wchar_t *wstr = Malloc(size * sizeof(wchar_t));
+	wchar_t *wstr = malloc(size * sizeof(wchar_t));
 	if (wstr == NULL)
 		goto out;
 
 	if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, wstr,
 		size) == 0) {
-		Free(wstr);
+		free(wstr);
 		goto err;
 	}
 
@@ -258,7 +257,7 @@ err:
 void
 util_free_UTF16(wchar_t *wstr)
 {
-	Free(wstr);
+	free(wstr);
 }
 
 /*
@@ -273,7 +272,7 @@ util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size)
 
 	int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, in,
 		-1, NULL, 0);
-	if (size == 0 || out_size < size)
+	if (size == 0 || out_size < (size_t)size)
 		goto err;
 
 	if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, in, -1,
@@ -298,7 +297,7 @@ util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size)
 
 	int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, in, -1,
 		NULL, 0, NULL, NULL);
-	if (size == 0 || out_size < size)
+	if (size == 0 || out_size < (size_t)size)
 		goto err;
 
 	if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, in, -1,
