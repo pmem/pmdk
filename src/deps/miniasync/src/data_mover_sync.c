@@ -60,6 +60,9 @@ sync_operation_new(struct vdm *vdm, const struct vdm_operation *operation)
 	struct data_mover_sync *vdm_sync = (struct data_mover_sync *)vdm;
 	struct data_mover_sync_op *sync_op = membuf_alloc(vdm_sync->membuf,
 		sizeof(struct data_mover_sync_op));
+	if (sync_op == NULL)
+		return NULL;
+
 	sync_op->op = *operation;
 	sync_op->complete = 0;
 

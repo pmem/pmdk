@@ -7,6 +7,7 @@
 #include "libminiasync.h"
 #include "core/os.h"
 #include "libminiasync/data_mover_threads.h"
+#include "test_helpers.h"
 
 enum test_type {SEQUENCE, SINGLE_CHAR};
 /*
@@ -30,13 +31,23 @@ test_threads_memcpy_multiple(unsigned memcpy_count,
 	struct vdm *vdm = data_mover_threads_get_vdm(dmt);
 
 	char **sources = malloc(memcpy_count * sizeof(char *) * n);
+	if (sources == NULL)
+		UT_FATAL("sources out of memory");
 	char **destinations = malloc(memcpy_count * sizeof(char *) * n);
+	if (destinations == NULL)
+		UT_FATAL("destinations out of memory");
 	size_t *sizes = malloc(memcpy_count * sizeof(size_t) * n);
+	if (sizes == NULL)
+		UT_FATAL("sizes out of memory");
 
 	struct future **futures = malloc(
 		memcpy_count * sizeof(struct future *) * n);
+	if (futures == NULL)
+		UT_FATAL("futures out of memory");
 	struct vdm_operation_future *memcpy_futures =
 		malloc(memcpy_count * sizeof(struct vdm_operation_future) * n);
+	if (memcpy_futures == NULL)
+		UT_FATAL("memcpy_futures out of memory");
 
 	unsigned index = 0;
 	char value = 0;

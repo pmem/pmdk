@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * util.c -- very basic utilities
@@ -17,7 +17,6 @@
 #include "util.h"
 #include "os.h"
 #include "valgrind_internal.h"
-#include "alloc.h"
 
 /* library-wide page size */
 unsigned long long Pagesize;
@@ -485,16 +484,16 @@ util_readline(FILE *fh)
 
 	do {
 		char *tmp = buffer;
-		buffer = Realloc(buffer, bufsize);
+		buffer = realloc(buffer, bufsize);
 		if (buffer == NULL) {
-			Free(tmp);
+			free(tmp);
 			return NULL;
 		}
 
 		/* ensure if we can cast bufsize to int */
 		char *s = util_fgets(buffer + position, (int)bufsize / 2, fh);
 		if (s == NULL) {
-			Free(buffer);
+			free(buffer);
 			return NULL;
 		}
 

@@ -80,7 +80,9 @@ extern "C" {
 #define __thread __declspec(thread)
 #define __func__ __FUNCTION__
 #ifdef _DEBUG
+#ifndef DEBUG
 #define DEBUG
+#endif
 #endif
 
 /*

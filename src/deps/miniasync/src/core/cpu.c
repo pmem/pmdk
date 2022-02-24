@@ -40,7 +40,7 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 static inline void
 cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 {
-	__cpuidex(cpuinfo, func, subfunc);
+	__cpuidex((int *)cpuinfo, (int)func, (int)subfunc);
 }
 
 #else
