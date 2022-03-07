@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 /*
  * config.c -- pmem2_config implementation
@@ -222,6 +222,7 @@ pmem2_config_set_protection(struct pmem2_config *cfg,
 int
 pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm)
 {
+	PMEM2_ERR_CLR();
 	cfg->vdm = vdm;
 
 	return 0;

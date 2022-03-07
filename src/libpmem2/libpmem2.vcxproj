@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\core\alloc.c" />
+    <ClCompile Include="..\core\membuf.c" />
     <ClCompile Include="..\core\os_thread_windows.c" />
     <ClCompile Include="..\core\os_windows.c" />
     <ClCompile Include="..\core\out.c" />

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2021, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 #
 
 #
@@ -458,6 +458,7 @@ ifeq ($(LIBPMEMCORE), internal-nondebug)
 OBJS +=\
 	$(TOP)/src/nondebug/core/alloc.o\
 	$(TOP)/src/nondebug/core/fs_posix.o\
+	$(TOP)/src/nondebug/core/membuf.o\
 	$(TOP)/src/nondebug/core/os_posix.o\
 	$(TOP)/src/nondebug/core/os_thread_posix.o\
 	$(TOP)/src/nondebug/core/out.o\
@@ -474,6 +475,7 @@ ifeq ($(LIBPMEMCORE), internal-debug)
 OBJS +=\
 	$(TOP)/src/debug/core/alloc.o\
 	$(TOP)/src/debug/core/fs_posix.o\
+	$(TOP)/src/debug/core/membuf.o\
 	$(TOP)/src/debug/core/os_posix.o\
 	$(TOP)/src/debug/core/os_thread_posix.o\
 	$(TOP)/src/debug/core/out.o\
@@ -509,6 +511,12 @@ endif
 ifneq ($(LIBPMEM)$(LIBPMEM2)$(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
 CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += $(LIBNDCTL_LIBS)
+endif
+
+ifeq ($(LINMINIASYNC),y)
+LIBS += -lminiasync
+# XXX: remover when we will swich to installed libminiasync
+LIBS += -L$(TOP)/src/deps/miniasync/build/out
 endif
 
 #

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2022, Intel Corporation
 
 """Test framework constants."""
 
@@ -24,6 +24,9 @@ if sys.platform == 'win32':
 else:
     DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
     RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
+
+MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
+                                'build', 'out'))
 
 HEADER_SIZE = 4096
 
