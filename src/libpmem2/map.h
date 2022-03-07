@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 /*
  * map.h -- internal definitions for libpmem2
@@ -46,7 +46,7 @@ struct pmem2_map {
 	struct pmem2_vm_reservation *reserv;
 
 	struct vdm *vdm;
-	int custom_vdm;
+	bool custom_vdm;
 };
 
 enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem,
