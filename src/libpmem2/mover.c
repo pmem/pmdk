@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 /*
  * mover.c -- default pmem2 data mover
@@ -8,6 +8,7 @@
 #include "libpmem2.h"
 #include "mover.h"
 #include "map.h"
+#include "membuf.h"
 #include "out.h"
 #include "pmem2_utils.h"
 #include "util.h"
@@ -18,6 +19,7 @@
 struct data_mover {
 	struct vdm base; /* must be first */
 	struct pmem2_map *map;
+	struct membuf *membuf;
 };
 
 struct data_mover_op {
@@ -44,6 +46,28 @@ sync_operation_check(void *op)
 }
 
 /*
+ * sync_membuf_check -- checks the status of a sync job
+ */
+static enum membuf_check_result
+sync_membuf_check(void *ptr, void *data)
+{
+	SUPPRESS_UNUSED(data);
+
+	return sync_operation_check(ptr) == FUTURE_STATE_COMPLETE ?
+		MEMBUF_PTR_CAN_REUSE : MEMBUF_PTR_IN_USE;
+}
+
+/*
+ * sync_membuf_size -- returns the size of a sync operation
+ */
+static size_t
+sync_membuf_size(void *ptr, void *data)
+{
+	SUPPRESS_UNUSED(ptr, data);
+	return sizeof(struct data_mover_op);
+}
+
+/*
  * sync_operation_new -- creates a new sync operation
  */
 static void *
@@ -52,7 +76,8 @@ sync_operation_new(struct vdm *vdm, const struct vdm_operation *operation)
 	LOG(3, "vdm %p, operation %p", vdm, operation);
 	struct data_mover *vdm_sync = (struct data_mover *)vdm;
 	/* XXX: backport membuf from miniasync */
-	struct data_mover_op *sync_op = malloc(sizeof(*sync_op));
+	struct data_mover_op *sync_op = membuf_alloc(vdm_sync->membuf,
+		sizeof(struct data_mover_op));
 	if (sync_op == NULL)
 		return NULL;
 
@@ -79,7 +104,6 @@ sync_operation_delete(void *op, struct vdm_operation_output *output)
 		default:
 			FATAL("unsupported operation type");
 	}
-	free(sync_op);
 }
 
 /*
@@ -119,14 +143,25 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 {
 	LOG(3, "map %p, vdm %p", map, vdm);
 	int ret;
-	struct data_mover *dms = pmem2_malloc(sizeof(*map), &ret);
+	struct data_mover *dms = pmem2_malloc(sizeof(*dms), &ret);
 	if (dms == NULL)
 		return ret;
+
+	dms->membuf = membuf_new(sync_membuf_check, sync_membuf_size, NULL,
+			dms);
+	if (dms->membuf == NULL) {
+		ret = PMEM2_E_ERRNO;
+		goto membuf_failed;
+	}
 
 	dms->base = data_mover_vdm;
 	dms->map = map;
 	*vdm = (struct vdm *)dms;
 	return 0;
+
+membuf_failed:
+	free(dms);
+	return ret;
 }
 
 /*
@@ -135,6 +170,7 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 void
 mover_delete(struct vdm *dms)
 {
+	membuf_delete(((struct data_mover *)dms)->membuf);
 	free((struct data_mover *)dms);
 }
 
