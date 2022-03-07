@@ -34,6 +34,7 @@
 SOURCE +=\
 	$(CORE)/alloc.c\
 	$(CORE)/fs_posix.c\
+	$(CORE)/membuf.c\
 	$(CORE)/os_posix.c\
 	$(CORE)/os_thread_posix.c\
 	$(CORE)/out.c\

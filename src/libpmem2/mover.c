@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 /*
  * mover.c -- default pmem2 data mover
@@ -8,6 +8,7 @@
 #include "libpmem2.h"
 #include "mover.h"
 #include "map.h"
+#include "membuf.h"
 #include "out.h"
 #include "pmem2_utils.h"
 #include "util.h"
@@ -18,6 +19,7 @@
 struct data_mover {
 	struct vdm base; /* must be first */
 	struct pmem2_map *map;
+	struct membuf *membuf;
 };
 
 struct data_mover_op {
@@ -52,7 +54,8 @@ sync_operation_new(struct vdm *vdm, const struct vdm_operation *operation)
 	LOG(3, "vdm %p, operation %p", vdm, operation);
 	struct data_mover *vdm_sync = (struct data_mover *)vdm;
 	/* XXX: backport membuf from miniasync */
-	struct data_mover_op *sync_op = malloc(sizeof(*sync_op));
+	struct data_mover_op *sync_op = membuf_alloc(vdm_sync->membuf,
+		sizeof(struct data_mover_op));
 	if (sync_op == NULL)
 		return NULL;
 
@@ -74,7 +77,8 @@ sync_operation_delete(void *op, struct vdm_operation_output *output)
 	switch (sync_op->op.type) {
 		case VDM_OPERATION_MEMCPY:
 			output->type = VDM_OPERATION_MEMCPY;
-			output->memcpy.dest = sync_op->op.memcpy.dest;
+			output->output.memcpy.dest =
+				sync_op->op.data.memcpy.dest;
 			break;
 		default:
 			FATAL("unsupported operation type");
@@ -93,11 +97,21 @@ sync_operation_start(void *op, struct future_notifier *n)
 	if (n)
 		n->notifier_used = FUTURE_NOTIFIER_NONE;
 
-	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(sync_op->mover->map);
+	switch (sync_op->op.type) {
+		case VDM_OPERATION_MEMCPY:
+		{
+			pmem2_memcpy_fn memcpy_fn;
+			memcpy_fn = pmem2_get_memcpy_fn(sync_op->mover->map);
 
-	memcpy_fn(sync_op->op.memcpy.dest, sync_op->op.memcpy.src,
-		sync_op->op.memcpy.n, PMEM2_F_MEM_NONTEMPORAL);
-
+			memcpy_fn(sync_op->op.data.memcpy.dest,
+				sync_op->op.data.memcpy.src,
+				sync_op->op.data.memcpy.n,
+				PMEM2_F_MEM_NONTEMPORAL);
+			break;
+		}
+		default:
+			FATAL("unsupported operation type");
+	}
 	util_atomic_store_explicit32(&sync_op->complete,
 		1, memory_order_release);
 
@@ -119,14 +133,25 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 {
 	LOG(3, "map %p, vdm %p", map, vdm);
 	int ret;
-	struct data_mover *dms = pmem2_malloc(sizeof(*map), &ret);
+	struct data_mover *dms = pmem2_malloc(sizeof(*dms), &ret);
 	if (dms == NULL)
 		return ret;
 
 	dms->base = data_mover_vdm;
 	dms->map = map;
 	*vdm = (struct vdm *)dms;
+
+	dms->membuf = membuf_new(dms);
+	if (dms->membuf == NULL) {
+		ret = PMEM2_E_ERRNO;
+		goto membuf_failed;
+	}
+
 	return 0;
+
+membuf_failed:
+	free(dms);
+	return ret;
 }
 
 /*
@@ -135,6 +160,7 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 void
 mover_delete(struct vdm *dms)
 {
+	membuf_delete(((struct data_mover *)dms)->membuf);
 	free((struct data_mover *)dms);
 }
 
