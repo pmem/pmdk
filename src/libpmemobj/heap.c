@@ -10,8 +10,9 @@
 #include <string.h>
 #include <float.h>
 
+#include "bucket.h"
 #include "libpmemobj/ctl.h"
-#include "palloc.h"
+#include "memblock.h"
 #include "queue.h"
 #include "heap.h"
 #include "out.h"
@@ -68,7 +69,7 @@ struct arenas {
  */
 struct arena {
 	/* one bucket per allocation class */
-	struct bucket *buckets[MAX_ALLOCATION_CLASSES];
+	struct bucket_locked *buckets[MAX_ALLOCATION_CLASSES];
 
 	/*
 	 * Decides whether the arena can be
@@ -82,8 +83,7 @@ struct arena {
 struct heap_rt {
 	struct alloc_class_collection *alloc_classes;
 
-	/* DON'T use these two variable directly! */
-	struct bucket *default_bucket;
+	struct bucket_locked *default_bucket;
 
 	struct arenas arenas;
 
@@ -169,7 +169,7 @@ heap_arena_delete(struct arena *arena)
 {
 	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i)
 		if (arena->buckets[i] != NULL)
-			bucket_delete(arena->buckets[i]);
+			bucket_locked_delete(arena->buckets[i]);
 	Free(arena);
 }
 
@@ -196,7 +196,8 @@ heap_arena_new(struct palloc_heap *heap, int automatic)
 			alloc_class_by_id(rt->alloc_classes, i);
 		if (ac != NULL) {
 			arena->buckets[i] =
-				bucket_new(container_new_seglists(heap), ac);
+				bucket_locked_new(container_new_seglists(heap),
+					ac);
 			if (arena->buckets[i] == NULL)
 				goto error_bucket_create;
 		} else {
@@ -469,7 +470,7 @@ heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
 		uint16_t arena_id)
 {
 	struct heap_rt *rt = heap->rt;
-	struct bucket *b;
+	struct bucket_locked *b;
 
 	if (class_id == DEFAULT_ALLOC_CLASS_ID) {
 		b = rt->default_bucket;
@@ -486,21 +487,16 @@ heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
 	}
 
 out:
-	util_mutex_lock(&b->lock);
-
-	return b;
+	return bucket_acquire(b);
 }
 
 /*
  * heap_bucket_release -- puts the bucket back into the heap
  */
 void
-heap_bucket_release(struct palloc_heap *heap, struct bucket *b)
+heap_bucket_release(struct bucket *b)
 {
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(heap);
-
-	util_mutex_unlock(&b->lock);
+	bucket_release(b);
 }
 
 /*
@@ -579,65 +575,95 @@ heap_zone_init(struct palloc_heap *heap, uint32_t zone_id,
 }
 
 /*
- * heap_memblock_insert_block -- (internal) bucket insert wrapper for callbacks
+ * heap_get_adjacent_free_block -- locates adjacent free memory block in heap
  */
 static int
-heap_memblock_insert_block(const struct memory_block *m, void *b)
+heap_get_adjacent_free_block(struct palloc_heap *heap,
+	const struct memory_block *in, struct memory_block *out, int prev)
 {
-	return bucket_insert_block(b, m);
-}
+	struct zone *z = ZID_TO_ZONE(heap->layout, in->zone_id);
+	struct chunk_header *hdr = &z->chunk_headers[in->chunk_id];
+	out->zone_id = in->zone_id;
 
-/*
- * heap_run_create -- (internal) initializes a new run on an existing free chunk
- */
-static int
-heap_run_create(struct palloc_heap *heap, struct bucket *b,
-	struct memory_block *m)
-{
-	*m = memblock_run_init(heap, m->chunk_id, m->zone_id, &b->aclass->rdsc);
+	if (prev) {
+		if (in->chunk_id == 0)
+			return ENOENT;
 
-	if (m->m_ops->iterate_free(m, heap_memblock_insert_block, b) != 0) {
-		b->c_ops->rm_all(b->container);
-		return -1;
+		struct chunk_header *prev_hdr =
+			&z->chunk_headers[in->chunk_id - 1];
+		out->chunk_id = in->chunk_id - prev_hdr->size_idx;
+
+		if (z->chunk_headers[out->chunk_id].type != CHUNK_TYPE_FREE)
+			return ENOENT;
+
+		out->size_idx = z->chunk_headers[out->chunk_id].size_idx;
+	} else { /* next */
+		if (in->chunk_id + hdr->size_idx == z->header.size_idx)
+			return ENOENT;
+
+		out->chunk_id = in->chunk_id + hdr->size_idx;
+
+		if (z->chunk_headers[out->chunk_id].type != CHUNK_TYPE_FREE)
+			return ENOENT;
+
+		out->size_idx = z->chunk_headers[out->chunk_id].size_idx;
 	}
-
-	STATS_INC(heap->stats, transient, heap_run_active,
-		m->size_idx * CHUNKSIZE);
+	memblock_rebuild_state(heap, out);
 
 	return 0;
 }
 
 /*
- * heap_run_reuse -- (internal) reuses existing run
+ * heap_coalesce -- (internal) merges adjacent memory blocks
  */
-static int
-heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
-	const struct memory_block *m)
+static struct memory_block
+heap_coalesce(struct palloc_heap *heap,
+	const struct memory_block *blocks[], int n)
 {
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(heap);
+	struct memory_block ret = MEMORY_BLOCK_NONE;
 
-	int ret = 0;
-
-	ASSERTeq(m->type, MEMORY_BLOCK_RUN);
-	os_mutex_t *lock = m->m_ops->get_lock(m);
-
-	util_mutex_lock(lock);
-
-	ret = m->m_ops->iterate_free(m, heap_memblock_insert_block, b);
-
-	util_mutex_unlock(lock);
-
-	if (ret == 0) {
-		b->active_memory_block->m = *m;
-		b->active_memory_block->bucket = b;
-		b->is_active = 1;
-		util_fetch_and_add64(&b->active_memory_block->nresv, 1);
-	} else {
-		b->c_ops->rm_all(b->container);
+	const struct memory_block *b = NULL;
+	ret.size_idx = 0;
+	for (int i = 0; i < n; ++i) {
+		if (blocks[i] == NULL)
+			continue;
+		b = b ? b : blocks[i];
+		ret.size_idx += blocks[i]->size_idx;
 	}
 
+	ASSERTne(b, NULL);
+
+	ret.chunk_id = b->chunk_id;
+	ret.zone_id = b->zone_id;
+	ret.block_off = b->block_off;
+	memblock_rebuild_state(heap, &ret);
+
 	return ret;
+}
+
+/*
+ * heap_coalesce_huge -- finds neighbours of a huge block, removes them from the
+ *	volatile state and returns the resulting block
+ */
+static struct memory_block
+heap_coalesce_huge(struct palloc_heap *heap, struct bucket *b,
+	const struct memory_block *m)
+{
+	const struct memory_block *blocks[3] = {NULL, m, NULL};
+
+	struct memory_block prev = MEMORY_BLOCK_NONE;
+	if (heap_get_adjacent_free_block(heap, m, &prev, 1) == 0 &&
+		bucket_remove_block(b, &prev) == 0) {
+		blocks[0] = &prev;
+	}
+
+	struct memory_block next = MEMORY_BLOCK_NONE;
+	if (heap_get_adjacent_free_block(heap, m, &next, 0) == 0 &&
+		bucket_remove_block(b, &next) == 0) {
+		blocks[2] = &next;
+	}
+
+	return heap_coalesce(heap, blocks, 3);
 }
 
 /*
@@ -839,7 +865,7 @@ heap_recycle_unused(struct palloc_heap *heap, struct recycler *recycler,
 	}
 
 	if (nb != NULL)
-		heap_bucket_release(heap, nb);
+		heap_bucket_release(nb);
 
 	VEC_DELETE(&r);
 
@@ -870,7 +896,8 @@ heap_reclaim_garbage(struct palloc_heap *heap, struct bucket *bucket)
  *	(internal) refills the default bucket if needed
  */
 static int
-heap_ensure_huge_bucket_filled(struct palloc_heap *heap, struct bucket *bucket)
+heap_ensure_huge_bucket_filled(struct palloc_heap *heap,
+	struct bucket *bucket)
 {
 	if (heap_reclaim_garbage(heap, bucket) == 0)
 		return 0;
@@ -897,31 +924,36 @@ heap_ensure_huge_bucket_filled(struct palloc_heap *heap, struct bucket *bucket)
 }
 
 /*
- * heap_bucket_deref_active -- detaches active blocks from the bucket
+ * heap_discard_run -- puts the memory block back into the global heap.
+ */
+void
+heap_discard_run(struct palloc_heap *heap, struct memory_block *m)
+{
+	if (heap_reclaim_run(heap, m, 0)) {
+		struct bucket *b =
+			heap_bucket_acquire(heap,
+			DEFAULT_ALLOC_CLASS_ID, 0);
+
+		heap_run_into_free_chunk(heap, b, m);
+
+		heap_bucket_release(b);
+	}
+}
+
+/*
+ * heap_detach_and_try_discard_run -- detaches the active from a bucket and
+ *	tries to discard the run if it is completely empty (has no allocations)
  */
 static int
-heap_bucket_deref_active(struct palloc_heap *heap, struct bucket *b)
+heap_detach_and_try_discard_run(struct palloc_heap *heap, struct bucket *b)
 {
-	/* get rid of the active block in the bucket */
-	struct memory_block_reserved **active = &b->active_memory_block;
+	int empty = 0;
+	struct memory_block m;
+	if (bucket_detach_run(b, &m, &empty) != 0)
+		return -1;
 
-	if (b->is_active) {
-		b->c_ops->rm_all(b->container);
-		if (util_fetch_and_sub64(&(*active)->nresv, 1) == 1) {
-			VALGRIND_ANNOTATE_HAPPENS_AFTER(&(*active)->nresv);
-			heap_discard_run(heap, &(*active)->m);
-		} else {
-			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&(*active)->nresv);
-			*active = NULL;
-		}
-		b->is_active = 0;
-	}
-
-	if (*active == NULL) {
-		*active = Zalloc(sizeof(struct memory_block_reserved));
-		if (*active == NULL)
-			return -1;
-	}
+	if (empty)
+		heap_discard_run(heap, &m);
 
 	return 0;
 }
@@ -937,16 +969,13 @@ heap_force_recycle(struct palloc_heap *heap)
 	struct arena *arenap;
 	VEC_FOREACH(arenap, &heap->rt->arenas.vec) {
 		for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
-			struct bucket *b = arenap->buckets[i];
-			if (b == NULL)
+			struct bucket_locked *locked = arenap->buckets[i];
+			if (locked == NULL)
 				continue;
-			util_mutex_lock(&b->lock);
-			/*
-			 * There's no need to check if this fails, as that
-			 * will not prevent progress in this function.
-			 */
-			heap_bucket_deref_active(heap, b);
-			util_mutex_unlock(&b->lock);
+			struct bucket *b = bucket_acquire(locked);
+			heap_detach_and_try_discard_run(heap, b);
+
+			bucket_release(b);
 		}
 	}
 	util_mutex_unlock(&heap->rt->arenas.lock);
@@ -964,40 +993,43 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.size_idx = units;
 
-	struct recycler *recycler = heap_get_recycler(heap, b->aclass->id,
-		b->aclass->rdsc.nallocs);
+	struct alloc_class *aclass = bucket_alloc_class(b);
+
+	struct recycler *recycler = heap_get_recycler(heap, aclass->id,
+		aclass->rdsc.nallocs);
 	if (recycler == NULL) {
 		ERR("lost runtime tracking info of %u run due to OOM",
-			b->aclass->id);
+			aclass->id);
 		return 0;
 	}
 
 	if (!force && recycler_get(recycler, &m) == 0)
-		return heap_run_reuse(heap, b, &m);
+		return bucket_attach_run(b, &m);
 
 	heap_recycle_unused(heap, recycler, NULL, force);
 
 	if (recycler_get(recycler, &m) == 0)
-		return heap_run_reuse(heap, b, &m);
+		return bucket_attach_run(b, &m);
 
 	return ENOMEM;
 }
 
 /*
- * heap_discard_run -- puts the memory block back into the global heap.
+ * heap_run_create -- (internal) initializes a new run on an existing free chunk
  */
-void
-heap_discard_run(struct palloc_heap *heap, struct memory_block *m)
+static int
+heap_run_create(struct palloc_heap *heap, struct bucket *b,
+	struct memory_block *m)
 {
-	if (heap_reclaim_run(heap, m, 0)) {
-		struct bucket *defb =
-			heap_bucket_acquire(heap,
-			DEFAULT_ALLOC_CLASS_ID, 0);
+	struct alloc_class *aclass = bucket_alloc_class(b);
+	*m = memblock_run_init(heap, m->chunk_id, m->zone_id, &aclass->rdsc);
 
-		heap_run_into_free_chunk(heap, defb, m);
+	bucket_attach_run(b, m);
 
-		heap_bucket_release(heap, defb);
-	}
+	STATS_INC(heap->stats, transient, heap_run_active,
+		m->size_idx * CHUNKSIZE);
+
+	return 0;
 }
 
 /*
@@ -1007,10 +1039,11 @@ static int
 heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	uint32_t units)
 {
-	ASSERTeq(b->aclass->type, CLASS_RUN);
+	struct alloc_class *aclass = bucket_alloc_class(b);
+	ASSERTeq(aclass->type, CLASS_RUN);
 	int ret = 0;
 
-	if (heap_bucket_deref_active(heap, b) != 0)
+	if (heap_detach_and_try_discard_run(heap, b) != 0)
 		return ENOMEM;
 
 	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
@@ -1021,35 +1054,31 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		DEFAULT_ALLOC_CLASS_ID,
 		HEAP_ARENA_PER_THREAD);
 	heap_populate_bucket(heap, defb);
-	heap_bucket_release(heap, defb);
+	heap_bucket_release(defb);
 
 	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
 		goto out;
 
 	struct memory_block m = MEMORY_BLOCK_NONE;
-	m.size_idx = b->aclass->rdsc.size_idx;
+	m.size_idx = aclass->rdsc.size_idx;
 
 	defb = heap_bucket_acquire(heap,
 		DEFAULT_ALLOC_CLASS_ID,
 		HEAP_ARENA_PER_THREAD);
+
 	/* cannot reuse an existing run, create a new one */
 	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
 		ASSERTeq(m.block_off, 0);
 		if (heap_run_create(heap, b, &m) != 0) {
-			heap_bucket_release(heap, defb);
+			heap_bucket_release(defb);
 			return ENOMEM;
 		}
 
-		b->active_memory_block->m = m;
-		b->is_active = 1;
-		b->active_memory_block->bucket = b;
-		util_fetch_and_add64(&b->active_memory_block->nresv, 1);
-
-		heap_bucket_release(heap, defb);
+		heap_bucket_release(defb);
 
 		goto out;
 	}
-	heap_bucket_release(heap, defb);
+	heap_bucket_release(defb);
 
 	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
 		goto out;
@@ -1099,10 +1128,11 @@ static void
 heap_split_block(struct palloc_heap *heap, struct bucket *b,
 		struct memory_block *m, uint32_t units)
 {
+	struct alloc_class *aclass = bucket_alloc_class(b);
 	ASSERT(units <= UINT16_MAX);
 	ASSERT(units > 0);
 
-	if (b->aclass->type == CLASS_RUN) {
+	if (aclass->type == CLASS_RUN) {
 		ASSERT((uint64_t)m->block_off + (uint64_t)units <= UINT32_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
 			m->size_idx - units, (uint32_t)(m->block_off + units),
@@ -1136,10 +1166,11 @@ int
 heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m)
 {
+	struct alloc_class *aclass = bucket_alloc_class(b);
 	uint32_t units = m->size_idx;
 
-	while (b->c_ops->get_rm_bestfit(b->container, m) != 0) {
-		if (b->aclass->type == CLASS_HUGE) {
+	while (bucket_alloc_block(b, m) != 0) {
+		if (aclass->type == CLASS_HUGE) {
 			if (heap_ensure_huge_bucket_filled(heap, b) != 0)
 				return ENOMEM;
 		} else {
@@ -1153,102 +1184,10 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	if (units != m->size_idx)
 		heap_split_block(heap, b, m, units);
 
-	m->m_ops->ensure_header_type(m, b->aclass->header_type);
-	m->header_type = b->aclass->header_type;
+	m->m_ops->ensure_header_type(m, aclass->header_type);
+	m->header_type = aclass->header_type;
 
 	return 0;
-}
-
-/*
- * heap_get_adjacent_free_block -- locates adjacent free memory block in heap
- */
-static int
-heap_get_adjacent_free_block(struct palloc_heap *heap,
-	const struct memory_block *in, struct memory_block *out, int prev)
-{
-	struct zone *z = ZID_TO_ZONE(heap->layout, in->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[in->chunk_id];
-	out->zone_id = in->zone_id;
-
-	if (prev) {
-		if (in->chunk_id == 0)
-			return ENOENT;
-
-		struct chunk_header *prev_hdr =
-			&z->chunk_headers[in->chunk_id - 1];
-		out->chunk_id = in->chunk_id - prev_hdr->size_idx;
-
-		if (z->chunk_headers[out->chunk_id].type != CHUNK_TYPE_FREE)
-			return ENOENT;
-
-		out->size_idx = z->chunk_headers[out->chunk_id].size_idx;
-	} else { /* next */
-		if (in->chunk_id + hdr->size_idx == z->header.size_idx)
-			return ENOENT;
-
-		out->chunk_id = in->chunk_id + hdr->size_idx;
-
-		if (z->chunk_headers[out->chunk_id].type != CHUNK_TYPE_FREE)
-			return ENOENT;
-
-		out->size_idx = z->chunk_headers[out->chunk_id].size_idx;
-	}
-	memblock_rebuild_state(heap, out);
-
-	return 0;
-}
-
-/*
- * heap_coalesce -- (internal) merges adjacent memory blocks
- */
-static struct memory_block
-heap_coalesce(struct palloc_heap *heap,
-	const struct memory_block *blocks[], int n)
-{
-	struct memory_block ret = MEMORY_BLOCK_NONE;
-
-	const struct memory_block *b = NULL;
-	ret.size_idx = 0;
-	for (int i = 0; i < n; ++i) {
-		if (blocks[i] == NULL)
-			continue;
-		b = b ? b : blocks[i];
-		ret.size_idx += blocks[i]->size_idx;
-	}
-
-	ASSERTne(b, NULL);
-
-	ret.chunk_id = b->chunk_id;
-	ret.zone_id = b->zone_id;
-	ret.block_off = b->block_off;
-	memblock_rebuild_state(heap, &ret);
-
-	return ret;
-}
-
-/*
- * heap_coalesce_huge -- finds neighbours of a huge block, removes them from the
- *	volatile state and returns the resulting block
- */
-struct memory_block
-heap_coalesce_huge(struct palloc_heap *heap, struct bucket *b,
-	const struct memory_block *m)
-{
-	const struct memory_block *blocks[3] = {NULL, m, NULL};
-
-	struct memory_block prev = MEMORY_BLOCK_NONE;
-	if (heap_get_adjacent_free_block(heap, m, &prev, 1) == 0 &&
-		b->c_ops->get_rm_exact(b->container, &prev) == 0) {
-		blocks[0] = &prev;
-	}
-
-	struct memory_block next = MEMORY_BLOCK_NONE;
-	if (heap_get_adjacent_free_block(heap, m, &next, 0) == 0 &&
-		b->c_ops->get_rm_exact(b->container, &next) == 0) {
-		blocks[2] = &next;
-	}
-
-	return heap_coalesce(heap, blocks, 3);
 }
 
 /*
@@ -1374,7 +1313,7 @@ heap_get_narenas_auto(struct palloc_heap *heap)
 /*
  * heap_get_arena_buckets -- returns a pointer to buckets from the arena
  */
-struct bucket **
+struct bucket_locked **
 heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 {
 	util_mutex_lock(&heap->rt->arenas.lock);
@@ -1471,7 +1410,7 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 	VEC_FOREACH_BY_POS(i, &h->arenas.vec) {
 		arena = VEC_ARR(&h->arenas.vec)[i];
 		if (arena->buckets[c->id] == NULL)
-			arena->buckets[c->id] = bucket_new(
+			arena->buckets[c->id] = bucket_locked_new(
 				container_new_seglists(heap), c);
 		if (arena->buckets[c->id] == NULL)
 			goto error_cache_bucket_new;
@@ -1481,7 +1420,8 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 
 error_cache_bucket_new:
 	for (; i != 0; --i)
-		bucket_delete(VEC_ARR(&h->arenas.vec)[i - 1]->buckets[c->id]);
+		bucket_locked_delete(
+			VEC_ARR(&h->arenas.vec)[i - 1]->buckets[c->id]);
 
 	return -1;
 }
@@ -1502,7 +1442,7 @@ heap_buckets_init(struct palloc_heap *heap)
 		}
 	}
 
-	h->default_bucket = bucket_new(container_new_ravl(heap),
+	h->default_bucket = bucket_locked_new(container_new_ravl(heap),
 		alloc_class_by_id(h->alloc_classes, DEFAULT_ALLOC_CLASS_ID));
 
 	if (h->default_bucket == NULL)
@@ -1756,7 +1696,7 @@ heap_cleanup(struct palloc_heap *heap)
 	alloc_class_collection_delete(rt->alloc_classes);
 
 	arena_thread_assignment_fini(&rt->arenas.assignment);
-	bucket_delete(rt->default_bucket);
+	bucket_locked_delete(rt->default_bucket);
 
 	struct arena *arena;
 	VEC_FOREACH(arena, &rt->arenas.vec)
