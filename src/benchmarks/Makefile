@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 
 #
 # src/benchmarks/Makefile -- build all benchmarks
@@ -127,6 +127,10 @@ SRC += rpmem.cpp
 LIBS += -lrpmem $(LIBFABRIC_LIBS)
 CONFIGS += pmembench_rpmem
 CXXFLAGS += -DRPMEM_AVAILABLE
+# Librpmem is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using rpmem despite the deprecated state.
+CXXFLAGS += -Wno-deprecated-declarations
 else
 $(info NOTE: Skipping librpmem benchmark because $(BUILD_RPMEM_INFO))
 endif
