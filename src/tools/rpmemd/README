@@ -4,5 +4,9 @@ to persistent memory over RDMA on server side.
 ** DEPENDENCIES: **
 The rpmemd depends on libfabric library:
 
+> NOTICE:
+The **rpmem** is deprecated. If you are interested in a remote persistent
+memory support please look at new library **rpma** https://github.com/pmem/rpma.
+
 https://github.com/ofiwg/libfabric
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # src/test/rpmem_basic/Makefile -- build rpmem_basic test
@@ -25,5 +25,9 @@ include ../Makefile.inc
 ifeq ($(BUILD_RPMEM), y)
 LIBS += $(LIBFABRIC_LIBS)
 CFLAGS += $(LIBFABRIC_CFLAGS)
+# Librpmem is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using rpmem despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
 INCS += -I../../rpmem_common
 endif

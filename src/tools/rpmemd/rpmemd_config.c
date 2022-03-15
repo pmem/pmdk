@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * rpmemd_config.c -- rpmemd config source file
@@ -70,6 +70,10 @@ static const struct option options[] = {
 #define VALUE_INDENT	"                                        "
 
 static const char * const help_str =
+"\n"
+"WARNING: rpmemd is deprecated since PMDK 1.12 release.\n"
+"If you are interested in a remote persistent\n"
+"memory support please look at new library **rpma** https://github.com/pmem/rpma.\n"
 "\n"
 "Options:\n"
 "  -c, --config <path>           configuration file location\n"

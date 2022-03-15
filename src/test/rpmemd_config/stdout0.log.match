@@ -7,6 +7,10 @@ $(OPT)rpmemd_config/TEST0: START: rpmemd_config
 usage: $(*) [--version] [--help] [<args>]
 rpmemd version $(*)
 
+WARNING: rpmemd is deprecated since PMDK 1.12 release.
+If you are interested in a remote persistent
+memory support please look at new library **rpma** https://github.com/pmem/rpma.
+
 Options:
   -c, --config <path>           configuration file location
   -r, --remove <poolset>        remove pool described by given poolset file
@@ -30,6 +34,10 @@ For complete documentation see rpmemd(1) manual page.
 $(OPT)rpmemd_config/TEST0: START: rpmemd_config
 usage: $(*) [--version] [--help] [<args>]
 rpmemd version $(*)
+
+WARNING: rpmemd is deprecated since PMDK 1.12 release.
+If you are interested in a remote persistent
+memory support please look at new library **rpma** https://github.com/pmem/rpma.
 
 Options:
   -c, --config <path>           configuration file location
