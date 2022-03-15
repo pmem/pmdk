@@ -8,7 +8,7 @@ date: rpmem API version 1.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2022, Intel Corporation)
 
 [comment]: <> (rpmem_create.3 -- man page for most commonly used librpmem functions)
 
@@ -21,8 +21,9 @@ date: rpmem API version 1.3
 
 # NAME #
 
-**rpmem_create**(), **rpmem_open**(),
-**rpmem_set_attr**(), **rpmem_close**(), **rpmem_remove**()
+**rpmem_create**()(DEPRECATED), **rpmem_open**()(DEPRECATED),
+**rpmem_set_attr**()(DEPRECATED), **rpmem_close**()(DEPRECATED),
+**rpmem_remove**()(DEPRECATED),
 - most commonly used functions for remote access to *persistent memory*
 
 # SYNOPSIS #
