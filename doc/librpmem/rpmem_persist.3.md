@@ -8,7 +8,7 @@ date: rpmem API version 1.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2022, Intel Corporation)
 
 [comment]: <> (rpmem_persist.3 -- man page for rpmem persist, flush, drain and read functions)
 
@@ -21,9 +21,9 @@ date: rpmem API version 1.3
 
 # NAME #
 
-**rpmem_persist**(), **rpmem_deep_persist**(), **rpmem_flush**(),
-**rpmem_drain**(), **rpmem_read**()
-- functions to copy and read remote pools
+**rpmem_persist**()(DEPRECATED), **rpmem_deep_persist**()(DEPRECATED),
+**rpmem_flush**()(DEPRECATED), **rpmem_drain**()(DEPRECATED),
+**rpmem_read**()(DEPRECATED) - functions to copy and read remote pools
 
 # SYNOPSIS #
 

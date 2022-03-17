@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
+ * Librpmem is deprecated.
+ *
  * librpmem.h -- definitions of librpmem entry points (EXPERIMENTAL)
  *
  * This library provides low-level support for remote access to persistent
@@ -19,6 +21,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define RPMEM_DEPR_STR "Librpmem is deprecated."
+#define RPMEM_DEPR_ATTR __attribute__((deprecated(RPMEM_DEPR_STR)))
 
 typedef struct rpmem_pool RPMEMpool;
 
@@ -41,34 +46,36 @@ struct rpmem_pool_attr {
 
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
 		void *pool_addr, size_t pool_size, unsigned *nlanes,
-		const struct rpmem_pool_attr *create_attr);
+		const struct rpmem_pool_attr *create_attr) RPMEM_DEPR_ATTR;
 
 RPMEMpool *rpmem_open(const char *target, const char *pool_set_name,
 		void *pool_addr, size_t pool_size, unsigned *nlanes,
-		struct rpmem_pool_attr *open_attr);
+		struct rpmem_pool_attr *open_attr) RPMEM_DEPR_ATTR;
 
-int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
+int rpmem_set_attr(RPMEMpool *rpp,
+		const struct rpmem_pool_attr *attr) RPMEM_DEPR_ATTR;
 
-int rpmem_close(RPMEMpool *rpp);
+int rpmem_close(RPMEMpool *rpp) RPMEM_DEPR_ATTR;
 
 #define RPMEM_PERSIST_RELAXED	(1U << 0)
 #define RPMEM_FLUSH_RELAXED	(1U << 0)
 
 int rpmem_flush(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane,
-		unsigned flags);
-int rpmem_drain(RPMEMpool *rpp, unsigned lane, unsigned flags);
+		unsigned flags) RPMEM_DEPR_ATTR;
+int rpmem_drain(RPMEMpool *rpp, unsigned lane, unsigned flags) RPMEM_DEPR_ATTR;
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
-		unsigned lane, unsigned flags);
+		unsigned lane, unsigned flags) RPMEM_DEPR_ATTR;
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
-		unsigned lane);
+		unsigned lane) RPMEM_DEPR_ATTR;
 int rpmem_deep_persist(RPMEMpool *rpp, size_t offset, size_t length,
-		unsigned lane);
+		unsigned lane) RPMEM_DEPR_ATTR;
 
 #define RPMEM_REMOVE_FORCE 0x1
 #define RPMEM_REMOVE_POOL_SET 0x2
 
-int rpmem_remove(const char *target, const char *pool_set, int flags);
+int rpmem_remove(const char *target,
+		const char *pool_set, int flags) RPMEM_DEPR_ATTR;
 
 /*
  * RPMEM_MAJOR_VERSION and RPMEM_MINOR_VERSION provide the current version of
@@ -79,9 +86,9 @@ int rpmem_remove(const char *target, const char *pool_set, int flags);
 #define RPMEM_MAJOR_VERSION 1
 #define RPMEM_MINOR_VERSION 3
 const char *rpmem_check_version(unsigned major_required,
-		unsigned minor_required);
+		unsigned minor_required) RPMEM_DEPR_ATTR;
 
-const char *rpmem_errormsg(void);
+const char *rpmem_errormsg(void) RPMEM_DEPR_ATTR;
 
 /* minimum size of a pool */
 #define RPMEM_MIN_POOL ((size_t)(1024 * 8)) /* 8 KB */

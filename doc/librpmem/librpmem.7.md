@@ -8,7 +8,7 @@ date: rpmem API version 1.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2019, Intel Corporation)
+[comment]: <> (Copyright 2016-2022, Intel Corporation)
 
 [comment]: <> (librpmem.7 -- man page for librpmem)
 
@@ -29,7 +29,7 @@ date: rpmem API version 1.3
 
 # NAME #
 
-**librpmem** - remote persistent memory support library (EXPERIMENTAL)
+**librpmem** - remote persistent memory support library (DEPRECATED)
 
 # SYNOPSIS #
 
@@ -438,6 +438,11 @@ main(int argc, char *argv[])
 The **librpmem** API is experimental and may be subject to change in the future.
 However, using the remote replication in **libpmemobj**(7) is safe and backward
 compatibility will be preserved.
+
+> NOTICE:
+The **librpmem** library is deprecated since PMDK 1.12 release.
+If you are interested in a remote persistent
+memory support please look at new library **rpma** https://github.com/pmem/rpma.
 
 # ACKNOWLEDGEMENTS #
 

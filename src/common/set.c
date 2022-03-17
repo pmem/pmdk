@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -4037,6 +4037,8 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	if (set->remote) {
 		/* do not check minsize */
+		LOG(1, "Librpmem and remote poolset is deprecated,"
+				"and will be removed in the next release of PMDK.");
 		ret = util_poolset_files_remote(set, 0, nlanes, 0);
 		if (ret != 0)
 			goto err_replica;
