@@ -42,53 +42,30 @@ find_program(PANDOC NAMES pandoc)
 if(PANDOC)
 	message(STATUS "Found pandoc: ${PANDOC}")
 
-	## Manpages without any examples
-	# miniasync.7
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync.7.md.in
-		${MAN_DIR}/tmp/miniasync.7.md)
-	configure_man(miniasync.7 ${MAN_DIR}/tmp/miniasync.7.md)
+	file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/manuals.txt man_list)
 
-	# miniasync_future.3
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_future.3.md.in
-		${MAN_DIR}/tmp/miniasync_future.3.md)
-	configure_man(miniasync_future.3 ${MAN_DIR}/tmp/miniasync_future.3.md)
-	add_manpage_links(miniasync_future.3
-		future_context_get_data future_context_get_output future_context_get_size
+	foreach(man ${man_list})
+		configure_man(${man} ${CMAKE_CURRENT_SOURCE_DIR}/${man}.md)
+	endforeach(man man_list)
+
+	add_manpage_links(data_mover_dml_new.3
+		data_mover_dml_delete)
+
+	add_manpage_links(data_mover_sync_new.3
+		data_mover_sync_delete)
+
+	add_manpage_links(data_mover_threads_new.3
+		data_mover_threads_delete)
+
+	add_manpage_links(miniasync_future.7
 		FUTURE FUTURE_INIT FUTURE_AS_RUNNABLE FUTURE_OUTPUT FUTURE_CHAIN_ENTRY
 		FUTURE_CHAIN_ENTRY_INIT FUTURE_BUSY_POLL FUTURE_CHAIN_INIT)
 
-	# miniasync_runtime.3
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_runtime.3.md.in
-		${MAN_DIR}/tmp/miniasync_runtime.3.md)
-	configure_man(miniasync_runtime.3 ${MAN_DIR}/tmp/miniasync_runtime.3.md)
-	add_manpage_links(miniasync_runtime.3
-		runtime_new runtime_delete runtime_wait_multiple runtime_wait)
+	add_manpage_links(runtime_new.3
+		runtime_delete)
 
-	# miniasync_vdm.3
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_vdm.3.md.in
-		${MAN_DIR}/tmp/miniasync_vdm.3.md)
-	configure_man(miniasync_vdm.3 ${MAN_DIR}/tmp/miniasync_vdm.3.md)
-	add_manpage_links(miniasync_vdm.3 vdm_memcpy vdm_new vdm_delete)
-
-	# miniasync_vdm_synchronous.3
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_vdm_synchronous.3.md.in
-			${MAN_DIR}/tmp/miniasync_vdm_synchronous.3.md)
-	configure_man(miniasync_vdm_synchronous.3 ${MAN_DIR}/tmp/miniasync_vdm_synchronous.3.md)
-	add_manpage_links(miniasync_vdm_synchronous.3 vdm_descriptor_synchronous)
-
-	# miniasync_vdm_threads.3
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_vdm_threads.3.md.in
-			${MAN_DIR}/tmp/miniasync_vdm_threads.3.md)
-	configure_man(miniasync_vdm_threads.3 ${MAN_DIR}/tmp/miniasync_vdm_threads.3.md)
-	add_manpage_links(miniasync_vdm_threads.3
-		vdm_descriptor_threads vdm_descriptor_threads_polled)
-
-	# miniasync_vdm_dml.3
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/miniasync_vdm_dml.3.md.in
-	${MAN_DIR}/tmp/miniasync_vdm_dml.3.md)
-	configure_man(miniasync_vdm_dml.3 ${MAN_DIR}/tmp/miniasync_vdm_dml.3.md)
-	add_manpage_links(miniasync_vdm_dml.3
-		vdm_descriptor_dml vdm_descriptor_dml_async)
+	add_manpage_links(runtime_wait.3
+		runtime_wait_multiple)
 
 	# install manpages
 	install(FILES ${MAN_DIR}/miniasync.7

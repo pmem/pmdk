@@ -45,7 +45,7 @@ struct vdm_operation {
 	enum vdm_operation_type type;
 	union {
 		struct vdm_operation_data_memcpy memcpy;
-	};
+	} data;
 };
 
 struct vdm_operation_data {
@@ -61,7 +61,7 @@ struct vdm_operation_output {
 	enum vdm_operation_type type; /* XXX: determine if needed */
 	union {
 		struct vdm_operation_output_memcpy memcpy;
-	};
+	} output;
 };
 
 FUTURE(vdm_operation_future,
@@ -124,10 +124,10 @@ vdm_memcpy(struct vdm *vdm, void *dest, void *src, size_t n, uint64_t flags)
 {
 	struct vdm_operation op;
 	op.type = VDM_OPERATION_MEMCPY;
-	op.memcpy.dest = dest;
-	op.memcpy.flags = flags;
-	op.memcpy.n = n;
-	op.memcpy.src = src;
+	op.data.memcpy.dest = dest;
+	op.data.memcpy.flags = flags;
+	op.data.memcpy.n = n;
+	op.data.memcpy.src = src;
 
 	struct vdm_operation_future future = {0};
 	future.data.op = vdm->op_new(vdm, &op);

@@ -3,20 +3,20 @@
 # Copyright 2021-2022, Intel Corporation
 #
 
-project(miniasync-dml C)
+project(miniasync-vdm-dml C)
 
-add_cstyle(miniasync-dml
+add_cstyle(miniasync-vdm-dml
 	${CMAKE_CURRENT_SOURCE_DIR}/*.[ch]
 	${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
-	${CMAKE_CURRENT_SOURCE_DIR}/include/libminiasync-dml/*.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/libminiasync-vdm-dml/*.h
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/*.[ch])
 
-add_check_whitespace(miniasync-dml
+add_check_whitespace(miniasync-vdm-dml
 	${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	${CMAKE_CURRENT_SOURCE_DIR}/README.md
 	${CMAKE_CURRENT_SOURCE_DIR}/*.[ch]
 	${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
-	${CMAKE_CURRENT_SOURCE_DIR}/include/libminiasync-dml/*.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/libminiasync-vdm-dml/*.h
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/*.[ch])
 
 set(DML_SOURCES
@@ -31,24 +31,24 @@ set(DML_CORE_DEPS
 	${CORE_SOURCE_DIR}/util.c
 	${CORE_SOURCE_DIR}/util_posix.c)
 
-add_library(miniasync-dml SHARED ${DML_SOURCES} ${DML_CORE_DEPS})
+add_library(miniasync-vdm-dml SHARED ${DML_SOURCES} ${DML_CORE_DEPS})
 
-target_include_directories(miniasync-dml PRIVATE .
+target_include_directories(miniasync-vdm-dml PRIVATE .
 	${MINIASYNC_DML_INCLUDE_DIR}
 	${MINIASYNC_INCLUDE_DIR}
 	${MINIASYNC_SOURCE_DIR})
 
-set_target_properties(miniasync-dml PROPERTIES
-	PUBLIC_HEADER ${MINIASYNC_DML_INCLUDE_DIR}/libminiasync-dml.h
+set_target_properties(miniasync-vdm-dml PROPERTIES
+	PUBLIC_HEADER ${MINIASYNC_DML_INCLUDE_DIR}/libminiasync-vdm-dml.h
 )
 
-install(TARGETS miniasync-dml
+install(TARGETS miniasync-vdm-dml
 	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # Install headers included in public header
-install(DIRECTORY ${MINIASYNC_DML_INCLUDE_DIR}/libminiasync-dml
+install(DIRECTORY ${MINIASYNC_DML_INCLUDE_DIR}/libminiasync-vdm-dml
 	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 	FILES_MATCHING PATTERN "*.h"
 )

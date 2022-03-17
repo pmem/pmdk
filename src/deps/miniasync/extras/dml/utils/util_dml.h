@@ -2,7 +2,7 @@
 /* Copyright 2022, Intel Corporation */
 
 /*
- * util_dml -- utils for miniasync-dml
+ * util_dml -- utils for miniasync-vdm-dml
  */
 
 #ifndef UTIL_DML_H
