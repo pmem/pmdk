@@ -66,16 +66,6 @@ struct iovec;
 #define OS_LOCK_NB 4
 #define OS_LOCK_UN 8
 
-#ifndef _WIN32
-typedef struct stat os_stat_t;
-#define os_fstat	fstat
-#define os_lseek	lseek
-#else
-typedef struct _stat64 os_stat_t;
-#define os_fstat	_fstat64
-#define os_lseek	_lseeki64
-#endif
-
 #define os_close close
 #define os_fclose fclose
 
@@ -85,14 +75,8 @@ typedef off_t os_off_t;
 /* XXX: os_off_t defined in platform.h */
 #endif
 int os_open(const char *pathname, int flags, ...);
-int os_fsync(int fd);
-int os_fsync_dir(const char *dir_name);
-int os_stat(const char *pathname, os_stat_t *buf);
 int os_unlink(const char *pathname);
-int os_access(const char *pathname, int mode);
 FILE *os_fopen(const char *pathname, const char *mode);
-FILE *os_fdopen(int fd, const char *mode);
-int os_chmod(const char *pathname, mode_t mode);
 int os_mkstemp(char *temp);
 int os_ftruncate(int fd, os_off_t length);
 int os_flock(int fd, int operation);
@@ -103,7 +87,6 @@ int os_unsetenv(const char *name);
 int os_setenv(const char *name, const char *value, int overwrite);
 char *os_getenv(const char *name);
 const char *os_strsignal(int sig);
-int os_execv(const char *path, char *const argv[]);
 
 /*
  * XXX: missing APis (used in ut_file.c)

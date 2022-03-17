@@ -65,7 +65,7 @@ ENV MINIASYNC_DEPS "\
 	graphviz \
 	pandoc"
 
-# MINIASYNC-DML deps
+# MINIASYNC-VDM-DML deps
 ENV MINIASYNC_DML_DEPS "\
 	uuid-dev"
 

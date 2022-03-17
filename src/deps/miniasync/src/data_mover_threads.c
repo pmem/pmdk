@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2022, Intel Corporation */
 
+/* disable conditional expression is const warning */
+#ifdef _WIN32
+#pragma warning(disable : 4127)
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include "core/membuf.h"
@@ -15,9 +20,14 @@
 #define DATA_MOVER_THREADS_DEFAULT_NTHREADS 12
 #define DATA_MOVER_THREADS_DEFAULT_RINGBUF_SIZE 128
 
+struct data_mover_threads_op_fns {
+    memcpy_fn op_memcpy;
+};
+
 struct data_mover_threads {
 	struct vdm base; /* must be first */
 
+	struct data_mover_threads_op_fns op_fns;
 	struct ringbuf *buf;
 	size_t nthreads;
 	os_thread_t *threads;
@@ -34,21 +44,40 @@ struct data_mover_threads_op {
 };
 
 /*
+ * Standard implementation of memcpy used if none was specified by the user.
+ */
+void *std_memcpy(void *dst, const void *src, size_t n, unsigned flags) {
+	return memcpy(dst, src, n);
+}
+
+static struct data_mover_threads_op_fns op_fns_default = {
+	.op_memcpy = std_memcpy
+};
+
+void data_mover_threads_set_memcpy_fn(struct data_mover_threads *dmt,
+				memcpy_fn op_memcpy) {
+	dmt->op_fns.op_memcpy = op_memcpy;
+}
+
+/*
  * data_mover_threads_do_operation -- implementation of the various
  * operations supported by this data mover
  */
 static void
-data_mover_threads_do_operation(struct data_mover_threads_op *op)
+data_mover_threads_do_operation(struct data_mover_threads_op *op,
+				struct data_mover_threads *dmt)
 {
 	switch (op->op.type) {
 		case VDM_OPERATION_MEMCPY: {
 			struct vdm_operation_data_memcpy *mdata
-				= &op->op.memcpy;
-			memcpy(mdata->dest, mdata->src, mdata->n);
+				= &op->op.data.memcpy;
+			memcpy_fn op_memcpy = dmt->op_fns.op_memcpy;
+			op_memcpy(mdata->dest,
+				mdata->src, mdata->n, (unsigned)mdata->flags);
 		} break;
 		default:
-		ASSERT(0); /* unreachable */
-		break;
+			ASSERT(0); /* unreachable */
+			break;
 	}
 
 	if (op->desired_notifier == FUTURE_NOTIFIER_WAKER) {
@@ -77,7 +106,7 @@ data_mover_threads_loop(void *arg)
 		if ((op = ringbuf_dequeue(buf)) == NULL)
 			return NULL;
 
-		data_mover_threads_do_operation(op);
+		data_mover_threads_do_operation(op, dmt_threads);
 	}
 }
 
@@ -102,34 +131,6 @@ data_mover_threads_operation_check(void *op)
 		return FUTURE_STATE_RUNNING;
 
 	return FUTURE_STATE_IDLE;
-}
-
-/*
- * data_mover_threads_membuf_check -- checks the status of a threads job
- */
-static enum membuf_check_result
-data_mover_threads_membuf_check(void *ptr, void *data)
-{
-	switch (data_mover_threads_operation_check(ptr)) {
-		case FUTURE_STATE_COMPLETE:
-			return MEMBUF_PTR_CAN_REUSE;
-		case FUTURE_STATE_RUNNING:
-			return MEMBUF_PTR_CAN_WAIT;
-		case FUTURE_STATE_IDLE:
-			return MEMBUF_PTR_IN_USE;
-	}
-
-	ASSERT(0);
-	return MEMBUF_PTR_IN_USE;
-}
-
-/*
- * data_mover_threads_membuf_size -- returns the size of a threads job size
- */
-static size_t
-data_mover_threads_membuf_size(void *ptr, void *data)
-{
-	return sizeof(struct data_mover_threads_op);
 }
 
 /*
@@ -169,11 +170,14 @@ data_mover_threads_operation_delete(void *op,
 	switch (opt->op.type) {
 		case VDM_OPERATION_MEMCPY:
 			output->type = VDM_OPERATION_MEMCPY;
-			output->memcpy.dest = opt->op.memcpy.dest;
+			output->output.memcpy.dest =
+				opt->op.data.memcpy.dest;
 			break;
 		default:
 			ASSERT(0);
 	}
+
+	membuf_free(op);
 }
 
 /*
@@ -226,13 +230,13 @@ data_mover_threads_new(size_t nthreads, size_t ringbuf_size,
 
 	dmt_threads->desired_notifier = desired_notifier;
 	dmt_threads->base = data_mover_threads_vdm;
+	dmt_threads->op_fns = op_fns_default;
 
-	dmt_threads->buf = ringbuf_new(ringbuf_size);
+	dmt_threads->buf = ringbuf_new((unsigned)ringbuf_size);
 	if (dmt_threads->buf == NULL)
 		goto ringbuf_failed;
 
-	dmt_threads->membuf = membuf_new(data_mover_threads_membuf_check,
-		data_mover_threads_membuf_size, NULL, dmt_threads);
+	dmt_threads->membuf = membuf_new(dmt_threads);
 	if (dmt_threads->membuf == NULL)
 		goto membuf_failed;
 

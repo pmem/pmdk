@@ -34,6 +34,11 @@
 		(unsigned long long)(x), (unsigned long long)(y));\
 } while (/*CONSTCOND*/0)
 
+#define UT_ASSERTne(x, y) do if ((x) == (y)) {\
+	UT_FATAL("ASSERT FAILED : " #x " (%llu) = %llu",\
+		(unsigned long long)(x), (unsigned long long)(y));\
+} while (/*CONSTCOND*/0)
+
 #define UT_ASSERTin(x, min, max) do if ((x) < (min) || (x) > (max)) {\
 	UT_FATAL("ASSERT FAILED : " #x " = %llu not in [%llu,%llu]",\
 		(unsigned long long)(x),\

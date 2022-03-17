@@ -8,9 +8,47 @@
 
 #define TEST_SIZE 1024
 
+int src_dst_new(char **src1, char **dst1, char **src2, char **dst2) {
+	size_t size = TEST_SIZE * sizeof(char);
+	*src1 = malloc(size);
+	if (*src1 == NULL)
+		return 1;
+
+	*dst1 = malloc(size);
+	if (*dst1 == NULL)
+		goto end_1;
+
+	*src2 = malloc(size * 2);
+	if (*src2 == NULL)
+		goto end_2;
+
+	*dst2 = malloc(size * 2);
+	if (*dst2 == NULL)
+		goto end_3;
+
+	return 0;
+
+end_3:
+	free(*src2);
+end_2:
+	free(*dst1);
+end_1:
+	free(*src1);
+
+	return 1;
+}
+
+void src_dst_del(char **src1, char **dst1, char **src2, char **dst2) {
+	free(*src1);
+	free(*src2);
+	free(*dst1);
+	free(*dst2);
+}
+
 int
 main(void)
 {
+	int ret = 0;
 	/*
 	 * First, we have to create a runner instance, get descriptor for
 	 * asynchronous memcpy which is vdm_descriptor_threads and
@@ -31,18 +69,15 @@ main(void)
 	 * after another. In this example we call two unique memcpy
 	 * operations in a loop.
 	 */
+	char *src1;
+	char *dst1;
+	char *src2;
+	char *dst2;
+
 	for (int i = 0; i < 2; i++) {
-		char *src1 = malloc(TEST_SIZE * sizeof(char));
-		char *dst1 = malloc(TEST_SIZE * sizeof(char));
-		char *src2 = malloc(TEST_SIZE * 2 * sizeof(char));
-		char *dst2 = malloc(TEST_SIZE * 2 * sizeof(char));
-		if (src1 == NULL || dst1 == NULL ||
-			src2 == NULL || dst2 == NULL) {
-			fprintf(stderr, "Failed to allocate memory.\n");
-			runtime_delete(r);
-			data_mover_threads_delete(dmt);
-			return 1;
-		}
+		ret = src_dst_new(&src1, &dst1, &src2, &dst2);
+		if (ret)
+			goto end;
 
 		memset(src1, 7, TEST_SIZE);
 		memset(src2, 6, TEST_SIZE * 2);
@@ -67,10 +102,7 @@ main(void)
 		 */
 		runtime_wait_multiple(r, futs, 2);
 
-		free(src1);
-		free(src2);
-		free(dst1);
-		free(dst2);
+		src_dst_del(&src1, &dst1, &src2, &dst2);
 	}
 
 	/*
@@ -80,7 +112,8 @@ main(void)
 	 * which is freed only by vdm_delete or at end of execution of a process
 	 * that called vdm_new.
 	 */
+end:
 	data_mover_threads_delete(dmt);
 	runtime_delete(r);
-	return 0;
+	return ret;
 }

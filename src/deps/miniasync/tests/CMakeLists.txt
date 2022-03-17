@@ -11,7 +11,7 @@ set(LIBS_BASIC
 	${CMAKE_THREAD_LIBS_INIT})
 
 set(LIBS_DML
-	miniasync-dml
+	miniasync-vdm-dml
 	dl
 	dml
 	${LIBS_BASIC})
@@ -22,8 +22,11 @@ set(SOURCES_DUMMY_TEST
 set(SOURCES_DUMMY_NEGATIVE_TEST
 	dummy_negative/dummy_negative.c)
 
+set(SOURCES_FUTURE_TEST
+	future/test_future.c)
+
 set(SOURCES_MEMCPY_PTHREADS_TEST
-		memcpy_threads/memcpy_threads.c)
+	memcpy_threads/memcpy_threads.c)
 
 set(SOURCES_DATA_MOVER_DML_TEST
 	data_mover_dml/data_mover_dml.c
@@ -58,6 +61,10 @@ add_link_executable(dummy_negative
 		"${SOURCES_DUMMY_NEGATIVE_TEST}"
 		"${LIBS_BASIC}")
 
+add_link_executable(future
+		"${SOURCES_FUTURE_TEST}"
+		"${LIBS_BASIC}")
+
 add_link_executable(memcpy_threads
 		"${SOURCES_MEMCPY_PTHREADS_TEST}"
 		"${LIBS_BASIC}")
@@ -72,12 +79,18 @@ test("dummy_drd" "dummy" test_dummy drd)
 test("dummy_helgrind" "dummy" test_dummy helgrind)
 test("dummy_memcheck" "dummy" test_dummy memcheck)
 test("dummy_negative" "dummy_negative" test_dummy_negative none)
-test("ex_basic" "ex_basic" test_ex_basic none)
-test("ex_basic_async" "ex_basic_async" test_ex_basic_async none)
+test("future" "future" test_future none)
+test("future_memcheck" "future" test_future memcheck)
 test("memcpy_threads" "memcpy_threads" test_memcpy_threads none)
 test("membuf" "membuf" test_membuf none)
 
-# add miniasync-dml test only if the sources in extras/dml were compiled
+# add tests running examples only if they are built
+if(BUILD_EXAMPLES)
+	test("ex_basic" "ex_basic" test_ex_basic none)
+	test("ex_basic_async" "ex_basic_async" test_ex_basic_async none)
+endif()
+
+# add miniasync-vdm-dml test only if the sources in extras/dml were compiled
 if (COMPILE_DML)
 	add_link_executable(data_mover_dml
 			"${SOURCES_DATA_MOVER_DML_TEST}"

@@ -53,41 +53,6 @@ os_open(const char *pathname, int flags, ...)
 }
 
 /*
- * os_fsync -- fsync abstraction layer
- */
-int
-os_fsync(int fd)
-{
-	return fsync(fd);
-}
-
-/*
- * os_fsync_dir -- fsync the directory
- */
-int
-os_fsync_dir(const char *dir_name)
-{
-	int fd = os_open(dir_name, O_RDONLY | O_DIRECTORY);
-	if (fd < 0)
-		return -1;
-
-	int ret = os_fsync(fd);
-
-	os_close(fd);
-
-	return ret;
-}
-
-/*
- * os_stat -- stat abstraction layer
- */
-int
-os_stat(const char *pathname, os_stat_t *buf)
-{
-	return stat(pathname, buf);
-}
-
-/*
  * os_unlink -- unlink abstraction layer
  */
 int
@@ -97,39 +62,12 @@ os_unlink(const char *pathname)
 }
 
 /*
- * os_access -- access abstraction layer
- */
-int
-os_access(const char *pathname, int mode)
-{
-	return access(pathname, mode);
-}
-
-/*
  * os_fopen -- fopen abstraction layer
  */
 FILE *
 os_fopen(const char *pathname, const char *mode)
 {
 	return fopen(pathname, mode);
-}
-
-/*
- * os_fdopen -- fdopen abstraction layer
- */
-FILE *
-os_fdopen(int fd, const char *mode)
-{
-	return fdopen(fd, mode);
-}
-
-/*
- * os_chmod -- chmod abstraction layer
- */
-int
-os_chmod(const char *pathname, mode_t mode)
-{
-	return chmod(pathname, mode);
 }
 
 /*
@@ -244,10 +182,4 @@ const char *
 os_strsignal(int sig)
 {
 	return strsignal(sig);
-}
-
-int
-os_execv(const char *path, char *const argv[])
-{
-	return execv(path, argv);
 }

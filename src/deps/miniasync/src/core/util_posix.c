@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * util_posix.c -- Abstraction layer for misc utilities (Posix implementation)
@@ -44,37 +44,6 @@ char *
 util_part_realpath(const char *path)
 {
 	return realpath(path, NULL);
-}
-
-/*
- * util_compare_file_inodes -- compare device and inodes of two files;
- *                             this resolves hard links
- */
-int
-util_compare_file_inodes(const char *path1, const char *path2)
-{
-	struct stat sb1, sb2;
-	if (os_stat(path1, &sb1)) {
-		if (errno != ENOENT) {
-			ERR("!stat failed for %s", path1);
-			return -1;
-		}
-		LOG(1, "stat failed for %s", path1);
-		errno = 0;
-		return strcmp(path1, path2) != 0;
-	}
-
-	if (os_stat(path2, &sb2)) {
-		if (errno != ENOENT) {
-			ERR("!stat failed for %s", path2);
-			return -1;
-		}
-		LOG(1, "stat failed for %s", path2);
-		errno = 0;
-		return strcmp(path1, path2) != 0;
-	}
-
-	return sb1.st_dev != sb2.st_dev || sb1.st_ino != sb2.st_ino;
 }
 
 /*

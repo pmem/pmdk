@@ -99,15 +99,6 @@ util_part_realpath(const char *path)
 }
 
 /*
- * util_compare_file_inodes -- compare device and inodes of two files
- */
-int
-util_compare_file_inodes(const char *path1, const char *path2)
-{
-	return strcmp(path1, path2) != 0;
-}
-
-/*
  * util_tmpfile -- create a temporary file
  */
 int

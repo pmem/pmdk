@@ -2,16 +2,17 @@
 /* Copyright 2021-2022, Intel Corporation */
 
 /*
- * libminiasync-dml.h -- definition of miniasync dml implementation
+ * libminiasync-vdm-dml.h -- definition of miniasync dml data mover
+ *                           implementation
  */
 
-#ifndef MINIASYNC_DML_H
-#define MINIASYNC_DML_H 1
+#ifndef MINIASYNC_VDM_DML_H
+#define MINIASYNC_VDM_DML_H 1
 
 #include <stddef.h>
 #include <stdio.h>
 
-#include "libminiasync-dml/data_mover_dml.h"
+#include "libminiasync-vdm-dml/data_mover_dml.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,4 +28,4 @@ extern "C" {
 }
 #endif
 
-#endif /* MINIASYNC_DML_H */
+#endif /* MINIASYNC_VDM_DML_H */

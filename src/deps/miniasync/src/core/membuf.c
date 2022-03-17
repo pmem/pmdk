@@ -32,10 +32,13 @@ struct membuf {
 	struct threadbuf *tbuf_unused_first; /* list of threadbufs for reuse */
 
 	os_tls_key_t bufkey; /* TLS key for threadbuf */
-	membuf_ptr_check check_func; /* object state check function */
-	membuf_ptr_size size_func; /* object size function */
-	void *func_data; /* user-provided function argument */
 	void *user_data; /* user-provided buffer data */
+};
+
+struct membuf_entry {
+	int32_t allocated; /* 1 - allocated, 0 - unused */
+	uint32_t size; /* size of the entry */
+	char data[]; /* user data */
 };
 
 /*
@@ -64,17 +67,13 @@ membuf_key_destructor(void *data)
  * membuf_new -- allocates and initializes a new membuf instance
  */
 struct membuf *
-membuf_new(membuf_ptr_check check_func, membuf_ptr_size size_func,
-	void *func_data, void *user_data)
+membuf_new(void *user_data)
 {
 	struct membuf *membuf = malloc(sizeof(struct membuf));
 	if (membuf == NULL)
 		return NULL;
 
 	membuf->user_data = user_data;
-	membuf->check_func = check_func;
-	membuf->size_func = size_func;
-	membuf->func_data = func_data;
 	membuf->tbuf_first = NULL;
 	membuf->tbuf_unused_first = NULL;
 	os_mutex_init(&membuf->lists_lock);
@@ -98,6 +97,34 @@ membuf_delete(struct membuf *membuf)
 	}
 	os_mutex_destroy(&membuf->lists_lock);
 	free(membuf);
+}
+
+/*
+ * membuf_entry_get_size -- returns the size of an entry
+ */
+static size_t
+membuf_entry_get_size(void *real_ptr)
+{
+	struct membuf_entry *entry = real_ptr;
+
+	uint32_t size;
+	util_atomic_load_explicit32(&entry->size, &size, memory_order_acquire);
+
+	return size;
+}
+
+/*
+ * membuf_entry_is_allocated -- checks whether the entry is allocated
+ */
+static int
+membuf_entry_is_allocated(void *real_ptr)
+{
+	struct membuf_entry *entry = real_ptr;
+	int32_t allocated;
+	util_atomic_load_explicit32(&entry->allocated,
+		&allocated, memory_order_acquire);
+
+	return allocated;
 }
 
 /*
@@ -147,7 +174,7 @@ membuf_get_threadbuf(struct membuf *membuf)
 /*
  * membuf_threadbuf_prune -- reclaims available buffer space
  */
-static int
+static void
 membuf_threadbuf_prune(struct membuf *membuf,
 	struct threadbuf *tbuf)
 {
@@ -165,20 +192,11 @@ membuf_threadbuf_prune(struct membuf *membuf,
 		/* check the next object after the available memory */
 		size_t next_loc = (tbuf->offset + tbuf->available) % tbuf->size;
 		void *next = &tbuf->buf[next_loc];
-		switch (membuf->check_func(next, membuf->func_data)) {
-			case MEMBUF_PTR_CAN_REUSE: {
-				size_t s = membuf->size_func(next,
-					membuf->func_data);
-				tbuf->available += s;
-			} break;
-			case MEMBUF_PTR_CAN_WAIT:
-				return 0;
-			case MEMBUF_PTR_IN_USE:
-				return -1;
-		}
-	}
+		if (membuf_entry_is_allocated(next))
+			return;
 
-	return 0;
+		tbuf->available += membuf_entry_get_size(next);
+	}
 }
 
 /*
@@ -191,32 +209,50 @@ membuf_alloc(struct membuf *membuf, size_t size)
 	if (tbuf == NULL)
 		return NULL;
 
-	if (size > tbuf->size)
+	size_t real_size = size + sizeof(struct membuf_entry);
+
+	if (real_size > tbuf->size)
 		return NULL;
 
-	if (tbuf->offset + size > tbuf->size) {
+	if (tbuf->offset + real_size > tbuf->size) {
 		tbuf->leftovers = tbuf->available;
 		tbuf->offset = 0;
 		tbuf->available = 0;
 	}
 
 	/* wait until enough memory becomes available */
-	while (size > tbuf->available) {
-		if (membuf_threadbuf_prune(membuf, tbuf) < 0) {
-			/*
-			 * Fail if not enough space was reclaimed and no
-			 * memory is available for further reclamation.
-			 */
-			if (size > tbuf->available)
-				return NULL;
-		}
+	if (real_size > tbuf->available) {
+		membuf_threadbuf_prune(membuf, tbuf);
+		/*
+		 * Fail if not enough space was reclaimed and no
+		 * memory is available for further reclamation.
+		 */
+		if (real_size > tbuf->available)
+			return NULL;
 	}
 
 	size_t pos = tbuf->offset;
-	tbuf->offset += size;
-	tbuf->available -= size;
+	tbuf->offset += real_size;
+	tbuf->available -= real_size;
 
-	return &tbuf->buf[pos];
+	struct membuf_entry *entry = (struct membuf_entry *)&tbuf->buf[pos];
+	entry->size = (uint32_t)real_size;
+	entry->allocated = 1;
+
+	return &entry->data;
+}
+
+/*
+ * membuf_free -- deallocates an entry
+ */
+void
+membuf_free(void *ptr)
+{
+	struct membuf_entry *entry = (struct membuf_entry *)
+		((uintptr_t)ptr - sizeof(struct membuf_entry));
+
+	util_atomic_store_explicit64(&entry->allocated, 0,
+		memory_order_release);
 }
 
 /*

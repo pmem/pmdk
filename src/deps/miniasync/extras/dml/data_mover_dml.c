@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #include "core/membuf.h"
-#include "libminiasync-dml.h"
+#include "libminiasync-vdm-dml.h"
 #include "core/out.h"
 #include "core/util.h"
 
@@ -18,7 +18,7 @@ struct data_mover_dml {
 };
 
 /*
- * data_mover_dml_translate_flags -- translate miniasync-dml flags
+ * data_mover_dml_translate_flags -- translate miniasync-vdm-dml flags
  */
 static void
 data_mover_dml_translate_flags(uint64_t flags, uint64_t *dml_flags,
@@ -120,8 +120,10 @@ data_mover_dml_operation_new(struct vdm *vdm,
 	switch (operation->type) {
 		case VDM_OPERATION_MEMCPY:
 		return data_mover_dml_memcpy_job_new(vdm_dml,
-			operation->memcpy.dest, operation->memcpy.src,
-			operation->memcpy.n, operation->memcpy.flags);
+			operation->data.memcpy.dest,
+			operation->data.memcpy.src,
+			operation->data.memcpy.n,
+			operation->data.memcpy.flags);
 		default:
 		ASSERT(0); /* unreachable */
 	}
@@ -139,13 +141,16 @@ data_mover_dml_operation_delete(void *op, struct vdm_operation_output *output)
 	switch (job->operation) {
 		case DML_OP_MEM_MOVE:
 			output->type = VDM_OPERATION_MEMCPY;
-			output->memcpy.dest = job->destination_first_ptr;
+			output->output.memcpy.dest =
+				job->destination_first_ptr;
 			break;
 		default:
 			ASSERT(0);
 	}
 
 	data_mover_dml_memcpy_job_delete(&job);
+
+	membuf_free(op);
 }
 
 /*
@@ -179,32 +184,6 @@ data_mover_dml_operation_start(void *op, struct future_notifier *n)
 }
 
 /*
- * data_mover_dml_membuf_check -- returns the status of the dml job
- */
-enum membuf_check_result
-data_mover_dml_membuf_check(void *ptr, void *data)
-{
-	switch (data_mover_dml_operation_check(ptr)) {
-		case FUTURE_STATE_COMPLETE:
-			return MEMBUF_PTR_CAN_REUSE;
-		case FUTURE_STATE_RUNNING:
-			return MEMBUF_PTR_CAN_WAIT;
-		case FUTURE_STATE_IDLE:
-			return MEMBUF_PTR_IN_USE;
-	}
-	ASSERT(0);
-}
-
-/*
- * data_mover_dml_membuf_size -- returns the size of a dml job
- */
-static size_t
-data_mover_dml_membuf_size(void *ptr, void *data)
-{
-	return sizeof(dml_job_t);
-}
-
-/*
  * data_mover_dml_vdm -- dml asynchronous memcpy
  */
 static struct vdm data_mover_dml_vdm = {
@@ -224,8 +203,7 @@ data_mover_dml_new(void)
 	if (vdm_dml == NULL)
 		return NULL;
 
-	vdm_dml->membuf = membuf_new(data_mover_dml_membuf_check,
-		data_mover_dml_membuf_size, NULL, vdm_dml);
+	vdm_dml->membuf = membuf_new(vdm_dml);
 	vdm_dml->base = data_mover_dml_vdm;
 
 	return vdm_dml;
