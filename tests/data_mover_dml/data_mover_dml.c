@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include <libminiasync.h>
-#include <libminiasync-dml.h>
+#include <libminiasync-vdm-dml.h>
 
 #include "util_dml.h"
 

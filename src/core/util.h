@@ -97,7 +97,6 @@ extern unsigned long long Mmap_align;
 	char *util_fgets(char *buffer, int max, FILE *stream);
 	char *util_getexecname(char *path, size_t pathlen);
 	char *util_part_realpath(const char *path);
-	int util_compare_file_inodes(const char *path1, const char *path2);
 	int util_tmpfile(const char *dir, const char *templ, int flags);
 	void *util_aligned_malloc(size_t alignment, size_t size);
 	void util_aligned_free(void *ptr);

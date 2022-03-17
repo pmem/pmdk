@@ -81,7 +81,7 @@ memcpy_to_print_map(struct future_context *memcpy_ctx,
 	struct async_print_data *print = future_context_get_data(print_ctx);
 
 	assert(output->type == VDM_OPERATION_MEMCPY);
-	print->value = output->memcpy.dest;
+	print->value = output->output.memcpy.dest;
 	assert(arg == (void *)0xd);
 }
 
@@ -120,6 +120,7 @@ main(void)
 	char *buf_b = malloc(otherbuf_size + 1);
 	if (buf_b == NULL) {
 		fprintf(stderr, "Failed to create buf_b\n");
+		free(buf_a);
 		return 1;
 	}
 
@@ -131,6 +132,8 @@ main(void)
 	struct data_mover_threads *dmt = data_mover_threads_default();
 	if (dmt == NULL) {
 		fprintf(stderr, "Failed to allocate data mover.\n");
+		free(buf_a);
+		free(buf_b);
 		runtime_delete(r);
 		return 1;
 	}

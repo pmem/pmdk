@@ -153,6 +153,8 @@ do {\
 
 #define FUTURE_AS_RUNNABLE(futurep) (&(futurep)->base)
 #define FUTURE_OUTPUT(futurep) (&(futurep)->output)
+#define FUTURE_DATA(futurep) (&(futurep)->data)
+#define FUTURE_STATE(futurep) ((futurep)->base.context.state)
 
 typedef void (*future_map_fn)(struct future_context *lhs,
 			struct future_context *rhs, void *arg);
@@ -185,7 +187,11 @@ do {\
 static inline enum future_state
 future_poll(struct future *fut, struct future_notifier *notifier)
 {
-	return (fut->context.state = fut->task(&fut->context, notifier));
+	if (fut->context.state != FUTURE_STATE_COMPLETE) {
+		fut->context.state = fut->task(&fut->context, notifier);
+	}
+
+	return fut->context.state;
 }
 
 #define FUTURE_BUSY_POLL(_futurep)\
@@ -195,6 +201,10 @@ while (future_poll(FUTURE_AS_RUNNABLE((_futurep)), NULL) !=\
 static inline enum future_state
 async_chain_impl(struct future_context *ctx, struct future_notifier *notifier)
 {
+#define _MINIASYNC_PTRSIZE sizeof(void *)
+#define _MINIASYNC_ALIGN_UP(size)\
+	(((size) + _MINIASYNC_PTRSIZE - 1) & ~(_MINIASYNC_PTRSIZE - 1))
+
 	uint8_t *data = future_context_get_data(ctx);
 
 	struct future_chain_entry *entry = (struct future_chain_entry *)(data);
@@ -206,8 +216,14 @@ async_chain_impl(struct future_context *ctx, struct future_notifier *notifier)
 	 * Futures must be laid out sequentially in memory for this to work.
 	 */
 	while (entry != NULL) {
-		used_data += sizeof(struct future_chain_entry) +
-			future_context_get_size(&entry->future.context);
+		/*
+		 * `struct future` starts with a pointer, so the structure will
+		 * be pointer-size aligned. We need to account for that when
+		 * calculating where is the next future in a chained struct.
+		 */
+		used_data += _MINIASYNC_ALIGN_UP(
+			sizeof(struct future_chain_entry) +
+			future_context_get_size(&entry->future.context));
 		struct future_chain_entry *next = used_data != ctx->data_size
 			? (struct future_chain_entry *)(data + used_data)
 			: NULL;
@@ -227,6 +243,8 @@ async_chain_impl(struct future_context *ctx, struct future_notifier *notifier)
 		}
 		entry = next;
 	}
+#undef _MINIASYNC_PTRSIZE
+#undef _MINIASYNC_ALIGN_UP
 
 	return FUTURE_STATE_COMPLETE;
 }

@@ -99,8 +99,7 @@ if(WIN32)
 # It looks like the issue is still unfixed:
 # https://developercommunity.visualstudio.com/t/several-warnings-in-windows-sdk-100177630-in-windo/435362
 	add_flag(-DWIN32_LEAN_AND_MEAN)
-# Enable when all Warnings are fixed.
-	#add_flag(-WX)
+	add_compile_options(/W3 /WX)
 endif()
 
 if(USE_ASAN)
