@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 /*
  * region_namespace_ndctl.c -- common ndctl functions
  */
 
 #include <ndctl/libndctl.h>
-#include <ndctl/libdaxctl.h>
+#include <daxctl/libdaxctl.h>
 #include <sys/sysmacros.h>
 #include <fcntl.h>
 
