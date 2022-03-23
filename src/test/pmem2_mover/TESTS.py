@@ -39,22 +39,22 @@ class PMEM2_MOVER_MT(PMEM2_MOVER):
 
 
 class TEST0(PMEM2_MOVER):
-    """veryfy pmem2 mover functionality"""
+    """verify pmem2 mover functionality"""
     test_case = "test_mover_basic"
 
 
 class TEST1(PMEM2_MOVER_MT):
-    """veryfy pmem2 mover multithreaded functionality"""
+    """verify pmem2 mover multi-threaded functionality"""
     test_case = "test_mover_multithreaded"
 
 
 class TEST2(PMEM2_MOVER_MT):
     test_type = t.Long
     thread_num = 16
-    """veryfy pmem2 mover multithreaded functionality (Long)"""
+    """verify pmem2 mover multi-threaded functionality (Long)"""
     test_case = "test_mover_multithreaded"
 
 
 class TEST3(PMEM2_MOVER):
-    """veryfy pmem2 mover functionality"""
+    """verify pmem2 mover functionality"""
     test_case = "test_miniasync_mover"

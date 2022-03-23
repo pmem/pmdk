@@ -24,7 +24,6 @@ struct data_mover {
 
 struct data_mover_op {
 	struct vdm_operation op;
-	struct data_mover *mover; /* xxx: shoud be keept in vdm_operation ? */
 	int complete;
 };
 
@@ -60,7 +59,6 @@ sync_operation_new(struct vdm *vdm, const struct vdm_operation *operation)
 		return NULL;
 
 	sync_op->complete = 0;
-	sync_op->mover = vdm_sync;
 	sync_op->op = *operation;
 
 	return sync_op;
@@ -93,6 +91,7 @@ sync_operation_start(void *op, struct future_notifier *n)
 {
 	LOG(3, "op %p, notifier %p", op, n);
 	struct data_mover_op *sync_op = (struct data_mover_op *)op;
+	struct data_mover *mover = membuf_ptr_user_data(op);
 	if (n)
 		n->notifier_used = FUTURE_NOTIFIER_NONE;
 
@@ -100,7 +99,7 @@ sync_operation_start(void *op, struct future_notifier *n)
 		case VDM_OPERATION_MEMCPY:
 		{
 			pmem2_memcpy_fn memcpy_fn;
-			memcpy_fn = pmem2_get_memcpy_fn(sync_op->mover->map);
+			memcpy_fn = pmem2_get_memcpy_fn(mover->map);
 
 			memcpy_fn(sync_op->op.data.memcpy.dest,
 				sync_op->op.data.memcpy.src,
