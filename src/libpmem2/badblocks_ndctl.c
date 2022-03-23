@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2021, Intel Corporation */
+/* Copyright 2017-2022, Intel Corporation */
 
 /*
  * badblocks_ndctl.c -- implementation of DIMMs API based on the ndctl library
@@ -16,7 +16,7 @@
 #include <sys/sysmacros.h>
 #include <fcntl.h>
 #include <ndctl/libndctl.h>
-#include <ndctl/libdaxctl.h>
+#include <daxctl/libdaxctl.h>
 
 #include "libpmem2.h"
 #include "pmem2_utils.h"
