@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2022, Intel Corporation */
 
 /*
  * daxio.c -- simple app for reading and writing data from/to
@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include <ndctl/libndctl.h>
-#include <ndctl/libdaxctl.h>
+#include <daxctl/libdaxctl.h>
 #include <libpmem.h>
 
 #include "util.h"

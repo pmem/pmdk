@@ -70,7 +70,7 @@
       <Command>(IF NOT EXIST "build\*.sln" ( cmake -H"." -B"build" ))</Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>cmake --build "build" --config "$(Configuration)"</Command>
+      <Command>cmake --build "build" --config "Release"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
