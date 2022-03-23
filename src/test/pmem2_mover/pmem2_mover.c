@@ -73,7 +73,7 @@ struct thread_arg {
 };
 
 /*
- * thread_worker -- thread worker for test_mover_multihread
+ * thread_worker -- thread worker for test_mover_multithread
  */
 static void *
 thread_worker(void *arg)
