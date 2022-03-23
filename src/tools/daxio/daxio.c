@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include <ndctl/libndctl.h>
-#include <ndctl/libdaxctl.h>
+#include <daxctl/libdaxctl.h>
 #include <libpmem.h>
 
 #include "util.h"
