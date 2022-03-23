@@ -6,7 +6,7 @@
 #
 
 # WARNING: This file is created in the pmdk repository
-# and doens't belong to the pmem/miniasync repository.
+# and doesn't belong to the pmem/miniasync repository.
 #
 
 dir = build

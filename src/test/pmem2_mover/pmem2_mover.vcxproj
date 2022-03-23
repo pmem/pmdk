@@ -44,7 +44,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>$(solutionDir)deps\miniasync\build\src\debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(solutionDir)deps\miniasync\build\src\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(solutionDir)deps\miniasync\build\src\Release;$(LibraryPath)</LibraryPath>
