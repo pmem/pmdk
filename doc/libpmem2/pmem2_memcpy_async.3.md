@@ -33,12 +33,12 @@ struct vdm_operation_future pmem2_memcpy_async(struct pmem2_map *map,
 ```
 
 # DESCRIPTION #
-To use this functions, you must have *libminiasync* installed. Those functions use futures 
+To use this functions, you must have *libminiasync* installed. Those functions use futures
 and vdm (virtual data mover) concepts from this library. Please check **miniasync**(7) for more details.
 
-The **pmem2_config_set_vdm** sets a vdm structure in the *pmem2_config*. 
-This structure will be used by pmem2_memcpy_async function, to create a *vdm_operation_future*. 
-If vdm is not set in the config, pmem2_map_new will uses a default one which uses a 
+The **pmem2_config_set_vdm** sets a vdm structure in the *pmem2_config*.
+This structure will be used by pmem2_memcpy_async function, to create a *vdm_operation_future*.
+If vdm is not set in the config, pmem2_map_new will uses a default one which uses a
 pmem2 memory movement functions to perform memopry operations. (**pmem2_get_memcpy_fn**(3), **pmem2_get_memmove_fn**(3), **pmem2_get_memsety_fn**(3)).
 
 The **pmem2_memcpy_async** uses *vdm* structure held inside of the *pmem2_map* structure to initialise and return **vdm_operation_future**.
