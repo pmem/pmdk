@@ -6,7 +6,7 @@
  */
 
 #include <ndctl/libndctl.h>
-#include <ndctl/libdaxctl.h>
+#include <daxctl/libdaxctl.h>
 #include <sys/sysmacros.h>
 #include <fcntl.h>
 
