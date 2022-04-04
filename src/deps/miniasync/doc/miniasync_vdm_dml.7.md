@@ -42,8 +42,8 @@ by the **miniasync-vdm-dml**(7) library that has dependency on the **DML** libra
 For information about **miniasync_vdm_dml**() library compilation, see *extras/dml/README.md* file.
 
 **DML** data mover supports offloading certain computations to the hardware
-accelerators (e.g. Intel® Data Streaming Accelerator) by using **MINIASYNC_DML_F_PATH_HW**
-flag. To use this feature, make sure that **DML** library is installed with **DML_HW** option.
+accelerators (e.g. Intel® Data Streaming Accelerator). To use this feature, make
+sure that **DML** library is installed with **DML_HW** option.
 For more information about **DML**, see **<https://github.com/intel/DML>**.
 An example of **DML** data mover API usage with flags can be found in **EXAMPLE** section.
 
@@ -56,9 +56,6 @@ To create a new **DML** data mover instance, use **data_mover_dml_new**(3) funct
 **DML** data mover provides the following flags:
 
 * **MINIASYNC_DML_F_MEM_DURABLE** - write to destination is identified as write to durable memory
-
-* **MINIASYNC_DML_F_PATH_HW** - use hardware accelerators (e.g. Intel® Data Streaming Accelerator)
-for operation execution
 
 **DML** data mover supports following operations:
 

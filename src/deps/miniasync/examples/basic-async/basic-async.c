@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "libminiasync.h"
-#include "libminiasync/data_mover_threads.h"
 
 #define TEST_SIZE 1024
 
@@ -101,6 +100,14 @@ main(void)
 		 * calling that.
 		 */
 		runtime_wait_multiple(r, futs, 2);
+
+		if (FUTURE_OUTPUT(&fut)->result != VDM_SUCCESS) {
+			fprintf(stderr, "'fut' memcpy operation failed\n");
+		}
+
+		if (FUTURE_OUTPUT(&fut2)->result != VDM_SUCCESS) {
+			fprintf(stderr, "'fut2' memcpy operation failed\n");
+		}
 
 		src_dst_del(&src1, &dst1, &src2, &dst2);
 	}

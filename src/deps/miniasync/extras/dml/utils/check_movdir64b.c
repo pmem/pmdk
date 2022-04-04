@@ -7,7 +7,7 @@ int
 main()
 {
 	if (!is_cpu_movdir64b_present())
-		return -1;
+		return 1;
 
 	return 0;
 }
