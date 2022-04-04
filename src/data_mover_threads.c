@@ -10,8 +10,6 @@
 #include <string.h>
 #include "core/membuf.h"
 #include "core/out.h"
-#include "libminiasync/future.h"
-#include "libminiasync/vdm.h"
 #include "libminiasync/data_mover_threads.h"
 #include "core/util.h"
 #include "core/os_thread.h"
@@ -21,7 +19,7 @@
 #define DATA_MOVER_THREADS_DEFAULT_RINGBUF_SIZE 128
 
 struct data_mover_threads_op_fns {
-    memcpy_fn op_memcpy;
+	memcpy_fn op_memcpy;
 };
 
 struct data_mover_threads {
@@ -35,12 +33,13 @@ struct data_mover_threads {
 	enum future_notifier_type desired_notifier;
 };
 
-struct data_mover_threads_op {
-	struct vdm_operation op;
+struct data_mover_threads_data {
 	enum future_notifier_type desired_notifier;
 	struct future_notifier notifier;
 	uint64_t complete;
 	uint64_t started;
+
+	struct vdm_operation op;
 };
 
 /*
@@ -64,13 +63,13 @@ void data_mover_threads_set_memcpy_fn(struct data_mover_threads *dmt,
  * operations supported by this data mover
  */
 static void
-data_mover_threads_do_operation(struct data_mover_threads_op *op,
+data_mover_threads_do_operation(struct data_mover_threads_data *data,
 				struct data_mover_threads *dmt)
 {
-	switch (op->op.type) {
+	switch (data->op.type) {
 		case VDM_OPERATION_MEMCPY: {
 			struct vdm_operation_data_memcpy *mdata
-				= &op->op.data.memcpy;
+				= &data->op.data.memcpy;
 			memcpy_fn op_memcpy = dmt->op_fns.op_memcpy;
 			op_memcpy(mdata->dest,
 				mdata->src, mdata->n, (unsigned)mdata->flags);
@@ -80,10 +79,10 @@ data_mover_threads_do_operation(struct data_mover_threads_op *op,
 			break;
 	}
 
-	if (op->desired_notifier == FUTURE_NOTIFIER_WAKER) {
-		FUTURE_WAKER_WAKE(&op->notifier.waker);
+	if (data->desired_notifier == FUTURE_NOTIFIER_WAKER) {
+		FUTURE_WAKER_WAKE(&data->notifier.waker);
 	}
-	util_atomic_store_explicit64(&op->complete, 1, memory_order_release);
+	util_atomic_store_explicit64(&data->complete, 1, memory_order_release);
 }
 
 /*
@@ -95,7 +94,7 @@ data_mover_threads_loop(void *arg)
 {
 	struct data_mover_threads *dmt_threads = arg;
 	struct ringbuf *buf = dmt_threads->buf;
-	struct data_mover_threads_op *op;
+	struct data_mover_threads_data *tdata;
 
 	while (1) {
 		/*
@@ -103,10 +102,10 @@ data_mover_threads_loop(void *arg)
 		 * if he fails, he's waiting until something is added to
 		 * the ringbuffer.
 		 */
-		if ((op = ringbuf_dequeue(buf)) == NULL)
+		if ((tdata = ringbuf_dequeue(buf)) == NULL)
 			return NULL;
 
-		data_mover_threads_do_operation(op, dmt_threads);
+		data_mover_threads_do_operation(tdata, dmt_threads);
 	}
 }
 
@@ -114,18 +113,21 @@ data_mover_threads_loop(void *arg)
  * data_mover_threads_operation_check -- check the status of a thread operation
  */
 static enum future_state
-data_mover_threads_operation_check(void *op)
+data_mover_threads_operation_check(void *data,
+	const struct vdm_operation *operation)
 {
-	struct data_mover_threads_op *opt = op;
+	SUPPRESS_UNUSED(operation);
+
+	struct data_mover_threads_data *tdata = data;
 
 	uint64_t complete;
-	util_atomic_load_explicit64(&opt->complete,
+	util_atomic_load_explicit64(&tdata->complete,
 		&complete, memory_order_acquire);
 	if (complete)
 		return FUTURE_STATE_COMPLETE;
 
 	uint64_t started;
-	util_atomic_load_explicit64(&opt->started,
+	util_atomic_load_explicit64(&tdata->started,
 		&started, memory_order_acquire);
 	if (started)
 		return FUTURE_STATE_RUNNING;
@@ -139,21 +141,22 @@ data_mover_threads_operation_check(void *op)
  */
 static void *
 data_mover_threads_operation_new(struct vdm *vdm,
-	const struct vdm_operation *operation)
+	const enum vdm_operation_type type)
 {
+	SUPPRESS_UNUSED(type);
+
 	struct data_mover_threads *dmt_threads =
 		(struct data_mover_threads *)vdm;
 
-	struct data_mover_threads_op *op =
+	struct data_mover_threads_data *op =
 		membuf_alloc(dmt_threads->membuf,
-		sizeof(struct data_mover_threads_op));
+		sizeof(struct data_mover_threads_data));
 	if (op == NULL)
 		return NULL;
 
 	op->complete = 0;
 	op->started = 0;
 	op->desired_notifier = dmt_threads->desired_notifier;
-	op->op = *operation;
 
 	return op;
 }
@@ -162,46 +165,49 @@ data_mover_threads_operation_new(struct vdm *vdm,
  * vdm_threads_operation_delete -- delete a thread operation
  */
 static void
-data_mover_threads_operation_delete(void *op,
+data_mover_threads_operation_delete(void *data,
+	const struct vdm_operation *operation,
 	struct vdm_operation_output *output)
 {
-	struct data_mover_threads_op *opt = (struct data_mover_threads_op *)op;
-
-	switch (opt->op.type) {
+	output->result = VDM_SUCCESS;
+	switch (operation->type) {
 		case VDM_OPERATION_MEMCPY:
 			output->type = VDM_OPERATION_MEMCPY;
 			output->output.memcpy.dest =
-				opt->op.data.memcpy.dest;
+				operation->data.memcpy.dest;
 			break;
 		default:
 			ASSERT(0);
 	}
 
-	membuf_free(op);
+	membuf_free(data);
 }
 
 /*
  * data_mover_threads_operation_start -- start a memory operation using threads
  */
 static int
-data_mover_threads_operation_start(void *op, struct future_notifier *n)
+data_mover_threads_operation_start(void *data,
+	const struct vdm_operation *operation, struct future_notifier *n)
 {
-	struct data_mover_threads_op *opt = (struct data_mover_threads_op *)op;
+	struct data_mover_threads_data *tdata =
+		(struct data_mover_threads_data *)data;
+	memcpy(&tdata->op, operation, sizeof(*operation));
 
 	if (n) {
-		n->notifier_used = opt->desired_notifier;
-		opt->notifier = *n;
-		if (opt->desired_notifier == FUTURE_NOTIFIER_POLLER) {
-			n->poller.ptr_to_monitor = &opt->complete;
+		n->notifier_used = tdata->desired_notifier;
+		tdata->notifier = *n;
+		if (tdata->desired_notifier == FUTURE_NOTIFIER_POLLER) {
+			n->poller.ptr_to_monitor = &tdata->complete;
 		}
 	} else {
-		opt->desired_notifier = FUTURE_NOTIFIER_NONE;
+		tdata->desired_notifier = FUTURE_NOTIFIER_NONE;
 	}
 
-	struct data_mover_threads *dmt_threads = membuf_ptr_user_data(op);
+	struct data_mover_threads *dmt_threads = membuf_ptr_user_data(tdata);
 
-	if (ringbuf_tryenqueue(dmt_threads->buf, op) == 0) {
-		util_atomic_store_explicit64(&opt->started,
+	if (ringbuf_tryenqueue(dmt_threads->buf, tdata) == 0) {
+		util_atomic_store_explicit64(&tdata->started,
 			FUTURE_STATE_RUNNING, memory_order_release);
 	}
 

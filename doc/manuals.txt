@@ -18,3 +18,4 @@ miniasync_vdm_threads.7
 runtime_new.3
 runtime_wait.3
 vdm_memcpy.3
+vdm_memmove.3

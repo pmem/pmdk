@@ -2,6 +2,7 @@
 /* Copyright 2022, Intel Corporation */
 
 /* disable conditional expression is const warning */
+#include "core/util.h"
 #ifdef _WIN32
 #pragma warning(disable : 4127)
 #endif
@@ -16,8 +17,7 @@ struct data_mover_sync {
 	struct membuf *membuf;
 };
 
-struct data_mover_sync_op {
-	struct vdm_operation op;
+struct data_mover_sync_data {
 	int complete;
 };
 
@@ -26,12 +26,14 @@ struct data_mover_sync_op {
  * are complete immediately after starting.
  */
 static enum future_state
-sync_operation_check(void *op)
+sync_operation_check(void *data, const struct vdm_operation *operation)
 {
-	struct data_mover_sync_op *sync_op = op;
+	SUPPRESS_UNUSED(operation);
+
+	struct data_mover_sync_data *sync_data = data;
 
 	int complete;
-	util_atomic_load_explicit32(&sync_op->complete, &complete,
+	util_atomic_load_explicit32(&sync_data->complete, &complete,
 		memory_order_acquire);
 
 	return complete ? FUTURE_STATE_COMPLETE : FUTURE_STATE_IDLE;
@@ -41,54 +43,77 @@ sync_operation_check(void *op)
  * sync_operation_new -- creates a new sync operation
  */
 static void *
-sync_operation_new(struct vdm *vdm, const struct vdm_operation *operation)
+sync_operation_new(struct vdm *vdm, const enum vdm_operation_type type)
 {
+	SUPPRESS_UNUSED(type);
+
 	struct data_mover_sync *vdm_sync = (struct data_mover_sync *)vdm;
-	struct data_mover_sync_op *sync_op = membuf_alloc(vdm_sync->membuf,
-		sizeof(struct data_mover_sync_op));
-	if (sync_op == NULL)
+	struct data_mover_sync_data *sync_data = membuf_alloc(vdm_sync->membuf,
+		sizeof(struct data_mover_sync_data));
+	if (sync_data == NULL)
 		return NULL;
 
-	sync_op->op = *operation;
-	sync_op->complete = 0;
+	sync_data->complete = 0;
 
-	return sync_op;
+	return sync_data;
 }
 
 /*
  * sync_operation_delete -- deletes sync operation
  */
 static void
-sync_operation_delete(void *op, struct vdm_operation_output *output)
+sync_operation_delete(void *data, const struct vdm_operation *operation,
+	struct vdm_operation_output *output)
 {
-	struct data_mover_sync_op *sync_op = (struct data_mover_sync_op *)op;
-	switch (sync_op->op.type) {
+	output->result = VDM_SUCCESS;
+
+	switch (operation->type) {
 		case VDM_OPERATION_MEMCPY:
 			output->type = VDM_OPERATION_MEMCPY;
 			output->output.memcpy.dest =
-				sync_op->op.data.memcpy.dest;
+				operation->data.memcpy.dest;
+			break;
+		case VDM_OPERATION_MEMMOVE:
+			output->type = VDM_OPERATION_MEMMOVE;
+			output->output.memmove.dest =
+				operation->data.memcpy.dest;
 			break;
 		default:
 			ASSERT(0);
 	}
 
-	membuf_free(op);
+	membuf_free(data);
 }
 
 /*
  * sync_operation_start -- start (and perform) a synchronous memory operation
  */
 static int
-sync_operation_start(void *op, struct future_notifier *n)
+sync_operation_start(void *data, const struct vdm_operation *operation,
+	struct future_notifier *n)
 {
-	struct data_mover_sync_op *sync_op = (struct data_mover_sync_op *)op;
+	struct data_mover_sync_data *sync_data =
+		(struct data_mover_sync_data *)data;
+
 	if (n)
 		n->notifier_used = FUTURE_NOTIFIER_NONE;
-	memcpy(sync_op->op.data.memcpy.dest,
-		sync_op->op.data.memcpy.src,
-		sync_op->op.data.memcpy.n);
 
-	util_atomic_store_explicit32(&sync_op->complete,
+	switch (operation->type) {
+		case VDM_OPERATION_MEMCPY:
+			memcpy(operation->data.memcpy.dest,
+				operation->data.memcpy.src,
+				operation->data.memcpy.n);
+			break;
+		case VDM_OPERATION_MEMMOVE:
+			memmove(operation->data.memcpy.dest,
+				operation->data.memcpy.src,
+				operation->data.memcpy.n);
+			break;
+		default:
+			ASSERT(0);
+	}
+
+	util_atomic_store_explicit32(&sync_data->complete,
 		1, memory_order_release);
 
 	return 0;

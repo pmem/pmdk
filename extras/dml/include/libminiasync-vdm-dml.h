@@ -19,10 +19,10 @@ extern "C" {
 #endif
 
 /* MINIASYNC_DML flags */
+/* XXX: these flags need to be unified across all vdms */
+
 #define MINIASYNC_DML_F_MEM_DURABLE		(1U << 0)
-#define MINIASYNC_DML_F_PATH_HW			(1U << 1)
-#define MINIASYNC_DML_F_VALID_FLAGS	(MINIASYNC_DML_F_MEM_DURABLE | \
-		MINIASYNC_DML_F_PATH_HW)
+#define MINIASYNC_DML_F_VALID_FLAGS	(MINIASYNC_DML_F_MEM_DURABLE)
 
 #ifdef __cplusplus
 }

@@ -45,6 +45,7 @@ structure *struct vdm* is needed by every **miniasync**(7) data mover operation.
 Synchronous data mover implementation supports following operations:
 
 * **vdm_memcpy**(3) - memory copy operation
+* **vdm_memmove**(3) - memory move operation
 
 # RETURN VALUE #
 

@@ -44,6 +44,7 @@ To create a new synchronous data mover instance, use **data_mover_sync_new**(3) 
 Synchronous data mover supports following operations:
 
 * **vdm_memcpy**(3) - memory copy operation
+* **vdm_memmove**(3) - memory move operation
 
 Synchronous data mover does not support notifier feature. For more information about
 notifiers, see **miniasync_future**(7).
