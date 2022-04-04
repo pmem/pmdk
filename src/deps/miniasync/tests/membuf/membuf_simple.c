@@ -19,6 +19,7 @@ int
 main(int argc, char *argv[])
 {
 	struct membuf *mbuf = membuf_new(TEST_USER_DATA);
+	UT_ASSERTne(mbuf, NULL);
 
 	struct test_entry **entries =
 		malloc(sizeof(struct test_entry *) * MAX_TEST_ENTRIES);

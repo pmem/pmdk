@@ -12,7 +12,6 @@
 #include <string.h>
 
 #include "libminiasync.h"
-#include "libminiasync/data_mover_threads.h"
 
 /* Definitions of futures, their data and output structs */
 
@@ -24,8 +23,7 @@ struct async_print_data {
 };
 
 struct async_print_output {
-	/* XXX dummy field to avoid empty struct */
-	uintptr_t foo;
+	int return_code;
 };
 
 FUTURE(async_print_fut, struct async_print_data, struct async_print_output);
@@ -36,7 +34,10 @@ async_print_impl(struct future_context *ctx, struct future_notifier *notifier)
 	if (notifier) notifier->notifier_used = FUTURE_NOTIFIER_NONE;
 
 	struct async_print_data *data = future_context_get_data(ctx);
-	printf("async print: %p\n", data->value);
+	struct async_print_output *output = future_context_get_output(ctx);
+
+	int ret = printf("async print: %p\n", data->value);
+	output->return_code = ret < 0 ? ret : 0;
 
 	return FUTURE_STATE_COMPLETE;
 }
@@ -45,7 +46,7 @@ async_print_impl(struct future_context *ctx, struct future_notifier *notifier)
 static struct async_print_fut
 async_print(void *value)
 {
-	struct async_print_fut future = {0};
+	struct async_print_fut future = {.output.return_code = 0};
 	future.data.value = value;
 
 	FUTURE_INIT(&future, async_print_impl);
@@ -65,8 +66,7 @@ struct async_memcpy_print_data {
 };
 
 struct async_memcpy_print_output {
-	/* XXX dummy field to avoid empty struct */
-	uintptr_t foo;
+	int return_code;
 };
 
 FUTURE(async_memcpy_print_fut, struct async_memcpy_print_data,
@@ -79,22 +79,38 @@ memcpy_to_print_map(struct future_context *memcpy_ctx,
 	struct vdm_operation_output *output =
 		future_context_get_output(memcpy_ctx);
 	struct async_print_data *print = future_context_get_data(print_ctx);
-
 	assert(output->type == VDM_OPERATION_MEMCPY);
-	print->value = output->output.memcpy.dest;
+
+	if (output->result != VDM_SUCCESS) {
+		fprintf(stderr, "vdm memcpy operation failed\n");
+		print->value = 0;
+	} else {
+		print->value = output->output.memcpy.dest;
+	}
 	assert(arg == (void *)0xd);
+}
+
+static void
+print_to_output_map(struct future_context *print_ctx,
+		    struct future_context *chained_ctx, void *arg)
+{
+	struct async_print_output *print = future_context_get_output(print_ctx);
+	struct async_memcpy_print_output *chained =
+		future_context_get_output(chained_ctx);
+
+	chained->return_code = print->return_code;
 }
 
 /* It defines how to create 'async_memcpy_print_fut' future */
 static struct async_memcpy_print_fut
 async_memcpy_print(struct vdm *vdm, void *dest, void *src, size_t n)
 {
-	struct async_memcpy_print_fut chain = {0};
+	struct async_memcpy_print_fut chain = {.output.return_code = 0};
 	FUTURE_CHAIN_ENTRY_INIT(&chain.data.memcpy,
 				vdm_memcpy(vdm, dest, src, n, 0),
 				memcpy_to_print_map, (void *)0xd);
-	FUTURE_CHAIN_ENTRY_INIT(&chain.data.print, async_print(NULL), NULL,
-				NULL);
+	FUTURE_CHAIN_ENTRY_INIT(&chain.data.print, async_print(NULL),
+				print_to_output_map, NULL);
 
 	FUTURE_CHAIN_INIT(&chain);
 
@@ -147,6 +163,9 @@ main(void)
 		vdm_memcpy(thread_mover, buf_b, buf_a, testbuf_size, 0);
 
 	runtime_wait(r, FUTURE_AS_RUNNABLE(&a_to_b));
+	if (FUTURE_OUTPUT(&a_to_b)->result != VDM_SUCCESS) {
+		fprintf(stderr, "vdm memcpy operation failed\n");
+	}
 
 	/*
 	 * Second future is delivered by custom 'async_print' function
@@ -174,6 +193,10 @@ main(void)
 	struct async_memcpy_print_fut memcpy_print_busy =
 		async_memcpy_print(thread_mover, buf_b, buf_a, testbuf_size);
 	FUTURE_BUSY_POLL(&memcpy_print_busy);
+
+	struct async_memcpy_print_output *out =
+		FUTURE_OUTPUT(&memcpy_print_busy);
+	printf("async memcpy print return value: %d\n", out->return_code);
 
 	/* At the end we require cleanup and we just print the buffers */
 	data_mover_threads_delete(dmt);

@@ -7,13 +7,13 @@
 #include <stdlib.h>
 
 #include "core/membuf.h"
-#include "libminiasync-vdm-dml.h"
 #include "core/out.h"
 #include "core/util.h"
+#include "libminiasync-vdm-dml.h"
 
 struct data_mover_dml {
 	struct vdm base; /* must be first */
-
+	dml_path_t path;
 	struct membuf *membuf;
 };
 
@@ -21,13 +21,11 @@ struct data_mover_dml {
  * data_mover_dml_translate_flags -- translate miniasync-vdm-dml flags
  */
 static void
-data_mover_dml_translate_flags(uint64_t flags, uint64_t *dml_flags,
-	dml_path_t *path)
+data_mover_dml_translate_flags(uint64_t flags, uint64_t *dml_flags)
 {
 	ASSERTeq((flags & ~MINIASYNC_DML_F_VALID_FLAGS), 0);
 
 	*dml_flags = 0;
-	*path = DML_PATH_SW; /* default path */
 	for (uint64_t iflag = 1; flags > 0; iflag = iflag << 1) {
 		if ((flags & iflag) == 0)
 			continue;
@@ -40,10 +38,6 @@ data_mover_dml_translate_flags(uint64_t flags, uint64_t *dml_flags,
 			case MINIASYNC_DML_F_MEM_DURABLE:
 				*dml_flags |= DML_FLAG_DST1_DURABLE;
 				break;
-			/* perform operation using hardware path */
-			case MINIASYNC_DML_F_PATH_HW:
-				*path = DML_PATH_HW;
-				break;
 			default: /* shouldn't be possible */
 				ASSERT(0);
 		}
@@ -54,27 +48,14 @@ data_mover_dml_translate_flags(uint64_t flags, uint64_t *dml_flags,
 }
 
 /*
- * data_mover_dml_memcpy_job_new -- create a new memcpy job struct
+ * data_mover_dml_memcpy_job_init -- initializes new memcpy dml job
  */
 static dml_job_t *
-data_mover_dml_memcpy_job_new(struct data_mover_dml *vdm_dml,
+data_mover_dml_memcpy_job_init(dml_job_t *dml_job,
 	void *dest, void *src, size_t n, uint64_t flags)
 {
-	dml_status_t status;
-	uint32_t job_size;
-	dml_job_t *dml_job = NULL;
-
 	uint64_t dml_flags = 0;
-	dml_path_t path;
-	data_mover_dml_translate_flags(flags, &dml_flags, &path);
-
-	status = dml_get_job_size(path, &job_size);
-	ASSERTeq(status, DML_STATUS_OK);
-
-	dml_job = (dml_job_t *)membuf_alloc(vdm_dml->membuf, job_size);
-
-	status = dml_init_job(path, dml_job);
-	ASSERTeq(status, DML_STATUS_OK);
+	data_mover_dml_translate_flags(flags, &dml_flags);
 
 	dml_job->operation = DML_OP_MEM_MOVE;
 	dml_job->source_first_ptr = (uint8_t *)src;
@@ -103,9 +84,8 @@ data_mover_dml_memcpy_job_submit(dml_job_t *dml_job)
 {
 	dml_status_t status;
 	status = dml_submit_job(dml_job);
-	ASSERTeq(status, DML_STATUS_OK);
 
-	return dml_job->destination_first_ptr;
+	return status == DML_STATUS_OK ? dml_job->destination_first_ptr : NULL;
 }
 
 /*
@@ -113,17 +93,32 @@ data_mover_dml_memcpy_job_submit(dml_job_t *dml_job)
  */
 static void *
 data_mover_dml_operation_new(struct vdm *vdm,
-	const struct vdm_operation *operation)
+	const enum vdm_operation_type type)
 {
 	struct data_mover_dml *vdm_dml = (struct data_mover_dml *)vdm;
+	dml_status_t status;
+	uint32_t job_size;
+	dml_job_t *dml_job;
 
-	switch (operation->type) {
-		case VDM_OPERATION_MEMCPY:
-		return data_mover_dml_memcpy_job_new(vdm_dml,
-			operation->data.memcpy.dest,
-			operation->data.memcpy.src,
-			operation->data.memcpy.n,
-			operation->data.memcpy.flags);
+	switch (type) {
+		case VDM_OPERATION_MEMCPY: {
+			status = dml_get_job_size(vdm_dml->path, &job_size);
+			if (status != DML_STATUS_OK)
+				return NULL;
+
+			dml_job = membuf_alloc(vdm_dml->membuf, job_size);
+			if (dml_job == NULL)
+				return NULL;
+
+			dml_status_t status =
+				dml_init_job(vdm_dml->path, dml_job);
+			if (status != DML_STATUS_OK) {
+				membuf_free(dml_job);
+				return NULL;
+			}
+
+			return dml_job;
+		}
 		default:
 		ASSERT(0); /* unreachable */
 	}
@@ -134,9 +129,24 @@ data_mover_dml_operation_new(struct vdm *vdm,
  * data_mover_dml_operation_delete -- delete a DML job
  */
 static void
-data_mover_dml_operation_delete(void *op, struct vdm_operation_output *output)
+data_mover_dml_operation_delete(void *data,
+	const struct vdm_operation *operation,
+	struct vdm_operation_output *output)
 {
-	dml_job_t *job = (dml_job_t *)op;
+	dml_job_t *job = (dml_job_t *)data;
+	dml_status_t status = dml_check_job(job);
+	switch (status) {
+		case DML_STATUS_BEING_PROCESSED:
+			ASSERT(0 && "dml job being deleted during processing");
+		case DML_STATUS_JOB_CORRUPTED:
+			output->result = VDM_ERROR_JOB_CORRUPTED;
+			break;
+		case DML_STATUS_OK:
+			output->result = VDM_SUCCESS;
+			break;
+		default:
+			ASSERT(0);
+	}
 
 	switch (job->operation) {
 		case DML_OP_MEM_MOVE:
@@ -150,33 +160,49 @@ data_mover_dml_operation_delete(void *op, struct vdm_operation_output *output)
 
 	data_mover_dml_memcpy_job_delete(&job);
 
-	membuf_free(op);
+	membuf_free(data);
 }
 
 /*
  * data_mover_dml_operation_check -- checks the status of a DML job
  */
 enum future_state
-data_mover_dml_operation_check(void *op)
+data_mover_dml_operation_check(void *data,
+	const struct vdm_operation *operation)
 {
-	dml_job_t *job = (dml_job_t *)op;
+	SUPPRESS_UNUSED(operation);
+
+	dml_job_t *job = (dml_job_t *)data;
 
 	dml_status_t status = dml_check_job(job);
-	ASSERTne(status, DML_STATUS_JOB_CORRUPTED);
-
-	return (status == DML_STATUS_OK) ?
-		FUTURE_STATE_COMPLETE : FUTURE_STATE_RUNNING;
+	switch (status) {
+		case DML_STATUS_BEING_PROCESSED:
+			return FUTURE_STATE_RUNNING;
+		case DML_STATUS_JOB_CORRUPTED:
+		case DML_STATUS_OK:
+			return FUTURE_STATE_COMPLETE;
+		default:
+			ASSERT(0);
+	}
 }
 
 /*
  * data_mover_dml_operation_start -- start ('submit') asynchronous dml job
  */
 int
-data_mover_dml_operation_start(void *op, struct future_notifier *n)
+data_mover_dml_operation_start(void *data,
+	const struct vdm_operation *operation, struct future_notifier *n)
 {
-	n->notifier_used = FUTURE_NOTIFIER_NONE;
+	if (n) {
+		n->notifier_used = FUTURE_NOTIFIER_NONE;
+	}
 
-	dml_job_t *job = (dml_job_t *)op;
+	dml_job_t *job = (dml_job_t *)data;
+	data_mover_dml_memcpy_job_init(job,
+		operation->data.memcpy.dest,
+		operation->data.memcpy.src,
+		operation->data.memcpy.n,
+		operation->data.memcpy.flags);
 
 	data_mover_dml_memcpy_job_submit(job);
 
@@ -197,7 +223,7 @@ static struct vdm data_mover_dml_vdm = {
  * data_mover_dml_new -- creates a new dml-based data mover instance
  */
 struct data_mover_dml *
-data_mover_dml_new(void)
+data_mover_dml_new(enum data_mover_dml_type type)
 {
 	struct data_mover_dml *vdm_dml = malloc(sizeof(struct data_mover_dml));
 	if (vdm_dml == NULL)
@@ -205,6 +231,19 @@ data_mover_dml_new(void)
 
 	vdm_dml->membuf = membuf_new(vdm_dml);
 	vdm_dml->base = data_mover_dml_vdm;
+	switch (type) {
+		case DATA_MOVER_DML_HARDWARE:
+			vdm_dml->path = DML_PATH_HW;
+		break;
+		case DATA_MOVER_DML_SOFTWARE:
+			vdm_dml->path = DML_PATH_SW;
+		break;
+		case DATA_MOVER_DML_AUTO:
+			vdm_dml->path = DML_PATH_AUTO;
+		break;
+		default:
+			ASSERT(0);
+	}
 
 	return vdm_dml;
 }

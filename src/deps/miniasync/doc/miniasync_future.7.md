@@ -35,6 +35,9 @@ typedef void (*future_waker_wake_fn)(void *data);
 typedef void (*future_map_fn)(struct future_context *lhs,
 			struct future_context *rhs, void *arg);
 
+typedef void (*future_init_fn)(void *future,
+			struct future_context *chain_fut, void *arg);
+
 enum future_state {
 	FUTURE_STATE_IDLE,
 	FUTURE_STATE_COMPLETE,
@@ -72,8 +75,11 @@ struct future_notifier {
 
 FUTURE(_name, _data_type, _output_type)
 FUTURE_INIT(_futurep, _taskfn)
+FUTURE_INIT_COMPLETE(_futurep)
 FUTURE_CHAIN_ENTRY(_future_type, _name)
+FUTURE_CHAIN_ENTRY_LAST(_future_type, _name)
 FUTURE_CHAIN_ENTRY_INIT(_entry, _fut, _map, _map_arg)
+FUTURE_CHAIN_ENTRY_LAZY_INIT(_entry, _init, _init_arg, _map, _map_arg)
 FUTURE_CHAIN_INIT(_futurep)
 FUTURE_AS_RUNNABLE(_futurep)
 FUTURE_OUTPUT(_futurep)
@@ -145,10 +151,19 @@ no need for input or output data, *\_data_type* and *\_output_type* can be defin
 **FUTURE_INIT(_futurep, _taskfn)** macro assigns task function *\_taskfn* to the future pointed
 by *\_futurep*. Task function must be of the *future_task_fn* type.
 
+**FUTURE_INIT_COMPLETE(_futurep)** macro instantiates a new already completed future with no assigned
+task. This is helpful for handling initialization errors during future creation or simply for convenience
+in instantly ready futures.
+
 **FUTURE_CHAIN_ENTRY(_future_type, _name)** macro defines the future chain entry of the *\_future_type*
 type named *\_name*. Future chain entries are defined as the members of chained future data structure
 using this macro. Chained future can be composed of multiple future chain entries that will be
 executed sequentially in the order they were defined.
+
+**FUTURE_CHAIN_ENTRY_LAST(_future_type, _name)** macro can be optionally used to indicate the last
+future in a chain. This lets software to include additional state inside of the *\_data_type* since
+otherwise the chain task implementation would not be able to differentiate between an entry and
+other data.
 
 **FUTURE_CHAIN_ENTRY_INIT(_entry, _fut, _map, _map_arg)** macro initializes the future chain
 entry pointed by *\_entry*. It requires pointer to the future instance *\_fut*, address of the mapping
@@ -158,6 +173,13 @@ data mover future. *\_map* function must be of the *future_map_fn* type and is a
 *map* function should define the mapping behavior of the data and output structures between chained
 future entry *\_entry* that has finished and the chained future entry that is about to start its execution.
 Chained future instance must initialize all of its future chain entries using this macro.
+
+**FUTURE_CHAIN_ENTRY_LAZY_INIT(_entry, _init, _init_arg, _map, _map_arg)** macro intializes the
+future chain entry pointed by *\_entry* but it does not initialize its underlying future. Instead
+it uses function *\_init* and its argument *\init_arg* to instantiate the future right before
+its needed. This lets software instantiate futures with arguments derived from the results of
+previous entries in the chain. The *\map* and *\map_arg* variables behave the
+same as in **FUTURE_CHAIN_ENTRY_INIT**.
 
 **FUTURE_CHAIN_INIT(_futurep)** macro initializes the chained future at the address *\_futurep*.
 

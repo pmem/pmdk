@@ -6,7 +6,6 @@
 #include <time.h>
 #include "libminiasync.h"
 #include "core/os.h"
-#include "libminiasync/data_mover_threads.h"
 #include "test_helpers.h"
 
 enum test_type {SEQUENCE, SINGLE_CHAR};
