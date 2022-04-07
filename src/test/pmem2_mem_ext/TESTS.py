@@ -240,32 +240,40 @@ class TEST0(Pmem2MemExt):
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
-                          VARIANT_MOVDIR64B])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST1(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_SMALL
 
 
 @g.require_granularity(g.BYTE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
-                          VARIANT_MOVDIR64B])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST2(Pmem2MemExt):
     test_case = MATCH_BYTE_SMALL
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
-                          VARIANT_MOVDIR64B])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST3(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_BIG
 
 
 @g.require_granularity(g.BYTE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
-                          VARIANT_MOVDIR64B])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST4(Pmem2MemExt):
     test_case = MATCH_BYTE_BIG
+
+
+@t.add_params('variant', [VARIANT_MOVDIR64B])
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST5(Pmem2MemExt):
+    test_case = [(PMEM_F_MEM_NONTEMPORAL, 128, "nt")]
+
+
+@t.add_params('variant', [VARIANT_MOVDIR64B])
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST6(Pmem2MemExt):
+    test_case = [(PMEM_F_MEM_NONTEMPORAL, 1024, "nt")]
