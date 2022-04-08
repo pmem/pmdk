@@ -29,7 +29,7 @@ class Build(metaclass=ctx.CtxType):
             try:
                 builds.append(b(**kwargs))
             except futils.Skip as s:
-                msg.print_verbose('{}: SKIP: {}'.format(tc, s))
+                msg.print('{}: SKIP: {}'.format(tc, s))
 
         return builds
 
