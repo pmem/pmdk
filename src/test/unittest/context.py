@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 #
 
 """
@@ -43,7 +43,8 @@ try:
     envconfig = envconfig.config
 except ImportError:
     # if file doesn't exist create dummy object
-    envconfig = {'GLOBAL_LIB_PATH': '', 'PMEM2_AVX512F_ENABLED': ''}
+    envconfig = {'GLOBAL_LIB_PATH': '', 'PMEM2_AVX512F_ENABLED': '',
+                 'PMEM2_MOVDIR64B_ENABLED': ''}
 
 
 def expand(*classes):
