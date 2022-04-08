@@ -124,6 +124,10 @@ class Pmem2MemExt(t.Test):
             if sys.platform.startswith('win32'):
                 raise futils.Skip("SKIP: MOVDIR64B not supported by MSVC")
 
+            is_movdir64b_enabled = tools.envconfig['PMEM2_MOVDIR64B_ENABLED']
+            if is_movdir64b_enabled == "0":
+                raise futils.Skip("SKIP: MOVDIR64B disabled at build time")
+
         if variant == VARIANT_AVX512F:
             if available_arch < AVX512:
                 raise futils.Skip("SKIP: AVX512F unavailable")
