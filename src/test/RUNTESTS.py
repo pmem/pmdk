@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 
 """Main script for unit tests execution.
 
@@ -115,7 +115,7 @@ class TestRunner:
                             continue
 
                     except futils.Skip as s:
-                        self.msg.print_verbose('{}: SKIP: {}'.format(t, s))
+                        self.msg.print('{}: SKIP: {}'.format(t, s))
 
                     except futils.Fail as f:
                         self._test_failed(t, c, f)
@@ -124,7 +124,7 @@ class TestRunner:
                         self._test_passed(t)
 
             except futils.Skip as s:
-                self.msg.print_verbose('{}: SKIP: {}'.format(tc, s))
+                self.msg.print('{}: SKIP: {}'.format(tc, s))
             except futils.Fail as f:
                 self._test_failed(tc, c, f)
                 ret = 1

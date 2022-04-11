@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 #
 """Build context classes"""
 
@@ -29,7 +29,7 @@ class Build(metaclass=ctx.CtxType):
             try:
                 builds.append(b(**kwargs))
             except futils.Skip as s:
-                msg.print_verbose('{}: SKIP: {}'.format(tc, s))
+                msg.print('{}: SKIP: {}'.format(tc, s))
 
         return builds
 

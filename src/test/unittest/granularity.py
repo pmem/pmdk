@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 #
 
 """Granularity context classes and utilities"""
@@ -188,7 +188,7 @@ class Granularity(metaclass=ctx.CtxType):
                 gran._check_real_pmem_req_is_met(tc)
                 gs.append(gran)
             except futils.Skip as s:
-                msg.print_verbose('{}: SKIP: {}'.format(tc, s))
+                msg.print('{}: SKIP: {}'.format(tc, s))
 
         return gs
 

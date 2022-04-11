@@ -118,26 +118,30 @@ class Pmem2MemExt(t.Test):
     def check_arch(self, variant, available_arch):
         if variant == VARIANT_MOVDIR64B:
             if available_arch < MOVDIR64B:
-                raise futils.Skip("SKIP: MOVDIR64B unavailable")
+                raise futils.Skip("MOVDIR64B unavailable")
 
             # remove this when MSVC we use will support MOVDIR64B
             if sys.platform.startswith('win32'):
-                raise futils.Skip("SKIP: MOVDIR64B not supported by MSVC")
+                raise futils.Skip("MOVDIR64B not supported by MSVC")
+
+            is_movdir64b_enabled = tools.envconfig['PMEM2_MOVDIR64B_ENABLED']
+            if is_movdir64b_enabled == "0":
+                raise futils.Skip("MOVDIR64B disabled at build time")
 
         if variant == VARIANT_AVX512F:
             if available_arch < AVX512:
-                raise futils.Skip("SKIP: AVX512F unavailable")
+                raise futils.Skip("AVX512F unavailable")
 
             # remove this when MSVC we use will support AVX512F
             if sys.platform.startswith('win32'):
-                raise futils.Skip("SKIP: AVX512F not supported by MSVC")
+                raise futils.Skip("AVX512F not supported by MSVC")
 
             is_avx512f_enabled = tools.envconfig['PMEM2_AVX512F_ENABLED']
             if is_avx512f_enabled == "0":
-                raise futils.Skip("SKIP: AVX512F disabled at build time")
+                raise futils.Skip("AVX512F disabled at build time")
 
         if variant == VARIANT_AVX and available_arch < AVX:
-            raise futils.Skip("SKIP: AVX unavailable")
+            raise futils.Skip("AVX unavailable")
 
     def check_log(self, ctx, match, type, flag):
         with open(self.log_files['pmem2'], 'r') as f:
@@ -240,32 +244,40 @@ class TEST0(Pmem2MemExt):
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
-                          VARIANT_MOVDIR64B])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST1(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_SMALL
 
 
 @g.require_granularity(g.BYTE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
-                          VARIANT_MOVDIR64B])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST2(Pmem2MemExt):
     test_case = MATCH_BYTE_SMALL
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
-                          VARIANT_MOVDIR64B])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST3(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_BIG
 
 
 @g.require_granularity(g.BYTE)
-@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F,
-                          VARIANT_MOVDIR64B])
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST4(Pmem2MemExt):
     test_case = MATCH_BYTE_BIG
+
+
+@t.add_params('variant', [VARIANT_MOVDIR64B])
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST5(Pmem2MemExt):
+    test_case = [(PMEM_F_MEM_NONTEMPORAL, 128, "nt")]
+
+
+@t.add_params('variant', [VARIANT_MOVDIR64B])
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST6(Pmem2MemExt):
+    test_case = [(PMEM_F_MEM_NONTEMPORAL, 1024, "nt")]
