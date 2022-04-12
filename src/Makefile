@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 
 #
 # src/Makefile -- Makefile for PMDK
@@ -10,14 +10,14 @@ include $(TOP)/src/common.inc
 # core targets
 TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools libpmem2
 # make all targets
-ALL_TARGETS = $(TARGETS) common core librpmem libpmemset
+ALL_TARGETS = $(TARGETS) common core librpmem libpmemset deps
 # all available targets
-POSSIBLE_TARGETS = $(TARGETS) common core librpmem rpmem_common test\
+POSSIBLE_TARGETS = $(TARGETS) common core deps librpmem rpmem_common test\
 	examples benchmarks libpmemset
 
-SCOPE_DIRS = $(TARGETS) common core librpmem rpmem_common
+SCOPE_DIRS = $(TARGETS) common core deps librpmem rpmem_common
 
-DEBUG_RELEASE_TARGETS = common core libpmem libpmemblk libpmemlog libpmemobj\
+DEBUG_RELEASE_TARGETS = common core deps libpmem libpmemblk libpmemlog libpmemobj\
 	libpmempool librpmem libpmem2 libpmemset
 RELEASE_TARGETS = tools
 

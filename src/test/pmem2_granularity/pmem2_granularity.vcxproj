@@ -76,6 +76,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\core\membuf.c" />
     <ClCompile Include="..\..\core\ravl.c" />
     <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\..\libpmem2\deep_flush_windows.c" />
@@ -84,6 +85,7 @@
     <ClCompile Include="..\..\libpmem2\map.c" />
     <ClCompile Include="..\..\libpmem2\map_windows.c" />
     <ClCompile Include="..\..\libpmem2\memops_generic.c" />
+    <ClCompile Include="..\..\libpmem2\mover.c" />
     <ClCompile Include="..\..\libpmem2\persist.c" />
     <ClCompile Include="..\..\libpmem2\persist_windows.c" />
     <ClCompile Include="..\..\core\ravl_interval.c" />
@@ -103,6 +105,7 @@
     <ClCompile Include="pmem2_granularity.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\core\membuf.h" />
     <ClInclude Include="..\..\libpmem2\config.h" />
     <ClInclude Include="..\..\libpmem2\map.h" />
     <ClInclude Include="..\..\core\ravl_interval.h" />

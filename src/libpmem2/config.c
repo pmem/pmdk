@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 /*
  * config.c -- pmem2_config implementation
@@ -9,6 +9,7 @@
 #include "alloc.h"
 #include "config.h"
 #include "libpmem2.h"
+#include "libminiasync/vdm.h"
 #include "out.h"
 #include "pmem2.h"
 #include "pmem2_utils.h"
@@ -26,6 +27,7 @@ pmem2_config_init(struct pmem2_config *cfg)
 	cfg->protection_flag = PMEM2_PROT_READ | PMEM2_PROT_WRITE;
 	cfg->reserv = NULL;
 	cfg->reserv_offset = 0;
+	cfg->vdm = NULL;
 }
 
 /*
@@ -211,5 +213,17 @@ pmem2_config_set_protection(struct pmem2_config *cfg,
 	}
 
 	cfg->protection_flag = prot;
+	return 0;
+}
+
+/*
+ * pmem2_config_set_vdm -- set virtual data mover in the config struct
+ */
+int
+pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm)
+{
+	PMEM2_ERR_CLR();
+	cfg->vdm = vdm;
+
 	return 0;
 }

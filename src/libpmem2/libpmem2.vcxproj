@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\core\alloc.c" />
+    <ClCompile Include="..\core\membuf.c" />
     <ClCompile Include="..\core\os_thread_windows.c" />
     <ClCompile Include="..\core\os_windows.c" />
     <ClCompile Include="..\core\out.c" />
@@ -31,6 +32,7 @@
     <ClCompile Include="map_windows.c" />
     <ClCompile Include="mcsafe_ops_windows.c" />
     <ClCompile Include="memops_generic.c" />
+    <ClCompile Include="mover.c" />
     <ClCompile Include="numa_none.c" />
     <ClCompile Include="persist.c" />
     <ClCompile Include="persist_windows.c" />
@@ -72,6 +74,7 @@
     <ClInclude Include="deep_flush.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="mover.h" />
     <ClInclude Include="persist.h" />
     <ClInclude Include="pmem2.h" />
     <ClInclude Include="pmem2_arch.h" />
@@ -135,10 +138,10 @@
     <Import Project="..\windows\libs_release.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);x86_64\</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(solutionDir)deps\miniasync\src\include;x86_64\</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);x86_64\</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(solutionDir)deps\miniasync\src\include;x86_64\</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />

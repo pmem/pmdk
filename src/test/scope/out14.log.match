@@ -10,6 +10,7 @@ pmem2_config_set_offset
 pmem2_config_set_protection
 pmem2_config_set_required_store_granularity
 pmem2_config_set_sharing
+pmem2_config_set_vdm
 pmem2_config_set_vm_reservation
 pmem2_deep_flush
 pmem2_errormsgU
@@ -26,6 +27,7 @@ pmem2_map_get_address
 pmem2_map_get_size
 pmem2_map_get_store_granularity
 pmem2_map_new
+pmem2_memcpy_async
 pmem2_perrorU
 pmem2_perrorW
 pmem2_source_alignment

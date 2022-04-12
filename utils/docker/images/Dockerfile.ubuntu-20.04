@@ -30,6 +30,7 @@ ENV VALGRIND_DEPS "autoconf \
 
 # pmdk base
 ENV BASE_DEPS "build-essential \
+	cmake \
 	git \
 	libdaxctl-dev \
 	libndctl-dev \
