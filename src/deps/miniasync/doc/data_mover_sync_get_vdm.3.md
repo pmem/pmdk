@@ -46,6 +46,7 @@ Synchronous data mover implementation supports following operations:
 
 * **vdm_memcpy**(3) - memory copy operation
 * **vdm_memmove**(3) - memory move operation
+* **vdm_memset**(3) - memory set operation
 
 # RETURN VALUE #
 
@@ -53,5 +54,5 @@ The **data_mover_sync_get_vdm**() function returns a pointer to *struct vdm* str
 
 # SEE ALSO #
 
-**vdm_memcpy**(3), **miniasync**(7),
+**vdm_memcpy**(3), **vdm_memmove**(3), **vdm_memset**(3), **miniasync**(7),
 **miniasync_vdm_synchronous**(7) and **<https://pmem.io>**

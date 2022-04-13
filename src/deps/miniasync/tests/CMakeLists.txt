@@ -41,9 +41,18 @@ set(SOURCES_MEMMOVE_SYNC_TEST
 set(SOURCES_VDM_TEST
 	vdm/test_vdm.c)
 
+set(SOURCES_MEMSET_SYNC_TEST
+	memset_sync/memset_sync.c)
+
 set(SOURCES_VDM_OPERATION_FUTURE_POLL
 	vdm_operation_future_poll/vdm_operation_future_poll.c
 	${MINIASYNC_DML_SOURCE_DIR}/utils/util_dml.c)
+
+set(SOURCES_MEMMOVE_THREADS_TEST
+	memmove_threads/memmove_threads.c)
+
+set(SOURCES_MEMSET_THREADS_TEST
+	memset_threads/memset_threads.c)
 
 add_custom_target(tests)
 
@@ -91,6 +100,18 @@ add_link_executable(vdm
 		"${SOURCES_VDM_TEST}"
 		"${LIBS_BASIC}")
 
+add_link_executable(memset_sync
+		"${SOURCES_MEMSET_SYNC_TEST}"
+		"${LIBS_BASIC}")
+
+add_link_executable(memmove_threads
+		"${SOURCES_MEMMOVE_THREADS_TEST}"
+		"${LIBS_BASIC}")
+
+add_link_executable(memset_threads
+		"${SOURCES_MEMSET_THREADS_TEST}"
+		"${LIBS_BASIC}")
+
 # add test using test function defined in the ctest_helpers.cmake file
 test("dummy" "dummy" test_dummy none)
 test("dummy_drd" "dummy" test_dummy drd)
@@ -103,6 +124,9 @@ test("memcpy_threads" "memcpy_threads" test_memcpy_threads none)
 test("membuf" "membuf" test_membuf none)
 test("memmove_sync" "memmove_sync" test_memmove_sync none)
 test("vdm" "vdm" test_vdm none)
+test("memset_sync" "memset_sync" test_memset_sync none)
+test("memmove_threads" "memmove_threads" test_memmove_threads none)
+test("memset_threads" "memset_threads" test_memset_threads none)
 
 # add tests running examples only if they are built
 if(BUILD_EXAMPLES)

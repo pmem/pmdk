@@ -45,6 +45,8 @@ from the thread data mover structure pointed by *dms*. Virtual data mover struct
 Thread data mover implementation supports following operations:
 
 * **vdm_memcpy**(3) - memory copy operation
+* **vdm_memmove**(3) - memory move operation
+* **vdm_memset**(3) - memory set operation
 
 # RETURN VALUE #
 
@@ -52,5 +54,5 @@ The **data_mover_threads_get_vdm**() function returns a pointer to *struct vdm* 
 
 # SEE ALSO #
 
-**vdm_memcpy**(3), **miniasync**(7),
-**miniasync_vdm_threads**(7) and **<https://pmem.io>**
+**vdm_memcpy**(3), **vdm_memmove**(3), **vdm_memset**(3),
+**miniasync**(7), **miniasync_vdm_threads**(7) and **<https://pmem.io>**
