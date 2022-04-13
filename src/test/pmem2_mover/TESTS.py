@@ -40,22 +40,56 @@ class PMEM2_MOVER_MT(PMEM2_MOVER):
 
 
 class TEST0(PMEM2_MOVER):
-    """verify pmem2 mover functionality"""
-    test_case = "test_mover_basic"
+    """verify pmem2 mover memcpy functionality"""
+    test_case = "test_mover_memcpy_basic"
 
 
-class TEST1(PMEM2_MOVER_MT):
-    """verify pmem2 mover multi-threaded functionality"""
-    test_case = "test_mover_multithreaded"
+class TEST1(PMEM2_MOVER):
+    """verify pmem2 mover memmove functionality"""
+    test_case = "test_mover_memmove_basic"
 
 
-class TEST2(PMEM2_MOVER_MT):
+class TEST2(PMEM2_MOVER):
+    """verify pmem2 mover memset functionality"""
+    test_case = "test_mover_memset_basic"
+
+
+class TEST3(PMEM2_MOVER_MT):
+    """verify pmem2 mover multi-threaded memcpy functionality"""
+    test_case = "test_mover_memcpy_multithreaded"
+
+
+class TEST4(PMEM2_MOVER_MT):
+    """verify pmem2 mover multi-threaded memmove functionality"""
+    test_case = "test_mover_memmove_multithreaded"
+
+
+class TEST5(PMEM2_MOVER_MT):
+    """verify pmem2 mover multi-threaded memset functionality"""
+    test_case = "test_mover_memset_multithreaded"
+
+
+class TEST6(PMEM2_MOVER_MT):
     test_type = t.Long
     thread_num = 16
-    """verify pmem2 mover multi-threaded functionality (Long)"""
-    test_case = "test_mover_multithreaded"
+    """verify pmem2 mover multi-threaded memcpy functionality (Long)"""
+    test_case = "test_mover_memcpy_multithreaded"
 
 
-class TEST3(PMEM2_MOVER):
+class TEST7(PMEM2_MOVER_MT):
+    test_type = t.Long
+    thread_num = 16
+    """verify pmem2 mover multi-threaded memmove functionality (Long)"""
+    test_case = "test_mover_memmove_multithreaded"
+
+
+class TEST8(PMEM2_MOVER_MT):
+    test_type = t.Long
+    thread_num = 16
+    """verify pmem2 mover multi-threaded memset functionality (Long)"""
+    test_case = "test_mover_memset_multithreaded"
+
+
+class TEST9(PMEM2_MOVER):
     """verify pmem2 mover functionality"""
     test_case = "test_miniasync_mover"
