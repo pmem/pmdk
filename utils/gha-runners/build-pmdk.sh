@@ -17,7 +17,7 @@ set -eo pipefail
 function build_pmdk {
 	echo "********** make pmdk **********"
 	cd ${PMDK_PATH} && make clean
-	cd ${PMDK_PATH} && make EXTRA_CFLAGS=-DUSE_VALGRIND -j$(nproc)
+	cd ${PMDK_PATH} && make EXTRA_CFLAGS=-DUSE_VALGRIND
 	echo "********** make pmdk test **********"
 	cd ${PMDK_PATH}/ && make test
 }
