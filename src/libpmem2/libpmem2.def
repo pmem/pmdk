@@ -37,6 +37,8 @@ EXPORTS
 	pmem2_map_from_existing
 	pmem2_map_new
 	pmem2_memcpy_async
+	pmem2_memmove_async
+	pmem2_memset_async
 	pmem2_perrorU
 	pmem2_perrorW
 	pmem2_source_alignment
