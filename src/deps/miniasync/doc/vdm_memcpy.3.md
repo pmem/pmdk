@@ -27,16 +27,10 @@ secondary_title: miniasync
 ```c
 #include <libminiasync.h>
 
-struct vdm {
-	vdm_operation_new op_new;
-	vdm_operation_delete op_delete;
-	vdm_operation_start op_start;
-	vdm_operation_check op_check;
-};
-
 enum vdm_operation_type {
 	VDM_OPERATION_MEMCPY,
 	VDM_OPERATION_MEMMOVE,
+	VDM_OPERATION_MEMSET,
 };
 
 struct vdm_operation_output_memcpy {
@@ -70,5 +64,5 @@ The **vdm_memcpy**() function returns an initialized *struct vdm_operation_futur
 
 # SEE ALSO #
 
-**vdm_memmove**(3), **miniasync**(7), **miniasync_vdm**(7),
+**vdm_memmove**(3), **vdm_memset**(3), **miniasync**(7), **miniasync_vdm**(7),
 **miniasync_vdm_dml**(7) and **<https://pmem.io>**

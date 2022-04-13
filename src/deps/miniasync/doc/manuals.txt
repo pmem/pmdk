@@ -19,3 +19,4 @@ runtime_new.3
 runtime_wait.3
 vdm_memcpy.3
 vdm_memmove.3
+vdm_memset.3
