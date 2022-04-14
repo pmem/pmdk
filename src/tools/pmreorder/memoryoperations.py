@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 from utils import Rangeable
 from utils import range_cmp
@@ -71,9 +71,7 @@ class Store(BaseOperation, Rangeable):
         # calculate the offset given the registered file mapping
         self.address = int(params[1], 16)
         self.size = int(params[3], 16)
-        self.new_value = int(params[2], 16).to_bytes(
-            self.size, byteorder=byteorder
-        )
+        self.new_value = int(params[2], 16).to_bytes(self.size, byteorder=byteorder)
         if len(params) > 4:
             self.trace = StackTrace(params[4:])
         else:
@@ -86,13 +84,11 @@ class Store(BaseOperation, Rangeable):
         self.flushed = False
 
     def __str__(self):
-        return (
-            "Store: addr: {0}, size: {1}, val: {2}, stack trace: {3}".format(
-                hex(self.address),
-                hex(self.size),
-                hex(int.from_bytes(self.new_value, byteorder=byteorder)),
-                self.trace,
-            )
+        return "Store: addr: {0}, size: {1}, val: {2}, stack trace: {3}".format(
+            hex(self.address),
+            hex(self.size),
+            hex(int.from_bytes(self.new_value, byteorder=byteorder)),
+            self.trace,
         )
 
     def get_base_address(self):
@@ -171,9 +167,7 @@ class Flush(FlushBase):
         self._size = int(params[2], 16)
 
     def __str__(self):
-        return "Flush: addr: {0} size: {1}".format(
-            hex(self._address), hex(self._size)
-        )
+        return "Flush: addr: {0} size: {1}".format(hex(self._address), hex(self._size))
 
     def is_in_flush(self, store_op):
         """
@@ -463,10 +457,8 @@ class Register_file(BaseOperation):
         self.offset = int(params[4], 16)
 
     def __str__(self):
-        return (
-            "Register_file: name: {0} addr: {1} size: {2} offset: {3}".format(
-                self.name, hex(self.address), hex(self.size), hex(self.offset)
-            )
+        return "Register_file: name: {0} addr: {1} size: {2} offset: {3}".format(
+            self.name, hex(self.address), hex(self.size), hex(self.offset)
         )
 
     class Factory:

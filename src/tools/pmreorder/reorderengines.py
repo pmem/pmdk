@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 
 from itertools import combinations
@@ -302,9 +302,7 @@ class RandomPartialReorderEngine:
         population_size = len(population)
         for elem in sample(
             population,
-            self._max_seq
-            if self._max_seq <= population_size
-            else population_size,
+            self._max_seq if self._max_seq <= population_size else population_size,
         ):
             yield elem
 
