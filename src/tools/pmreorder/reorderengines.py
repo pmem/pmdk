@@ -302,9 +302,7 @@ class RandomPartialReorderEngine:
         population_size = len(population)
         for elem in sample(
             population,
-            self._max_seq
-            if self._max_seq <= population_size
-            else population_size,
+            self._max_seq if self._max_seq <= population_size else population_size,
         ):
             yield elem
 

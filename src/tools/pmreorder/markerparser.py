@@ -26,8 +26,7 @@ class MarkerParser:
             print(
                 "Invalid config macros file format: ",
                 macros,
-                'Use: {"MARKER_NAME1"="ENGINE_TYPE1",'
-                '"MARKER_NAME2"="ENGINE_TYPE2"}'
+                'Use: {"MARKER_NAME1"="ENGINE_TYPE1",' '"MARKER_NAME2"="ENGINE_TYPE2"}',
             )
 
         return markers
@@ -45,7 +44,7 @@ class MarkerParser:
             print(
                 "Invalid extended macros format: ",
                 macros,
-                "Use: MARKER_NAME1=ENGINE_TYPE1,MARKER_NAME2=ENGINE_TYPE2"
+                "Use: MARKER_NAME1=ENGINE_TYPE1,MARKER_NAME2=ENGINE_TYPE2",
             )
 
     def get_markers(self, markerset):

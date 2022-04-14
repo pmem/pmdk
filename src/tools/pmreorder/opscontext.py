@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 from operationfactory import OperationFactory
 from binaryoutputhandler import BinaryOutputHandler
@@ -56,19 +56,30 @@ class OpsContext:
 
         :return: list of subclasses of :class:`memoryoperations.BaseOperation`
         """
+        enumerated_ops = list(enumerate(self._operations))
+        markers = list(
+            filter(
+                lambda e: e[1].endswith(".BEGIN") or e[1].endswith(".END"),
+                enumerated_ops,
+            )
+        )
+        operation_ids = list(enumerated_ops)
+
         stop_index = start_index = 0
 
-        for i, elem in enumerate(self._operations):
+        for i, elem in enumerated_ops:
             if "START" in elem:
                 start_index = i
             elif "STOP" in elem:
                 stop_index = i
 
-        return list(
+        operations = list(
             map(
                 OperationFactory.create_operation,
-                self._operations[start_index + 1: stop_index],
+                self._operations[start_index + 1 : stop_index],
                 repeat(self.markers),
                 repeat(self.stack_engines),
             )
         )
+
+        return (operations, operation_ids, markers)
