@@ -9,7 +9,7 @@ header: "pmreorder version 1.5"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2018-2021, Intel Corporation)
+[comment]: <> (Copyright 2018-2022, Intel Corporation)
 
 [comment]: <> (pmreorder.1 -- man page for pmreorder)
 
@@ -43,9 +43,14 @@ a persistent memory checking tool.
 
 Pmreorder performs the store reordering between persistent
 memory barriers - a sequence of flush-fence operations.
-It uses a consistency checking routine provided in the
-command line options to check whether files are in a
-consistent state.
+It also sets an environmental variable PMREORDER_MARKERS which is
+to be further used by consistency checking routine.
+Said variable is a char array containing
+successive markers passed from the application
+separated by vertical bar (‘|’).
+Pmreorder tool uses a consistency checking routine
+provided in the command line options to check
+whether files are in a consistent state.
 
 Considering that logging, replaying and reordering of operations
 are very time consuming, it is recommended to use as few stores as
@@ -380,6 +385,11 @@ By default all logging from PMDK libraries is disabled.
 To enable API macros logging set environment variable:
 
 + **PMREORDER_EMIT_LOG**=1
+
+User defined markers passed from the application
+are store in variable:
+
++ **PMREORDER_MARKERS**
 
 # EXAMPLE #
 
