@@ -9,7 +9,7 @@ header: "pmreorder version 1.5"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2018-2021, Intel Corporation)
+[comment]: <> (Copyright 2018-2022, Intel Corporation)
 
 [comment]: <> (pmreorder.1 -- man page for pmreorder)
 
@@ -43,9 +43,25 @@ a persistent memory checking tool.
 
 Pmreorder performs the store reordering between persistent
 memory barriers - a sequence of flush-fence operations.
-It uses a consistency checking routine provided in the
-command line options to check whether files are in a
-consistent state.
+It uses a consistency checking routine provided
+in the command line options to check whether files are in a consistent state.
+To help with this task, pmreorder sets an environmental variable
+PMREORDER_MARKERS. Said variable contains a subset of markers
+passed from the application, which is visible at the current state
+of pmreordering. Individual markers are separated by vertical bar (‘|’).
+
+Example of how PMREORDER_MARKERS variable can be parsed in c++ using regex
+based environment variable tokener:
+
+'''
+    auto env = std::getenv("ENV_PASS");
+    std::string senv(env ? env : "");
+    std::regex rgx("(\\w+)(\\||$)");
+    for( std::sregex_iterator it(senv.begin(),
+            senv.end(), rgx), it_end; it != it_end; ++it){
+        std::cout << (*it)[1].str() << std::endl;
+    }
+'''
 
 Considering that logging, replaying and reordering of operations
 are very time consuming, it is recommended to use as few stores as
@@ -380,6 +396,11 @@ By default all logging from PMDK libraries is disabled.
 To enable API macros logging set environment variable:
 
 + **PMREORDER_EMIT_LOG**=1
+
+User defined markers passed from an application
+are stored in the variable:
+
++ **PMREORDER_MARKERS**
 
 # EXAMPLE #
 
