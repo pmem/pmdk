@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 import memoryoperations as memops
 import reorderengines
 from reorderexceptions import InconsistentFileException
 from reorderexceptions import NotSupportedOperationException
+import os
 
 
 class State:
@@ -371,7 +372,7 @@ class StateMachine:
         """
         self._curr_state = init_state
 
-    def run_all(self, operations):
+    def run_all(self, operations, operation_ids, markers):
         """
         Starts the state machine.
 
@@ -381,8 +382,11 @@ class StateMachine:
         :return: None
         """
         all_consistent = True
-        for ops in operations:
+        for ops, ops_id in zip(operations, operation_ids):
+            print(ops_id[0])
             self._curr_state._context.logger.info(ops)
+            markers_to_pass = [m[1] for m in markers if m[0] < ops_id[0]]
+            os.environ["PMREORDER_MARKERS"] = "|".join(markers_to_pass)
             self._curr_state = self._curr_state.next(ops)
             check = self._curr_state.run(ops)
             if check is False:
