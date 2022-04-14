@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 
 import os
@@ -27,7 +27,7 @@ class MarkerParser:
                 "Invalid config macros file format: ",
                 macros,
                 'Use: {"MARKER_NAME1"="ENGINE_TYPE1",'
-                '"MARKER_NAME2"="ENGINE_TYPE2"}'
+                '"MARKER_NAME2"="ENGINE_TYPE2"}',
             )
 
         return markers
@@ -45,7 +45,7 @@ class MarkerParser:
             print(
                 "Invalid extended macros format: ",
                 macros,
-                "Use: MARKER_NAME1=ENGINE_TYPE1,MARKER_NAME2=ENGINE_TYPE2"
+                "Use: MARKER_NAME1=ENGINE_TYPE1,MARKER_NAME2=ENGINE_TYPE2",
             )
 
     def get_markers(self, markerset):
