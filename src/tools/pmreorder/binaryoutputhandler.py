@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 from loggingfacility import LoggingBase
 from reorderexceptions import InconsistentFileException
@@ -74,14 +74,12 @@ class BinaryOutputHandler:
         for i, bf in enumerate(self._files):
             if utils.range_cmp(store_op, bf) == 0:
                 self._logger.debug(
-                    "Doing store in file no. {0}: {1}".format(i, bf)
-                )
+                    "Doing store in file no. {0}: {1}".format(i, bf))
                 bf.do_store(store_op)
                 store_ok = True
         if not store_ok:
             raise OSError(
-                "No suitable file found for store {}".format(store_op)
-            )
+                "No suitable file found for store {}".format(store_op))
 
     def do_revert(self, store_op):
         """
@@ -102,8 +100,7 @@ class BinaryOutputHandler:
                 revert_ok = True
         if not revert_ok:
             raise OSError(
-                "No suitable file found for store {}".format(store_op)
-            )
+                "No suitable file found for store {}".format(store_op))
 
     def check_consistency(self):
         """
@@ -115,8 +112,7 @@ class BinaryOutputHandler:
         for bf in self._files:
             if not bf.check_consistency():
                 raise InconsistentFileException(
-                    "File {} inconsistent".format(bf)
-                )
+                    "File {} inconsistent".format(bf))
 
 
 class BinaryFile(utils.Rangeable):
@@ -163,9 +159,8 @@ class BinaryFile(utils.Rangeable):
 
     def __str__(self):
         return "{0} (base: {1}, size: {2})".format(
-            self._file_name,
-            hex(self._map_base),
-            hex(self._map_max - self._map_base)
+            self._file_name, hex(self._map_base), hex(
+                self._map_max - self._map_base)
         )
 
     def do_store(self, store_op):
@@ -185,7 +180,7 @@ class BinaryFile(utils.Rangeable):
         self._logger.debug(
             "do_store: old_value: {0}, new_value: {1}".format(
                 hex(int.from_bytes(store_op.old_value, byteorder=byteorder)),
-                hex(int.from_bytes(store_op.new_value, byteorder=byteorder))
+                hex(int.from_bytes(store_op.new_value, byteorder=byteorder)),
             )
         )
 

@@ -66,9 +66,8 @@ class LibChecker(ConsistencyCheckerBase):
         """
         if self._lib_func is None:
             raise RuntimeError(
-                "Consistency check function {} not loaded".format(
-                    self._lib_func_name
-                )
+                "Consistency check function {} not loaded"
+                .format(self._lib_func_name)
             )
 
         self._logger.debug(
