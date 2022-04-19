@@ -394,7 +394,8 @@ and pass all tests.
 The on-media pool layout is tightly attached to the page size
 of 64KiB used by default on ppc64le, so it is not interchangeable with
 different page sizes, includes those on other architectures. For more
-information on this port, contact Lucas Magalhães (lamm@linux.ibm.com).
+information on this port, contact Tulio Magno Quites Machado Filho
+(tuliom@linux.ibm.com) or Lucas Magalhães (lucmaga@gmail.com).
 
 ## Contact Us
 
