@@ -225,7 +225,7 @@ PMEM2_TESTS = \
 	pmem2_vm_reservation\
 	pmem2_usc
 
-ifeq ($(OS_DIMM),ndctf)
+ifeq ($(OS_DIMM),ndctl)
 PMEM2_TESTS += \
 	pmem2_badblock_mocks\
 	pmem2_source_numa
