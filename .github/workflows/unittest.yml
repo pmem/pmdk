@@ -7,8 +7,9 @@ jobs:
     name: PMDK_runners
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [[self-hosted, rhel], [self-hosted, sles]]
+        os: [[self-hosted, rhel], [self-hosted, opensuse]]
     env:
       WORKDIR: utils/gha-runners
 
@@ -24,3 +25,11 @@ jobs:
         - name: Build
           run: |
             ./$WORKDIR/build-pmdk.sh
+
+        - name: Create testconfig files
+          run: |
+            ./$WORKDIR/create-testconfig.sh
+
+        - name: Run tests
+          run: |
+            make check
