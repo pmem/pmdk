@@ -41,7 +41,7 @@ sync_operation_check(void *data, const struct vdm_operation *operation)
 
 	int complete;
 	util_atomic_load_explicit32(&sync_op->complete, &complete,
-		memory_order_acquire);
+				    memory_order_acquire);
 
 	return complete ? FUTURE_STATE_COMPLETE : FUTURE_STATE_IDLE;
 }
@@ -57,8 +57,8 @@ sync_operation_new(struct vdm *vdm, const enum vdm_operation_type type)
 	SUPPRESS_UNUSED(type);
 
 	struct data_mover *vdm_sync = (struct data_mover *)vdm;
-	struct data_mover_op *sync_op = membuf_alloc(vdm_sync->membuf,
-		sizeof(struct data_mover_op));
+	struct data_mover_op *sync_op =
+		membuf_alloc(vdm_sync->membuf, sizeof(struct data_mover_op));
 
 	if (sync_op == NULL)
 		return NULL;
@@ -73,24 +73,27 @@ sync_operation_new(struct vdm *vdm, const enum vdm_operation_type type)
  */
 static void
 sync_operation_delete(void *data, const struct vdm_operation *operation,
-	struct vdm_operation_output *output)
+			struct vdm_operation_output *output)
 {
 	output->result = VDM_SUCCESS;
 
 	switch (operation->type) {
-	case VDM_OPERATION_MEMCPY:
-		output->type = VDM_OPERATION_MEMCPY;
-		output->output.memcpy.dest =
-			operation->data.memcpy.dest;
-		break;
-	case VDM_OPERATION_MEMMOVE:
-		output->type = VDM_OPERATION_MEMMOVE;
-		output->output.memmove.dest =
-			operation->data.memcpy.dest;
-		break;
-	default:
-		FATAL("unsupported operation type");
-
+		case VDM_OPERATION_MEMCPY:
+			output->type = VDM_OPERATION_MEMCPY;
+			output->output.memcpy.dest =
+				operation->data.memcpy.dest;
+			break;
+		case VDM_OPERATION_MEMMOVE:
+			output->type = VDM_OPERATION_MEMMOVE;
+			output->output.memmove.dest =
+				operation->data.memcpy.dest;
+			break;
+		case VDM_OPERATION_MEMSET:
+			output->type = VDM_OPERATION_MEMSET;
+			output->output.memset.str = operation->data.memset.str;
+			break;
+		default:
+			FATAL("unsupported operation type");
 	}
 	membuf_free(data);
 }
@@ -100,11 +103,10 @@ sync_operation_delete(void *data, const struct vdm_operation *operation,
  */
 static int
 sync_operation_start(void *data, const struct vdm_operation *operation,
-	struct future_notifier *n)
+			struct future_notifier *n)
 {
 	LOG(3, "data %p op %p, notifier %p", data, operation, n);
-	struct data_mover_op *sync_data =
-		(struct data_mover_op *)data;
+	struct data_mover_op *sync_data = (struct data_mover_op *)data;
 	struct data_mover *mover = membuf_ptr_user_data(data);
 	if (n)
 		n->notifier_used = FUTURE_NOTIFIER_NONE;
@@ -130,11 +132,21 @@ sync_operation_start(void *data, const struct vdm_operation *operation,
 				PMEM2_F_MEM_NONTEMPORAL);
 			break;
 		}
+		case VDM_OPERATION_MEMSET: {
+			pmem2_memset_fn memset_fn;
+			memset_fn = pmem2_get_memset_fn(mover->map);
+
+			memset_fn(operation->data.memset.str,
+				operation->data.memset.c,
+				operation->data.memset.n,
+				PMEM2_F_MEM_NONTEMPORAL);
+			break;
+		}
 		default:
 			FATAL("unsupported operation type");
 	}
-	util_atomic_store_explicit32(&sync_data->complete,
-		1, memory_order_release);
+	util_atomic_store_explicit32(&sync_data->complete, 1,
+					memory_order_release);
 
 	return 0;
 }
@@ -189,11 +201,37 @@ mover_delete(struct vdm *dms)
  * pmem2_memcpy_async -- returns a memcpy future
  */
 struct vdm_operation_future
-pmem2_memcpy_async(struct pmem2_map *map,
-	void *pmemdest,	const void *src, size_t len, unsigned flags)
+pmem2_memcpy_async(struct pmem2_map *map, void *pmemdest, const void *src,
+			size_t len, unsigned flags)
 {
-	LOG(3, "map %p, pmemdest %p, src %p, len %" PRIu64 ", flags %u",
-		map, pmemdest, src, len, flags);
+	LOG(3, "map %p, pmemdest %p, src %p, len %" PRIu64 ", flags %u", map,
+		pmemdest, src, len, flags);
 	SUPPRESS_UNUSED(flags);
 	return vdm_memcpy(map->vdm, pmemdest, (void *)src, len, 0);
+}
+
+/*
+ * pmem2_memove_async -- returns a memmove future
+ */
+struct vdm_operation_future
+pmem2_memmove_async(struct pmem2_map *map, void *pmemdest, const void *src,
+			size_t len, unsigned flags)
+{
+	LOG(3, "map %p, pmemdest %p, src %p, len %" PRIu64 ", flags %u", map,
+		pmemdest, src, len, flags);
+	SUPPRESS_UNUSED(flags);
+	return vdm_memmove(map->vdm, pmemdest, (void *)src, len, 0);
+}
+
+/*
+ * pmem2_memset_async -- returns a memset future
+ */
+struct vdm_operation_future
+pmem2_memset_async(struct pmem2_map *map, void *pmemstr, int c, size_t n,
+			unsigned flags)
+{
+	LOG(3, "map %p, pmemstr %p, c %d, len %" PRIu64 ", flags %u", map,
+		pmemstr, c, n, flags);
+	SUPPRESS_UNUSED(flags);
+	return vdm_memset(map->vdm, pmemstr, c, n, 0);
 }

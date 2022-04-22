@@ -282,6 +282,12 @@ int pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm);
 
 struct vdm_operation_future pmem2_memcpy_async(struct pmem2_map *map,
 	void *pmemdest, const void *src, size_t len, unsigned flags);
+
+struct vdm_operation_future pmem2_memmove_async(struct pmem2_map *map,
+    void *pmemdest, const void *src, size_t len, unsigned flags);
+
+struct vdm_operation_future pmem2_memset_async(struct pmem2_map *map,
+    void *str, int c, size_t n, unsigned flags);
 #endif
 
 /* error handling */
