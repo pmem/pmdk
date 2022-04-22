@@ -128,6 +128,7 @@ convenient.
 %{_libdir}/libpmem2.so
 %{_libdir}/pkgconfig/libpmem2.pc
 %{_includedir}/libpmem2.h
+%{_includedir}/libpmem2/*.h
 %{_mandir}/man7/libpmem2.7.gz
 %{_mandir}/man3/pmem2_*.3.gz
 %license LICENSE

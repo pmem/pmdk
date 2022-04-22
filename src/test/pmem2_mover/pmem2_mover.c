@@ -50,7 +50,7 @@ test_mover_memcpy_basic(const struct test_case *tc, int argc, char *argv[])
 	pmem2_memset_fn memset_fn = pmem2_get_memset_fn(map);
 	memset_fn(data, 0xBA, 4096, 0);
 	memset_fn(data + 4096, 0xAB, 4096, 0);
-	struct vdm_operation_future cpy =
+	struct pmem2_future cpy =
 		pmem2_memcpy_async(map, data, data + 4096, 4096, 0);
 
 	FUTURE_BUSY_POLL(&cpy);
@@ -105,7 +105,7 @@ test_mover_memmove_basic(const struct test_case *tc, int argc, char *argv[])
 	 * Create future to copy contents of first buffer into second buffer
 	 * which starts in the half of first buffer.
 	 */
-	struct vdm_operation_future move = pmem2_memmove_async(
+	struct pmem2_future move = pmem2_memmove_async(
 		map, data + string_size / 2, data, string_size, 0);
 
 	FUTURE_BUSY_POLL(&move);
@@ -154,7 +154,7 @@ test_mover_memset_basic(const struct test_case *tc, int argc, char *argv[])
 	/*
 	 * Create future to set every byte of the buffer to 5
 	 */
-	struct vdm_operation_future move =
+	struct pmem2_future move =
 		pmem2_memset_async(map, data, 5, array_size, 0);
 
 	FUTURE_BUSY_POLL(&move);
@@ -200,7 +200,7 @@ thread_memcpy_worker(void *arg)
 
 	for (int i = 0; i < WORKER_RUNS; i++) {
 		unsigned *pattern = i % 2 ? pattern1 : pattern2;
-		struct vdm_operation_future cpy = pmem2_memcpy_async(
+		struct pmem2_future cpy = pmem2_memcpy_async(
 			targ->map, targ->addr, pattern, TEST_SIZE, 0);
 
 		FUTURE_BUSY_POLL(&cpy);
@@ -287,7 +287,7 @@ thread_memove_worker(void *arg)
 
 	for (int i = 0; i < WORKER_RUNS; i++) {
 		unsigned *pattern = i % 2 ? pattern1 : pattern2;
-		struct vdm_operation_future move = pmem2_memmove_async(
+		struct pmem2_future move = pmem2_memmove_async(
 			targ->map, targ->addr, pattern, TEST_SIZE, 0);
 
 		FUTURE_BUSY_POLL(&move);
@@ -377,7 +377,7 @@ thread_memset_worker(void *arg)
 				: (int)(targ->thread_id + targ->threads);
 		char *expected_result =
 			i % 2 ? expected_result1 : expected_result2;
-		struct vdm_operation_future set = pmem2_memset_async(
+		struct pmem2_future set = pmem2_memset_async(
 			targ->map, targ->addr, number, array_size, 0);
 
 		FUTURE_BUSY_POLL(&set);
@@ -470,7 +470,7 @@ test_miniasync_mover(const struct test_case *tc, int argc, char *argv[])
 	pmem2_memset_fn memset_fn = pmem2_get_memset_fn(map);
 	memset_fn(data, 0xBA, 4096, 0);
 	memset_fn(data + 4096, 0xAB, 4096, 0);
-	struct vdm_operation_future cpy =
+	struct pmem2_future cpy =
 		pmem2_memcpy_async(map, data, data + 4096, 4096, 0);
 
 	FUTURE_BUSY_POLL(&cpy);

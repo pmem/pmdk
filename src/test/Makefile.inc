@@ -513,9 +513,9 @@ CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += $(LIBNDCTL_LIBS)
 endif
 
-ifeq ($(LINMINIASYNC),y)
+ifeq ($(LIBMINIASYNC),y)
 LIBS += -lminiasync
-# XXX: remover when we will swich to installed libminiasync
+# XXX: remove when we will switch to installed libminiasync
 LIBS += -L$(TOP)/src/deps/miniasync/build/out
 endif
 
