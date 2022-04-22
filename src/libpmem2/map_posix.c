@@ -516,9 +516,10 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 	if (vdm == NULL) {
 		/*
-		 * user did not provided custom vdm,
+		 * user did not provide custom vdm,
 		 * so we have to use the fallback one.
 		 */
+		LOG(3, "using libpmem2 default async mover");
 		ret = mover_new(map, &vdm);
 		if (ret)
 			goto err_free_map_struct;
