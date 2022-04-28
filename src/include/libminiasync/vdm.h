@@ -124,6 +124,7 @@ struct vdm {
 	vdm_operation_delete op_delete;
 	vdm_operation_start op_start;
 	vdm_operation_check op_check;
+	unsigned capabilities;
 };
 
 struct vdm *vdm_synchronous_new(void);
@@ -162,6 +163,19 @@ vdm_operation_impl(struct future_context *context, struct future_notifier *n)
 	return state;
 }
 
+#define VDM_F_MEM_DURABLE		(1U << 0)
+#define VDM_F_NO_CACHE_HINT		(1U << 1)
+#define VDM_F_VALID_FLAGS	(VDM_F_MEM_DURABLE | VDM_F_NO_CACHE_HINT)
+
+/*
+ * vdm_is_supported -- returns if the given flag or feature is supported
+ */
+static inline int
+vdm_is_supported(struct vdm *vdm, unsigned capability)
+{
+	return (vdm->capabilities && capability) == capability;
+}
+
 /*
  * vdm_generic_operation -- creates a new vdm future for a given generic
  * operation
@@ -193,6 +207,7 @@ vdm_memcpy(struct vdm *vdm, void *dest, void *src, size_t n, uint64_t flags)
 	future.data.operation.data.memcpy.flags = flags;
 	future.data.operation.data.memcpy.n = n;
 	future.data.operation.data.memcpy.src = src;
+	future.data.operation.padding = 0;
 	future.output.type = VDM_OPERATION_MEMCPY;
 	future.output.result = VDM_SUCCESS;
 	future.output.output.memcpy.dest = NULL;
@@ -214,6 +229,7 @@ vdm_memmove(struct vdm *vdm, void *dest, void *src, size_t n, uint64_t flags)
 	future.data.operation.data.memmove.flags = flags;
 	future.data.operation.data.memmove.n = n;
 	future.data.operation.data.memmove.src = src;
+	future.data.operation.padding = 0;
 	future.output.type = VDM_OPERATION_MEMMOVE;
 	future.output.result = VDM_SUCCESS;
 	future.output.output.memmove.dest = NULL;
@@ -235,6 +251,7 @@ vdm_memset(struct vdm *vdm, void *str, int c, size_t n, uint64_t flags)
 	future.data.operation.data.memset.flags = flags;
 	future.data.operation.data.memset.n = n;
 	future.data.operation.data.memset.c = c;
+	future.data.operation.padding = 0;
 	future.output.type = VDM_OPERATION_MEMSET;
 	future.output.result = VDM_SUCCESS;
 	future.output.output.memset.str = NULL;

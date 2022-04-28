@@ -68,8 +68,11 @@ if(PANDOC)
 		runtime_wait_multiple)
 
 	# install manpages
-	install(FILES ${MAN_DIR}/miniasync.7
-		DESTINATION ${CMAKE_INSTALL_MANDIR}/man7)
+	install(DIRECTORY ${MAN_DIR}/
+		DESTINATION ${CMAKE_INSTALL_MANDIR}/man7
+		FILES_MATCHING
+		PATTERN "*.7"
+		PATTERN "tmp" EXCLUDE)
 	install(DIRECTORY ${MAN_DIR}/
 		DESTINATION ${CMAKE_INSTALL_MANDIR}/man3
 		FILES_MATCHING

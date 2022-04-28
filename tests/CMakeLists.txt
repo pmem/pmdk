@@ -59,9 +59,11 @@ add_custom_target(tests)
 add_flag(-Wall)
 
 add_cstyle(tests-all
-		${CMAKE_CURRENT_SOURCE_DIR}/*/*.[ch])
+		${CMAKE_CURRENT_SOURCE_DIR}/*/*.[ch]
+		${CMAKE_CURRENT_SOURCE_DIR}/*.[ch])
 add_check_whitespace(tests-all
 		${CMAKE_CURRENT_SOURCE_DIR}/*/*.[ch]
+		${CMAKE_CURRENT_SOURCE_DIR}/*.[ch]
 		${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 		"${CMAKE_CURRENT_SOURCE_DIR}/*/*[.cmake]"
 		"${CMAKE_CURRENT_SOURCE_DIR}/cmake/*[.cmake]")

@@ -18,6 +18,8 @@
 #define DATA_MOVER_THREADS_DEFAULT_NTHREADS 12
 #define DATA_MOVER_THREADS_DEFAULT_RINGBUF_SIZE 128
 
+#define SUPPORTED_FLAGS 0
+
 struct data_mover_threads_op_fns {
 	memcpy_fn op_memcpy;
 	memmove_fn op_memmove;
@@ -271,6 +273,7 @@ static struct vdm data_mover_threads_vdm = {
 	.op_delete = data_mover_threads_operation_delete,
 	.op_check = data_mover_threads_operation_check,
 	.op_start = data_mover_threads_operation_start,
+	.capabilities = SUPPORTED_FLAGS,
 };
 
 /*
