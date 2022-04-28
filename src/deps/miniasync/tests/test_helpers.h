@@ -15,6 +15,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <errno.h>
+#include "libminiasync/vdm.h"
 
 #define UT_ERR(...) do {\
 	fprintf(stderr, "ERROR: " __VA_ARGS__);\
@@ -45,4 +46,16 @@
 		(unsigned long long)(min), (unsigned long long)(max));\
 } while (/*CONSTCOND*/0)
 
+static inline int
+test_flag(struct vdm *vdm, unsigned flag, int expected_value)
+{
+	int ret = vdm_is_supported(vdm, flag) != expected_value;
+
+	if (ret) {
+		fprintf(stderr,
+			"vdm_is_flag_supported(%u) returned: %u, when expected: %u\n",
+			flag, ret, expected_value);
+	}
+	return ret;
+}
 #endif /* TEST_HELPERS_H */
