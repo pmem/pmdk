@@ -55,7 +55,8 @@ ENV TESTS_DEPS "bc \
 	ndctl \
 	python3 \
 	ssh \
-	strace"
+	strace \
+	bandit "
 
 # packaging
 ENV PACKAGING_DEPS "debhelper \
