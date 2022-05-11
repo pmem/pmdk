@@ -284,16 +284,16 @@ int pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm);
  * Structures needed for persist future
  */
 struct pmem2_persist_future_data {
-    struct pmem2_map *map;
-    void *ptr;
-    size_t size;
+	struct pmem2_map *map;
+	void *ptr;
+	size_t size;
 };
 
 struct pmem2_persist_future_output {
 	/*
 	 * Windows C compiler does not accept empty structs
 	 */
-	void *output;
+	uint64_t *unused;
 };
 
 /*

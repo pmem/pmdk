@@ -19,14 +19,14 @@
 #define SUPPORTED_FLAGS VDM_F_MEM_DURABLE
 
 struct data_mover {
-    struct vdm base; /* must be first */
-    struct pmem2_map *map;
-    struct membuf *membuf;
+	struct vdm base; /* must be first */
+	struct pmem2_map *map;
+	struct membuf *membuf;
 };
 
 struct data_mover_op {
-    struct vdm_operation op;
-    int complete;
+	struct vdm_operation op;
+	int complete;
 };
 
 /*
@@ -213,46 +213,23 @@ pmem2_future_attach_persist(struct pmem2_map *map, struct pmem2_future *future,
 		pmem2_map_get_store_granularity(map);
 	bool pmem_support = vdm_is_supported(map->vdm, VDM_F_MEM_DURABLE);
 
-	switch (gran) {
-		case PMEM2_GRANULARITY_BYTE:
-			/*
-			 * eADR is supported, so no call to pmem_persist_fn
-			 * is necessary to ensure persistence of copied data,
-			 * and we can set vdm_operation as the last element in
-			 * pmem2_future chain.
-			 */
-			operation_entry->flags |=
-				FUTURE_CHAIN_FLAG_ENTRY_LAST;
-			break;
-		default:
-			/*
-			 * With other granularities, the behaviour depends on
-			 * the virtual data mover, so if it supports durable
-			 * memory, it will handle persisting the data
-			 * on its own
-			 */
-			if (!pmem_support) {
-				/*
-				 * The engine does not support PMEM, so we
-				 * have to assure that the copied data
-				 * is moved into a persistent domain properly
-				 * before the pmem2_future is complete
-				 */
-				FUTURE_CHAIN_ENTRY_INIT(&future->data.fin,
-					pmem2_persist_future(map, pmemdest,
-						len),
-					NULL, NULL);
-			} else {
-				/*
-				 * The engine will handle moving the data into
-				 * persistence, so we do not have to do it here
-				 * and the only thing the pmem2_future has to
-				 * do is to perform its operation
-				 */
-				operation_entry->flags |=
-					FUTURE_CHAIN_FLAG_ENTRY_LAST;
-			}
-			break;
+	if (gran != PMEM2_GRANULARITY_BYTE && !pmem_support) {
+		/*
+		 * The engine does not support PMEM, and we do not have eADR,
+		 * so we have to assure that the copied data is moved into
+		 * a persistent domain properly before the pmem2_future
+		 * is complete
+		 */
+		FUTURE_CHAIN_ENTRY_INIT(&future->data.fin,
+			pmem2_persist_future(map, pmemdest, len),
+			NULL, NULL);
+	} else {
+		/*
+		 * The engine supports PMEM, or we have eADR, so persistence
+		 * of the data is handled by these features.
+		 */
+		operation_entry->flags |=
+			FUTURE_CHAIN_FLAG_ENTRY_LAST;
 	}
 }
 
@@ -267,7 +244,7 @@ pmem2_memcpy_async(struct pmem2_map *map, void *pmemdest, const void *src,
 		pmemdest, src, len, flags);
 	SUPPRESS_UNUSED(flags);
 
-	struct pmem2_future future = {0};
+	struct pmem2_future future;
 	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
 		vdm_memcpy(map->vdm, pmemdest, (void *)src, len, 0),
 		NULL, NULL);
@@ -289,7 +266,7 @@ pmem2_memmove_async(struct pmem2_map *map, void *pmemdest, const void *src,
 		pmemdest, src, len, flags);
 	SUPPRESS_UNUSED(flags);
 
-	struct pmem2_future future = {0};
+	struct pmem2_future future;
 	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
 		vdm_memmove(map->vdm, pmemdest, (void *)src, len, 0),
 		NULL, NULL);
@@ -311,7 +288,7 @@ pmem2_memset_async(struct pmem2_map *map, void *pmemstr, int c, size_t n,
 		pmemstr, c, n, flags);
 	SUPPRESS_UNUSED(flags);
 
-	struct pmem2_future future = {0};
+	struct pmem2_future future;
 	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
 		vdm_memset(map->vdm, pmemstr, c, n, 0),
 		NULL, NULL);
