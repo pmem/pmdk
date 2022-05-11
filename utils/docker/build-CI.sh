@@ -50,6 +50,7 @@ containerName=pmdk-${OS}-${OS_VER}
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; ci_env=`bash <(curl -s https://codecov.io/env)`; fi
+if [[ $BANDIT -eq 1 ]] ; then command="./run-bandit.sh"; fi
 
 if [[ ( "$CI_EVENT_TYPE" == "cron" || "$CI_BRANCH" == "coverity_scan" )\
 	&& "$COVERITY" -eq 1 ]]; then
@@ -141,6 +142,7 @@ docker run --rm --name=$containerName -i $TTY \
 	--env CI_RUN=$CI_RUN \
 	--env SRC_CHECKERS=$SRC_CHECKERS \
 	--env BLACKLIST_FILE=$BLACKLIST_FILE \
+	--env BANDIT=$BANDIT \
 	$ndctl_enable \
 	$pmemset_install \
 	--tmpfs /tmp:rw,relatime,suid,dev,exec,size=6G \
