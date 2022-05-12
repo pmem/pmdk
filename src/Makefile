@@ -86,6 +86,7 @@ HEADERS =\
 		freebsd/include/*/*.h\
 		include/lib*.h\
 		include/libpmemobj/*.h\
+		include/libpmem2/*.h\
 		windows/include/*.h\
 		windows/include/*/*.h\
 		), $(f))
@@ -183,6 +184,7 @@ install: all pkg-config
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
 	install -d $(HEADERS_DESTDIR)/libpmemobj
+	install -d $(HEADERS_DESTDIR)/libpmem2
 	install -p -m 0644 $(OBJ_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmemobj
 	install -p -m 0644 $(PMEM2_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmem2
 	install -d $(PKG_CONFIG_DESTDIR)
