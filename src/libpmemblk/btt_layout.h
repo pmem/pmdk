@@ -22,6 +22,7 @@ extern "C" {
 #define BTTINFO_UNUSED_LEN 3968
 #define BTTINFO_SIG		"BTT_ARENA_INFO\0"
 
+//it can be looked as the super block of the BTT
 struct btt_info {
 	char sig[BTTINFO_SIG_LEN];	/* must be "BTT_ARENA_INFO\0\0" */
 	uint8_t uuid[BTTINFO_UUID_LEN];	/* BTT UUID */
@@ -60,8 +61,11 @@ struct btt_info {
 /*
  * Current on-media format versions.
  */
-#define BTTINFO_MAJOR_VERSION 1
+//#define BTTINFO_MAJOR_VERSION 1
 #define BTTINFO_MINOR_VERSION 1
+
+//dennis: we can defind another layout w/o flog with different version.
+#define  BTTINFO_MAJOR_VERSION 2
 
 /*
  * Layout of a BTT "flog" entry.  All integers are stored little-endian.
