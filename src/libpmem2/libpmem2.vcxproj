@@ -69,6 +69,8 @@
   <ItemGroup>
     <ClInclude Include="..\include\libpmem2.h" />
     <ClInclude Include="..\core\os_thread.h" />
+    <ClInclude Include="..\include\libpmem2\async.h" />
+    <ClInclude Include="..\include\libpmem2\base.h" />
     <ClInclude Include="auto_flush.h" />
     <ClInclude Include="auto_flush_windows.h" />
     <ClInclude Include="deep_flush.h" />
@@ -143,7 +145,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(solutionDir)deps\miniasync\src\include;x86_64\</IncludePath>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>PMDK_UTF8_API;SDS_ENABLED;NTDDI_VERSION=NTDDI_WIN10_RS4;_CRT_SECURE_NO_WARNINGS;_WINDLL;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -26,15 +26,17 @@ date: pmem2 API version 1.0
 ```c
 #define PMEM2_USE_MINIASYNC 1
 #include <libpmem2.h>
+struct pmem2_future;
+
 int pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm);
 
-struct vdm_operation_future pmem2_memcpy_async(struct pmem2_map *map,
+struct pmem2_future pmem2_memcpy_async(struct pmem2_map *map,
 	void *pmemdest, const void *src, size_t len, unsigned flags);
 
-pmem2_memmove_async(struct pmem2_map *map, void *pmemdest, const void *src,
+struct pmem2_future pmem2_memmove_async(struct pmem2_map *map, void *pmemdest, const void *src,
 	size_t len, unsigned flags)
 
-struct vdm_operation_future pmem2_memset_async(struct pmem2_map *map,
+struct pmem2_future pmem2_memset_async(struct pmem2_map *map,
 	void *pmemstr,	int c, size_t n, unsigned flags)
 {
 ```
@@ -43,30 +45,33 @@ struct vdm_operation_future pmem2_memset_async(struct pmem2_map *map,
 To use those functions, you must have *libminiasync* installed. Those functions use futures
 and vdm (virtual data mover) concepts from this library. Please check **miniasync**(7) for more details.
 
-The **pmem2_config_set_vdm** sets a vdm structure in the *pmem2_config*.
-This structure will be used by pmem2_*_async functions, to create a *vdm_operation_future*.
-If vdm is not set in the config, pmem2_map_new will use a default one which uses a
-pmem2 memory movement functions to perform memory operations. (**pmem2_get_memcpy_fn**(3), **pmem2_get_memmove_fn**(3), **pmem2_get_memsety_fn**(3)).
+The struct **pmem2_future** is a structure describing a task to be done asynchronously taking into account persistence
+of the operation. It means that by the time the future is complete, all the data is safely written into a persistent domain.
 
-The **pmem2_memcpy_async** uses *vdm* structure held inside the *pmem2_map* structure to initialise and returns **vdm_operation_future**.
+The **pmem2_config_set_vdm** sets a vdm structure in the *pmem2_config*.
+This structure will be used by pmem2_*_async functions, to create a *pmem2_future*.
+If vdm is not set in the config, pmem2_map_new will use a default one which uses a
+pmem2 memory movement functions to perform memory operations. (**pmem2_get_memcpy_fn**(3), **pmem2_get_memmove_fn**(3), **pmem2_get_memset_fn**(3)).
+
+The **pmem2_memcpy_async** uses *vdm* structure held inside the *pmem2_map* structure to initialise and returns **pmem2_future**.
 This future will perform memcpy operation defined in *vdm* to copy *len* bytes from *src* to *pmemdest*. In the current implementation *flags* are ignored.
 
-The **pmem2_memmove_async** returns **vdm_operation_future** which
+The **pmem2_memmove_async** returns **pmem2_future** which
 will perform memmove operation defined in *vdm* to copy *len* bytes from *src* to *pmemdest*. In the current implementation *flags* are ignored.
 
-The **pmem2_memmset_async** returns **vdm_operation_future** which
+The **pmem2_memset_async** returns **pmem2_future** which
 will perform memset operation defined in *vdm* to fill *n* bytes from *pmemstr* with value of int *c* interpreted as unsigned char.
 In the current implementation *flags* are ignored.
 
 # RETURN VALUE #
 The **pmem2_config_set_vdm** always return 0.
 
-The **pmem2_memcpy_async** returns a new instance of **vdm_operation_future** performing memcpy operation.
+The **pmem2_memcpy_async** returns a new instance of **pmem2_future** performing memcpy operation.
 You can execute returned structure using methods from the **libminiasync**() library such as **FUTURE_BUSY_POLL**(3).
 
-The **pmem2_memmove_async** returns a new instance of **vdm_operation_future** performing memmove operation.
+The **pmem2_memmove_async** returns a new instance of **pmem2_future** performing memmove operation.
 
-The **pmem2_memset_async** returns a new instance of **vdm_operation_future** performing memset operation.
+The **pmem2_memset_async** returns a new instance of **pmem2_future** performing memset operation.
 
 # SEE ALSO #
 

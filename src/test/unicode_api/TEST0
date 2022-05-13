@@ -18,7 +18,6 @@ require_command clang
 
 SRC=../..
 HEADERS_DIR=$SRC/include
-INC_DIR=$SRC/include/libpmemobj
 EXC_PATT="set_funcs|strdup|rpmem"
 FAILED=0
 DEF_COL=6
@@ -33,16 +32,15 @@ function pick_col {
 
 function check_file {
 	local file=$1
-	local dir=$2
-	local h_dir=$3
-	local pat=$4
+	local h_dir=$2
+	local pat=$3
 
 	local funcs=$(clang -Xclang -ast-dump -I$HEADERS_DIR $file -fno-color-diagnostics 2> /dev/null |\
 		grep "FunctionDecl.*pmem.*char \*" | cut -d " " -f $DEF_COL)
 	for func in $funcs
 	do
 		local good=1	# Not starting at 0 allows set -e
-		to_check="$dir/*.h $h_dir/*.h"
+		to_check="$h_dir/*.h $h_dir/*/*.h"
 		if [ -n "${pat:+x}" ] && [[ $func =~ $pat ]]; then
 			continue
 		fi
@@ -64,7 +62,7 @@ pick_col
 
 for f in $HEADERS_DIR/*.h
 do
-	check_file $f $INC_DIR $HEADERS_DIR $EXC_PATT
+	check_file $f $HEADERS_DIR $EXC_PATT
 done
 
 if [ $FAILED -ne 0 ]; then

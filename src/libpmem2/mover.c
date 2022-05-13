@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define SUPPORTED_FLAGS VDM_F_MEM_DURABLE
+
 struct data_mover {
 	struct vdm base; /* must be first */
 	struct pmem2_map *map;
@@ -28,8 +30,8 @@ struct data_mover_op {
 };
 
 /*
- * sync_operation_check -- always returns COMPLETE because sync mover operations
- * are complete immediately after starting.
+ * sync_operation_check -- always returns COMPLETE because sync mover
+ * operations are complete immediately after starting.
  */
 static enum future_state
 sync_operation_check(void *data, const struct vdm_operation *operation)
@@ -41,7 +43,7 @@ sync_operation_check(void *data, const struct vdm_operation *operation)
 
 	int complete;
 	util_atomic_load_explicit32(&sync_op->complete, &complete,
-				    memory_order_acquire);
+		memory_order_acquire);
 
 	return complete ? FUTURE_STATE_COMPLETE : FUTURE_STATE_IDLE;
 }
@@ -73,7 +75,7 @@ sync_operation_new(struct vdm *vdm, const enum vdm_operation_type type)
  */
 static void
 sync_operation_delete(void *data, const struct vdm_operation *operation,
-			struct vdm_operation_output *output)
+	struct vdm_operation_output *output)
 {
 	output->result = VDM_SUCCESS;
 
@@ -103,7 +105,7 @@ sync_operation_delete(void *data, const struct vdm_operation *operation,
  */
 static int
 sync_operation_start(void *data, const struct vdm_operation *operation,
-			struct future_notifier *n)
+	struct future_notifier *n)
 {
 	LOG(3, "data %p op %p, notifier %p", data, operation, n);
 	struct data_mover_op *sync_data = (struct data_mover_op *)data;
@@ -146,7 +148,7 @@ sync_operation_start(void *data, const struct vdm_operation *operation,
 			FATAL("unsupported operation type");
 	}
 	util_atomic_store_explicit32(&sync_data->complete, 1,
-					memory_order_release);
+		memory_order_release);
 
 	return 0;
 }
@@ -156,6 +158,7 @@ static struct vdm data_mover_vdm = {
 	.op_delete = sync_operation_delete,
 	.op_check = sync_operation_check,
 	.op_start = sync_operation_start,
+	.capabilities = SUPPORTED_FLAGS,
 };
 
 /*
@@ -182,7 +185,7 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 
 	return 0;
 
-membuf_failed:
+	membuf_failed:
 	free(dms);
 	return ret;
 }
@@ -198,40 +201,100 @@ mover_delete(struct vdm *dms)
 }
 
 /*
+ * Attach pmem2_future_persist into pmem2_future if required by
+ * characteristics of mapping and vdm
+ */
+static void
+pmem2_future_attach_persist(struct pmem2_map *map, struct pmem2_future *future,
+	void *pmemdest, size_t len) {
+	struct future_chain_entry *operation_entry =
+		(struct future_chain_entry *)(&future->data.op);
+	enum pmem2_granularity gran =
+		pmem2_map_get_store_granularity(map);
+	bool pmem_support = vdm_is_supported(map->vdm, VDM_F_MEM_DURABLE);
+
+	if (gran != PMEM2_GRANULARITY_BYTE && !pmem_support) {
+		/*
+		 * The engine does not support PMEM, and we do not have eADR,
+		 * so we have to assure that the copied data is moved into
+		 * a persistent domain properly before the pmem2_future
+		 * is complete
+		 */
+		FUTURE_CHAIN_ENTRY_INIT(&future->data.fin,
+			pmem2_persist_future(map, pmemdest, len),
+			NULL, NULL);
+	} else {
+		/*
+		 * The engine supports PMEM, or we have eADR, so persistence
+		 * of the data is handled by these features.
+		 */
+		operation_entry->flags |=
+			FUTURE_CHAIN_FLAG_ENTRY_LAST;
+	}
+}
+
+/*
  * pmem2_memcpy_async -- returns a memcpy future
  */
-struct vdm_operation_future
+struct pmem2_future
 pmem2_memcpy_async(struct pmem2_map *map, void *pmemdest, const void *src,
-			size_t len, unsigned flags)
+	size_t len, unsigned flags)
 {
 	LOG(3, "map %p, pmemdest %p, src %p, len %" PRIu64 ", flags %u", map,
 		pmemdest, src, len, flags);
 	SUPPRESS_UNUSED(flags);
-	return vdm_memcpy(map->vdm, pmemdest, (void *)src, len, 0);
+
+	struct pmem2_future future;
+	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
+		vdm_memcpy(map->vdm, pmemdest, (void *)src, len, 0),
+		NULL, NULL);
+
+	pmem2_future_attach_persist(map, &future, pmemdest, len);
+
+	FUTURE_CHAIN_INIT(&future);
+	return future;
 }
 
 /*
  * pmem2_memove_async -- returns a memmove future
  */
-struct vdm_operation_future
+struct pmem2_future
 pmem2_memmove_async(struct pmem2_map *map, void *pmemdest, const void *src,
-			size_t len, unsigned flags)
+	size_t len, unsigned flags)
 {
 	LOG(3, "map %p, pmemdest %p, src %p, len %" PRIu64 ", flags %u", map,
 		pmemdest, src, len, flags);
 	SUPPRESS_UNUSED(flags);
-	return vdm_memmove(map->vdm, pmemdest, (void *)src, len, 0);
+
+	struct pmem2_future future;
+	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
+		vdm_memmove(map->vdm, pmemdest, (void *)src, len, 0),
+		NULL, NULL);
+
+	pmem2_future_attach_persist(map, &future, pmemdest, len);
+
+	FUTURE_CHAIN_INIT(&future);
+	return future;
 }
 
 /*
  * pmem2_memset_async -- returns a memset future
  */
-struct vdm_operation_future
+struct pmem2_future
 pmem2_memset_async(struct pmem2_map *map, void *pmemstr, int c, size_t n,
-			unsigned flags)
+	unsigned flags)
 {
 	LOG(3, "map %p, pmemstr %p, c %d, len %" PRIu64 ", flags %u", map,
 		pmemstr, c, n, flags);
 	SUPPRESS_UNUSED(flags);
-	return vdm_memset(map->vdm, pmemstr, c, n, 0);
+
+	struct pmem2_future future;
+	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
+		vdm_memset(map->vdm, pmemstr, c, n, 0),
+		NULL, NULL);
+
+	pmem2_future_attach_persist(map, &future, pmemstr, n);
+
+	FUTURE_CHAIN_INIT(&future);
+	return future;
 }
