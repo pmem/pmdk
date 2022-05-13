@@ -8,7 +8,7 @@
  *
  * libpmem2 provides support for using raw pmem directly.
  *
- * See libpmem2_async(7) for details.
+ * See libpmem2(7) for details.
  */
 
 #ifndef LIBPMEM2_H

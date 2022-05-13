@@ -1,6 +1,6 @@
 libpmem2.7
-libpmem2_async.7
 libpmem2_unsafe_shutdown.7
+pmem2_async.3
 pmem2_badblock_context_new.3
 pmem2_badblock_next.3
 pmem2_badblock_clear.3

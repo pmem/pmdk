@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(LIBPMEM2_ASYNC, 7)
+title: _MP(PMEM2_ASYNC, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -10,7 +10,7 @@ date: pmem2 API version 1.0
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause
 [comment]: <> (Copyright 2022, Intel Corporation)
 
-[comment]: <> (libpmem2_async.7 -- man page for libpmem2 asynchronous operations)
+[comment]: <> (pmem2_async.3.md -- man page for libpmem2 asynchronous operations)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
