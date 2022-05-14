@@ -115,7 +115,6 @@
  * all the other btt_* entry points, and deleted by btt_fini().
  */
  
- //Dennis:btt is the in-memory data structure for the arena handler
 struct btt {
 	unsigned nlane; /* number of concurrent threads allowed per btt */
 
@@ -199,7 +198,8 @@ struct btt {
 		 */
 		uint32_t volatile *rtt;
 
-		//Dennis: define the zone number, divide the whole arena blocks into the zones. The following definition from kernel patch
+		/*zone number, divide the whole arena into the zones. 
+		*/
 		uint32_t zone_number;
 		uint32_t zone_lba_number;
 		struct zone_free {

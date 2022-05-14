@@ -63,8 +63,6 @@ struct btt_info {
  */
 //#define BTTINFO_MAJOR_VERSION 1
 #define BTTINFO_MINOR_VERSION 1
-
-//dennis: we can defind another layout w/o flog with different version.
 #define  BTTINFO_MAJOR_VERSION 2
 
 /*
@@ -102,7 +100,9 @@ struct btt_flog {
 #define BTT_MAX_ARENA (1ull << 39) /* 512GB per arena */
 #define BTT_MIN_LBA_SIZE (size_t)512
 #define BTT_INTERNAL_LBA_ALIGNMENT 256U
-#define BTT_DEFAULT_NFREE 256
+
+//#define BTT_DEFAULT_NFREE 256
+#define BTT_DEFAULT_NFREE 32
 
 #ifdef __cplusplus
 }

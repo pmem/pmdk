@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#define FREE_ZONE_NUMBER 256
+#define FREE_ZONE_NUMBER 32
 
 /* callback functions passed to btt_init() */
 struct ns_callback {
