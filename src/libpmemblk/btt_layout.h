@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * btt_layout.h -- block translation table on-media layout definitions
@@ -22,7 +22,6 @@ extern "C" {
 #define BTTINFO_UNUSED_LEN 3968
 #define BTTINFO_SIG		"BTT_ARENA_INFO\0"
 
-//it can be looked as the super block of the BTT
 struct btt_info {
 	char sig[BTTINFO_SIG_LEN];	/* must be "BTT_ARENA_INFO\0\0" */
 	uint8_t uuid[BTTINFO_UUID_LEN];	/* BTT UUID */
