@@ -114,7 +114,6 @@
  * for the btt namespace.  This is created by btt_init(), handed to
  * all the other btt_* entry points, and deleted by btt_fini().
  */
- 
 struct btt {
 	unsigned nlane; /* number of concurrent threads allowed per btt */
 
@@ -147,6 +146,7 @@ struct btt {
 	uint32_t nfree;			/* available flog entries */
 	uint64_t nlba;			/* total number of external LBAs */
 	unsigned narena;		/* number of arenas */
+	uint16_t major;			/* major version, define the layout */
 
 	/* run-time state kept for each arena */
 	struct arena {
@@ -154,8 +154,7 @@ struct btt {
 		uint32_t external_nlba;	/* LBAs that live in this arena */
 		uint32_t internal_lbasize;
 		uint32_t internal_nlba;
-		uint16_t major;			/* major version */
-		uint16_t minor;			/* minor version */
+
 
 		/*
 		 * The following offsets are relative to the beginning of
@@ -343,6 +342,8 @@ read_info(struct btt *bttp, struct btt_info *infop)
 	infop->mapoff = le64toh(infop->mapoff);
 	infop->flogoff = le64toh(infop->flogoff);
 	infop->infooff = le64toh(infop->infooff);
+
+	bttp->major = infop->major;
 
 	return 1;
 }
@@ -895,15 +896,13 @@ read_arena(struct btt *bttp, unsigned lane, uint64_t arena_off,
 	arenap->external_nlba = le32toh(info.external_nlba);
 	arenap->internal_lbasize = le32toh(info.internal_lbasize);
 	arenap->internal_nlba = le32toh(info.internal_nlba);
-	arenap->major = le16toh(info.major);
-	arenap->minor = le16toh(info.minor);
 
 	arenap->startoff = arena_off;
 	arenap->dataoff = arena_off + le64toh(info.dataoff);
 	arenap->mapoff = arena_off + le64toh(info.mapoff);
 	arenap->nextoff = arena_off + le64toh(info.nextoff);
 
-	if(arenap->major == 1) {	
+	if(bttp->major == 1) {	
 		arenap->flogoff = arena_off + le64toh(info.flogoff);
 		if (read_flogs(bttp, lane, arenap) < 0)
 			return -1;
@@ -1029,7 +1028,7 @@ err:
 	int oerrno = errno;
 	if (bttp->arenas) {
 		for (unsigned i = 0; i < bttp->narena; i++) {
-			if (bttp->arenas[i].major == 1 && bttp->arenas[i].flogs) {
+			if (bttp->major == 1 && bttp->arenas[i].flogs) {
 				Free(bttp->arenas[i].flogs);
 			} else {
 				for(unsigned j=0;j<bttp->nfree;j++) {
@@ -1853,7 +1852,7 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 	}
 
 	uint32_t free_entry;
-	if(arenap->major == 1) {
+	if(bttp->major == 1) {
 		/*
 		* This routine was passed a unique "lane" which is an index
 		* into the flog.  That means the free block held by flog[lane]
@@ -1896,7 +1895,7 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 
 	old_entry = le32toh(old_entry);
 	
-	if(arenap->major == 1) {
+	if(bttp->major == 1) {
 		/* update the flog */
 		if (flog_update(bttp, lane, arenap, premap_lba,
 						old_entry, free_entry) < 0) {
