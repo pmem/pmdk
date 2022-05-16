@@ -5,7 +5,7 @@
  * libpmem2/async.h -- definitions of libpmem2 functions and structs for
  * asynchronous operations
  *
- * See libpmem2_async(7) for details.
+ * See pmem2_async(3) for details.
  */
 
 #ifndef LIBPMEM2_ASYNC
