@@ -765,7 +765,7 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
  * @lane: specific the lane the aba will be freed
  * @free_aba: the block (postmap) will be put back to free array list
  */
-static void put_aba_in_a_lane(struct arena *arena,
+static inline void put_aba_in_a_lane(struct arena *arena,
 	uint32_t lane, uint32_t free_aba)
 {
 	uint32_t free_num = 0;
@@ -781,7 +781,7 @@ static void put_aba_in_a_lane(struct arena *arena,
  * @lane:	the block (postmap) will be put back to free array list
  * @postmap: the output of the postmap
  */
-static void get_aba_in_a_lane(struct arena *arena,
+static inline void get_aba_in_a_lane(struct arena *arena,
 	uint32_t lane, uint32_t *postmap)
 {
 	uint32_t free_num;
@@ -815,7 +815,7 @@ static int btt_map_read(struct btt *bttp, struct arena *arena,
 static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 {
 	int ret;
-	uint32_t i, j;
+	uint32_t i;
 	uint32_t mapping;
 	uint8_t *aba_map_byte, *aba_map;
 	struct zone_free *freezone_array_item = NULL;
@@ -842,7 +842,8 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 		mapping = mapping & BTT_MAP_ENTRY_LBA_MASK;
 		if (mapping < arena->internal_nlba) {
 			aba_map_byte = aba_map + (mapping>>3);
-			*aba_map_byte = (*aba_map_byte) | (1<< (mapping % 8));
+			*aba_map_byte = (*aba_map_byte) |
+				(1<< (uint8_t)(mapping % 8));
 		} else {
 			LOG(9, "%s: mapping %#x out of range ",
 				__func__, mapping);
@@ -857,8 +858,10 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	for (i = 0; i < bttp->nfree; i++) {
 		free_num = 0;
 		freezone_array_item->free_array =
-			Malloc(zone_lba_number * sizeof(uint32_t));
+			Malloc((unsigned int)(zone_lba_number *
+					sizeof(uint32_t)));
 		if (!freezone_array_item->free_array) {
+			Free(aba_map);
 			ERR("!Malloc for free_array size = %d ",
 				zone_lba_number * sizeof(uint32_t));
 			return -1;
