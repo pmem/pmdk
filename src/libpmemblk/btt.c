@@ -1873,7 +1873,7 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 		 */
 		free_entry = (arenap->flogs[lane].flog.old_map &
 				BTT_MAP_ENTRY_LBA_MASK) | BTT_MAP_ENTRY_NORMAL;
-	} else 	{
+		} else {
 		get_aba_in_a_lane(arenap, lane, &free_entry);
 		free_entry |= BTT_MAP_ENTRY_NORMAL;
 	}
