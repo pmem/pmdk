@@ -155,7 +155,6 @@ struct btt {
 		uint32_t internal_lbasize;
 		uint32_t internal_nlba;
 
-
 		/*
 		 * The following offsets are relative to the beginning of
 		 * the encapsulating namespace.  This is different from
@@ -1350,7 +1349,6 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 			}
 		}
 
-
 		btt_info_convert2le(&info);
 
 		util_checksum(&info, sizeof(info), &info.checksum, 1, 0);
@@ -1885,7 +1883,11 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 		while (arenap->rtt[i] == free_entry)
 			;
 
-	/* it is now safe to perform write to the free block */
+	/*
+	 * it is now safe to perform write to the free block
+	 * if write fail, we discard this block or put back to free?
+	 * when read lba, keep the lba with previous data
+	 */
 	uint64_t data_block_off = arenap->dataoff +
 		(uint64_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
 			arenap->internal_lbasize;
