@@ -198,11 +198,11 @@ struct btt {
 		uint32_t volatile *rtt;
 
 		/*
-		 * divide the whole arena into #lanes zone. 
+		 * divide the whole arena into #lanes zone.
 		 */
 		struct zone_free {
-			uint32_t free_num; 				
-			uint32_t * free_array;           
+			uint32_t free_num;
+			uint32_t *free_array;
 		} freezone_array[BTT_DEFAULT_NFREE];
 
 		/*
@@ -760,38 +760,40 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
 	return 0;
 }
 
-/**
+/*
  * put_aba_in_a_lane - put a block into the free array list
  * @arena:	arena handler
- * @lane: specific the lane the aba will be freed.
- * @free_aba:	the block (postmap) will be put back to free array list
- * 
+ * @lane: specific the lane the aba will be freed
+ * @free_aba: the block (postmap) will be put back to free array list
  */
-static void put_aba_in_a_lane(struct arena *arena, uint32_t lane, uint32_t free_aba) 
+static void put_aba_in_a_lane(struct arena *arena,
+	uint32_t lane, uint32_t free_aba)
 {
 	uint32_t free_num = 0;
 
 	free_num = arena->freezone_array[lane].free_num;
 	arena->freezone_array[lane].free_array[free_num] = free_aba;
-	arena->freezone_array[lane].free_num = free_num+1;
+	arena->freezone_array[lane].free_num = free_num + 1;
 }
 
-/**
- * get_aba_in_a_lane - get a free block out of the freelist. 
+/*
+ * get_aba_in_a_lane - get a free block out of the freelist.
  * @arena: arena handler
  * @lane:	the block (postmap) will be put back to free array list
  * @postmap: the output of the postmap
  */
-static void get_aba_in_a_lane(struct arena *arena, uint32_t lane, uint32_t *postmap) 
+static void get_aba_in_a_lane(struct arena *arena,
+	uint32_t lane, uint32_t *postmap)
 {
 	uint32_t free_num;
 
-	free_num = arena->freezone_array[lane].free_num;	
-	*postmap = arena->freezone_array[lane].free_array[free_num-1]; 
-	arena->freezone_array[lane].free_num = free_num -1;
+	free_num = arena->freezone_array[lane].free_num;
+	*postmap = arena->freezone_array[lane].free_array[free_num - 1];
+	arena->freezone_array[lane].free_num = free_num - 1;
 }
 
-static int btt_map_read(struct btt *bttp, struct arena * arena, uint32_t lane, uint32_t lba, uint32_t *mapping) 
+static int btt_map_read(struct btt *bttp, struct arena *arena,
+	uint32_t lane, uint32_t lba, uint32_t *mapping)
 {
 	/* convert pre-map LBA into an offset into the map */
 	uint64_t map_entry_off = arena->mapoff + BTT_MAP_ENTRY_SIZE * lba;
@@ -802,7 +804,8 @@ static int btt_map_read(struct btt *bttp, struct arena * arena, uint32_t lane, u
 	 */
 	uint32_t entry;
 
-	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &entry,	sizeof(entry), map_entry_off) < 0)
+	if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &entry,
+		sizeof(entry), map_entry_off) < 0)
 		return -1;
 
 	entry = le32toh(entry);
@@ -815,60 +818,60 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	int ret;
 	uint32_t i, j;
 	uint32_t mapping;
-	uint8_t * aba_map_byte, *aba_map;
-	struct zone_free * freezone_array_item = NULL;
+	uint8_t *aba_map_byte, *aba_map;
+	struct zone_free *freezone_array_item = NULL;
 	uint32_t free_num = 0;
-	uint32_t zone_lba_number = arena->internal_nlba/bttp->nfree +1;
+	uint32_t zone_lba_number = arena->internal_nlba / bttp->nfree + 1;
 
-	uint32_t aba_map_size = (arena->internal_nlba>>3) +1; 
+	uint32_t aba_map_size = (arena->internal_nlba>>3) + 1;
 	aba_map = Zalloc(aba_map_size);
-	if(!aba_map) {
-		ERR("!Malloc for aba_map size = %d ", aba_map_size);
+	if ((!aba_map)) {
+		ERR("!Malloc for aba_map size = %d \n", aba_map_size);
 		return -1;
 	}
 
 	/*
-	 * prepare the aba_map, each aba will be in a bit, occupied bit=1, free bit=0
-	 * the scan will take times, but it is only once execution during initilization.
+	 * prepare the aba_map, each aba will be in a bit.
+	 * occupied bit=1, free bit=0.
+	 * the scan will take times, once execution during initilization.
 	 */
-	for(i = 0;i< arena->external_nlba;i++) {
-		ret = btt_map_read(bttp,arena,0,i,&mapping);
-		if(ret || map_entry_is_initial(mapping)) { 
+	for (i = 0; i < arena->external_nlba; i++) {
+		ret = btt_map_read(bttp, arena, 0, i, &mapping);
+		if (ret || map_entry_is_initial(mapping)) {
 			continue;
 		}
-		mapping = mapping & BTT_MAP_ENTRY_LBA_MASK; 
-		if(mapping < arena->internal_nlba) 
-		{
+		mapping = mapping & BTT_MAP_ENTRY_LBA_MASK;
+		if (mapping < arena->internal_nlba) {
 			aba_map_byte = aba_map + (mapping>>3);
-			*aba_map_byte = (*aba_map_byte) | (1<< (mapping%8));
-		} 
-		else  
-		{
-			LOG(9,"%s: mapping %#x out of range internal_nlba (max: %#x) check...\n",
-                __func__, mapping, arena->internal_nlba);
+			*aba_map_byte = (*aba_map_byte) | (1<< (mapping % 8));
+		} else {
+			LOG(9, "%s: mapping %#x out of range ",
+				__func__, mapping);
 		}
 	}
 
 	freezone_array_item = arena->freezone_array;
-	
+
 	/*
 	 * Scan the aba_bitmap , use the static array, that will take 1% memory.
 	 */
 	for (i = 0; i < bttp->nfree; i++) {
 		free_num = 0;
-		freezone_array_item->free_array = Malloc(zone_lba_number*sizeof(uint32_t));
-		if(!freezone_array_item->free_array) {
-			ERR("!Malloc for free_array size = %d ", zone_lba_number*sizeof(uint32_t));
+		freezone_array_item->free_array =
+			Malloc(zone_lba_number * sizeof(uint32_t));
+		if (!freezone_array_item->free_array) {
+			ERR("!Malloc for free_array size = %d ",
+				zone_lba_number * sizeof(uint32_t));
 			return -1;
-		}	
-		freezone_array_item+=1;
+		}
+		freezone_array_item += 1;
 	}
 
-	for(i=0;i<arena->internal_nlba;i++) {	
+	for (i = 0; i < arena->internal_nlba; i++) {
 		aba_map_byte = aba_map + (i>>3);
-		if(((*aba_map_byte) & (1<< (i%8))) == 0) {
-			put_aba_in_a_lane(arena,(i%bttp->nfree), i);
-		} 
+		if (((*aba_map_byte) & (1<< (i % 8))) == 0) {
+			put_aba_in_a_lane(arena, (i % bttp->nfree), i);
+		}
 	}
 
 	Free(aba_map);
@@ -902,12 +905,12 @@ read_arena(struct btt *bttp, unsigned lane, uint64_t arena_off,
 	arenap->mapoff = arena_off + le64toh(info.mapoff);
 	arenap->nextoff = arena_off + le64toh(info.nextoff);
 
-	if(bttp->major == 1) {	
+	if (bttp->major == 1) {
 		arenap->flogoff = arena_off + le64toh(info.flogoff);
 		if (read_flogs(bttp, lane, arenap) < 0)
 			return -1;
 	} else {
-		if(btt_freelist_init(bttp,arenap) <0)
+		if (btt_freelist_init(bttp, arenap) < 0)
 			return -1;
 	}
 
@@ -1026,16 +1029,18 @@ read_arenas(struct btt *bttp, unsigned lane, unsigned narena)
 err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
+	struct zone_free *freezone;
 	if (bttp->arenas) {
 		for (unsigned i = 0; i < bttp->narena; i++) {
 			if (bttp->major == 1 && bttp->arenas[i].flogs) {
 				Free(bttp->arenas[i].flogs);
 			} else {
-				for(unsigned j=0;j<bttp->nfree;j++) {
-					if(bttp->arenas[i].freezone_array[j].free_array)
-						Free(bttp->arenas[i].freezone_array[j].free_array);
+				freezone = bttp->arenas[i].freezone_array;
+				for (unsigned j = 0; j < bttp->nfree; j++) {
+					if (freezone[j].free_array)
+						Free(freezone[j].free_array);
 				}
-			}  
+			}
 			if (bttp->arenas[i].rtt)
 				Free((void *)bttp->arenas[i].rtt);
 			if (bttp->arenas[i].map_locks)
@@ -1258,9 +1263,9 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 		rawsize -= arena_rawsize;
 		arena_num++;
 
-		struct btt_info info; 
+		struct btt_info info;
 		memset(&info, '\0', sizeof(info));
-		
+
 		/*
 		 * Construct the BTT info block and write it out
 		 * at both the beginning and end of the arena.
@@ -1274,7 +1279,7 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 		if (btt_info_set_params(&info, bttp->lbasize,
 				internal_lba_size, bttp->nfree, arena_rawsize))
 			return -1;
-		
+
 		LOG(4, "internal_nlba %u external_nlba %u",
 			info.internal_nlba, info.external_nlba);
 
@@ -1304,7 +1309,7 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 				return -1;
 		}
 
-		if(info.major == 1) {
+		if (info.major == 1) {
 			/* write out the initial flog */
 			uint64_t flog_entry_off = arena_off + info.flogoff;
 			uint32_t next_free_lba = info.external_nlba;
@@ -1312,27 +1317,30 @@ write_layout(struct btt *bttp, unsigned lane, int write)
 				struct btt_flog flog;
 				flog.lba = htole32(i);
 				flog.old_map = flog.new_map =
-					htole32(next_free_lba | BTT_MAP_ENTRY_ZERO);
+					htole32(next_free_lba |
+					BTT_MAP_ENTRY_ZERO);
 				flog.seq = htole32(1);
 
 				/*
-				* Write both btt_flog structs in the pair, writing
-				* the second one as all zeros.
-				*/
+				 * Write both btt_flog structs in the pair,
+				 * writing the second one as all zeros.
+				 */
 				LOG(6, "flog[%u] entry off %" PRIu64
-						" initial %u + zero = %u",
-						i, flog_entry_off,
-						next_free_lba,
-						next_free_lba | BTT_MAP_ENTRY_ZERO);
-				if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &flog,
-						sizeof(flog), flog_entry_off) < 0)
+					" initial %u + zero = %u",
+					i, flog_entry_off,
+					next_free_lba,
+					next_free_lba | BTT_MAP_ENTRY_ZERO);
+				if ((*bttp->ns_cbp->nswrite)(bttp->ns,
+					lane, &flog, sizeof(flog),
+					flog_entry_off) < 0)
 					return -1;
 				flog_entry_off += sizeof(flog);
 
 				LOG(6, "flog[%u] entry off %" PRIu64 " zeros",
 						i, flog_entry_off);
-				if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, &Zflog,
-						sizeof(Zflog), flog_entry_off) < 0)
+				if ((*bttp->ns_cbp->nswrite)(bttp->ns,
+					lane, &Zflog,
+					sizeof(Zflog), flog_entry_off) < 0)
 					return -1;
 				flog_entry_off += sizeof(flog);
 				flog_entry_off = roundup(flog_entry_off,
@@ -1649,9 +1657,9 @@ btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf)
 		return -1;
 
 	/*
-	* Read the current map entry to get the post-map LBA for the data
-	* block read.
-	*/
+	 * Read the current map entry to get the post-map LBA for the data
+	 * block read.
+	 */
 	uint32_t entry;
 
 	/* convert pre-map LBA into an offset into the map */
@@ -1663,9 +1671,9 @@ btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf)
 
 	entry = le32toh(entry);
 	/*
-	* Retries come back to the top of this loop (for a rare case where
-	* the map is changed by another thread doing writes to the same LBA).
-	*/
+	 * Retries come back to the top of this loop (for a rare case where
+	 * the map is changed by another thread doing writes to the same LBA).
+	 */
 	while (1) {
 		if (map_entry_is_error(entry)) {
 			ERR("EIO due to map entry error flag");
@@ -1677,29 +1685,29 @@ btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf)
 			return zero_block(bttp, buf);
 
 		/*
-		* Record the post-map LBA in the read tracking table during
-		* the read.  The write will check entries in the read tracking
-		* table before allocating a block for a write, waiting for
-		* outstanding reads on that block to complete.
-		*
-		* Since we already checked for error, zero, and initial
-		* states above, the entry must have both error and zero
-		* bits set at this point (BTT_MAP_ENTRY_NORMAL).  We store
-		* the entry that way, with those bits set, in the rtt and
-		* btt_write() will check for it the same way, with the bits
-		* both set.
-		*/
+		 * Record the post-map LBA in the read tracking table during
+		 * the read.  The write will check entries in the read tracking
+		 * table before allocating a block for a write, waiting for
+		 * outstanding reads on that block to complete.
+		 *
+		 * Since we already checked for error, zero, and initial
+		 * states above, the entry must have both error and zero
+		 * bits set at this point (BTT_MAP_ENTRY_NORMAL).  We store
+		 * the entry that way, with those bits set, in the rtt and
+		 * btt_write() will check for it the same way, with the bits
+		 * both set.
+		 */
 		arenap->rtt[lane] = entry;
 		util_synchronize();
 
 		/*
-		* In case this thread was preempted between reading entry and
-		* storing it in the rtt, check to see if the map changed.  If
-		* it changed, the block about to be read is at least free now
-		* (in the flog, but that's okay since the data will still be
-		* undisturbed) and potentially allocated and being used for
-		* another write (data disturbed, so not okay to continue).
-		*/
+		 * In case this thread was preempted between reading entry and
+		 * storing it in the rtt, check to see if the map changed.  If
+		 * it changed, the block about to be read is at least free now
+		 * (in the flog, but that's okay since the data will still be
+		 * undisturbed) and potentially allocated and being used for
+		 * another write (data disturbed, so not okay to continue).
+		 */
 		uint32_t latest_entry;
 		if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &latest_entry,
 				sizeof(latest_entry), map_entry_off) < 0) {
@@ -1714,7 +1722,7 @@ btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf)
 		else
 			entry = latest_entry;	/* try again */
 	}
-	
+
 	/*
 	 * It is safe to read the block now, since the rtt protects the
 	 * block from getting re-allocated to something else by a write.
@@ -1730,7 +1738,6 @@ btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf)
 
 	return readret;
 }
-
 
 /*
  * map_lock -- (internal) grab the map_lock and read a map entry
@@ -1852,21 +1859,22 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 	}
 
 	uint32_t free_entry;
-	if(bttp->major == 1) {
+	if (bttp->major == 1) {
 		/*
-		* This routine was passed a unique "lane" which is an index
-		* into the flog.  That means the free block held by flog[lane]
-		* is assigned to this thread and to no other threads (no additional
-		* locking required).  So start by performing the write to the
-		* free block.  It is only safe to write to a free block if it
-		* doesn't appear in the read tracking table, so scan that first
-		* and if found, wait for the thread reading from it to finish.
-		*/
+		 * This routine was passed a unique "lane" which is an index
+		 * into the flog.  That means the free block held by flog[lane]
+		 * is assigned to this thread and to no other threads
+		 * (no additional locking required).
+		 * So start by performing the write to the
+		 * free block.  It is only safe to write to a free block if it
+		 * doesn't appear in the read tracking table, so scan that first
+		 * and if found, wait for the thread reading from it to finish.
+		 */
 		free_entry = (arenap->flogs[lane].flog.old_map &
 				BTT_MAP_ENTRY_LBA_MASK) | BTT_MAP_ENTRY_NORMAL;
 	} else 	{
-		get_aba_in_a_lane(arenap,lane,&free_entry);
-		free_entry |= BTT_MAP_ENTRY_NORMAL; 
+		get_aba_in_a_lane(arenap, lane, &free_entry);
+		free_entry |= BTT_MAP_ENTRY_NORMAL;
 	}
 
 	LOG(3, "free_entry %u (before mask %u)", free_entry,
@@ -1876,26 +1884,26 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 	for (unsigned i = 0; i < bttp->nlane; i++)
 		while (arenap->rtt[i] == free_entry)
 			;
-	
+
 	/* it is now safe to perform write to the free block */
 	uint64_t data_block_off = arenap->dataoff +
-		(uint64_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) * 
-		arenap->internal_lbasize;
+		(uint64_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
+			arenap->internal_lbasize;
 	if ((*bttp->ns_cbp->nswrite)(bttp->ns, lane, buf,
 				bttp->lbasize, data_block_off) < 0)
 		return -1;
 
 	/*
-	* Make the new block active atomically by updating the on-media flog
-	* and then updating the map.
-	*/
+	 * Make the new block active atomically by updating the on-media flog
+	 * and then updating the map.
+	 */
 	uint32_t old_entry;
 	if (map_lock(bttp, lane, arenap, &old_entry, premap_lba) < 0)
 		return -1;
 
 	old_entry = le32toh(old_entry);
-	
-	if(bttp->major == 1) {
+
+	if (bttp->major == 1) {
 		/* update the flog */
 		if (flog_update(bttp, lane, arenap, premap_lba,
 						old_entry, free_entry) < 0) {
@@ -1903,19 +1911,20 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 			return -1;
 		}
 	} else {
-		put_aba_in_a_lane(arenap,lane,(old_entry&BTT_MAP_ENTRY_LBA_MASK));
+		put_aba_in_a_lane(arenap, lane,
+			(old_entry&BTT_MAP_ENTRY_LBA_MASK));
 	}
 
 	if (map_unlock(bttp, lane, arenap, htole32(free_entry),
 					premap_lba) < 0) {
 		/*
-		* A critical write error occurred, set the arena's
-		* info block error bit.
-		*/
+		 * A critical write error occurred, set the arena's
+		 * info block error bit.
+		 */
 		set_arena_error(bttp, arenap, lane);
 		errno = EIO;
 		return -1;
-	} 
+	}
 
 	return 0;
 }
@@ -1996,7 +2005,7 @@ map_entry_setf(struct btt *bttp, unsigned lane, uint64_t lba, uint32_t setf)
 
 	if (map_unlock(bttp, lane, arenap, htole32(new_entry), premap_lba) < 0)
 		return -1;
-	
+
 	return 0;
 }
 

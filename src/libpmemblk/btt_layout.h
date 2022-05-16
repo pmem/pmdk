@@ -63,7 +63,7 @@ struct btt_info {
 /*
  * #define BTTINFO_MAJOR_VERSION 1
  */
-#define  BTTINFO_MAJOR_VERSION 2
+#define BTTINFO_MAJOR_VERSION 2
 #define BTTINFO_MINOR_VERSION 1
 
 
