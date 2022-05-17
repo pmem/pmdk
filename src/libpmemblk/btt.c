@@ -147,7 +147,6 @@ struct btt {
 	uint32_t nfree;			/* available flog entries */
 	uint64_t nlba;			/* total number of external LBAs */
 	unsigned narena;		/* number of arenas */
-	uint16_t major;			/* major version, define the layout */
 
 	/* run-time state kept for each arena */
 	struct arena {
@@ -350,8 +349,6 @@ read_info(struct btt *bttp, struct btt_info *infop)
 	infop->mapoff = le64toh(infop->mapoff);
 	infop->flogoff = le64toh(infop->flogoff);
 	infop->infooff = le64toh(infop->infooff);
-
-	bttp->major = infop->major;
 
 	return 1;
 }
@@ -836,8 +833,7 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 		mapping = mapping & BTT_MAP_ENTRY_LBA_MASK;
 		if (mapping < arena->internal_nlba) {
 			aba_map_byte = aba_map + (mapping>>3);
-			*aba_map_byte = (*aba_map_byte) |
-				(1<< (uint8_t)(mapping % 8));
+			*aba_map_byte |= (uint8_t)(1<<(mapping % 8));
 		} else {
 			LOG(9, "%s: mapping %#x out of range ",
 				__func__, mapping);

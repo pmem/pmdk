@@ -12,8 +12,6 @@
 extern "C" {
 #endif
 
-#define FREE_ZONE_NUMBER 32
-
 /* callback functions passed to btt_init() */
 struct ns_callback {
 	int (*nsread)(void *ns, unsigned lane,
