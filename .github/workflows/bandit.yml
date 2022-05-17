@@ -1,0 +1,30 @@
+
+name: bandit
+
+on: [push, pull_request]
+
+env:
+  GITHUB_REPO: pmem/pmdk
+  DOCKER_REPO: ghcr.io/pmem/pmdk
+  HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
+  WORKDIR:        utils/docker
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        CONFIG: ["BANDIT=1 OS=ubuntu OS_VER=20.04"]
+    steps:
+      - name: Print out the current date and time
+        run: date
+
+      - name: Clone the git repo
+        uses: actions/checkout@v2
+
+      - name: Pull or rebuild the image
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
+
+      - name: Run the build
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh

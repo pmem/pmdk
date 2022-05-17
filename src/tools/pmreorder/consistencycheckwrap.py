@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 from ctypes import cdll, c_char_p, c_int
 from loggingfacility import LoggingBase
@@ -121,7 +121,13 @@ class ProgChecker(ConsistencyCheckerBase):
 
         cmd = "{0} {1} {2}".format(self._bin_path, self._bin_cmd, filename)
         self._logger.debug("Consistency check program command: {}".format(cmd))
-        return system(cmd)
+        """
+        We mark the call of this command as 'nosec' (for Bandit scan) because
+        pmreorder entirely relies on the execution of checkers, which are
+        user-developed programs. Therefore, it is the user's responsibility
+        to provide safe input as a consistency checker.
+        """
+        return system(cmd)  # nosec
 
 
 def get_checker(checker_type, checker_path_args, func_name, logger=None):
