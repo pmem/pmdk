@@ -700,7 +700,7 @@ read_flogs(struct btt *bttp, unsigned lane, struct arena *arenap)
 	/*
 	 * Load up the flog state.  read_flog_pair() will determine if
 	 * any recovery steps are required take them on the in-memory
-	 * data structures it creates. Sets :qerror flag when it
+	 * data structures it creates. Sets error flag when it
 	 * determines an invalid state.
 	 */
 	uint64_t flog_off = arenap->flogoff;
