@@ -154,7 +154,7 @@ struct btt {
 		uint32_t external_nlba;	/* LBAs that live in this arena */
 		uint32_t internal_lbasize;
 		uint32_t internal_nlba;
-		uint16_t major;			/* major version, define the arena layout */
+		uint16_t major;	/* major version, define the arena layout */
 
 		/*
 		 * The following offsets are relative to the beginning of
@@ -198,14 +198,14 @@ struct btt {
 		uint32_t volatile *rtt;
 
 		/*
-		 * scan btt_map and generate freelist in DRAM (single direction).
+		 * scan btt_map and generate sd_freelist in DRAM.
 		 */
 		struct free_list {
 			uint32_t free_num;
 			uint32_t *free_array;
 		} sd_freelist;
 		os_spinlock_t list_lock;
-		
+
 		/*
 		 * each lane, keep at least one free ABA
 		 * if in the lane, no ABA, get one from freelist
@@ -572,10 +572,6 @@ flog_update(struct btt *bttp, unsigned lane, struct arena *arenap,
 	LOG(3, "bttp %p lane %u arenap %p lba %u old_map %u new_map %u",
 			bttp, lane, arenap, lba, old_map, new_map);
 
-	if (old_map == lba) {
-		LOG(3, "oldmap equal to lba means, lba is not written before...");
-	}
-
 	/* construct new flog entry in little-endian byte order */
 	struct btt_flog new_flog;
 	new_flog.lba = lba;
@@ -774,14 +770,15 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
  * @arena: arena handler
  * @lane:	the block (postmap) will be put back to free array list
  */
-static inline void get_lane_aba(struct arena *arena, uint32_t lane, uint32_t *entry)
+static inline void get_lane_aba(struct arena *arena,
+		uint32_t lane, uint32_t *entry)
 {
 	uint32_t free_num;
 
 	util_spin_lock(&arena->list_lock);
 	free_num = arena->sd_freelist.free_num;
 	arena->lane_free[lane] = arena->sd_freelist.free_array[free_num - 1];
-	arena->sd_freelist.free_num = free_num-1;
+	arena->sd_freelist.free_num = free_num - 1;
 	util_spin_unlock(&arena->list_lock);
 	*entry = arena->lane_free[lane];
 }
@@ -813,7 +810,7 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	uint32_t i;
 	uint32_t mapping;
 	uint8_t *aba_map_byte, *aba_map;
-	uint32_t * free_array;
+	uint32_t *free_array;
 	uint32_t free_num = 0;
 
 	uint32_t aba_map_size = (arena->internal_nlba>>3) + 1;
@@ -865,9 +862,9 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	ASSERT(free_num >= bttp->nfree);
 
 	util_spin_init(&arena->list_lock, PTHREAD_PROCESS_SHARED);
-	
+
 	for (i = 0; i < bttp->nfree; i++) {
-		arena->lane_free[i] = free_array[free_num-1];
+		arena->lane_free[i] = free_array[free_num - 1];
 		free_num--;
 	}
 	arena->sd_freelist.free_array = free_array;
@@ -904,7 +901,7 @@ read_arena(struct btt *bttp, unsigned lane, uint64_t arena_off,
 	arenap->dataoff = arena_off + le64toh(info.dataoff);
 	arenap->mapoff = arena_off + le64toh(info.mapoff);
 	arenap->nextoff = arena_off + le64toh(info.nextoff);
-	
+
 	if (arenap->major == 1) {
 		arenap->flogoff = arena_off + le64toh(info.flogoff);
 		if (read_flogs(bttp, lane, arenap) < 0)
@@ -1036,7 +1033,7 @@ err:
 				bttp->arenas[i].flogs) {
 				Free(bttp->arenas[i].flogs);
 			} else {
-				free_array = 
+				free_array =
 					bttp->arenas[i].sd_freelist.free_array;
 				if (free_array)
 					Free(free_array);
@@ -1919,7 +1916,7 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 			map_abort(bttp, lane, arenap, premap_lba);
 			return -1;
 		}
-	} 
+	}
 
 	if (map_unlock(bttp, lane, arenap, htole32(free_entry),
 					premap_lba) < 0) {
@@ -2113,7 +2110,7 @@ check_arena(struct btt *bttp, struct arena *arenap)
 		} else
 			util_setbit(bitmap, entry);
 
-skip_check: 
+skip_check:
 		map_entry_off += sizeof(uint32_t);
 		next_index++;
 		ASSERT(remaining >= sizeof(uint32_t));
