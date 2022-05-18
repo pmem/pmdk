@@ -17,6 +17,9 @@
 
 #include "cpu.h"
 
+#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || \
+	defined(_M_AMD64)
+
 #define EAX_IDX 0
 #define EBX_IDX 1
 #define ECX_IDX 2
@@ -42,10 +45,6 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 {
 	__cpuidex((int *)cpuinfo, (int)func, (int)subfunc);
 }
-
-#else
-
-#error unsupported compiler
 
 #endif
 
@@ -78,3 +77,12 @@ is_cpu_movdir64b_present(void)
 {
 	return is_cpu_feature_present(0x7, ECX_IDX, bit_MOVDIR64B);
 }
+
+#else
+
+/*
+ * Nothing to be done here yet. There is no support for 64B atomic copy on
+ * the other architectures yet.
+ */
+
+#endif

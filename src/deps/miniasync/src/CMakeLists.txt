@@ -59,6 +59,7 @@ if(WIN32)
 endif()
 
 set_target_properties(miniasync PROPERTIES
+	SOVERSION 0.1.0-rc1
 	PUBLIC_HEADER ${MINIASYNC_INCLUDE_DIR}/libminiasync.h
 )
 
