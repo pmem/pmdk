@@ -3,6 +3,7 @@
 
 #include "libminiasync/future.h"
 #include "test_helpers.h"
+#include "core/util.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -290,7 +291,7 @@ test_lazy_init()
 {
 	struct multiply_up_down_fut fut = async_multiply_up_down(5, 5);
 	while (future_poll(FUTURE_AS_RUNNABLE(&fut), FAKE_NOTIFIER) !=
-		FUTURE_STATE_COMPLETE) { _mm_pause(); }
+		FUTURE_STATE_COMPLETE) { WAIT(); }
 	struct multiply_up_down_output *mud_output = FUTURE_OUTPUT(&fut);
 	UT_ASSERTeq(mud_output->result_sum, 2);
 	struct multiply_up_down_data *mud_data = FUTURE_DATA(&fut);

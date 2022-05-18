@@ -46,6 +46,11 @@
 		(unsigned long long)(min), (unsigned long long)(max));\
 } while (/*CONSTCOND*/0)
 
+#define UT_LOG_SKIP(testcase) do {\
+	fprintf(stdout, "SKIP: " testcase " test case");\
+	fprintf(stdout, "\n");\
+} while (/*CONSTCOND*/0)
+
 static inline int
 test_flag(struct vdm *vdm, unsigned flag, int expected_value)
 {
