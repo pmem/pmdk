@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * btt.h -- btt module definitions
@@ -11,8 +11,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define FREE_ZONE_NUMBER 32
 
 /* callback functions passed to btt_init() */
 struct ns_callback {
