@@ -146,6 +146,11 @@ test_thread_memmove_multiple(size_t str_len)
  */
 int test_supported_flags() {
 	struct data_mover_threads *dmt = data_mover_threads_default();
+	if (dmt == NULL) {
+		fprintf(stderr,
+				"error while creating threads data mover");
+		return 1;
+	}
 	struct vdm *thread_mover = data_mover_threads_get_vdm(dmt);
 	int ret = test_flag(thread_mover, VDM_F_MEM_DURABLE, 0);
 	data_mover_threads_delete(dmt);

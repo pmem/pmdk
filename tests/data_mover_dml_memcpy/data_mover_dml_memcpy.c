@@ -64,7 +64,13 @@ int test_supported_flags() {
 		data_mover_dml_new(DATA_MOVER_DML_SOFTWARE);
 	struct vdm *dml_mover = data_mover_dml_get_vdm(dmd);
 	int ret = test_flag(dml_mover, VDM_F_MEM_DURABLE, 1);
-	ret += test_flag(dml_mover, VDM_F_NO_CACHE_HINT, 1);
+
+	/*
+	 * The code below is temporarily commented because VDM_F_NO_CACHE_HINT
+	 * flag turned out to be not implemented in the hardware.
+	 *
+	 * ret += test_flag(dml_mover, VDM_F_NO_CACHE_HINT, 1);
+	 */
 
 	data_mover_dml_delete(dmd);
 	return ret;
@@ -85,6 +91,8 @@ main(void)
 		ret = test_dml_hw_path_flag_memcpy();
 		if (ret)
 			return ret;
+	} else {
+		UT_LOG_SKIP("test_dml_hw_path_flag_memmove");
 	}
 
 	ret = test_supported_flags();

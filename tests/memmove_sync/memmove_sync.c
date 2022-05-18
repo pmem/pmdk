@@ -165,6 +165,11 @@ test_memmove_overlapping(size_t size)
  */
 int test_supported_flags() {
 	struct data_mover_sync *dms = data_mover_sync_new();
+	if (dms == NULL) {
+		fprintf(stderr,
+				"error while creating synchronous data mover");
+		return 1;
+	}
 	struct vdm *sync_mover = data_mover_sync_get_vdm(dms);
 	int ret = test_flag(sync_mover, VDM_F_MEM_DURABLE, 0);
 	ret += test_flag(sync_mover, VDM_F_NO_CACHE_HINT, 0);
