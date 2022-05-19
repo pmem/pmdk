@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 
 set -e
 
 BOT_NAME="pmem-bot"
 USER_NAME="pmem"
-REPO_NAME="pmdk"
+PMDK_REPO_NAME="pmdk"
+PAGES_REPO_NAME="pmem.github.io"
 
-ORIGIN="https://${DOC_UPDATE_GITHUB_TOKEN}@github.com/${BOT_NAME}/${REPO_NAME}"
-UPSTREAM="https://github.com/${USER_NAME}/${REPO_NAME}"
+PMDK_REPO="https://github.com/${USER_NAME}/${PMDK_REPO_NAME}"
+PAGES_REPO="https://github.com/${USER_NAME}/${PAGES_REPO_NAME}"
+# XXX: DOC_UPDATE_GITHUB_TOKEN token could be invalid on the new repo
+BOT_REPO="https://${DOC_UPDATE_GITHUB_TOKEN}@github.com/${BOT_NAME}/${PAGES_REPO_NAME}"
 
 # Only 'master' or 'stable-*' branches are valid; determine docs location dir on gh-pages branch
 TARGET_BRANCH=${CI_BRANCH}
@@ -26,13 +29,9 @@ if [ -z "${TARGET_DOCS_DIR}" ]; then
 	echo "ERROR: Target docs location for branch: ${TARGET_BRANCH} is not set."
 	exit 1
 fi
-# Clone bot repo
-git clone ${ORIGIN}
-cd ${REPO_NAME}
-git remote add upstream ${UPSTREAM}
-
-git config --local user.name ${BOT_NAME}
-git config --local user.email "pmem-bot@intel.com"
+# Clone PMDK repo
+git clone {PMDK_REPO}
+cd ${PMDK_REPO_NAME}
 
 git remote update
 git checkout -B ${TARGET_BRANCH} upstream/${TARGET_BRANCH}
@@ -46,13 +45,21 @@ mv ./doc/web_linux ../
 mv ./doc/web_windows ../
 mv ./doc/generated/libs_map.yml ../
 
+# Clone bot Github Pages repo
+git clone ${BOT_REPO}
+cd ${PAGES_REPO_NAME}
+git remote add upstream ${PAGES_REPO}
+
+git config --local user.name ${BOT_NAME}
+git config --local user.email "pmem-bot@intel.com"
+
 # Checkout gh-pages and copy docs
 GH_PAGES_NAME="gh-pages-for-${TARGET_BRANCH}"
-git checkout -B $GH_PAGES_NAME upstream/gh-pages
+git checkout -B $GH_PAGES_NAME upstream/main
 git clean -dfx
 
-rsync -a ../web_linux/ ./manpages/linux/${TARGET_DOCS_DIR}/
-rsync -a ../web_windows/ ./manpages/windows/${TARGET_DOCS_DIR}/ \
+rsync -a ../web_linux/ ./content/pmdk/manpages/linux/${TARGET_DOCS_DIR}/
+rsync -a ../web_windows/ ./content/pmdk/manpages/windows/${TARGET_DOCS_DIR}/ \
 	--exclude='librpmem'	\
 	--exclude='rpmemd' --exclude='pmreorder'	\
 	--exclude='daxio'
@@ -61,8 +68,7 @@ rm -r ../web_linux
 rm -r ../web_windows
 
 if [ $TARGET_BRANCH = "master" ]; then
-	[ ! -d _data ] && mkdir _data
-	cp ../libs_map.yml _data
+	cp ../libs_map.yml data/
 fi
 
 # Add and push changes.
@@ -71,10 +77,10 @@ fi
 # with changes which were reverted).
 git add -A
 git commit -m "doc: automatic gh-pages docs update" && true
-git push -f ${ORIGIN} $GH_PAGES_NAME
+git push -f ${BOT_REPO} $GH_PAGES_NAME
 
 GITHUB_TOKEN=${DOC_UPDATE_GITHUB_TOKEN} hub pull-request -f \
-	-b ${USER_NAME}:gh-pages \
+	-b ${USER_NAME}:main \
 	-h ${BOT_NAME}:${GH_PAGES_NAME} \
 	-m "doc: automatic gh-pages docs update" && true
 
