@@ -337,6 +337,8 @@ read_info(struct btt *bttp, struct btt_info *infop)
 		return 0;
 	}
 
+	LOG(3, "infop->major %p", infop->major);
+
 	infop->flags = le32toh(infop->flags);
 	infop->minor = le16toh(infop->minor);
 	infop->external_lbasize = le32toh(infop->external_lbasize);
@@ -826,6 +828,10 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	uint32_t *free_array;
 	uint32_t free_num = 0;
 
+#ifdef DEBUG
+	uint32_t init_s = 0;
+#endif
+
 	uint32_t aba_map_size = (arena->internal_nlba>>3) + 1;
 	aba_map = Zalloc(aba_map_size);
 	if ((!aba_map)) {
@@ -840,6 +846,9 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	 */
 	for (i = 0; i < arena->external_nlba; i++) {
 		ret = btt_map_read(bttp, arena, 0, i, &mapping);
+#ifdef DEBUG
+		if (map_entry_is_initial(mapping)) init_s++;
+#endif
 		if (ret || map_entry_is_initial(mapping)) {
 			continue;
 		}
@@ -891,6 +900,10 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 		free_num--;
 	}
 
+#ifdef DEBUG
+	LOG(9, "%s: free_num=%d, init_s=%d ",
+			__func__, free_num, init_s);
+#endif
 	/*
 	 * if free_num = 0, means all data block been written
 	 * no operation on the freelist
