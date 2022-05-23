@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+#
+# src/miniasync.map -- linker map file for miniasync
+#
+LIBMINIASYNC_1.0 {
+	global:
+            runtime_new;
+            runtime_delete;
+            runtime_wait_multiple;
+            runtime_wait;
+            data_mover_sync_new;
+            data_mover_sync_get_vdm;
+            data_mover_sync_delete;
+            data_mover_threads_new;
+            data_mover_threads_default;
+            data_mover_threads_get_vdm;
+            data_mover_threads_set_memcpy_fn;
+            data_mover_threads_set_memmove_fn;
+            data_mover_threads_set_memset_fn;
+            data_mover_threads_delete;
+	local:
+		*;
+};
