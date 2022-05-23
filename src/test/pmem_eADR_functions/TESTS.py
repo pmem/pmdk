@@ -9,6 +9,7 @@ import futils
 import re
 
 
+@t.require_architectures('x86_64')
 @g.require_granularity(g.ANY)
 class PMEM_EADR(t.Test):
     test_type = t.Short
