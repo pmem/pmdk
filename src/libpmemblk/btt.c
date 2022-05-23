@@ -767,9 +767,9 @@ build_map_locks(struct btt *bttp, struct arena *arenap)
 }
 
 /*
- * get_aba_in_a_lane - get a free block out of the freelist.
+ * get_lane_aba - get a free block out of the freelist.
  * @arena: arena handler
- * @lane:	the block (postmap) will be put back to free array list
+ * @lane: the block (postmap) will be put lane_free[lane]
  */
 static inline void get_lane_aba(struct arena *arena,
 		uint32_t lane, uint32_t *entry)
@@ -778,8 +778,20 @@ static inline void get_lane_aba(struct arena *arena,
 
 	util_mutex_lock(&arena->list_lock);
 	free_num = arena->sd_freelist.free_num;
-	arena->lane_free[lane] = arena->sd_freelist.free_array[free_num - 1];
+	arena->lane_free[lane] =
+		arena->sd_freelist.free_array[free_num - 1];
 	arena->sd_freelist.free_num = free_num - 1;
+
+	/*
+	 * if free_num = 0, means all data block been written
+	 * no operation on the freelist
+	 * free the freelist.free_array
+	 */
+	if (arena->sd_freelist.free_num == 0) {
+		Free(arena->sd_freelist.free_array);
+		arena->sd_freelist.free_array = NULL;
+	}
+
 	util_mutex_unlock(&arena->list_lock);
 	*entry = arena->lane_free[lane];
 }
@@ -878,8 +890,20 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 		arena->lane_free[i] = free_array[free_num - 1];
 		free_num--;
 	}
-	arena->sd_freelist.free_array = free_array;
-	arena->sd_freelist.free_num = free_num;
+
+	/*
+	 * if free_num = 0, means all data block been written
+	 * no operation on the freelist
+	 * free the freelist.free_array
+	 */
+	if (free_num == 0) {
+		Free(free_array);
+		arena->sd_freelist.free_array = NULL;
+		arena->sd_freelist.free_num = free_num;
+	} else {
+		arena->sd_freelist.free_array = free_array;
+		arena->sd_freelist.free_num = free_num;
+	}
 
 	Free(aba_map);
 	return 0;
@@ -912,9 +936,9 @@ read_arena(struct btt *bttp, unsigned lane, uint64_t arena_off,
 	arenap->dataoff = arena_off + le64toh(info.dataoff);
 	arenap->mapoff = arena_off + le64toh(info.mapoff);
 	arenap->nextoff = arena_off + le64toh(info.nextoff);
+	arenap->flogoff = arena_off + le64toh(info.flogoff);
 
 	if (arenap->major == 1) {
-		arenap->flogoff = arena_off + le64toh(info.flogoff);
 		if (read_flogs(bttp, lane, arenap) < 0)
 			return -1;
 	} else {
