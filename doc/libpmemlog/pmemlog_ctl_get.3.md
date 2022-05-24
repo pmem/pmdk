@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(PMEMLOG_CTL_GET, 3)
-collection: libpmemlog
-header: PMDK
-date: pmemlog API version 1.1
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["pmemlog_ctl_get.3.html"]
+title: "libpmemlog | PMDK"
+header: "pmemlog API version 1.1"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2018-2019, Intel Corporation)

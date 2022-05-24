@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(DAXIO, 1)
-collection: daxio
-header: PMDK
-date: daxio version 1.4
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["daxio.1.html"]
+title: "daxio | PMDK"
+header: "daxio version 1.4"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2018, Intel Corporation)

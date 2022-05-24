@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(PMEMPOOL_RM, 3)
-collection: libpmempool
-header: PMDK
-date: pmempool API version 1.3
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["pmempool_rm.3.html"]
+title: "libpmempool | PMDK"
+header: "pmempool API version 1.3"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2017-2018, Intel Corporation)
