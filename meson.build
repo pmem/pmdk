@@ -45,6 +45,7 @@ threads_dep = dependency('threads')
 libndctl_dep = dependency('libndctl', version: '>= 63', required: get_option('ndctl'))
 libdaxctl_dep = dependency('libdaxctl', version: '>= 63', required: get_option('ndctl'))
 libfabric_dep = dependency('libfabric', version: '>= 1.4.2')
+libdl_dep = cc.find_library('dl')
 
 if libndctl_dep.found()
     add_project_arguments(

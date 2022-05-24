@@ -4,5 +4,5 @@ option('rpmem', type: 'boolean', value: true,
     description: 'RPMEM support')
 option('tools', type: 'boolean', value: true,
     description: 'Build tools')
-option('tests', type: 'boolean', value: true,
+option('tests', type: 'boolean', value: false,
     description: 'Build tests')

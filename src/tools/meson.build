@@ -53,6 +53,7 @@ tools = {
             libpmemlog_dep,
             libpmemobj_dep,
             libpmempool_dep,
+            threads_dep,
         ],
     },
     'rpmemd': {

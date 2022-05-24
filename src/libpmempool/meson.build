@@ -39,6 +39,7 @@ libpmempool = library(
         pmemcommon_dep,
         pmemcore_dep,
         libpmem_dep,
+        libdl_dep,
     ],
     include_directories: [
         root_include,
