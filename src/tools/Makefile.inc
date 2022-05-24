@@ -117,6 +117,8 @@ ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 
+LIBS += -ldml
+
 ifeq ($(TOOLS_COMMON), y)
 LIBPMEMCOMMON=y
 endif

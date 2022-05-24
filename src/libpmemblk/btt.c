@@ -214,6 +214,13 @@ struct btt {
 		uint32_t *lane_free;
 
 		/*
+		 * if asnyc=1, call the dml other use cpu directly
+		 * can detect the cpuid to define this flag later.
+		 * enable and integrate dml (poc)
+		 */
+		uint32_t async;
+
+		/*
 		 * Map locking.  Indexed by pre-map LBA modulo nlane.
 		 */
 		os_mutex_t *map_locks;

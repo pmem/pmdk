@@ -46,6 +46,7 @@ DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmempool.a
 CFLAGS += -DUSE_LIBDL
+LIBS += -ldml -ldl
 endif
 
 ifeq ($(LIBPMEMBLK), y)
@@ -53,6 +54,7 @@ LIBPMEM=y
 DYNAMIC_LIBS += -lpmemblk
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemblk.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemblk.a
+LIBS += -ldml -ldl
 endif
 
 ifeq ($(LIBPMEMLOG), y)

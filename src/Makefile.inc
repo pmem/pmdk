@@ -135,6 +135,8 @@ ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 
+LIBS += -ldml
+
 define arch32_error_msg
 
 ##################################################

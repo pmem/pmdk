@@ -69,6 +69,95 @@ lane_exit(PMEMblkpool *pbp, unsigned mylane)
 	util_mutex_unlock(&pbp->locks[mylane]);
 }
 
+static dml_job_t *
+init_dml_job(const dml_path_t path)
+{
+	dml_job_t *dml_job_ptr = NULL;
+	uint32_t size = 0u;
+
+	dml_status_t status = dml_get_job_size(path, &size);
+	if (DML_STATUS_OK != status) {
+		return NULL;
+	}
+
+	dml_job_ptr = (dml_job_t *)Malloc(size);
+
+	status = dml_init_job(path, dml_job_ptr);
+
+	if (DML_STATUS_OK != status) {
+		Free(dml_job_ptr);
+		return NULL;
+	}
+
+	return dml_job_ptr;
+}
+
+static dml_status_t
+finalize_dml_job(dml_job_t *const dml_job_ptr)
+{
+	return dml_finalize_job(dml_job_ptr);
+}
+
+static inline void
+reset_job_streams(dml_job_t *const job_ptr)
+{
+	job_ptr->source_first_ptr = NULL;
+	job_ptr->source_second_ptr = NULL;
+	job_ptr->destination_first_ptr  = NULL;
+	job_ptr->destination_second_ptr = NULL;
+	job_ptr->crc_checksum_ptr = NULL;
+	job_ptr->source_length = 0;
+	job_ptr->destination_length = 0;
+}
+
+static void
+async_read(unsigned lane, dml_job_t *dml_job,
+	void *src, void *dest, size_t count)
+{
+	dml_job_t *dml_job_ptr = dml_job;
+	if (!dml_job_ptr) {
+		dml_job_ptr->operation = DML_OP_MEM_MOVE;
+		dml_job_ptr->source_first_ptr =
+			(uint8_t *)src;
+		dml_job_ptr->source_length = count;
+		dml_job_ptr->destination_first_ptr = dest;
+		dml_job_ptr->destination_length = count;
+		if (DML_STATUS_OK ==
+		dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL)) {
+			reset_job_streams(dml_job_ptr);
+		}
+	} else { /* fall back to sync */
+		memcpy(dest, (char *)src, count);
+	}
+}
+
+static void
+async_write(unsigned lane, dml_job_t *dml_job,
+	void *src, void *dest, uint32_t is_pmem, size_t count)
+{
+	dml_job_t *dml_job_ptr = dml_job;
+	if (!dml_job_ptr) {
+		dml_job_ptr->operation = DML_OP_MEM_MOVE;
+		dml_job_ptr->source_first_ptr = (uint8_t *)src;
+		dml_job_ptr->source_length = count;
+		dml_job_ptr->destination_first_ptr = dest;
+		dml_job_ptr->destination_length = count;
+		if (is_pmem) dml_job_ptr->flags = DML_FLAG_DST1_DURABLE;
+		if (DML_STATUS_OK ==
+		dml_execute_job(dml_job_ptr, DML_WAIT_MODE_BUSY_POLL)) {
+			reset_job_streams(dml_job_ptr);
+		}
+	} else {
+		if (is_pmem) {
+			pmem_memcpy_nodrain(dest, src, count);
+			pmem_drain();
+		} else {
+			memcpy(dest, src, count);
+			pmem_msync(dest, count);
+		}
+	}
+}
+
 /*
  * nsread -- (internal) read data from the namespace encapsulating the BTT
  *
@@ -89,7 +178,16 @@ nsread(void *ns, unsigned lane, void *buf, size_t count, uint64_t off)
 		return -1;
 	}
 
-	memcpy(buf, (char *)pbp->data + off, count);
+	/*
+	 * only if DSA available and move data >=512
+	 */
+	if (count >= 512 && pbp->dml_job_ptr) {
+		dml_job_t *dml_job_ptr = pbp->dml_job_ptr[lane];
+		async_read(lane, dml_job_ptr,
+					(void *)pbp->data + off, buf, count);
+	} else {
+		memcpy(buf, (char *)pbp->data + off, count);
+	}
 
 	return 0;
 }
@@ -125,10 +223,23 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 	/* unprotect the memory (debug version only) */
 	RANGE_RW(dest, count, pbp->is_dev_dax);
 
-	if (pbp->is_pmem)
-		pmem_memcpy_nodrain(dest, buf, count);
-	else
-		memcpy(dest, buf, count);
+	/*
+	 * only if DSA available and move data >=512
+	 */
+	if (count >= 512 && pbp->dml_job_ptr) {
+		dml_job_t *dml_job_ptr = pbp->dml_job_ptr[lane];
+		async_write(
+			lane, dml_job_ptr,
+			buf, dest, pbp->is_pmem, count);
+	} else {
+		if (pbp->is_pmem) {
+			pmem_memcpy_nodrain(dest, buf, count);
+			pmem_drain();
+		} else {
+			memcpy(dest, buf, count);
+			pmem_msync(dest, count);
+		}
+	}
 
 	/* protect the memory again (debug version only) */
 	RANGE_RO(dest, count, pbp->is_dev_dax);
@@ -137,11 +248,6 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 	/* release debug write lock */
 	util_mutex_unlock(&pbp->write_lock);
 #endif
-
-	if (pbp->is_pmem)
-		pmem_drain();
-	else
-		pmem_msync(dest, count);
 
 	return 0;
 }
@@ -314,6 +420,7 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 	ASSERT(((char *)pbp->addr + pbp->size) >= (char *)pbp->data);
 	pbp->datasize = (size_t)
 			(((char *)pbp->addr + pbp->size) - (char *)pbp->data);
+	pbp->dml_job_ptr = NULL;
 
 	LOG(4, "data area %p data size %zu bsize %zu",
 		pbp->data, pbp->datasize, bsize);
@@ -343,8 +450,25 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 		goto err;
 	}
 
+	/*
+	 * Malloc DSA jobs
+	 */
+	pbp->dml_job_ptr = Malloc(pbp->nlane * sizeof(dml_job_t *));
+	if (!pbp->dml_job_ptr) {
+		Free(locks);
+		ERR("!Malloc for lane dml_job_ptr");
+		goto err;
+	}
+
 	for (unsigned i = 0; i < pbp->nlane; i++)
 		util_mutex_init(&locks[i]);
+
+	/*
+	 * DSA initial dml job, not success, return NULL
+	 */
+	for (unsigned i = 0; i < pbp->nlane; i++) {
+		pbp->dml_job_ptr[i] = init_dml_job(DML_PATH_HW);
+	}
 
 	pbp->locks = locks;
 
@@ -609,11 +733,20 @@ pmemblk_close(PMEMblkpool *pbp)
 
 	btt_fini(pbp->bttp);
 	if (pbp->locks) {
-		for (unsigned i = 0; i < pbp->nlane; i++)
+		for (unsigned i = 0; i < pbp->nlane; i++) {
 			util_mutex_destroy(&pbp->locks[i]);
+		}
 		Free((void *)pbp->locks);
 	}
-
+	if (pbp->dml_job_ptr) {
+		for (unsigned i = 0; i < pbp->nlane; i++) {
+			if (pbp->dml_job_ptr[i]) {
+				finalize_dml_job(pbp->dml_job_ptr[i]);
+				Free(pbp->dml_job_ptr[i]);
+			}
+		}
+		Free(pbp->dml_job_ptr);
+	}
 #ifdef DEBUG
 	/* destroy debug lock */
 	util_mutex_destroy(&pbp->write_lock);

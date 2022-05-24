@@ -14,6 +14,8 @@
 #include "os_thread.h"
 #include "pool_hdr.h"
 #include "page_size.h"
+#include "dml/dmldefs.h"
+#include "dml/dml.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,6 +65,8 @@ struct pmemblk {
 	struct ctl *ctl;	/* top level node of the ctl tree structure */
 
 	struct pool_set *set;	/* pool set info */
+
+	dml_job_t ** dml_job_ptr;
 
 #ifdef DEBUG
 	/* held during read/write mprotected sections */
