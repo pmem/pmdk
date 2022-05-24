@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(LIBPMEMBLK, 7)
-collection: libpmemblk
-header: PMDK
-date: pmemblk API version 1.1
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["libpmemblk.7.html"]
+title: "libpmemblk | PMDK"
+header: "pmemblk API version 1.1"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2016-2018, Intel Corporation)
