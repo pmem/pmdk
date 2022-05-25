@@ -9,7 +9,7 @@ libpmem = library(
     'pmem',
     sources,
     c_args: [
-        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmem.link.in')
+        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmem.link.in'),
     ],
     dependencies: [
         threads_dep,

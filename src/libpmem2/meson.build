@@ -50,7 +50,7 @@ elif host_machine.cpu_family() == 'x86_64'
     else
         compile_args += '-DAVX512F_AVAILABLE=0'
     endif
-
+    compile_args += '-DMOVDIR64B_AVAILABLE=0'
     includes += include_directories('x86_64/memcpy', 'x86_64/memset')
 
     compile_args += '-mavx'
@@ -75,6 +75,7 @@ sources = files(
     'map_posix.c',
     'mcsafe_ops_posix.c',
     'memops_generic.c',
+    'mover.c',
     'persist.c',
     'persist_posix.c',
     'pmem2_utils.c',
@@ -126,7 +127,8 @@ libpmem2 = library(
     'pmem2',
     sources,
     c_args: [
-        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmem2.link.in')
+        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmem2.link.in'),
+	'-DPMEM2_USE_MINIASYNC',
     ],
     dependencies: [
         threads_dep,
