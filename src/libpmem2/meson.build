@@ -38,8 +38,6 @@ elif host_machine.cpu_family() == 'x86_64'
     )
         sources += files(
             'x86_64/memcpy/memcpy_nt_avx512f.c',
-            'x86_64/memcpy/memcpy_nt_avx512f.c',
-            'x86_64/memset/memset_t_avx512f.c',
             'x86_64/memset/memset_t_avx512f.c',
         )
 
@@ -50,7 +48,33 @@ elif host_machine.cpu_family() == 'x86_64'
     else
         compile_args += '-DAVX512F_AVAILABLE=0'
     endif
-    compile_args += '-DMOVDIR64B_AVAILABLE=0'
+
+    if cc.compiles(
+        '''
+        #include <immintrin.h>
+        #include <stdint.h>
+
+        int main(){
+            uint64_t v[8], w[8];
+            _movdir64b(&v, &w);
+            return 0;
+        }
+        ''',
+        args: ['-x', 'c', '-mmovdir64b'],
+        name: 'movdir64b support'
+    )
+        sources += files(
+            'x86_64/memcpy/memcpy_nt_movdir64b.c',
+        )
+
+        compile_args += [
+            '-DMOVDIR64B_AVAILABLE=1',
+            '-mmovdir64b',
+        ]
+    else
+        compile_args += '-DMOVDIR64B_AVAILABLE=0'
+    endif
+
     includes += include_directories('x86_64/memcpy', 'x86_64/memset')
 
     compile_args += '-mavx'
