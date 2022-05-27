@@ -9,4 +9,5 @@ if system == 'linux' or system == 'windows'
 
     # Fetch the dependency object
     #miniasync_dep = sub_proj.dependency('miniasync')
+    miniasync_include = include_directories('miniasync/src/include')
 endif

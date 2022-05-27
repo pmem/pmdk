@@ -19,7 +19,9 @@ libpmem = library(
         pmemcore_dep,
         pmem2arch_dep,
     ],
-    include_directories: root_include,
+    include_directories: [
+        root_include,
+    ],
     soversion: '1',
     version: '1.0.0',
     install: true

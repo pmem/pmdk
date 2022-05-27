@@ -72,5 +72,6 @@ pmemcommon_dep = declare_dependency(
     include_directories: [
         include_directories('.'),
         include_directories('../libpmem2'),
+        miniasync_include, # TODO: I do not like it but including libpmem2 headers forces us to do it
     ]
 )

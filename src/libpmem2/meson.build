@@ -169,7 +169,8 @@ libpmem2 = library(
     ],
     include_directories: [
         root_include,
-        include_directories('../common'),
+        common_include,
+        miniasync_include,
     ],
     soversion: '1',
     version: '1.0.0',
@@ -178,7 +179,10 @@ libpmem2 = library(
 
 libpmem2_dep = declare_dependency(
     link_with: libpmem2,
-    include_directories: include_directories('.')
+    include_directories: [
+        include_directories('.'),
+        miniasync_include, # TODO: Maybe we should remove it
+    ],
 )
 
 if meson.version().version_compare('>=0.54')

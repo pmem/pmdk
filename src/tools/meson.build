@@ -4,6 +4,7 @@ tools = {
         'include_directories': [
             core_include,
             common_include,
+            root_include,
         ],
         'dependencies': [
             libpmem_dep,
