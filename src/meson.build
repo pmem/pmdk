@@ -4,6 +4,7 @@ core_include = include_directories('core')
 
 subdir('common')
 subdir('core')
+subdir('deps')
 subdir('libpmem2')
 subdir('libpmem')
 subdir('libpmemblk')
@@ -11,6 +12,7 @@ subdir('libpmemlog')
 subdir('libpmemobj')
 subdir('libpmempool')
 subdir('libpmemset')
+
 if get_option('rpmem')
     subdir('librpmem')
 endif
