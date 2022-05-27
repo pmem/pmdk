@@ -34,7 +34,7 @@ elif host_machine.cpu_family() == 'x86_64'
             return 0;
         }
         ''',
-        args: ['-x', 'c', '-mavx512f'],
+        args: ['-mavx512f'],
         name: 'avx512f support'
     )
         sources += files(
@@ -63,7 +63,7 @@ elif host_machine.cpu_family() == 'x86_64'
             return 0;
         }
         ''',
-        args: ['-x', 'c', '-mmovdir64b'],
+        args: ['-mmovdir64b'],
         name: 'movdir64b support'
     )
         message('Compiled movdir64b')
