@@ -32,12 +32,15 @@ elif host_machine.cpu_family() == 'x86_64'
             __m512i zmm0 = _mm512_loadu_si512((__m512i *)&v);
 
             return 0;
+        }
         ''',
         args: ['-x', 'c', '-mavx512f'],
         name: 'avx512f support'
     )
         sources += files(
             'x86_64/memcpy/memcpy_nt_avx512f.c',
+            'x86_64/memcpy/memcpy_t_avx512f.c',
+            'x86_64/memset/memset_nt_avx512f.c',
             'x86_64/memset/memset_t_avx512f.c',
         )
 
@@ -63,8 +66,10 @@ elif host_machine.cpu_family() == 'x86_64'
         args: ['-x', 'c', '-mmovdir64b'],
         name: 'movdir64b support'
     )
+        message('Compiled movdir64b')
         sources += files(
             'x86_64/memcpy/memcpy_nt_movdir64b.c',
+            'x86_64/memset/memset_nt_movdir64b.c',
         )
 
         compile_args += [
@@ -152,7 +157,7 @@ libpmem2 = library(
     sources,
     c_args: [
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmem2.link.in'),
-	'-DPMEM2_USE_MINIASYNC',
+	    '-DPMEM2_USE_MINIASYNC',
     ],
     dependencies: [
         threads_dep,
