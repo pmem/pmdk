@@ -12,6 +12,7 @@ subdir('libpmemlog')
 subdir('libpmemobj')
 subdir('libpmempool')
 subdir('libpmemset')
+subdir('examples')
 
 if get_option('rpmem')
     subdir('librpmem')
