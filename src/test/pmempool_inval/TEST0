@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+#
+#
+# pmempool_inval/TEST0 -- test for pmempool invalid input commands
+#
+
+. ../unittest/unittest.sh
+
+require_test_type medium
+require_fs_type pmem non-pmem
+
+setup
+
+POOL=$DIR/file.pool
+POOL1=$DIR/pool.part1
+POOL2=$DIR/"ls&&cat file"
+
+LOG=out${UNITTEST_NUM}.log
+rm -f $LOG && touch $LOG
+
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX xxx &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX "xxx" &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX "\"text.txt;ls\"" &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX rm "\"-rf\"" &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX info rm * &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX info . &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX info "\"./test.txt;ls\"" &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk "rm *" &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create obj rm * &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create "$$&&%%" &>> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX info 'file && ls' &>> $LOG
+
+echo "Poolset creation" >> $LOG
+create_poolset $POOL 32ls:$POOL1 &>>$LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL &>>$LOG
+create_poolset $POOL 32M:$POOL2 &>>$LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL &>>$LOG
+
+check
+
+pass
