@@ -250,6 +250,7 @@ pmem2_memcpy_async(struct pmem2_map *map, void *pmemdest, const void *src,
 		NULL, NULL);
 
 	pmem2_future_attach_persist(map, &future, pmemdest, len);
+	future.output.dest = pmemdest;
 
 	FUTURE_CHAIN_INIT(&future);
 	return future;
@@ -272,6 +273,7 @@ pmem2_memmove_async(struct pmem2_map *map, void *pmemdest, const void *src,
 		NULL, NULL);
 
 	pmem2_future_attach_persist(map, &future, pmemdest, len);
+	future.output.dest = pmemdest;
 
 	FUTURE_CHAIN_INIT(&future);
 	return future;
@@ -294,6 +296,7 @@ pmem2_memset_async(struct pmem2_map *map, void *pmemstr, int c, size_t n,
 		NULL, NULL);
 
 	pmem2_future_attach_persist(map, &future, pmemstr, n);
+	future.output.dest = pmemstr;
 
 	FUTURE_CHAIN_INIT(&future);
 	return future;
