@@ -181,7 +181,6 @@ libpmem2_dep = declare_dependency(
     link_with: libpmem2,
     include_directories: [
         include_directories('.'),
-        miniasync_include, # TODO: Maybe we should remove it
     ],
 )
 
