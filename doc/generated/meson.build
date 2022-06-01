@@ -1,0 +1,1 @@
+r = run_command('../../utils/get_aliases.sh', check: true)
