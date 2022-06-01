@@ -830,7 +830,6 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 
 #ifdef DEBUG
 	uint32_t init_s = 0;
-	uint32_t other_s = 0;
 #endif
 
 	uint32_t aba_map_size = (arena->internal_nlba>>3) + 1;
