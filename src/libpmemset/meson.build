@@ -34,7 +34,10 @@ libpmemset = library(
 )
 
 libpmemset_dep = declare_dependency(
-    link_with: libpmemset
+    link_with: libpmemset,
+    include_directories: [
+        include_directories('.'),
+    ],
 )
 
 if meson.version().version_compare('>=0.54')

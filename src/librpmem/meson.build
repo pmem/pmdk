@@ -40,7 +40,10 @@ librpmem = library(
 
 librpmem_dep = declare_dependency(
     link_with: librpmem,
-    include_directories: include_directories('.')
+    include_directories: [
+	    include_directories('.'),
+	    include_directories('../rpmem_common'),
+    ],
 )
 
 if meson.version().version_compare('>=0.54')

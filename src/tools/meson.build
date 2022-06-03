@@ -101,3 +101,23 @@ foreach t, params : tools
         install: true
     )
 endforeach
+
+rpmemd_dep = declare_dependency(
+    dependencies: [
+	    libfabric_dep,
+    ],
+    sources: files(
+        'rpmemd/rpmemd_log.c',
+        'rpmemd/rpmemd_config.c',
+        'rpmemd/rpmemd_obc.c',
+        'rpmemd/rpmemd_db.c',
+        'rpmemd/rpmemd_fip.c',
+        'rpmemd/rpmemd_util.c',
+        '../rpmem_common/rpmem_common.c',
+        '../rpmem_common/rpmem_fip_common.c',
+    ),
+    include_directories: [
+        include_directories('rpmemd'),
+        include_directories('../rpmem_common'),
+    ],
+)

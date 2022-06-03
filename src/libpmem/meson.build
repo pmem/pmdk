@@ -29,7 +29,7 @@ libpmem = library(
 
 libpmem_dep = declare_dependency(
     link_with: libpmem,
-    include_directories: include_directories('.')
+    include_directories: root_include,
 )
 
 if meson.version().version_compare('>=0.54')
