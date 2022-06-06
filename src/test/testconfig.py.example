@@ -9,6 +9,13 @@ config = {
     # The first part of the file tells the test framework
     # which file system locations are to be used for local testing.
     #
+
+    #
+    # Set tests directory relative to the RUNTESTS.py script
+    #
+
+    'dir': '../../build/src/test',
+
     #
     # Set logging level. Possible values:
     # 0 - silent (only error messages)
