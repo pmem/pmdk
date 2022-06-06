@@ -6,3 +6,7 @@ option('tools', type: 'boolean', value: true,
     description: 'Build tools')
 option('tests', type: 'boolean', value: false,
     description: 'Build tests')
+option('doc', type: 'boolean', value: true,
+    description: 'Build manuals')
+option('web', type: 'boolean', value: true,
+    description: 'Build manuals for web')
