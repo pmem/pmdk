@@ -44,7 +44,7 @@ foreach file : manpages_md
     if get_option('web')
         dest_windows = meson.current_build_dir()/'web_windows'/dir/name
         dest_linux = meson.current_build_dir()/'web_linux'/dir/name
-        # It is not platform independent but docs can only be build on linux
+        # It is not platform independent but docs can only be built on linux
         run_command('mkdir', '-p', meson.current_build_dir()/'web_windows'/dir, check:true)
         run_command('mkdir', '-p', meson.current_build_dir()/'web_linux'/dir, check:true)
 

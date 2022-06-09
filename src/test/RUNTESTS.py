@@ -151,9 +151,9 @@ class TestRunner:
                        .format(tc, futils.Color.GREEN, futils.Color.END, tm))
 
 
-def _import_testfiles():
+def _import_testfiles(dir):
     """
-    Traverse through "src/test" directory, find all "TESTS.py" files and
+    Traverse through "config.dir" directory, find all "TESTS.py" files and
     import them as modules. Set imported module name to
     file directory path.
 
@@ -165,7 +165,7 @@ def _import_testfiles():
           therefore available through basetest.get_testfiles() function
 
     """
-    for root, _, files in os.walk(ROOTDIR):
+    for root, _, files in os.walk(path.join(os.path.dirname(__file__), dir)):
         for name in files:
             if name == 'TESTS.py':
                 testfile = path.join(root, name)
@@ -177,8 +177,8 @@ def _import_testfiles():
 
 
 def main():
-    _import_testfiles()
     config = Configurator().config
+    _import_testfiles(config.dir)
     testcases = get_testcases()
 
     if config.group:
