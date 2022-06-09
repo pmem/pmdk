@@ -1,4 +1,4 @@
-sources = []
+sources = files()
 compile_args = []
 includes = [include_directories('.')]
 

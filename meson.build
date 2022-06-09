@@ -43,6 +43,7 @@ fs = import('fs')
 
 rt_dep = cc.find_library('rt')
 libdl_dep = cc.find_library('dl')
+libm_dep = cc.find_library('m')
 
 threads_dep = dependency('threads')
 # TODO: Add wrap (autotools)

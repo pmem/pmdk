@@ -4,7 +4,7 @@ option('rpmem', type: 'boolean', value: true,
     description: 'RPMEM support')
 option('tools', type: 'boolean', value: true,
     description: 'Build tools')
-option('tests', type: 'boolean', value: false,
+option('tests', type: 'boolean', value: true,
     description: 'Build tests')
 option('doc', type: 'boolean', value: true,
     description: 'Build manuals')
