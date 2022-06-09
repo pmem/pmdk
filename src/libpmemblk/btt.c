@@ -810,9 +810,9 @@ static inline void get_lane_aba(struct arena *arena,
 	arena->sd_freelist.free_num = free_num - 1;
 
 	/*
-	 * if free_num = 0, means all data block been written
-	 * no operation on the freelist
-	 * free the freelist.free_array
+	 * free_num = 0 means that the whole data block
+	 * has been used up. In that case, free the
+	 * freelist.free_array
 	 */
 	if (arena->sd_freelist.free_num == 0) {
 		Free(arena->sd_freelist.free_array);
@@ -841,6 +841,11 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	uint32_t init_s = 0;
 #endif
 
+	/*
+	 * aba map is a bit map, 8 bits/byte, so we shift
+	 * internal_nlba right 3 bit (divide 8) and then
+	 * aba_map_size is the bitmap size.
+	 */
 	uint32_t aba_map_size = (arena->internal_nlba>>3) + 1;
 	aba_map = Zalloc(aba_map_size);
 	if (!aba_map) {
@@ -849,9 +854,8 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	}
 
 	/*
-	 * prepare the aba_map, each aba will be in a bit.
-	 * occupied bit=1, free bit=0.
-	 * the scan will take times, once execution during initilization.
+	 * prepare the aba_map, each aba is a bit.
+	 * scan btt_map and if aba occupied, set the bit=1.
 	 */
 	for (i = 0; i < arena->external_nlba; i++) {
 		ret = btt_map_read(bttp, arena, 0, i, &mapping);
@@ -872,7 +876,8 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	}
 
 	/*
-	 * Scan the aba_bitmap , use the static array, that will take 1% memory.
+	 * Scan the aba_bitmap and put free ABA in a array
+	 * 4 bytes for one internal aba.
 	 */
 	free_array = Malloc((uint32_t)(arena->internal_nlba *
 					sizeof(uint32_t)));
@@ -913,10 +918,11 @@ static int btt_freelist_init(struct btt *bttp, struct arena *arena)
 	LOG(9, "%s: free_num=%d, init_s=%d ",
 			__func__, free_num, init_s);
 #endif
+
 	/*
-	 * if free_num = 0, means all data block been written
-	 * no operation on the freelist
-	 * free the freelist.free_array
+	 * free_num = 0 means that the whole data block
+	 * has been used up. In that case, free the
+	 * freelist.free_array
 	 */
 	if (free_num == 0) {
 		Free(free_array);
