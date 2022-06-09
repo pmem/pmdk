@@ -178,7 +178,7 @@ def _import_testfiles(dir):
 
 def main():
     config = Configurator().config
-    _import_testfiles(config.dir)
+    _import_testfiles(path.abspath(config.dir))
     testcases = get_testcases()
 
     if config.group:
