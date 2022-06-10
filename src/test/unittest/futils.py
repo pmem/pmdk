@@ -23,13 +23,8 @@ def get_tool_path(ctx, name):
 
 
 def get_test_tool_path(build, name):
-    if sys.platform == 'win32':
-        if str(build) == 'debug':
-            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'tests', name))
-        else:
-            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'tests', name))
-    else:
-        return abspath(join(c.ROOTDIR, 'tools', name, name))
+    return abspath(join(configurator.Configurator().config.dir,
+                        'tools', name, name))
 
 
 def get_lib_dir(ctx):
