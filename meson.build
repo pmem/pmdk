@@ -6,7 +6,8 @@ project(
     default_options: [
         'buildtype=debugoptimized',
         'c_std=gnu99',
-    ]
+	'b_lto=false',
+    ],
 )
 
 version_components = meson.project_version().split('.')
