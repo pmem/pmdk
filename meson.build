@@ -7,6 +7,7 @@ project(
         'buildtype=debugoptimized',
         'c_std=gnu99',
 	'b_lto=false',
+	'buildtype=debug',
     ],
 )
 
