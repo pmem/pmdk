@@ -22,7 +22,7 @@ sources = files(
     '../libpmem2/persist_posix.c',
     '../libpmem2/badblocks.c',
     '../libpmem2/source.c',
-    '../libpmem2/source_posix.c'
+    '../libpmem2/source_posix.c',
 )
 
 if host_machine.system() == 'linux'
@@ -51,6 +51,8 @@ else
     )
 endif
 
+dependencies = []
+
 if libndctl_dep.found()
     sources += files(
         '../libpmem2/badblocks_ndctl.c',
@@ -58,6 +60,11 @@ if libndctl_dep.found()
         '../libpmem2/region_namespace_ndctl.c',
         '../libpmem2/numa_ndctl.c'
     )
+
+    dependencies += [
+	libdaxctl_dep,
+	libndctl_dep,
+    ]
 else
     sources += files(
         '../libpmem2/badblocks_none.c',
@@ -69,6 +76,7 @@ endif
 
 pmemcommon_dep = declare_dependency(
     sources: sources,
+    dependencies: dependencies,
     include_directories: [
         include_directories('.'),
         include_directories('../libpmem2'),

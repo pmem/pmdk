@@ -5,8 +5,6 @@ sources = files(
 dependencies = [
     unittest_pmem2_dep,
     libpmem2_dep,
-    # test dependencies were added manually because 'pmem2_persist.c' contains a function
-    # that is already defined in a source form 'pmemcommon_dep' dependency
     libndctl_dep,
     libdaxctl_dep,
     libpmem_dep,

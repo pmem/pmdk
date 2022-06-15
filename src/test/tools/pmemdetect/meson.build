@@ -10,6 +10,7 @@ dependencies = [
     pmemcommon_dep,
     pmemcore_dep,
     threads_dep,
+    unittest_dep,
 ]
 
 c_args = []

@@ -3,6 +3,7 @@ sources = files(
 )
 
 dependencies = [
+    unittest_dep,
 	libpmemblk_dep,
 ]
 
@@ -14,5 +15,5 @@ executable(
     sources,
     c_args: c_args,
     include_directories: include_directories,
-    dependencies: dependencies + test_dependencies,
+    dependencies: dependencies,
 )

@@ -388,9 +388,11 @@ unittest_sources = files(
 
 unittest_dep = declare_dependency(
     sources: unittest_sources,
+    dependencies: pmemcore_dep,
     include_directories: [
         include_directories('./unittest'),
-        #root_include,
+        core_include,
+        root_include,
     ]
 )
 
