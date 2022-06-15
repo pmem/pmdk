@@ -13,7 +13,6 @@
 *.swp
 *.o
 make.out
-core
 a.out
 nbproject/
 /rpmbuild/

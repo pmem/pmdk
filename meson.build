@@ -16,6 +16,7 @@ pmdk_minor_version = version_components[1]
 pmdk_patch_version = version_components[2]
 
 cc = meson.get_compiler('c')
+cmake = import('cmake')
 
 add_project_arguments(
     '-DSRCVERSION="@0@"'.format(meson.project_version()),
@@ -50,6 +51,10 @@ threads_dep = dependency('threads')
 libndctl_dep = dependency('libndctl', version: '>= 63', required: get_option('ndctl'))
 libdaxctl_dep = dependency('libdaxctl', version: '>= 63', required: get_option('ndctl'))
 libfabric_dep = dependency('libfabric', version: '>= 1.4.2')
+
+miniasync_proj = cmake.subproject('miniasync')
+miniasync_dep = miniasync_proj.dependency('miniasync')
+miniasync_include = miniasync_proj.include_directories('miniasync')
 
 if libndctl_dep.found()
     add_project_arguments(

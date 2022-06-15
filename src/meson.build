@@ -2,7 +2,6 @@ root_include = include_directories('include')
 common_include = include_directories('common')
 core_include = include_directories('core')
 
-subdir('deps')
 subdir('common')
 subdir('core')
 subdir('libpmem2')
