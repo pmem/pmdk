@@ -2,7 +2,11 @@ sources = files(
     'util_poolset_foreach.c',
 )
 
-dependencies = []
+dependencies = [
+    libpmem_dep,
+    pmemcommon_dep,
+    unittest_dep,
+]
 
 c_args = []
 include_directories = []
@@ -12,5 +16,5 @@ executable(
     sources,
     c_args: c_args,
     include_directories: include_directories,
-    dependencies: dependencies + test_dependencies,
+    dependencies: dependencies,
 )

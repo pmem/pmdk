@@ -2,7 +2,10 @@ sources = files(
     'util_extent.c',
 )
 
-dependencies = []
+dependencies = [
+    libpmem2_dep,
+    unittest_dep,
+]
 
 c_args = []
 include_directories = []
@@ -12,5 +15,5 @@ executable(
     sources,
     c_args: c_args,
     include_directories: include_directories,
-    dependencies: dependencies + test_dependencies,
+    dependencies: dependencies,
 )

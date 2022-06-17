@@ -3,11 +3,12 @@
 # Copyright 2021-2022, Intel Corporation
 #
 
+import configurator
 import testframework as t
 from testframework import granularity as g
 import futils
 import os
-
+import sys
 
 @g.require_granularity(g.ANY)
 class PMEMSET_PERSIST(t.Test):
@@ -52,8 +53,8 @@ class TEST4(PMEMSET_PERSIST):
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         ctx.exec('pmemset_persist', self.test_case, filepath)
-        pmemecheck_log = os.path.join(
-            os.getcwd(), 'pmemset_persist', 'pmemcheck4.log')
+        pmemecheck_log = os.path.join(configurator.Configurator().config.dir,
+                                      'pmemset_persist', 'pmemcheck4.log')
         futils.tail(pmemecheck_log, 2)
 
 
@@ -72,6 +73,6 @@ class TEST6(PMEMSET_PERSIST):
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         ctx.exec('pmemset_persist', self.test_case, filepath)
-        pmemecheck_log = os.path.join(
-            os.getcwd(), 'pmemset_persist', 'pmemcheck6.log')
+        pmemecheck_log = os.path.join(configurator.Configurator().config.dir,
+                                      'pmemset_persist', 'pmemcheck6.log')
         futils.tail(pmemecheck_log, 2)

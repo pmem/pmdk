@@ -37,9 +37,18 @@ libpmemset_dep = declare_dependency(
     link_with: libpmemset,
     include_directories: [
         include_directories('.'),
+	root_include,
     ],
 )
 
 if meson.version().version_compare('>=0.54')
     meson.override_dependency('libpmemset', libpmemset_dep)
 endif
+
+libpmemset_internal_dep = declare_dependency(
+    sources: sources,
+    include_directories: [
+        include_directories('.'),
+	root_include,
+    ],
+)

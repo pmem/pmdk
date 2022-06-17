@@ -26,7 +26,10 @@ libpmemblk = library(
 
 libpmemblk_dep = declare_dependency(
     link_with: libpmemblk,
-    include_directories: include_directories('.')
+    include_directories: [
+	include_directories('.'),
+	root_include,
+    ]
 )
 
 if meson.version().version_compare('>=0.54')
