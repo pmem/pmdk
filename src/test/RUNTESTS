@@ -437,6 +437,7 @@ testconfig="./testconfig.sh"
 killopt="-k 10s"
 runtest_timeout="3m"
 use_timeout="ok"
+testsdir="."
 testfile=all
 testseq=all
 check_pool=0
@@ -512,9 +513,9 @@ fi
 #
 # command-line argument processing...
 #
-args=`getopt k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: $*`
+args=`getopt -o k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: -l dir: -- $*`
 [ $? != 0 ] && usage
-set -- $args
+eval set -- "$args"
 for arg
 do
 	receivetype=auto
@@ -695,6 +696,10 @@ do
 			;;
 		esac
 		;;
+  --dir)
+    testsdir="$2"
+    shift 2
+    ;;
 	--)
 		shift
 		break
@@ -773,7 +778,7 @@ if [ "$1" ]; then
 	done
 else
 	# no arguments means run them all
-	for testfile0 in */TEST0
+	for testfile0 in "$(realpath $testsdir)/*/TEST0"
 	do
 		testdir=`dirname $testfile0`
 		if [[ "$skip_dir" =~ "$testdir" ]]; then
