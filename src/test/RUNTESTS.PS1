@@ -90,7 +90,10 @@ Param(
     [uint32]$jobs = 1,
 
     [alias("h")]
-    [switch]$help= $false
+    [switch]$help= $false,
+
+    [alias("dir")]
+    [string]$tests_root_dir= '.\'
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 5) {
@@ -114,7 +117,7 @@ $config = New-Object Config
 $config.setBuildtype($buildtype)
 $config.setFstype($fstype)
 $config.setTimeout($time)
-$config.setTestdir($testdir)
+$config.setTestdir($tests_root_dir, $testdir)
 $config.testtype = $testtype
 $config.check_pool = $check_pool
 $config.skip_dir = $skip_dir

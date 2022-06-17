@@ -116,11 +116,11 @@ class Config {
     #
     # setTestdir -- parse test directory
     #
-    setTestdir($testdir) {
+    setTestdir($tests_root_dir, $testdir) {
         if ($testdir -eq "all") {
-            $this.testdir = Get-ChildItem -Directory
+            $this.testdir = Get-ChildItem -Directory $tests_root_dir
         } else {
-            $this.testdir = Get-Item $testdir
+            $this.testdir = Get-Item $testdir # TODO: It is not using tests_root_dir, we may change that
         }
     }
 }
