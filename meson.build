@@ -71,3 +71,7 @@ if build_machine.system()=='linux' and (get_option('doc') or get_option('web'))
 endif
 
 subdir('src')
+
+if get_option('tests')
+    subdir('testsuite')
+endif

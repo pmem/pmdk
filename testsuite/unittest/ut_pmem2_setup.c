@@ -6,7 +6,7 @@
  * (only for unit tests)
  */
 
-#include "../../libpmem2/config.h"
+#include "../../src/libpmem2/config.h"
 #include "ut_pmem2_source.h"
 #include "ut_pmem2_setup.h"
 #include "unittest.h"
