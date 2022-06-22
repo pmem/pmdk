@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 from loggingfacility import LoggingBase
 from reorderexceptions import InconsistentFileException
@@ -31,6 +31,12 @@ class BinaryOutputHandler:
         self._checker = checker
         self._logger = logger or LoggingBase()
 
+    def __contains__(self, file):
+        for bf in self._files:
+            if bf is file:
+                return True
+        return False
+
     def add_file(self, file, map_base, size):
         """
         Create and append a mapped file to :attr:`_files`.
@@ -43,9 +49,9 @@ class BinaryOutputHandler:
         :type size: int
         :return: None
         """
-        self._files.append(
-            BinaryFile(file, map_base, size, self._checker, self._logger)
-        )
+        bf = BinaryFile(file, map_base, size, self._checker, self._logger)
+        if bf not in self:
+            self._files.append(bf)
 
     def remove_file(self, file):
         """Remove file from :attr:`_files`.
@@ -54,9 +60,8 @@ class BinaryOutputHandler:
         :type file: str
         :return: None
         """
-        for bf in self._files:
-            if bf.file_name is file:
-                self._files.remove(bf)
+        if file in self:
+            self._files.remove(file)
 
     def do_store(self, store_op):
         """
@@ -167,6 +172,12 @@ class BinaryFile(utils.Rangeable):
             hex(self._map_base),
             hex(self._map_max - self._map_base)
         )
+
+    def __eg__(self, other):
+        if self._map_max == other._map_max \
+                and self._map_base == other._map_base:
+            return False
+        return True
 
     def do_store(self, store_op):
         """
