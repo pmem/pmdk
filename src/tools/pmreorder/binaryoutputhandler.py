@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 from loggingfacility import LoggingBase
 from reorderexceptions import InconsistentFileException
@@ -43,9 +43,9 @@ class BinaryOutputHandler:
         :type size: int
         :return: None
         """
-        self._files.append(
-            BinaryFile(file, map_base, size, self._checker, self._logger)
-        )
+        binaryfile = BinaryFile(file, map_base, size, self._checker, self._logger)
+        if binaryfile.not_in(self._files):
+            self._files.append(binaryfile)
 
     def remove_file(self, file):
         """Remove file from :attr:`_files`.
@@ -167,6 +167,13 @@ class BinaryFile(utils.Rangeable):
             hex(self._map_base),
             hex(self._map_max - self._map_base)
         )
+
+    def not_in(self, files):
+        for f in files:
+            if self._map_max - self._map_base == f._map_max - f._map_base and self._map_base == f._map_base:
+                return False
+        return True
+
 
     def do_store(self, store_op):
         """
