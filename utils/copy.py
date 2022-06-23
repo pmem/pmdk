@@ -22,4 +22,4 @@ os.makedirs(output_path, exist_ok=True)
 # copy files with matching prefixes or suffixes
 for file in os.listdir(input_path):
     if file.startswith(copy_prefixes) or file.endswith(copy_suffixes):
-        shutil.copyfile(os.path.join(input_path, file), os.path.join(output_path, file))
+        shutil.copy(os.path.join(input_path, file), os.path.join(output_path, file))
