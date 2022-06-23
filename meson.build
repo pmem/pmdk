@@ -75,3 +75,10 @@ subdir('src')
 if get_option('tests')
     subdir('testsuite')
 endif
+
+tests_python = find_program('testsuite/RUNTESTS.py')
+
+run_target(
+    'run-tests-python',
+    command:[tests_python],
+)
