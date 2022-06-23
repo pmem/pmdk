@@ -121,8 +121,8 @@ fi
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
-TOOLS=../tools
-LIB_TOOLS="../../tools"
+TOOLS="$MESON_BUILD_ROOT/testsuite/tools"
+LIB_TOOLS="$MESON_BUILD_ROOT/tools"
 # Paths to some useful tools
 [ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool/pmempool
 [ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio/daxio

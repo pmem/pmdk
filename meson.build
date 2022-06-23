@@ -77,8 +77,14 @@ if get_option('tests')
 endif
 
 tests_python = find_program('testsuite/RUNTESTS.py')
+tests_bash = find_program('testsuite/RUNTESTS')
 
 run_target(
     'run-tests-python',
     command:[tests_python],
+)
+
+run_target(
+    'run-tests-bash',
+    command:[tests_bash],
 )
