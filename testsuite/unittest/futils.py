@@ -23,8 +23,8 @@ def get_tool_path(ctx, name):
 
 
 def get_test_tool_path(build, name):
-    return abspath(join(configurator.Configurator().config.dir,
-                        'tools', name, name))
+    return abspath(join(os.getenv('MESON_BUILD_ROOT'),
+                        'testsuite/tools', name, name))
 
 
 def get_lib_dir(ctx):

@@ -239,9 +239,6 @@ class Configurator():
             return [str(c) for c in cls.__subclasses__()]
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('-d', '--dir', dest='dir',
-                            help='set tests directory relative'
-                            'to RUNTESTS.py script')
         parser.add_argument('--fs_dir_force_pmem', type=int,
                             help='set PMEM_IS_PMEM_FORCE for tests run on'
                             ' pmem fs')
