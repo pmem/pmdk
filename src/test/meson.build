@@ -249,7 +249,7 @@ tests = {
     'pmem2_persist_valgrind': {},
     'pmem2_source': {},
     'pmem2_source_alignment': {},
-    'pmem2_source_numa': {},
+#     'pmem2_source_numa': {},
     'pmem2_source_size': {},
     'pmem2_usc': {},
     'pmem2_vm_reservation': {},
