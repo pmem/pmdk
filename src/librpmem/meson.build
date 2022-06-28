@@ -20,8 +20,10 @@ librpmem = library(
     'rpmem',
     sources,
     c_args: [
-        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'librpmem.link.in'),
         '-DRPMEMC_LOG_RPMEM',
+    ],
+    link_args: [
+        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'librpmem.link.in'),
     ],
     dependencies: [
         threads_dep,

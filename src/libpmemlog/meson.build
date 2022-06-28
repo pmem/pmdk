@@ -6,7 +6,7 @@ sources = files(
 libpmemlog = library(
     'pmemlog',
     sources,
-    c_args: [
+    link_args: [
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmemlog.link.in')
     ],
     dependencies: [

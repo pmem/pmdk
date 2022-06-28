@@ -156,8 +156,10 @@ libpmem2 = library(
     'pmem2',
     sources,
     c_args: [
+        '-DPMEM2_USE_MINIASYNC',
+    ],
+    link_args: [
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmem2.link.in'),
-	    '-DPMEM2_USE_MINIASYNC',
     ],
     dependencies: [
         threads_dep,

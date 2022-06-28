@@ -18,23 +18,25 @@ sources = files(
     'sync.c',
     'tx.c',
     'stats.c',
-    'ulog.c'
+    'ulog.c',
 )
 
 libpmemobj = library(
     'pmemobj',
     sources,
     c_args: [
-        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmemobj.link.in'),
         '-DUSE_LIBDL',
         '-D_PMEMOBJ_INTRNL',
+    ],
+    link_args: [
+        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmemobj.link.in'),
     ],
     dependencies: [
         threads_dep,
         libdaxctl_dep,
         libndctl_dep,
         pmemcommon_dep,
-        pmemcore_dep,
+	pmemcore_dep,
         libpmem_dep,
         libdl_dep,
     ],

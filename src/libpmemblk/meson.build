@@ -7,7 +7,7 @@ sources = files(
 libpmemblk = library(
     'pmemblk',
     sources,
-    c_args: [
+    link_args: [
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmemblk.link.in')
     ],
     dependencies: [
@@ -16,7 +16,7 @@ libpmemblk = library(
         libndctl_dep,
         pmemcommon_dep,
         pmemcore_dep,
-        libpmem_dep,
+        libpmem_dep
     ],
     include_directories: root_include,
     soversion: '1',

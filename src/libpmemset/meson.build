@@ -16,7 +16,7 @@ sources = files(
 libpmemset = library(
     'pmemset',
     sources,
-    c_args: [
+    link_args: [
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmemset.link.in'),
     ],
     include_directories: [
@@ -30,7 +30,7 @@ libpmemset = library(
     ],
     version: '1.0.0',
     soversion: '1',
-    install: true
+    install: true,
 )
 
 libpmemset_dep = declare_dependency(
@@ -44,11 +44,3 @@ libpmemset_dep = declare_dependency(
 if meson.version().version_compare('>=0.54')
     meson.override_dependency('libpmemset', libpmemset_dep)
 endif
-
-libpmemset_internal_dep = declare_dependency(
-    sources: sources,
-    include_directories: [
-        include_directories('.'),
-	root_include,
-    ],
-)

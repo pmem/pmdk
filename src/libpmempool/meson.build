@@ -28,9 +28,11 @@ libpmempool = library(
     sources,
     objects: libpmemblk.extract_objects('btt.c'),
     c_args: [
-        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmempool.link.in'),
         '-DUSE_LIBDL',
         '-DUSE_RPMEM',
+    ],
+    link_args: [
+        '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmempool.link.in'),
     ],
     dependencies: [
         threads_dep,
