@@ -33,9 +33,9 @@ libpmemobj = library(
     ],
     dependencies: [
         libdaxctl_dep,
-        libdl_dep,
         libndctl_dep,
-        libpmem_dep,
+	libdl_dep,
+	libpmem_dep,
         pmemcommon_dep,
         pmemcore_dep,
         threads_dep,
@@ -48,7 +48,9 @@ libpmemobj = library(
 
 libpmemobj_dep = declare_dependency(
     link_with: libpmemobj,
-    include_directories: root_include,
+    include_directories: [
+	root_include,
+    ],
 )
 
 libpmemobj_internal_dep = declare_dependency(
@@ -59,9 +61,9 @@ libpmemobj_internal_dep = declare_dependency(
     ],
     dependencies: [
         libdaxctl_dep,
-        libdl_dep,
         libndctl_dep,
-        libpmem_dep,
+	libdl_dep,
+	libpmem_dep,
         pmemcommon_dep,
         pmemcore_dep,
         threads_dep,

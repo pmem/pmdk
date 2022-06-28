@@ -10,6 +10,8 @@ tools = {
             libpmem_dep,
             libndctl_dep,
             libdaxctl_dep,
+            pmemcore_dep,
+            pmemcommon_dep,
         ],
     },
     'pmempool': {
@@ -37,16 +39,17 @@ tools = {
         ),
         'objects': [
             libpmemblk.extract_objects('btt.c'),
-            libpmemobj.extract_objects('alloc_class.c', 'memblock.c', 'memops.c', 'ulog.c'),
+            libpmemobj.extract_objects('alloc_class.c', 'bucket.c', 'container_ravl.c', 'container_seglists.c', 'critnib.c', 'heap.c', 'memblock.c', 'memops.c', 'recycler.c', 'ulog.c'),
         ],
         'include_directories': [
             root_include,
+            include_directories('../libpmemblk'),
+            include_directories('../libpmemlog'),
+            include_directories('../libpmemobj'),
             include_directories('../librpmem'),
             include_directories('../rpmem_common'),
         ],
         'dependencies': [
-            pmemcore_dep,
-            pmemcommon_dep,
             libndctl_dep,
             libdaxctl_dep,
             libpmem_dep,
@@ -54,6 +57,8 @@ tools = {
             libpmemlog_dep,
             libpmemobj_dep,
             libpmempool_dep,
+            pmemcore_dep,
+            pmemcommon_dep,
             threads_dep,
         ],
     },
@@ -72,9 +77,11 @@ tools = {
             'rpmemd/rpmemd_util.c'
         ),
         'dependencies': [
-            threads_dep,
             libfabric_dep,
             libpmem_dep,
+            pmemcore_dep,
+            pmemcommon_dep,
+            threads_dep,
         ],
         'include_directories': [
             include_directories('rpmemd'),
@@ -103,9 +110,6 @@ foreach t, params : tools
 endforeach
 
 rpmemd_dep = declare_dependency(
-    dependencies: [
-	    libfabric_dep,
-    ],
     sources: files(
         'rpmemd/rpmemd_log.c',
         'rpmemd/rpmemd_config.c',
@@ -113,11 +117,10 @@ rpmemd_dep = declare_dependency(
         'rpmemd/rpmemd_db.c',
         'rpmemd/rpmemd_fip.c',
         'rpmemd/rpmemd_util.c',
-        '../rpmem_common/rpmem_common.c',
-        '../rpmem_common/rpmem_fip_common.c',
     ),
+    dependencies: libfabric_dep,
     include_directories: [
         include_directories('rpmemd'),
-        include_directories('../rpmem_common'),
+	include_directories('../rpmem_common'),
     ],
 )

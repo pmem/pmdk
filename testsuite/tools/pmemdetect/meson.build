@@ -14,9 +14,7 @@ dependencies = [
 ]
 
 c_args = []
-include_directories = [
-    root_include,
-]
+include_directories = []
 
 executable(
     ttool,

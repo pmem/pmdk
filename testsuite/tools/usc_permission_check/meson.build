@@ -1,18 +1,17 @@
 sources = files(
-    'libpmempool_feature.c',
+    'usc_permission_check.c',
 )
 
 dependencies = [
-    libpmempool_dep,
-    unittest_dep,
-    pmemcommon_dep,
+    libpmem2_dep,
+    pmemcore_dep,
 ]
 
 c_args = []
 include_directories = []
 
 executable(
-    t,
+    ttool,
     sources,
     c_args: c_args,
     include_directories: include_directories,

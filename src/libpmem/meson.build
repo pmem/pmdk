@@ -12,7 +12,6 @@ libpmem = library(
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmem.link.in'),
     ],
     dependencies: [
-        threads_dep,
         libndctl_dep,
         libdaxctl_dep,
         pmemcommon_dep,
@@ -35,7 +34,6 @@ libpmem_dep = declare_dependency(
 libpmem_internal_dep = declare_dependency(
     sources: sources,
     dependencies: [
-        threads_dep,
         libndctl_dep,
         libdaxctl_dep,
         pmemcommon_dep,

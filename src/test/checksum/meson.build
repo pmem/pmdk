@@ -3,6 +3,8 @@ sources = files(
 )
 
 dependencies = [
+    pmemcommon_dep,
+    pmemcore_dep,
     unittest_dep,
 ]
 

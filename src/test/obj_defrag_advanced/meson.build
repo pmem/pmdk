@@ -6,13 +6,12 @@ sources = files(
 
 dependencies = [
     libpmemobj_dep,
+    pmemcommon_dep,
     unittest_dep,
 ]
 
 c_args = []
-include_directories = [
-    include_directories('.'),
-]
+include_directories = []
 
 executable(
     t,

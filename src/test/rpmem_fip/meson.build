@@ -1,18 +1,27 @@
 sources = files(
     'rpmem_fip_oob.c',
     'rpmem_fip_test.c',
+    '../../librpmem/rpmem_cmd.c',
+    '../../librpmem/rpmem_fip.c',
+    '../../librpmem/rpmem_ssh.c',
+    '../../librpmem/rpmem_util.c',
+    '../../rpmem_common/rpmem_common.c',
+    '../../rpmem_common/rpmem_fip_common.c',
 )
 
 dependencies = [
     libpmem_dep,
-    librpmem_dep,
     pmemcommon_dep,
     rpmemd_dep,
     unittest_dep,
 ]
 
 c_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../librpmem'),
+    include_directories('../../rpmem_common'),
+    include_directories('../../tools/rpmemd'),
+]
 
 executable(
     t,

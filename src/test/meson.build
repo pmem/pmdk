@@ -12,14 +12,14 @@ tests = {
     'blk_rw': {},
     'blk_rw_mt': {},
     'bttdevice': {
-	'properties': [ 'no_sources', ],
+        'properties': [ 'no_sources', ],
     },
     'checksum': {},
     'compat_incompat_features': {},
     'ctl_cow': {},
     'ctl_prefault': {},
     'daxio': {
-	'properties': [ 'no_sources' ],
+        'properties': [ 'no_sources' ],
     },
 #     'ex_libpmem': {},
 #     'ex_libpmem2': {},
@@ -40,11 +40,11 @@ tests = {
     },
     'libpmempool_backup': {
         'test_deps': [ 'libpmempool_api' ],
-	'properties': [ 'no_sources' ],
+        'properties': [ 'no_sources' ],
     },
     'libpmempool_bttdev': {
         'test_deps': [ 'libpmempool_api' ],
-	'properties': [ 'no_sources' ],
+        'properties': [ 'no_sources' ],
     },
     'libpmempool_check_version': {},
     'libpmempool_feature': {},
@@ -151,7 +151,7 @@ tests = {
     'obj_pool': {},
     'obj_pool_lock': {},
     'obj_pool_lookup': {},
-    'obj_pool_open_mt': {},
+#     'obj_pool_open_mt': {},
     'obj_pool_win': {
         'properties': [ 'windows_only' ],
     },
@@ -345,9 +345,12 @@ tests = {
     'traces': {},
     'traces_custom_function': {},
     'traces_pmem': {},
-#     'unicode_api': {},
-#     'unicode_match_script': {},
-#     'unittest': {},
+    'unicode_api': {
+        'properties': [ 'no_sources' ],
+    },
+    'unicode_match_script': {
+        'properties': [ 'no_sources' ],
+    },
     'util_badblock': {},
     'util_cpuid': {},
     'util_ctl': {},
@@ -365,7 +368,7 @@ tests = {
     'util_poolset_parse': {},
     'util_poolset_size': {},
     'util_ravl': {},
-#     'util_sds': {},
+    'util_sds': {},
     'util_uuid_generate': {},
     'util_vec': {},
     'util_vecq': {},
@@ -386,12 +389,26 @@ unittest_sources = files(
     '../../testsuite/unittest/ut.c',
 )
 
+unittest_lib = library(
+    'unittest',
+    unittest_sources,
+    dependencies: [
+	pmemcore_dep,
+    ],
+    include_directories: [
+	include_directories('../../testsuite/unittest'),
+	root_include,
+	core_include,
+    ],
+    install: false,
+)
+
 unittest_dep = declare_dependency(
-    sources: unittest_sources,
-    dependencies: pmemcore_dep,
+    link_with: unittest_lib,
     include_directories: [
         include_directories('../../testsuite/unittest'),
         core_include,
+        common_include,
         root_include,
     ]
 )
@@ -403,10 +420,52 @@ unittest_pmem2_sources = files(
     '../../testsuite/unittest/ut_pmem2_setup.c',
     '../../testsuite/unittest/ut_pmem2_source.c',
     '../../testsuite/unittest/ut_pmem2_utils.c',
+    '../libpmem2/config.c',
+    '../libpmem2/errormsg.c',
+    '../libpmem2/map.c',
+    '../libpmem2/map_posix.c',
+    '../libpmem2/memops_generic.c',
+    '../libpmem2/mover.c',
+    '../libpmem2/persist.c',
+    '../libpmem2/persist_posix.c',
+    '../libpmem2/pmem2_utils.c',
+    '../libpmem2/pmem2_utils_linux.c',
+    '../libpmem2/pmem2_utils_ndctl.c',
+    '../libpmem2/source.c',
+    '../libpmem2/source_posix.c',
+    '../libpmem2/vm_reservation.c',
+    '../libpmem2/vm_reservation_posix.c',
+    '../libpmem2/auto_flush_linux.c',
+    '../libpmem2/deep_flush_linux.c',
+    '../libpmem2/extent_linux.c',
+    '../libpmem2/region_namespace_ndctl.c',
+)
+
+unittest_pmem2_lib = library(
+    'unittest_pmem2',
+    unittest_pmem2_sources,
+    c_args: [
+        '-DPMEM2_USE_MINIASYNC',
+    ],
+    dependencies: [
+	libndctl_dep,
+        libdaxctl_dep,
+	pmem2arch_dep,
+	pmemcore_dep,
+	pmemcommon_dep,
+        unittest_dep,
+    ],
+    include_directories: [
+        include_directories('../../testsuite/unittest'),
+	include_directories('../libpmem2'),
+        miniasync_include,
+        root_include,
+    ],
+    install: false,
 )
 
 unittest_pmem2_dep = declare_dependency(
-    sources: unittest_pmem2_sources,
+    link_with: unittest_pmem2_lib,
     include_directories: [
         include_directories('../../testsuite/unittest'),
     ]
@@ -423,16 +482,6 @@ unittest_pmemset_dep = declare_dependency(
     ]
 )
 
-test_dependencies = [
-    libndctl_dep,
-    libdaxctl_dep,
-    libpmem_dep,
-    pmemcommon_dep,
-    pmemcore_dep,
-    threads_dep,
-    unittest_dep,
-]
-
 filtered_tests = {}
 
 # filter tests based on option dependencies and platform
@@ -443,7 +492,7 @@ foreach t, attrs : tests
     foreach dep : option_deps
         if not get_option(dep)
             deps_fulfilled = false
-	    break
+            break
         endif
     endforeach
 
@@ -472,7 +521,7 @@ foreach t, attrs : filtered_tests
     foreach test : test_deps
         if not filtered_tests.has_key(test)
             test_deps_fulfilled = false
-	endif
+        endif
     endforeach
 
     if not test_deps_fulfilled
@@ -486,7 +535,7 @@ foreach t, attrs : filtered_tests
         t, # dir name in the build test directory
         test_files_prefixes,
         test_files_suffixes,
-	check: true,
+        check: true,
     )
 
     properties = attrs.get('properties', [])

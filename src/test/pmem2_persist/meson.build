@@ -16,6 +16,7 @@ dependencies = [
 c_args = []
 
 include_directories = [
+    include_directories('../../libpmem2'),
     common_include,
     miniasync_include,
 ]

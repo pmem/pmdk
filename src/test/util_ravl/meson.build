@@ -7,7 +7,9 @@ dependencies = [
 ]
 
 c_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../common'),
+]
 
 executable(
     t,

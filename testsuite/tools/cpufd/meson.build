@@ -1,20 +1,20 @@
 sources = files(
-    'util_badblock.c',
+    'cpufd.c',
+    '../../../src/libpmem2/x86_64/cpu.c',
 )
 
 dependencies = [
-    libpmem_dep,
-    pmemcommon_dep,
-    unittest_dep,
+    pmemcore_dep,
 ]
 
 c_args = []
 include_directories = [
-    include_directories('../../libpmem2'),
+    core_include,
+    include_directories('../../../src/libpmem2/x86_64'),
 ]
 
 executable(
-    t,
+    ttool,
     sources,
     c_args: c_args,
     include_directories: include_directories,

@@ -7,6 +7,7 @@ dependencies = [
     libpmemlog_dep,
     libpmemobj_dep,
     unittest_dep,
+    libpmem_dep,
 ]
 
 c_args = []

@@ -8,7 +8,9 @@ dependencies = [
 ]
 
 c_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../rpmem_common'),
+]
 
 executable(
     t,

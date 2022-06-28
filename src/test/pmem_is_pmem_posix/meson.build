@@ -6,10 +6,14 @@ dependencies = [
     libpmem_dep,
     libpmem2_dep,
     unittest_dep,
+    pmemcommon_dep,
 ]
 
 c_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../libpmem'),
+    include_directories('../../libpmem2'),
+]
 
 executable(
     t,

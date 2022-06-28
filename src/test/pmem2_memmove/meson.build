@@ -10,7 +10,9 @@ dependencies = [
 ]
 
 c_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../libpmem2'),
+]
 
 executable(
     t,

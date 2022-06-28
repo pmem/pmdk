@@ -6,10 +6,13 @@ dependencies = [
     librpmem_dep,
     rpmemd_dep,
     unittest_dep,
+    pmemcommon_dep,
 ]
 
 c_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../tools/rpmemd'),
+]
 
 executable(
     t,

@@ -13,9 +13,11 @@ sources = files(
 
 pmemcore_dep = declare_dependency(
     sources: sources,
-    dependencies: threads_dep,
+    dependencies: [
+	threads_dep,
+    ],
     include_directories: [
 	include_directories('.'),
-	common_include,
+        common_include,
     ],
 )

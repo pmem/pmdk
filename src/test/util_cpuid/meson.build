@@ -5,11 +5,12 @@ sources = files(
 dependencies = [
     libpmem2_dep,
     unittest_dep,
+    pmemcommon_dep,
 ]
 
 c_args = []
 include_directories = [
-    '../../libpmem2/x86_64',
+    include_directories('../../libpmem2/x86_64'),
 ]
 
 executable(
