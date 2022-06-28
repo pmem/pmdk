@@ -2800,12 +2800,7 @@ int
 main(int argc, char **argv)
 {
 	START(argc, argv, "pmemset_part");
-
-	util_init();
-	out_init("pmemset_part", "TEST_LOG_LEVEL", "TEST_LOG_FILE", 0, 0);
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
-	out_fini();
-
 	DONE(NULL);
 }
 
