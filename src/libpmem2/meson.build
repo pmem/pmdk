@@ -162,12 +162,12 @@ libpmem2 = library(
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmem2.link.in'),
     ],
     dependencies: [
-        threads_dep,
         libndctl_dep,
         libdaxctl_dep,
         # pmemcommon_dep,
         pmemcore_dep,
         pmem2arch_dep,
+        threads_dep,
     ],
     include_directories: [
         root_include,
@@ -181,8 +181,26 @@ libpmem2 = library(
 
 libpmem2_dep = declare_dependency(
     link_with: libpmem2,
+    include_directories: root_include,
+)
+
+libpmem2_internal_dep = declare_dependency(
+    sources: sources,
+    compile_args: [
+        '-DPMEM2_USE_MINIASYNC',
+    ],
+    dependencies: [
+        libndctl_dep,
+        libdaxctl_dep,
+        pmemcore_dep,
+        pmem2arch_dep,
+        threads_dep,
+    ],
     include_directories: [
         include_directories('.'),
+        root_include,
+        common_include,
+        miniasync_include,
     ],
 )
 

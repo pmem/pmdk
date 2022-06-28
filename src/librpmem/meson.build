@@ -26,14 +26,14 @@ librpmem = library(
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'librpmem.link.in'),
     ],
     dependencies: [
-        threads_dep,
         libfabric_dep,
+        threads_dep,
     ],
     include_directories: [
-        root_include,
-        core_include,
-        common_include,
         include_directories('../rpmem_common'),
+        common_include,
+        core_include,
+        root_include,
     ],
     soversion: '1',
     version: '1.0.0',
@@ -42,9 +42,24 @@ librpmem = library(
 
 librpmem_dep = declare_dependency(
     link_with: librpmem,
+    include_directories: root_include,
+)
+
+librpmem_internal_dep = declare_dependency(
+    sources: sources,
+    compile_args: [
+        '-DRPMEMC_LOG_RPMEM',
+    ],
+    dependencies: [
+        libfabric_dep,
+        threads_dep,
+    ],
     include_directories: [
-	    include_directories('.'),
-	    include_directories('../rpmem_common'),
+        include_directories('.'),
+        include_directories('../rpmem_common'),
+        common_include,
+        core_include,
+        root_include,
     ],
 )
 

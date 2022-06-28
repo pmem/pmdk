@@ -19,14 +19,14 @@ libpmemset = library(
     link_args: [
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmemset.link.in'),
     ],
-    include_directories: [
-        root_include,
-        common_include,
-    ],
     dependencies: [
-        threads_dep,
-        pmemcore_dep,
         libpmem2_dep,
+        pmemcore_dep,
+        threads_dep,
+    ],
+    include_directories: [
+        common_include,
+        root_include,
     ],
     version: '1.0.0',
     soversion: '1',
@@ -35,9 +35,20 @@ libpmemset = library(
 
 libpmemset_dep = declare_dependency(
     link_with: libpmemset,
+    include_directories: root_include,
+)
+
+libpmemset_internal_dep = declare_dependency(
+    sources: sources,
+    dependencies: [
+        libpmem2_dep,
+        pmemcore_dep,
+        threads_dep,
+    ],
     include_directories: [
         include_directories('.'),
-	root_include,
+        common_include,
+        root_include,
     ],
 )
 

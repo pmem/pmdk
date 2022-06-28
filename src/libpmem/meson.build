@@ -32,6 +32,22 @@ libpmem_dep = declare_dependency(
     include_directories: root_include,
 )
 
+libpmem_internal_dep = declare_dependency(
+    sources: sources,
+    dependencies: [
+        threads_dep,
+        libndctl_dep,
+        libdaxctl_dep,
+        pmemcommon_dep,
+        pmemcore_dep,
+        pmem2arch_dep,
+    ],
+    include_directories: [
+        include_directories('.'),
+        root_include,
+    ]
+)
+
 if meson.version().version_compare('>=0.54')
     meson.override_dependency('libpmem', libpmem_dep)
 endif

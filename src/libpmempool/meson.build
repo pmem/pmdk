@@ -35,13 +35,13 @@ libpmempool = library(
         '-Wl,--version-script=@0@'.format(meson.current_source_dir() / 'libpmempool.link.in'),
     ],
     dependencies: [
-        threads_dep,
         libdaxctl_dep,
+        libdl_dep,
         libndctl_dep,
+        libpmem_dep,
         pmemcommon_dep,
         pmemcore_dep,
-        libpmem_dep,
-        libdl_dep,
+        threads_dep,
     ],
     include_directories: [
         root_include,
@@ -59,7 +59,28 @@ libpmempool = library(
 
 libpmempool_dep = declare_dependency(
     link_with: libpmempool,
-    include_directories: include_directories('.')
+    include_directories: root_include,
+)
+
+libpmempool_internal_dep = declare_dependency(
+    sources: sources,
+    compile_args: [
+        '-DUSE_LIBDL',
+        '-DUSE_RPMEM',
+    ],
+    dependencies: [
+        libdaxctl_dep,
+        libdl_dep,
+        libndctl_dep,
+        libpmem_dep,
+        pmemcommon_dep,
+        pmemcore_dep,
+        threads_dep,
+    ],
+    include_directories: [
+        include_directories('.'),
+        root_include,
+    ],
 )
 
 if meson.version().version_compare('>=0.54')
