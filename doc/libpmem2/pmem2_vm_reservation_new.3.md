@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(PMEM2_VM_RESERVATION_NEW, 3)
-collection: libpmem2
-header: PMDK
-date: pmem2 API version 1.0
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["pmem2_vm_reservation_new.3.html"]
+title: "libpmem2 | PMDK"
+header: "pmem2 API version 1.0"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2020-2021, Intel Corporation)
