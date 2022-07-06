@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * pmemobjfs.c -- simple filesystem based on libpmemobj tx API
@@ -2210,7 +2210,7 @@ parse_size(const char *str, uint64_t *sizep)
 {
 	uint64_t size = 0;
 	int shift = 0;
-	char unit[3] = {0};
+	char unit[4] = {0};
 	int ret = sscanf(str, "%lu%3s", &size, unit);
 	if (ret <= 0)
 		return -1;
