@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2021, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 import argparse
 import statemachine
@@ -9,6 +9,9 @@ import loggingfacility
 import markerparser
 import sys
 import reorderengines
+import signal
+
+signal.signal(signal.SIGINT, lambda signum, frame: exit(signum))
 
 
 def main():
