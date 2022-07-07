@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018-2022, Intel Corporation
 
+import subprocess  # nosec
 from ctypes import cdll, c_char_p, c_int
 from loggingfacility import LoggingBase
-from os import path, system
+from os import path
 from sys import exit
 
 checkers = ["prog", "lib"]
@@ -127,7 +128,7 @@ class ProgChecker(ConsistencyCheckerBase):
         user-developed programs. Therefore, it is the user's responsibility
         to provide safe input as a consistency checker.
         """
-        return system(cmd)  # nosec
+        return subprocess.call(cmd, shell=True)  # nosec
 
 
 def get_checker(checker_type, checker_path_args, func_name, logger=None):
