@@ -21,6 +21,6 @@ if get_option('tools')
     subdir('tools')
 endif
 
-if get_option('tests')
+if get_option('tests') or get_option('tests-case')!=''
     subdir('test')
 endif

@@ -52,7 +52,7 @@ threads_dep = dependency('threads')
 # TODO: Add wrap (autotools)
 libndctl_dep = dependency('libndctl', version: '>= 63', required: get_option('ndctl'))
 libdaxctl_dep = dependency('libdaxctl', version: '>= 63', required: get_option('ndctl'))
-libfabric_dep = dependency('libfabric', version: '>= 1.4.2')
+libfabric_dep = dependency('libfabric', version: '>= 1.4.2') # TODO: is it necessary?
 
 miniasync_proj = cmake.subproject('miniasync')
 miniasync_dep = miniasync_proj.dependency('miniasync')
@@ -72,19 +72,6 @@ endif
 
 subdir('src')
 
-if get_option('tests')
+if get_option('tests') or get_option('tests-case')!=''
     subdir('testsuite')
 endif
-
-tests_python = find_program('testsuite/RUNTESTS.py')
-tests_bash = find_program('testsuite/RUNTESTS')
-
-run_target(
-    'run-tests-python',
-    command:[tests_python],
-)
-
-run_target(
-    'run-tests-bash',
-    command:[tests_bash],
-)
