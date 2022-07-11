@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2020, Intel Corporation
+# Copyright 2017-2022, Intel Corporation
 #
 # utils/version.sh -- determine project's version
 #
@@ -22,7 +22,7 @@ else
 	PARSE_GIT_VERSION=0
 fi
 
-LATEST_RELEASE=$(cat $1/ChangeLog | grep "* Version" | cut -d " " -f 3 | sort -rd | head -n1)
+LATEST_RELEASE=$(cat $1/ChangeLog | grep "* Version" | cut -d " " -f 3 | sort -rV | head -n1)
 
 if [ $PARSE_GIT_VERSION -eq 1 ]; then
 	GIT_VERSION_HASH=$(cat $1/GIT_VERSION)
