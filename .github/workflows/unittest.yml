@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [[self-hosted, rhel], [self-hosted, sles]]
+        os: [[self-hosted, rhel]]
     env:
       WORKDIR: utils/gha-runners
 
