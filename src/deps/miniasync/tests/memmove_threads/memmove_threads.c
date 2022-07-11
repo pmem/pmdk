@@ -141,6 +141,23 @@ test_thread_memmove_multiple(size_t str_len)
 	return ret;
 }
 
+/*
+ * test_supported_flags -- test if data_mover_threads support correct flags
+ */
+int test_supported_flags() {
+	struct data_mover_threads *dmt = data_mover_threads_default();
+	if (dmt == NULL) {
+		fprintf(stderr,
+				"error while creating threads data mover");
+		return 1;
+	}
+	struct vdm *thread_mover = data_mover_threads_get_vdm(dmt);
+	int ret = test_flag(thread_mover, VDM_F_MEM_DURABLE, 0);
+	data_mover_threads_delete(dmt);
+
+	return ret;
+}
+
 int
 main(void)
 {
@@ -150,5 +167,6 @@ main(void)
 		test_thread_memmove_single(50000000) ||
 		test_thread_memmove_multiple(10000000) ||
 		test_thread_memmove_multiple(30000000) ||
-		test_thread_memmove_multiple(50000000);
+		test_thread_memmove_multiple(50000000) ||
+		test_supported_flags();
 }

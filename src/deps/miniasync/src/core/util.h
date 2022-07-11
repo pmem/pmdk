@@ -577,6 +577,23 @@ static
 #define SUPPRESS_ARG_8(X, ...) SUPPRESS_ARG_1(X); SUPPRESS_ARG_7(__VA_ARGS__)
 #define SUPPRESS_ARG_9(X, ...) SUPPRESS_ARG_1(X); SUPPRESS_ARG_8(__VA_ARGS__)
 
+#if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || \
+	defined(_M_AMD64)
+
+#include <emmintrin.h>
+#define WAIT() _mm_pause()
+
+#else
+
+/*
+ * Notice there are better implementations for wait-like functions on other
+ * architectures (e.g. powerpc64le), but the current code is generic enough
+ * and doesn't break the build.
+ */
+#define WAIT() do {} while (0)
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

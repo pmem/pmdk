@@ -20,18 +20,11 @@ add_check_whitespace(miniasync-vdm-dml
 	${CMAKE_CURRENT_SOURCE_DIR}/utils/*.[ch])
 
 set(DML_SOURCES
-    data_mover_dml.c
+	data_mover_dml.c
 )
 
-set(DML_CORE_DEPS
-	${CORE_SOURCE_DIR}/cpu.c
-	${CORE_SOURCE_DIR}/os_posix.c
-	${CORE_SOURCE_DIR}/os_thread_posix.c
-	${CORE_SOURCE_DIR}/out.c
-	${CORE_SOURCE_DIR}/util.c
-	${CORE_SOURCE_DIR}/util_posix.c)
-
-add_library(miniasync-vdm-dml SHARED ${DML_SOURCES} ${DML_CORE_DEPS})
+add_library(miniasync-vdm-dml SHARED ${DML_SOURCES})
+target_link_libraries(miniasync-vdm-dml PRIVATE dml dl)
 
 target_include_directories(miniasync-vdm-dml PRIVATE .
 	${MINIASYNC_DML_INCLUDE_DIR}
@@ -59,4 +52,4 @@ set(CHECK_MOVDIR64B_SOURCES
 
 add_link_executable(check_movdir64b
 	"${CHECK_MOVDIR64B_SOURCES}"
-	"")
+	"dml")

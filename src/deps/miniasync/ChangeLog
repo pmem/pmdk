@@ -1,0 +1,15 @@
+Fri May 20 2022 Weronika Lewandowska <weronika.lewandowska@intel.com>
+
+	* Version 0.1.0
+
+	This is the first official release of the miniasync library.
+ 
+	The library provides the API for asynchronous memory operations
+	through the use of features and runtime mechanisms and independence
+	in terms of hardware by implementing a virtual data mover.
+	
+	This release also contains:
+	- documentation on the implemented functionality
+	- basic examples
+	- working build system based on GHA
+	- functional test cases

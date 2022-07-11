@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(PMREORDER, 1)
-collection: pmreorder
-header: PMDK
-date: pmreorder version 1.5
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["pmreorder.1.html"]
+title: "pmreorder | PMDK"
+header: "pmreorder version 1.5"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2018-2021, Intel Corporation)

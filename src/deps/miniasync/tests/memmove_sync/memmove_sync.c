@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "libminiasync.h"
+#include "test_helpers.h"
 
 /*
  * test_basic_memmove -- tests memmove vdm operation
@@ -159,6 +160,23 @@ test_memmove_overlapping(size_t size)
 	return ret;
 }
 
+/*
+ * test_supported_flags -- test if data_mover_sync support correct flags
+ */
+int test_supported_flags() {
+	struct data_mover_sync *dms = data_mover_sync_new();
+	if (dms == NULL) {
+		fprintf(stderr,
+				"error while creating synchronous data mover");
+		return 1;
+	}
+	struct vdm *sync_mover = data_mover_sync_get_vdm(dms);
+	int ret = test_flag(sync_mover, VDM_F_MEM_DURABLE, 0);
+	ret += test_flag(sync_mover, VDM_F_NO_CACHE_HINT, 0);
+	data_mover_sync_delete(dms);
+	return ret;
+}
+
 int
 main(void)
 {
@@ -166,5 +184,6 @@ main(void)
 		test_basic_memmove() ||
 		test_memmove_overlapping(4) ||
 		test_memmove_overlapping(12) ||
-		test_memmove_overlapping(1024);
+		test_memmove_overlapping(1024) ||
+		test_supported_flags();
 }

@@ -10,4 +10,7 @@ EXPORTS
     data_mover_threads_new
     data_mover_threads_default
     data_mover_threads_get_vdm
+    data_mover_threads_set_memcpy_fn
+    data_mover_threads_set_memmove_fn
+    data_mover_threads_set_memset_fn
     data_mover_threads_delete

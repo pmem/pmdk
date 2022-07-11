@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
@@ -55,7 +55,8 @@ ENV TESTS_DEPS "bc \
 	ndctl \
 	python3 \
 	ssh \
-	strace"
+	strace \
+	bandit "
 
 # packaging
 ENV PACKAGING_DEPS "debhelper \

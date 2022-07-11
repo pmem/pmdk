@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(PMEMPOOL, 1)
-collection: pmempool
-header: PMDK
-date: pmem Tools version 1.4
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["pmempool.1.html"]
+title: "pmempool | PMDK"
+header: "pmem Tools version 1.4"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2016-2020, Intel Corporation)

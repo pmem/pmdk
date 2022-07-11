@@ -11,6 +11,8 @@
 #include "core/membuf.h"
 #include "core/out.h"
 
+#define SUPPORTED_FLAGS 0
+
 struct data_mover_sync {
 	struct vdm base; /* must be first */
 
@@ -134,6 +136,7 @@ static struct vdm data_mover_sync_vdm = {
 	.op_delete = sync_operation_delete,
 	.op_check = sync_operation_check,
 	.op_start = sync_operation_start,
+	.capabilities = SUPPORTED_FLAGS,
 };
 
 /*

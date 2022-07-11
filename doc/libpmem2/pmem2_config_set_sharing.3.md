@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(PMEM2_CONFIG_SET_SHARING, 3)
-collection: libpmem2
-header: PMDK
-date: pmem2 API version 1.0
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["pmem2_config_set_sharing.3.html"]
+title: "libpmem2 | PMDK"
+header: "pmem2 API version 1.0"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2020, Intel Corporation)

@@ -50,6 +50,7 @@ containerName=pmdk-${OS}-${OS_VER}
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; ci_env=`bash <(curl -s https://codecov.io/env)`; fi
+if [[ $BANDIT -eq 1 ]] ; then command="./run-bandit.sh"; fi
 
 if [[ ( "$CI_EVENT_TYPE" == "cron" || "$CI_BRANCH" == "coverity_scan" )\
 	&& "$COVERITY" -eq 1 ]]; then
@@ -61,10 +62,6 @@ if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUIL
 if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_ENABLE=$NDCTL_ENABLE"; fi
 if [ -z "$PMEMSET_INSTALL" ]; then pmemset_install=; else pmemset_install="--env PMEMSET_INSTALL=$PMEMSET_INSTALL"; fi
 if [[ $UBSAN -eq 1 ]]; then for x in C CPP LD; do declare EXTRA_${x}FLAGS=-fsanitize=undefined; done; fi
-
-# XXX: Disable auto doc update to unblock builds until the script is updated
-# to push to the new website
-AUTO_DOC_UPDATE=0
 
 # Only run auto doc update on push events on "upstream" repo
 if [[ "${CI_EVENT_TYPE}" != "push" || "${CI_REPO_SLUG}" != "${GITHUB_REPO}" ]]; then
@@ -141,6 +138,7 @@ docker run --rm --name=$containerName -i $TTY \
 	--env CI_RUN=$CI_RUN \
 	--env SRC_CHECKERS=$SRC_CHECKERS \
 	--env BLACKLIST_FILE=$BLACKLIST_FILE \
+	--env BANDIT=$BANDIT \
 	$ndctl_enable \
 	$pmemset_install \
 	--tmpfs /tmp:rw,relatime,suid,dev,exec,size=6G \

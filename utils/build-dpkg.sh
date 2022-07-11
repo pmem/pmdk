@@ -251,6 +251,7 @@ $LIB_DIR/pmdk_debug/libpmem2.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libpmem2.so
 $LIB_DIR/pkgconfig/libpmem2.pc
 $INC_DIR/libpmem2.h
+$INC_DIR/libpmem2/*.h
 $MAN7_DIR/libpmem2.7
 $MAN3_DIR/pmem2_*.3
 EOF

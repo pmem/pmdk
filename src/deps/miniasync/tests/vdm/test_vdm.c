@@ -36,7 +36,7 @@ async_alloc(size_t size)
 	fut.data.n = size;
 	FUTURE_INIT(&fut, alloc_impl);
 	return fut;
-};
+}
 
 struct strdup_data {
 	FUTURE_CHAIN_ENTRY(struct alloc_fut, alloc);

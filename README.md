@@ -8,6 +8,7 @@
 [![PMDK release version](https://img.shields.io/github/release/pmem/pmdk.svg?sort=semver)](https://github.com/pmem/pmdk/releases/latest)
 [![Packaging status](https://repology.org/badge/tiny-repos/pmdk.svg)](https://repology.org/project/pmdk/versions)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/pmem/pmdk.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/pmem/pmdk/context:cpp)
+[![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/bandit.yml)
 
 The **Persistent Memory Development Kit (PMDK)** is a collection of libraries and tools for System Administrators and Application Developers to simplify managing and accessing persistent memory devices. For more information, see https://pmem.io.
 
@@ -181,7 +182,7 @@ To build from source, clone this tree:
 
 For a stable version, checkout a [release tag](https://github.com/pmem/pmdk/releases) as follows. Otherwise skip this step to build the latest development release.
 ```
-	$ git checkout tags/1.11.1
+	$ git checkout tags/1.12.0
 ```
 
 Once the build system is setup, the Persistent Memory Development Kit is built using the `make` command at the top level:

@@ -236,9 +236,10 @@ endif
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 PMEM2_TESTS += pmem2_mover
+PMEM2_TESTS += pmem2_future
 else
 $(info NOTE: Skipping tests because miniasync is not supported on this os.\
-		Skipped tests: pmem2_mover)
+		Skipped tests: pmem2_mover, pmem2_future)
 endif
 
 PMEMPOOL_TESTS = \
@@ -250,7 +251,8 @@ PMEMPOOL_TESTS = \
 	pmempool_info\
 	pmempool_rm\
 	pmempool_sync\
-	pmempool_transform
+	pmempool_transform\
+	pmempool_inval
 
 RPMEM_TESTS = \
 	rpmem_addr\

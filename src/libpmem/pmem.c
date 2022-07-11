@@ -842,6 +842,8 @@ pmem_init(void)
 	struct pmem2_arch_info info;
 	info.memmove_nodrain = NULL;
 	info.memset_nodrain = NULL;
+	info.memmove_nodrain_eadr = NULL;
+	info.memset_nodrain_eadr = NULL;
 	info.flush = NULL;
 	info.fence = NULL;
 	info.flush_has_builtin_fence = 0;

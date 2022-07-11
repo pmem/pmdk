@@ -46,7 +46,8 @@ if [ "$prefix" = "" ]; then
 	exit 1
 fi
 
-commit_len=$(git log --format="%s%n%b" -n 1 $1 | wc -L)
+ignore_long_link_lines="!/^http/"
+commit_len=$(git log --format="%s%n%b" -n 1 $1 | awk ${ignore_long_link_lines} | wc -L)
 
 if [ $commit_len -gt 73 ]; then
 	echo "FAIL: commit message exceeds 72 chars per line (commit_len)"

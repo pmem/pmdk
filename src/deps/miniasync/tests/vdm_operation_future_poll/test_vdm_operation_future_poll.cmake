@@ -5,12 +5,8 @@ include(${SRC_DIR}/cmake/test_helpers.cmake)
 
 setup()
 
-# check for MOVDIR64B instruction
-check_movdir64b()
+execute(0 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/vdm_operation_future_poll)
 
-# execute DML tests only if MOVDIR64B instruction is available
-if (MOVDIR64B EQUAL 1)
-    execute(0 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/vdm_operation_future_poll)
-endif()
+execute_assert_pass(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/vdm_operation_future_poll)
 
 cleanup()

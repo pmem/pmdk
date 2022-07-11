@@ -1,3 +1,30 @@
+Tue May 24 2022 Łukasz Plewa <lukasz.plewa@intel.com>
+
+	* Version 1.12.0
+
+	This release:
+	- Deprecates librpmem library and rpmemd tool.
+	Using the librpmem library API will result in warnings
+	and is no longer recommended. Those interested in a remote
+	persistent memory support should use the new
+	rpma (https://github.com/pmem/rpma) library.
+	- Introduces a new set of APIs in libpmem2 to perform asynchronous data
+	movement operations. To use this feature, software needs to include an
+	optional miniasync(7) dependency.
+	- Adds new API to machine safe read/write operations in the pmem2 library.
+	- Introduces support for movdir64b instruction for memory operation
+	functions in the libpmem2 library.
+	- Adds experimental support for RISC-V.
+
+	Other changes and notable bug fixes:
+	- common: supress false positve of '-Wunused-parameter'
+	- examples: remove unnecessary persists in pminvaders
+	- obj: fix invalid type when setting cache size ctl (pmem/issues#5291)
+	- pmem: fix eADR memmove and memset (pmem/issues#5364)
+	- pmem2: add addr alignment prediction to vm reservation
+	- pmreorder: update docs with required last arg - file_name
+	- pmreorder: add more debug/info logs
+
 Fri Sep 24 2020 Łukasz Plewa <lukasz.plewa@intel.com>
 
 	* Version 1.11.1

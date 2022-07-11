@@ -16,5 +16,5 @@ OBJS = pmem2_mover.o\
 	ut_pmem2_setup_integration.o
 
 LIBPMEM2=y
-LINMINIASYNC=y
+LIBMINIASYNC=y
 include ../Makefile.inc
