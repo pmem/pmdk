@@ -66,6 +66,7 @@ if [[ $UBSAN -eq 1 ]]; then for x in C CPP LD; do declare EXTRA_${x}FLAGS=-fsani
 # Only run auto doc update on push events on "upstream" repo
 if [[ "${CI_EVENT_TYPE}" != "push" || "${CI_REPO_SLUG}" != "${GITHUB_REPO}" ]]; then
 	AUTO_DOC_UPDATE=0
+	echo "Skipping auto doc update"
 fi
 
 # Check if we are running on a CI (Travis or GitHub Actions)

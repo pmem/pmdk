@@ -31,9 +31,7 @@ fi
 # Clone PMDK repo
 git clone ${PMDK_REPO}
 cd ${PMDK_REPO_NAME}
-
-git remote update
-git checkout -B ${TARGET_BRANCH} upstream/${TARGET_BRANCH}
+git checkout ${TARGET_BRANCH}
 
 # Copy man & PR web md
 cd  ./doc
