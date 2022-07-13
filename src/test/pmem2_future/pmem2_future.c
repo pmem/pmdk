@@ -56,6 +56,12 @@ test_pmem2_future_mover(const struct test_case *tc, int argc,
 	struct pmem2_future cpy =
 		pmem2_memcpy_async(map, data, data + test_len, test_len, 0);
 
+	enum pmem2_granularity gran = pmem2_map_get_store_granularity(map);
+
+	UT_ASSERTeq(cpy.data.op.fut.data.operation.data.memcpy.flags,
+			gran == PMEM2_GRANULARITY_CACHE_LINE ?
+				VDM_F_MEM_DURABLE : 0);
+
 	FUTURE_BUSY_POLL(&cpy);
 
 	if (memcmp(data, data + test_len, test_len))

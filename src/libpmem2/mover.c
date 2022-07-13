@@ -113,35 +113,46 @@ sync_operation_start(void *data, const struct vdm_operation *operation,
 	if (n)
 		n->notifier_used = FUTURE_NOTIFIER_NONE;
 
+	unsigned flags;
+
 	switch (operation->type) {
 		case VDM_OPERATION_MEMCPY: {
 			pmem2_memcpy_fn memcpy_fn;
 			memcpy_fn = pmem2_get_memcpy_fn(mover->map);
+			flags = operation->data.memcpy.flags &
+				VDM_F_MEM_DURABLE ?
+				PMEM2_F_MEM_NONTEMPORAL : PMEM2_F_MEM_NOFLUSH;
 
 			memcpy_fn(operation->data.memcpy.dest,
 				operation->data.memcpy.src,
 				operation->data.memcpy.n,
-				PMEM2_F_MEM_NONTEMPORAL);
+				flags);
 			break;
 		}
 		case VDM_OPERATION_MEMMOVE: {
 			pmem2_memmove_fn memmove_fn;
 			memmove_fn = pmem2_get_memmove_fn(mover->map);
+			flags = operation->data.memmove.flags &
+				VDM_F_MEM_DURABLE ?
+				PMEM2_F_MEM_NONTEMPORAL : PMEM2_F_MEM_NOFLUSH;
 
 			memmove_fn(operation->data.memcpy.dest,
 				operation->data.memcpy.src,
 				operation->data.memcpy.n,
-				PMEM2_F_MEM_NONTEMPORAL);
+				flags);
 			break;
 		}
 		case VDM_OPERATION_MEMSET: {
 			pmem2_memset_fn memset_fn;
 			memset_fn = pmem2_get_memset_fn(mover->map);
+			flags = operation->data.memset.flags &
+				VDM_F_MEM_DURABLE ?
+				PMEM2_F_MEM_NONTEMPORAL : PMEM2_F_MEM_NOFLUSH;
 
 			memset_fn(operation->data.memset.str,
 				operation->data.memset.c,
 				operation->data.memset.n,
-				PMEM2_F_MEM_NONTEMPORAL);
+				flags);
 			break;
 		}
 		default:
@@ -201,24 +212,53 @@ mover_delete(struct vdm *dms)
 }
 
 /*
+ * pmem2_future_detect_properties -- identifies how the future should behave
+ * depending on the properties of the underlying memory map and supported vdm
+ * features.
+ */
+static void
+pmem2_future_detect_properties(struct pmem2_map *map,
+	uint64_t *vdm_flags, bool *needs_flushing)
+{
+	enum pmem2_granularity gran = pmem2_map_get_store_granularity(map);
+	bool durable = vdm_is_supported(map->vdm, VDM_F_MEM_DURABLE);
+
+	switch (gran) {
+		case PMEM2_GRANULARITY_BYTE:
+			*needs_flushing = 0;
+			*vdm_flags = 0;
+			break;
+		case PMEM2_GRANULARITY_PAGE:
+			*needs_flushing = 1;
+			*vdm_flags = 0;
+			break;
+		case PMEM2_GRANULARITY_CACHE_LINE:
+			*needs_flushing = !durable;
+			*vdm_flags = durable ? VDM_F_MEM_DURABLE : 0;
+			break;
+		default:
+			ASSERT(0); /* unreachable */
+	};
+}
+
+/*
  * Attach pmem2_future_persist into pmem2_future if required by
  * characteristics of mapping and vdm
  */
 static void
-pmem2_future_attach_persist(struct pmem2_map *map, struct pmem2_future *future,
-	void *pmemdest, size_t len) {
+pmem2_future_prepare_finalizer(struct pmem2_map *map,
+	struct pmem2_future *future,
+	void *pmemdest, size_t len, bool needs_flushing) {
 	struct future_chain_entry *operation_entry =
 		(struct future_chain_entry *)(&future->data.op);
-	enum pmem2_granularity gran =
-		pmem2_map_get_store_granularity(map);
-	bool pmem_support = vdm_is_supported(map->vdm, VDM_F_MEM_DURABLE);
 
-	if (gran != PMEM2_GRANULARITY_BYTE && !pmem_support) {
+	if (needs_flushing) {
 		/*
-		 * The engine does not support PMEM, and we do not have eADR,
-		 * so we have to assure that the copied data is moved into
-		 * a persistent domain properly before the pmem2_future
-		 * is complete
+		 * The engine does not support PMEM, we do not have eADR, or we
+		 * are writing to a page-cached backed device. In such case we
+		 * have to ensure that the copied data is moved into
+		 * a persistent domain properly before
+		 * the pmem2_future is complete
 		 */
 		FUTURE_CHAIN_ENTRY_INIT(&future->data.fin,
 			pmem2_persist_future(map, pmemdest, len),
@@ -244,12 +284,18 @@ pmem2_memcpy_async(struct pmem2_map *map, void *pmemdest, const void *src,
 		pmemdest, src, len, flags);
 	SUPPRESS_UNUSED(flags);
 
+	uint64_t vdm_flags = 0;
+	bool needs_flushing = 0;
+	pmem2_future_detect_properties(map, &vdm_flags, &needs_flushing);
+
 	struct pmem2_future future;
 	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
-		vdm_memcpy(map->vdm, pmemdest, (void *)src, len, 0),
+		vdm_memcpy(map->vdm, pmemdest, (void *)src, len, vdm_flags),
 		NULL, NULL);
 
-	pmem2_future_attach_persist(map, &future, pmemdest, len);
+	pmem2_future_prepare_finalizer(map, &future, pmemdest, len,
+		needs_flushing);
+
 	future.output.dest = pmemdest;
 
 	FUTURE_CHAIN_INIT(&future);
@@ -267,12 +313,18 @@ pmem2_memmove_async(struct pmem2_map *map, void *pmemdest, const void *src,
 		pmemdest, src, len, flags);
 	SUPPRESS_UNUSED(flags);
 
+	uint64_t vdm_flags = 0;
+	bool needs_flushing = 0;
+	pmem2_future_detect_properties(map, &vdm_flags, &needs_flushing);
+
 	struct pmem2_future future;
 	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
-		vdm_memmove(map->vdm, pmemdest, (void *)src, len, 0),
+		vdm_memmove(map->vdm, pmemdest, (void *)src, len, vdm_flags),
 		NULL, NULL);
 
-	pmem2_future_attach_persist(map, &future, pmemdest, len);
+	pmem2_future_prepare_finalizer(map, &future, pmemdest, len,
+		needs_flushing);
+
 	future.output.dest = pmemdest;
 
 	FUTURE_CHAIN_INIT(&future);
@@ -290,12 +342,18 @@ pmem2_memset_async(struct pmem2_map *map, void *pmemstr, int c, size_t n,
 		pmemstr, c, n, flags);
 	SUPPRESS_UNUSED(flags);
 
+	uint64_t vdm_flags = 0;
+	bool needs_flushing = 0;
+	pmem2_future_detect_properties(map, &vdm_flags, &needs_flushing);
+
 	struct pmem2_future future;
 	FUTURE_CHAIN_ENTRY_INIT(&future.data.op,
-		vdm_memset(map->vdm, pmemstr, c, n, 0),
+		vdm_memset(map->vdm, pmemstr, c, n, vdm_flags),
 		NULL, NULL);
 
-	pmem2_future_attach_persist(map, &future, pmemstr, n);
+	pmem2_future_prepare_finalizer(map, &future, pmemstr, n,
+		needs_flushing);
+
 	future.output.dest = pmemstr;
 
 	FUTURE_CHAIN_INIT(&future);
