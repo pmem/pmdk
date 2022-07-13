@@ -946,3 +946,328 @@ pmemblk_fault_injection_enabled(void)
 	return core_fault_injection_enabled();
 }
 #endif
+
+#define PMEMBLK_USE_MINIASYNC 1
+
+/* Asynchronous blk operations */
+#ifdef PMEMBLK_USE_MINIASYNC
+
+#include "libminiasync/vdm.h"
+
+/*
+ * START of the blk_lane_enter_fut
+ */
+static enum future_state
+blk_lane_enter_impl(struct future_context *ctx,
+		struct future_notifier *notifier)
+{
+	struct blk_lane_enter_data *data = future_context_get_data(ctx);
+	struct blk_lane_enter_output *output = future_context_get_output(ctx);
+
+	lane_enter(data->pbp, &output->lane);
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+static struct blk_lane_enter_fut
+blk_lane_enter(PMEMblkpool *pbp)
+{
+	struct blk_lane_enter_fut future;
+	future.data.pbp = pbp;
+
+	FUTURE_INIT(&future, blk_lane_enter_impl);
+
+	return future;
+}
+/*
+ * END of the blk_lane_enter_fut
+ */
+
+/*
+ * START of the blk_lane_exit_fut
+ */
+static enum future_state
+blk_lane_exit_impl(struct future_context *ctx,
+		struct future_notifier *notifier)
+{
+	struct blk_lane_exit_data *data = future_context_get_data(ctx);
+
+	lane_exit(data->pbp, data->lane);
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+static struct blk_lane_exit_fut
+blk_lane_exit(PMEMblkpool *pbp, unsigned int lane)
+{
+	struct blk_lane_exit_fut future;
+	future.data.pbp = pbp;
+	future.data.lane = lane;
+
+	FUTURE_INIT(&future, blk_lane_exit_impl);
+
+	return future;
+}
+/*
+ * END of the blk_lane_exit_fut
+ */
+
+/*
+ * START of the blk_pre_block_write_fut
+ */
+static enum future_state
+blk_pre_block_write_impl(struct future_context *ctx,
+		struct future_notifier *notifier)
+{
+	struct blk_pre_block_write_data *data = future_context_get_data(ctx);
+	struct blk_pre_block_write_output *output =
+			future_context_get_output(ctx);
+
+	PMEMblkpool *pbp = data->pbp;
+	void *block = data->block;
+	size_t lbasize = data->lbasize;
+
+#ifdef DEBUG
+	/* grab debug write lock */
+	util_mutex_lock(&pbp->write_lock);
+#endif
+
+	/* unprotect the memory (debug version only) */
+	RANGE_RW(block, lbasize, pbp->is_dev_dax);
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+static struct blk_pre_block_write_fut
+blk_pre_block_write(PMEMblkpool *pbp, void *block, size_t lbasize)
+{
+	struct blk_pre_block_write_fut future;
+	future.data.pbp = pbp;
+	future.data.block = block;
+	future.data.lbasize = lbasize;
+
+	FUTURE_INIT(&future, blk_pre_block_write_impl);
+
+	return future;
+}
+/*
+ * END of the blk_pre_block_write_fut
+ */
+
+/*
+ * START of the blk_post_block_write_fut
+ */
+static enum future_state
+blk_post_block_write_impl(struct future_context *ctx,
+		struct future_notifier *notifier)
+{
+	struct blk_post_block_write_data *data = future_context_get_data(ctx);
+	struct blk_post_block_write_output *output =
+			future_context_get_output(ctx);
+
+	PMEMblkpool *pbp = data->pbp;
+	void *block = data->block;
+	size_t lbasize = data->lbasize;
+
+	/* protect the memory again (debug version only) */
+	RANGE_RO(block, lbasize, pbp->is_dev_dax);
+
+#ifdef DEBUG
+	/* release debug write lock */
+	util_mutex_unlock(&pbp->write_lock);
+#endif
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+static struct blk_post_block_write_fut
+blk_post_block_write(PMEMblkpool *pbp, void *block, size_t lbasize)
+{
+	struct blk_post_block_write_fut future;
+	future.data.pbp = pbp;
+	future.data.block = block;
+	future.data.lbasize = lbasize;
+
+	FUTURE_INIT(&future, blk_post_block_write_impl);
+
+	return future;
+}
+/*
+ * END of the blk_post_block_write_fut
+ */
+
+/*
+ * START of the blk_write_fut
+ */
+static void
+get_free_block_to_pre_write_map(struct future_context *get_free_block_ctx,
+		struct future_context *pre_write_ctx, void *arg)
+{
+	struct btt_get_free_block_output *get_free_block_output =
+			future_context_get_output(get_free_block_ctx);
+	struct blk_pre_block_write_data *pre_write_data =
+			future_context_get_data(pre_write_ctx);
+
+	pre_write_data->block = get_free_block_output->block;
+	pre_write_data->lbasize = get_free_block_output->lbasize;
+
+	if (get_free_block_output->block == NULL) {
+		/*
+		 * 'get_free_block' future entry failed,
+		 * 'pre_write' future entry cannot proceed.
+		 */
+		pre_write_ctx->state = FUTURE_STATE_COMPLETE;
+	}
+}
+
+static void
+pre_write_to_write_map(struct future_context *pre_write_ctx,
+		struct future_context *write_ctx, void *arg)
+{
+	struct blk_pre_block_write_data *pre_write_data =
+			future_context_get_data(pre_write_ctx);
+	struct blk_pre_block_write_output *pre_write_output =
+			future_context_get_output(pre_write_ctx);
+	struct vdm_operation_data *write_data =
+			future_context_get_data(write_ctx);
+
+	write_data->operation.data.memcpy.dest = pre_write_data->block;
+	write_data->operation.data.memcpy.n = pre_write_data->lbasize;
+
+	if (pre_write_data->block == NULL) {
+		/*
+		 * 'pre_write' future entry hasn't received a block address as
+		 * input data, 'write' future entry cannot proceed.
+		 */
+		write_ctx->state = FUTURE_STATE_COMPLETE;
+	}
+}
+
+static void
+write_to_post_write_map(struct future_context *write_ctx,
+		struct future_context *post_write_ctx, void *arg)
+{
+	struct vdm_operation_data *write_data =
+			future_context_get_data(write_ctx);
+	struct blk_post_block_write_data *post_write_data =
+			future_context_get_data(post_write_ctx);
+
+	post_write_data->block = write_data->operation.data.memcpy.dest;
+	post_write_data->lbasize = write_data->operation.data.memcpy.n;
+
+	if (write_data->operation.data.memcpy.dest == NULL) {
+		/*
+		 * 'write' future entry hasn't received a block address as
+		 * input data, 'post_write' future entry cannot proceed.
+		 */
+		post_write_ctx->state = FUTURE_STATE_COMPLETE;
+	}
+}
+
+static void
+post_write_to_output_map(struct future_context *post_write_ctx,
+		struct future_context *btt_write_ctx, void *arg)
+{
+	struct blk_write_data *blk_write_data =
+			future_context_get_data(btt_write_ctx);
+	struct blk_write_output *blk_write_output =
+			future_context_get_output(btt_write_ctx);
+
+	/* set output */
+	blk_write_output->dest =
+			blk_write_data->write.fut.output.output.memcpy.dest;
+}
+
+static struct blk_write_fut
+blk_write_async(PMEMblkpool *pbp, void *buf, long long blockno, unsigned lane,
+		struct vdm *vdm)
+{
+	struct blk_write_fut chain;
+
+	/* Initialize chained future entries */
+	FUTURE_CHAIN_ENTRY_INIT(&chain.data.get_free_block,
+			btt_get_free_block(pbp->bttp, lane, blockno),
+			get_free_block_to_pre_write_map, NULL);
+	FUTURE_CHAIN_ENTRY_INIT(&chain.data.pre_write,
+			blk_pre_block_write(pbp, NULL, 0),
+			pre_write_to_write_map, NULL);
+	FUTURE_CHAIN_ENTRY_INIT(&chain.data.write,
+			vdm_memcpy(vdm, NULL, buf, 0, 0),
+			write_to_post_write_map, NULL);
+	FUTURE_CHAIN_ENTRY_INIT(&chain.data.post_write,
+			blk_post_block_write(pbp, NULL, 0),
+			post_write_to_output_map, NULL);
+
+	/* Set default output values */
+	chain.output.dest = NULL;
+
+	FUTURE_CHAIN_INIT(&chain);
+
+	return chain;
+}
+/*
+ * END of the blk_write_fut
+ */
+
+/*
+ * START of the pmemblk_write_async_fut
+ */
+static void
+lane_enter_to_write_map(struct future_context *lane_enter_ctx,
+		struct future_context *write_ctx, void *arg)
+{
+	struct blk_lane_enter_output *lane_enter_output =
+			future_context_get_data(lane_enter_ctx);
+	struct blk_write_data *write_data =
+			future_context_get_data(write_ctx);
+
+	write_data->get_free_block.fut.data.lane = lane_enter_output->lane;
+}
+
+static void
+write_to_lane_exit_map(struct future_context *write_ctx,
+		struct future_context *lane_exit_ctx, void *arg)
+{
+	struct blk_write_data *write_data =
+			future_context_get_data(write_ctx);
+	struct blk_lane_exit_data *lane_exit_output =
+			future_context_get_data(lane_exit_ctx);
+
+	lane_exit_output->lane = write_data->get_free_block.fut.data.lane;
+}
+
+static void
+lane_exit_to_output_map(struct future_context *lane_exit_ctx,
+	struct future_context *pmemblk_write_async_ctx, void *arg)
+{
+	struct pmemblk_write_async_data *pmemblk_write_async_data =
+			future_context_get_data(pmemblk_write_async_ctx);
+	struct pmemblk_write_async_output *pmemblk_write_async_output =
+			future_context_get_output(pmemblk_write_async_ctx);
+
+	pmemblk_write_async_output->dest =
+			pmemblk_write_async_data->write.fut.output.dest;
+}
+
+struct pmemblk_write_async_fut
+pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno,
+		struct vdm *vdm)
+{
+	struct pmemblk_write_async_fut chain;
+
+	FUTURE_CHAIN_ENTRY_INIT(&chain.data.lane_enter, blk_lane_enter(pbp),
+			lane_enter_to_write_map, NULL);
+	FUTURE_CHAIN_ENTRY_INIT(&chain.data.write,
+			blk_write_async(pbp, buf, blockno, 0, vdm),
+			pre_write_to_write_map, NULL);
+	FUTURE_CHAIN_ENTRY_INIT(&chain.data.lane_exit, blk_lane_exit(pbp, 0),
+			lane_exit_to_output_map, NULL);
+
+	FUTURE_CHAIN_INIT(&chain);
+
+	return chain;
+}
+/*
+ * END of the pmemblk_write_async_fut
+ */
+#endif

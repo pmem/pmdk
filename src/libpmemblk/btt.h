@@ -52,6 +52,14 @@ void btt_info_convert2le(struct btt_info *infop);
 void btt_flog_convert2h(struct btt_flog *flogp);
 void btt_flog_convert2le(struct btt_flog *flogp);
 
+#ifdef PMEMBLK_USE_MINIASYNC
+
+#include "libminiasync/future.h"
+
+struct btt_get_free_block_fut btt_get_free_block(struct btt *bttp,
+		unsigned lane, uint64_t lba);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

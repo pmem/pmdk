@@ -235,11 +235,13 @@ $(info NOTE: Skipping tests because libndctl is disabled (see NDCTL_ENABLE)\
 endif
 
 ifeq ($(OS_KERNEL_NAME),Linux)
+BLK_TESTS += blk_mover
+
 PMEM2_TESTS += pmem2_mover
 PMEM2_TESTS += pmem2_future
 else
 $(info NOTE: Skipping tests because miniasync is not supported on this os.\
-		Skipped tests: pmem2_mover, pmem2_future)
+		Skipped tests: blk_mover, pmem2_mover, pmem2_future)
 endif
 
 PMEMPOOL_TESTS = \

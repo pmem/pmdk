@@ -101,10 +101,13 @@
 #include <stdint.h>
 #include <endian.h>
 
+#include "libpmemblk.h"
+
 #include "out.h"
 #include "uuid.h"
 #include "btt.h"
 #include "btt_layout.h"
+#include "blk.h"
 #include "sys_util.h"
 #include "util.h"
 #include "alloc.h"
@@ -1667,32 +1670,31 @@ map_unlock(struct btt *bttp, unsigned lane, struct arena *arenap,
 }
 
 /*
- * btt_write -- write a block to a btt namespace
- *
- * Returns 0 on success, otherwise -1/errno.
+ * btt_layout_init -- (internal) initialize the btt metadata layout
  */
-int
-btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
+static int
+btt_layout_init(struct btt *bttp, unsigned lane)
+{
+	int ret = 0;
+
+	util_mutex_lock(&bttp->layout_write_mutex);
+
+	if (!bttp->laidout)
+		ret = write_layout(bttp, lane, 1);
+
+	util_mutex_unlock(&bttp->layout_write_mutex);
+
+	return ret;
+}
+
+/*
+ * btt_get_free_entry -- (internal) get free entry
+ */
+static int
+btt_get_free_entry(struct btt *bttp, unsigned lane, uint64_t lba,
+		uint32_t *entryp, struct arena **arenapp, uint32_t *premap_lbap)
 {
 	LOG(3, "bttp %p lane %u lba %" PRIu64, bttp, lane, lba);
-
-	if (invalid_lba(bttp, lba))
-		return -1;
-
-	/* first write through here will initialize the metadata layout */
-	if (!bttp->laidout) {
-		int err = 0;
-
-		util_mutex_lock(&bttp->layout_write_mutex);
-
-		if (!bttp->laidout)
-			err = write_layout(bttp, lane, 1);
-
-		util_mutex_unlock(&bttp->layout_write_mutex);
-
-		if (err < 0)
-			return err;
-	}
 
 	/* find which arena LBA lives in, and the offset to the map entry */
 	struct arena *arenap;
@@ -1720,6 +1722,75 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 	uint32_t free_entry = (arenap->flogs[lane].flog.old_map &
 			BTT_MAP_ENTRY_LBA_MASK) | BTT_MAP_ENTRY_NORMAL;
 
+	*entryp = free_entry;
+	*arenapp = arenap;
+	*premap_lbap = premap_lba;
+
+	return 0;
+}
+
+/*
+ * btt_activate_block -- (internal) activate the block atomically by updating
+ *                       the on-media flog and then updating the map
+ */
+static int
+btt_activate_block(struct btt *bttp, unsigned lane, struct arena *arenap,
+		uint32_t entry, uint32_t premap_lba)
+{
+	uint32_t old_entry;
+	if (map_lock(bttp, lane, arenap, &old_entry, premap_lba) < 0)
+		return -1;
+
+	old_entry = le32toh(old_entry);
+
+	/* update the flog */
+	if (flog_update(bttp, lane, arenap, premap_lba, old_entry, entry) < 0) {
+		map_abort(bttp, lane, arenap, premap_lba);
+		return -1;
+	}
+
+	if (map_unlock(bttp, lane, arenap, htole32(entry), premap_lba) < 0) {
+		/*
+		 * A critical write error occurred, set the arena's
+		 * info block error bit.
+		 */
+		set_arena_error(bttp, arenap, lane);
+		errno = EIO;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * btt_write -- write a block to a btt namespace
+ *
+ * Returns 0 on success, otherwise -1/errno.
+ */
+int
+btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
+{
+	LOG(3, "bttp %p lane %u lba %" PRIu64, bttp, lane, lba);
+
+	if (invalid_lba(bttp, lba))
+		return -1;
+
+	int ret = 0;
+	/* first write through here will initialize the metadata layout */
+	if (!bttp->laidout) {
+		ret = btt_layout_init(bttp, lane);
+		if (ret)
+			return ret;
+	}
+
+	uint32_t premap_lba;
+	struct arena *arenap;
+	uint32_t free_entry;
+	ret = btt_get_free_entry(bttp, lane, lba, &free_entry, &arenap,
+			&premap_lba);
+	if (ret)
+		return ret;
+
 	LOG(3, "free_entry %u (before mask %u)", free_entry,
 				arenap->flogs[lane].flog.old_map);
 
@@ -1736,33 +1807,10 @@ btt_write(struct btt *bttp, unsigned lane, uint64_t lba, const void *buf)
 				bttp->lbasize, data_block_off) < 0)
 		return -1;
 
-	/*
-	 * Make the new block active atomically by updating the on-media flog
-	 * and then updating the map.
-	 */
-	uint32_t old_entry;
-	if (map_lock(bttp, lane, arenap, &old_entry, premap_lba) < 0)
-		return -1;
-
-	old_entry = le32toh(old_entry);
-
-	/* update the flog */
-	if (flog_update(bttp, lane, arenap, premap_lba,
-					old_entry, free_entry) < 0) {
-		map_abort(bttp, lane, arenap, premap_lba);
-		return -1;
-	}
-
-	if (map_unlock(bttp, lane, arenap, htole32(free_entry),
-					premap_lba) < 0) {
-		/*
-		 * A critical write error occurred, set the arena's
-		 * info block error bit.
-		 */
-		set_arena_error(bttp, arenap, lane);
-		errno = EIO;
-		return -1;
-	}
+	/* make the new block active */
+	ret = btt_activate_block(bttp, lane, arenap, free_entry, premap_lba);
+	if (ret)
+		return ret;
 
 	return 0;
 }
@@ -2049,3 +2097,95 @@ btt_fini(struct btt *bttp)
 	}
 	Free(bttp);
 }
+
+/* Asynchronous btt operations */
+#ifdef PMEMBLK_USE_MINIASYNC
+
+#include "libminiasync/vdm.h"
+
+/*
+ * START of the btt_get_free_block_fut
+ */
+static enum future_state
+btt_get_free_block_impl(struct future_context *ctx,
+		struct future_notifier *notifier)
+{
+	struct btt_get_free_block_data *data = future_context_get_data(ctx);
+	struct btt_get_free_block_output *output =
+			future_context_get_output(ctx);
+
+	struct btt *bttp = data->bttp;
+	unsigned lane = data->lane;
+	uint64_t lba = data->lba;
+
+	LOG(3, "bttp %p lane %u lba %" PRIu64, bttp, lane, lba);
+
+	void *block = NULL;
+	if (invalid_lba(bttp, lba)) {
+		goto set_output;
+	}
+
+	/* first write through here will initialize the metadata layout */
+	if (!bttp->laidout) {
+		if (btt_layout_init(bttp, lane)) {
+			goto set_output;
+		}
+	}
+
+	uint32_t premap_lba;
+	struct arena *arenap;
+	uint32_t free_entry;
+	if (btt_get_free_entry(bttp, lane, lba, &free_entry, &arenap,
+			&premap_lba)) {
+		goto set_output;
+	}
+
+	LOG(3, "free_entry %u (before mask %u)", free_entry,
+				arenap->flogs[lane].flog.old_map);
+
+	/* wait for other threads to finish any reads on free block */
+	for (unsigned i = 0; i < bttp->nlane; i++)
+		while (arenap->rtt[i] == free_entry)
+			;
+
+	/* it is now safe to perform write to the free block */
+	uint64_t data_block_off = arenap->dataoff +
+		(uint64_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
+		arenap->internal_lbasize;
+
+	uint32_t lbasize = bttp->lbasize;
+	struct pmemblk *pbp = (struct pmemblk *)bttp->ns;
+
+	if (data_block_off + lbasize > pbp->datasize) {
+		ERR("offset + count (%zu) past end of data area (%zu)",
+				(size_t)data_block_off + lbasize,
+				pbp->datasize);
+		errno = EINVAL;
+		goto set_output;
+	}
+
+	block = pbp->data + data_block_off;
+
+set_output:
+	output->block = block;
+	output->lbasize = lbasize;
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+struct btt_get_free_block_fut
+btt_get_free_block(struct btt *bttp, unsigned lane, uint64_t lba)
+{
+	struct btt_get_free_block_fut future;
+	future.data.bttp = bttp;
+	future.data.lane = lane;
+	future.data.lba = lba;
+
+	FUTURE_INIT(&future, btt_get_free_block_impl);
+
+	return future;
+}
+/*
+ * END of the btt_get_free_block_fut
+ */
+#endif
