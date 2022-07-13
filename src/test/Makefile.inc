@@ -517,6 +517,8 @@ ifeq ($(LIBMINIASYNC),y)
 LIBS += -lminiasync
 # XXX: remove when we will switch to installed libminiasync
 LIBS += -L$(TOP)/src/deps/miniasync/build/out
+
+INCS += -I$(TOP)/src/deps/miniasync/src/include/
 endif
 
 #
