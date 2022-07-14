@@ -998,7 +998,7 @@ blk_lane_exit_impl(struct future_context *ctx,
 }
 
 static struct blk_lane_exit_fut
-blk_lane_exit(PMEMblkpool *pbp, unsigned int lane)
+blk_lane_exit(PMEMblkpool *pbp, unsigned lane)
 {
 	struct blk_lane_exit_fut future;
 	future.data.pbp = pbp;
