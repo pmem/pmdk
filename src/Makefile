@@ -46,6 +46,7 @@ HEADERS_INSTALL = include/libpmem.h\
 
 OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
 PMEM2_HEADERS_INSTALL = include/libpmem2/*.h
+BLK_HEADERS_INSTALL = include/libpmemblk/*.h
 
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_COMMON = common.pc
@@ -87,6 +88,7 @@ HEADERS =\
 		include/lib*.h\
 		include/libpmemobj/*.h\
 		include/libpmem2/*.h\
+		include/libpmemblk/*.h\
 		windows/include/*.h\
 		windows/include/*/*.h\
 		), $(f))
@@ -185,8 +187,10 @@ install: all pkg-config
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
 	install -d $(HEADERS_DESTDIR)/libpmemobj
 	install -d $(HEADERS_DESTDIR)/libpmem2
+	install -d $(HEADERS_DESTDIR)/libpmemblk
 	install -p -m 0644 $(OBJ_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmemobj
 	install -p -m 0644 $(PMEM2_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmem2
+	install -p -m 0644 $(BLK_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmemblk
 	install -d $(PKG_CONFIG_DESTDIR)
 	install -p -m 0644 $(PKG_CONFIG_FILES) $(PKG_CONFIG_DESTDIR)
 	install -d $(PMREORDER_DESTDIR)
@@ -201,6 +205,7 @@ uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
 	$(foreach f, $(OBJ_HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/libpmemobj/$(notdir $(f)))
 	$(foreach f, $(PMEM2_HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/libpmem2/$(notdir $(f)))
+	$(foreach f, $(BLK_HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/libpmemblk/$(notdir $(f)))
 	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
 	$(foreach f, $(PMREORDER_FILES), $(RM) $(PMREORDER_DESTDIR)/$(notdir $(f)))
 	$(RM) $(PMREORDER_BIN)/pmreorder

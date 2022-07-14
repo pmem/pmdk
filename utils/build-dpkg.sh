@@ -687,6 +687,7 @@ $LIB_DIR/pmdk_debug/libpmemblk.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/libpmemblk.so
 $LIB_DIR/pkgconfig/libpmemblk.pc
 $INC_DIR/libpmemblk.h
+$INC_DIR/libpmemblk/*.h
 $MAN7_DIR/libpmemblk.7
 $MAN3_DIR/pmemblk_*.3
 EOF
