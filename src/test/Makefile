@@ -235,7 +235,7 @@ $(info NOTE: Skipping tests because libndctl is disabled (see NDCTL_ENABLE)\
 endif
 
 ifeq ($(OS_KERNEL_NAME),Linux)
-BLK_TESTS += blk_mover
+#BLK_TESTS += blk_mover
 
 PMEM2_TESTS += pmem2_mover
 PMEM2_TESTS += pmem2_future
