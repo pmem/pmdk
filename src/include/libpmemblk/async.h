@@ -38,7 +38,7 @@ struct blk_lane_enter_data {
 };
 
 struct blk_lane_enter_output {
-	unsigned int lane;
+	unsigned lane;
 };
 
 FUTURE(blk_lane_enter_fut, struct blk_lane_enter_data,
@@ -46,7 +46,7 @@ FUTURE(blk_lane_enter_fut, struct blk_lane_enter_data,
 
 struct blk_lane_exit_data {
 	PMEMblkpool *pbp;
-	unsigned int lane;
+	unsigned lane;
 };
 
 struct blk_lane_exit_output {
