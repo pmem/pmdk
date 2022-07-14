@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * blk.c -- block memory pool entry points for libpmem

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * libpmemblk.h -- definitions of libpmemblk entry points
