@@ -326,6 +326,7 @@ more generally useful.
 %{_libdir}/libpmemblk.so
 %{_libdir}/pkgconfig/libpmemblk.pc
 %{_includedir}/libpmemblk.h
+%{_includedir}/libpmemblk/*.h
 %{_mandir}/man7/libpmemblk.7.gz
 %{_mandir}/man5/poolset.5.gz
 %{_mandir}/man3/pmemblk_*.3.gz
