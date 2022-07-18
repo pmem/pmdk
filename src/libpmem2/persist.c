@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "libpmem2.h"
+#include "libpmem2/base.h"
 #include "map.h"
 #include "out.h"
 #include "os.h"
@@ -438,10 +439,12 @@ pmem2_memmove_nonpmem(void *pmemdest, const void *src, size_t len,
 		ERR("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memmove");
-	Info.memmove_nodrain(pmemdest, src, len, flags & ~PMEM2_F_MEM_NODRAIN,
-			Info.flush, &Info.memmove_funcs);
+	Info.memmove_nodrain(pmemdest, src, len,
+		flags & ~PMEM2_F_MEM_NODRAIN,
+		Info.flush, &Info.memmove_funcs);
 
-	pmem2_persist_pages(pmemdest, len);
+	if (!(flags & PMEM2_F_MEM_NOFLUSH))
+		pmem2_persist_pages(pmemdest, len);
 
 	PMEM2_API_END("pmem2_memmove");
 	return pmemdest;
@@ -458,10 +461,12 @@ pmem2_memset_nonpmem(void *pmemdest, int c, size_t len, unsigned flags)
 		ERR("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memset");
-	Info.memset_nodrain(pmemdest, c, len, flags & ~PMEM2_F_MEM_NODRAIN,
-			Info.flush, &Info.memset_funcs);
+	Info.memset_nodrain(pmemdest, c, len,
+		flags & ~PMEM2_F_MEM_NODRAIN,
+		Info.flush, &Info.memset_funcs);
 
-	pmem2_persist_pages(pmemdest, len);
+	if (!(flags & PMEM2_F_MEM_NOFLUSH))
+		pmem2_persist_pages(pmemdest, len);
 
 	PMEM2_API_END("pmem2_memset");
 	return pmemdest;
