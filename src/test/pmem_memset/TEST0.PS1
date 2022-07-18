@@ -42,7 +42,7 @@ $Env:PMEM_NO_GENERIC_MEMCPY = 1
 
 test_all
 
-$Env:PMEM_MOVDIR64B = 0
+$Env:PMEM_MOVDIR64B = 1
 
 test_all
 

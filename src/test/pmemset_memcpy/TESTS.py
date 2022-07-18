@@ -52,41 +52,29 @@ class TEST0(PmemsetMemcpy):
     pass
 
 
-@t.require_architectures('x86_64')
-@t.add_params('wc_workaround', ['on', 'off', 'default'])
-class TEST1(PmemsetMemcpy):
-    envs0 = ("PMEM_AVX512F",)
-
-
-@t.require_architectures('x86_64')
-@t.add_params('wc_workaround', ['on', 'off', 'default'])
-class TEST2(PmemsetMemcpy):
-    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
-
-
 @t.add_params('wc_workaround', ['default'])
-class TEST3(PmemsetMemcpy):
+class TEST1(PmemsetMemcpy):
     envs1 = ("PMEM_NO_MOVNT",)
 
 
 @t.add_params('wc_workaround', ['default'])
-class TEST4(PmemsetMemcpy):
+class TEST2(PmemsetMemcpy):
     envs1 = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
 
 
 @t.require_architectures('x86_64')
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST3(PmemsetMemcpy):
+    envs0 = ("PMEM_AVX512F",)
+
+
+@t.require_architectures('x86_64')
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
+class TEST4(PmemsetMemcpy):
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
+
+
+@t.require_architectures('x86_64')
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST5(PmemsetMemcpy):
-    envs0 = ("PMEM_MOVDIR64B",)
-
-
-@t.require_architectures('x86_64')
-@t.add_params('wc_workaround', ['on', 'off', 'default'])
-class TEST6(PmemsetMemcpy):
-    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
-
-
-@t.require_architectures('x86_64')
-@t.add_params('wc_workaround', ['on', 'off', 'default'])
-class TEST7(PmemsetMemcpy):
-    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)
+    envs1 = ("PMEM_MOVDIR64B",)

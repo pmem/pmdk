@@ -42,34 +42,24 @@ class TEST0(PmemMemcpy):
     pass
 
 
-@t.require_architectures('x86_64')
 class TEST1(PmemMemcpy):
-    envs0 = ("PMEM_AVX512F",)
-
-
-@t.require_architectures('x86_64')
-class TEST2(PmemMemcpy):
-    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
-
-
-class TEST3(PmemMemcpy):
     envs1 = ("PMEM_NO_MOVNT",)
 
 
-class TEST4(PmemMemcpy):
+class TEST2(PmemMemcpy):
     envs1 = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
 
 
 @t.require_architectures('x86_64')
+class TEST3(PmemMemcpy):
+    envs0 = ("PMEM_AVX512F",)
+
+
+@t.require_architectures('x86_64')
+class TEST4(PmemMemcpy):
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
+
+
+@t.require_architectures('x86_64')
 class TEST5(PmemMemcpy):
-    envs0 = ("PMEM_MOVDIR64B",)
-
-
-@t.require_architectures('x86_64')
-class TEST6(PmemMemcpy):
-    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
-
-
-@t.require_architectures('x86_64')
-class TEST7(PmemMemcpy):
-    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)
+    envs1 = ("PMEM_MOVDIR64B",)

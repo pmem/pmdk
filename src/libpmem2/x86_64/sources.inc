@@ -31,7 +31,6 @@ endif
 MOVDIR64B_PROG="\#include <immintrin.h>\n\#include <stdint.h>\nint main(){ uint64_t v, w; _movdir64b(&v, &w); return 0;}"
 MOVDIR64B_AVAILABLE := $(shell printf $(MOVDIR64B_PROG) |\
 	$(CC) $(CFLAGS) -x c -mmovdir64b -o /dev/null - 2>/dev/null && echo y || echo n)
-MOVDIR64B_AVAILABLE=n # XXX delete this when movdir64b is ready to be upstreamed
 
 ifeq ($(MOVDIR64B_AVAILABLE), y)
 LIBPMEM2_ARCH_SOURCE += \

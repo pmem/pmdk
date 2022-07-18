@@ -419,7 +419,7 @@ use_avx512f_memcpy_memset(struct pmem2_arch_info *info,
 
 /*
  * use_movdir64b_memcpy_memset -- (internal) movdir64b detected, use it if
- *                                           possible
+ *                                           enabled by environment variable
  */
 static void
 use_movdir64b_memcpy_memset(struct pmem2_arch_info *info,
@@ -429,7 +429,7 @@ use_movdir64b_memcpy_memset(struct pmem2_arch_info *info,
 	LOG(3, "movdir64b supported");
 
 	char *e = os_getenv("PMEM_MOVDIR64B");
-	if (e != NULL && strcmp(e, "0") == 0) {
+	if (e == NULL || strcmp(e, "0") == 0) {
 		LOG(3, "PMEM_MOVDIR64B set to 0");
 		return;
 	}

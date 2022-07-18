@@ -101,14 +101,4 @@ class TEST9(MovntAlignCommonValgrind):
 
 @t.require_architectures('x86_64')
 class TEST10(Pmem2MovntAlign):
-    envs0 = ("PMEM_MOVDIR64B",)
-
-
-@t.require_architectures('x86_64')
-class TEST11(Pmem2MovntAlign):
-    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
-
-
-@t.require_architectures('x86_64')
-class TEST12(Pmem2MovntAlign):
-    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)
+    envs1 = ("PMEM_MOVDIR64B",)
