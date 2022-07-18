@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * heap.c -- heap implementation
@@ -10,6 +10,8 @@
 #include <string.h>
 #include <float.h>
 
+#include "bucket.h"
+#include "heap_layout.h"
 #include "libpmemobj/ctl.h"
 #include "queue.h"
 #include "heap.h"
@@ -90,7 +92,7 @@ struct heap_rt {
 	unsigned nlocks;
 
 	unsigned nzones;
-	unsigned zones_exhausted;
+	int *zone_reclaimed_map;
 };
 
 /*
@@ -740,6 +742,41 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 }
 
 /*
+ * heap_ensure_zone_reclaimed -- make sure that the specified zone has been
+ * already reclaimed.
+ */
+void
+heap_ensure_zone_reclaimed(struct palloc_heap *heap, uint32_t zone_id)
+{
+	int zone_reclaimed;
+	util_atomic_load_explicit32(&heap->rt->zone_reclaimed_map[zone_id],
+		&zone_reclaimed, memory_order_acquire);
+	if (zone_reclaimed)
+		return;
+
+	struct bucket *defb = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID,
+		HEAP_ARENA_PER_THREAD);
+
+	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
+	ASSERTeq(z->header.magic, ZONE_HEADER_MAGIC);
+
+	/* check a second time just to make sure no other thread was first */
+	util_atomic_load_explicit32(&heap->rt->zone_reclaimed_map[zone_id],
+		&zone_reclaimed, memory_order_acquire);
+	if (zone_reclaimed)
+		goto out;
+
+	util_atomic_store_explicit32(&heap->rt->zone_reclaimed_map[zone_id], 1,
+		memory_order_release);
+
+	heap_reclaim_zone_garbage(heap, defb, zone_id);
+
+out:
+	heap_bucket_release(heap, defb);
+}
+
+/*
  * heap_populate_bucket -- (internal) creates volatile state of memory blocks
  */
 static int
@@ -747,11 +784,19 @@ heap_populate_bucket(struct palloc_heap *heap, struct bucket *bucket)
 {
 	struct heap_rt *h = heap->rt;
 
+	unsigned zone_id; /* first not reclaimed zone */
+	for (zone_id = 0; zone_id < h->nzones; ++zone_id) {
+		if (h->zone_reclaimed_map[zone_id] == 0)
+			break;
+	}
+
 	/* at this point we are sure that there's no more memory in the heap */
-	if (h->zones_exhausted == h->nzones)
+	if (zone_id == h->nzones)
 		return ENOMEM;
 
-	uint32_t zone_id = h->zones_exhausted++;
+	util_atomic_store_explicit32(&heap->rt->zone_reclaimed_map[zone_id], 1,
+		memory_order_release);
+
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
 
 	/* ignore zone and chunk headers */
@@ -1576,6 +1621,13 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_heap_malloc;
 	}
 
+	h->nzones = heap_max_zone(heap_size);
+	h->zone_reclaimed_map = Zalloc(sizeof(int) * h->nzones);
+	if (h->zone_reclaimed_map == NULL) {
+		err = ENOMEM;
+		goto err_reclaimed_map_malloc;
+	}
+
 	if ((err = arena_thread_assignment_init(&h->arenas.assignment,
 		Default_arenas_assignment_type)) != 0) {
 		goto error_assignment_init;
@@ -1593,10 +1645,6 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		err = errno;
 		goto error_arenas_malloc;
 	}
-
-	h->nzones = heap_max_zone(heap_size);
-
-	h->zones_exhausted = 0;
 
 	h->nlocks = On_valgrind ? MAX_RUN_LOCKS_VG : MAX_RUN_LOCKS;
 	for (unsigned i = 0; i < h->nlocks; ++i)
@@ -1634,6 +1682,8 @@ error_arenas_malloc:
 error_alloc_classes_new:
 	arena_thread_assignment_fini(&h->arenas.assignment);
 error_assignment_init:
+	Free(h->zone_reclaimed_map);
+err_reclaimed_map_malloc:
 	Free(h);
 	heap->rt = NULL;
 error_heap_malloc:
@@ -1729,6 +1779,7 @@ heap_cleanup(struct palloc_heap *heap)
 
 	VALGRIND_DO_DESTROY_MEMPOOL(heap->layout);
 
+	Free(rt->zone_reclaimed_map);
 	Free(rt);
 	heap->rt = NULL;
 }
