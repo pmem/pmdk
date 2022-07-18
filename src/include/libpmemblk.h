@@ -17,6 +17,7 @@
 #include <libpmemblk/base.h>
 #ifdef PMEMBLK_USE_MINIASYNC
 #include <libpmemblk/async.h>
+#include <libpmemblk/btt_async.h>
 #endif
 
 #endif	/* libpmemblk.h */
