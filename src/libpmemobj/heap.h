@@ -1,10 +1,11 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * heap.h -- internal definitions for heap
  */
 
+#include <bits/stdint-uintn.h>
 #ifndef LIBPMEMOBJ_HEAP_H
 #define LIBPMEMOBJ_HEAP_H 1
 
@@ -71,6 +72,9 @@ heap_discard_run(struct palloc_heap *heap, struct memory_block *m);
 
 void
 heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m);
+
+void
+heap_ensure_zone_reclaimed(struct palloc_heap *heap, uint32_t zone_id);
 
 int
 heap_free_chunk_reuse(struct palloc_heap *heap,
