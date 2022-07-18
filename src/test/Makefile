@@ -69,6 +69,7 @@ OBJ_TESTS = \
 	obj_fragmentation2\
 	obj_heap\
 	obj_heap_interrupt\
+	obj_heap_reopen\
 	obj_heap_state\
 	obj_include\
 	obj_lane\
