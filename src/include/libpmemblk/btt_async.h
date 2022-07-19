@@ -30,12 +30,13 @@ struct nsread_async_future_data {
     size_t count;
     uint64_t off;
 
-    struct vdm_operation op;
+    bool memcpy_started;
+    struct vdm_operation_future op;
     struct vdm *vdm;
 };
 
 struct nsread_async_future_output {
-    int output;
+    int return_value;
 };
 
 FUTURE(nsread_async_future, struct nsread_async_future_data,
@@ -50,12 +51,13 @@ struct nswrite_async_future_data {
     size_t count;
     uint64_t off;
 
-    struct vdm_operation op;
+    bool memcpy_started;
+    struct vdm_operation_future op;
     struct vdm *vdm;
 };
 
 struct nswrite_async_future_output {
-    int output;
+    int return_value;
 };
 
 FUTURE(nswrite_async_future, struct nswrite_async_future_data,
@@ -91,7 +93,7 @@ struct btt_read_async_future_data {
 };
 
 struct btt_read_async_future_output {
-    int output;
+    int return_value;
 };
 
 FUTURE(btt_read_async_future, struct btt_read_async_future_data,
@@ -112,7 +114,7 @@ struct btt_write_async_future_data {
 };
 
 struct btt_write_async_future_output {
-    int output;
+    int return_value;
 };
 
 FUTURE(btt_write_async_future, struct btt_write_async_future_data,
