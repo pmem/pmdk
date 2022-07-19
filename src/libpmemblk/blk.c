@@ -964,21 +964,52 @@ nsread_async_future_impl(struct future_context *ctx,
 	struct future_notifier *notifier)
 {
 	struct nsread_async_future_data *data = future_context_get_data(ctx);
+	struct nsread_async_future_output *output = future_context_get_output(ctx);
 
-	struct pmemblk *pbp = (struct pmemblk *)data->ns;
+	if(!data->memcpy_started) {
+		struct pmemblk *pbp = (struct pmemblk *)data->ns;
 
-	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, data->lane, data->count, data->off);
+		LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp,
+		    data->lane, data->count, data->off);
 
-	if (data->off + data->count > pbp->datasize) {
-		ERR("offset + count (%zu) past end of data area (%zu)",
-			(size_t)data->off + data->count, pbp->datasize);
-		errno = EINVAL;
-		return -1;
+		if (data->off + data->count > pbp->datasize) {
+			ERR("offset + count (%zu) past end of data area (%zu)",
+			    (size_t)data->off + data->count, pbp->datasize);
+			/* TODO: should we set it in async features? */
+			errno = EINVAL;
+			output->return_value = -1;
+			return FUTURE_STATE_COMPLETE;
+		}
+		data->op = vdm_memcpy(data->vdm, data->buf,
+					(char *)pbp->data + data->off,
+					data->count, NULL);
+		data->memcpy_started = 1;
+	} else {
+		if(future_poll(FUTURE_AS_RUNNABLE(&data->op), NULL)
+			== FUTURE_STATE_COMPLETE) {
+			output->return_value = 0;
+			return FUTURE_STATE_COMPLETE;
+		} else {
+			return FUTURE_STATE_RUNNING;
+		}
 	}
+}
 
-	memcpy(data->buf, (char *)pbp->data + data->off, data->count);
+static struct nsread_async_future
+nsread_async(void *ns, unsigned lane, void *buf,
+	size_t count, uint64_t off, struct vdm *vdm) {
+	struct nsread_async_future fut = {
+		.data.ns = ns,
+		.data.lane = lane,
+		.data.buf = buf,
+		.data.count = count,
+		.data.off = off,
+		.data.memcpy_started = 0,
+		.data.vdm = vdm,
+		.output.return_value = -1,
+	};
 
-	return 0;
+	return fut;
 }
 
 #endif
