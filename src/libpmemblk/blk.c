@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * blk.c -- block memory pool entry points for libpmem
@@ -250,6 +250,165 @@ static struct ns_callback ns_cb = {
 	.ns_is_zeroed = 0
 };
 
+/* Asynchronous blk operations */
+#ifdef PMEMBLK_USE_MINIASYNC
+
+#include <libminiasync/vdm.h>
+#include "libpmemblk/btt_async.h"
+
+/*
+ * START of nsread_async_future
+ */
+/*
+ * TODO: nsread -- (internal) read data from the namespace encapsulating the BTT
+ * in an asynchronous way using libminiasync vdm
+ */
+static enum future_state
+nsread_async_future_impl(struct future_context *ctx,
+	struct future_notifier *notifier)
+{
+	struct nsread_async_future_data *data = future_context_get_data(ctx);
+	struct nsread_async_future_output *output = future_context_get_output(ctx);
+
+	if(!data->memcpy_started) {
+		struct pmemblk *pbp = (struct pmemblk *)data->ns;
+
+		LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp,
+		    data->lane, data->count, data->off);
+
+		if (data->off + data->count > pbp->datasize) {
+			ERR("offset + count (%zu) past end of data area (%zu)",
+			    (size_t)data->off + data->count, pbp->datasize);
+			/* TODO: should we set it in async features? */
+			errno = EINVAL;
+			output->return_value = -1;
+			return FUTURE_STATE_COMPLETE;
+		}
+		data->op = vdm_memcpy(data->vdm, data->buf,
+					(char *)pbp->data + data->off,
+					data->count, NULL);
+		data->memcpy_started = 1;
+	}
+
+	if(future_poll(FUTURE_AS_RUNNABLE(&data->op), NULL)
+		== FUTURE_STATE_COMPLETE) {
+		output->return_value = 0;
+		return FUTURE_STATE_COMPLETE;
+	} else {
+		return FUTURE_STATE_RUNNING;
+	}
+}
+
+static struct nsread_async_future
+nsread_async(void *ns, unsigned lane, void *buf,
+	size_t count, uint64_t off, struct vdm *vdm) {
+	struct nsread_async_future fut = {
+		.data.ns = ns,
+		.data.lane = lane,
+		.data.buf = buf,
+		.data.count = count,
+		.data.off = off,
+		.data.memcpy_started = 0,
+		.data.vdm = vdm,
+		.output.return_value = -1,
+	};
+
+	return fut;
+}
+/*
+ * END of nsread_async_future
+ */
+
+/*
+ * START of nswrite_async_future
+ */
+static enum future_state
+nswrite_async_future_impl(struct future_context *ctx,
+		struct future_notifier *notifier)
+{
+	struct nswrite_async_future_data *data = future_context_get_data(ctx);
+	struct nswrite_async_future_output *output =
+			future_context_get_output(ctx);
+
+	struct pmemblk *pbp = (struct pmemblk *)data->ns;
+	unsigned lane = data->lane;
+	void *buf = data->buf;
+	size_t count = data->count;
+	uint64_t off = data->off;
+
+	struct vdm *vdm = data->vdm;
+
+	void *dest = (char *)pbp->data + off;
+
+	int ret = 0;
+	if (!data->internal.memcpy_started) {
+		LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, lane,
+				count, off);
+
+		if (off + count > pbp->datasize) {
+			ERR("offset + count (%zu) past end of data area (%zu)",
+					(size_t)off + count, pbp->datasize);
+			errno = EINVAL;
+			ret = -1;
+			goto set_output;
+		}
+
+		data->internal.memcpy_fut =
+				vdm_memcpy(vdm, dest, buf, count, 0);
+		data->internal.memcpy_started = 1;
+	}
+
+	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.memcpy_fut), NULL) !=
+			FUTURE_STATE_COMPLETE) {
+		return FUTURE_STATE_RUNNING;
+	}
+
+	if (pbp->is_pmem)
+		pmem_drain();
+	else
+		pmem_msync(dest, count);
+
+set_output:
+	output->return_value = ret;
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+static struct nswrite_async_future
+nswrite_async(void *ns, unsigned lane, void *buf, size_t count, uint64_t off,
+		struct vdm *vdm)
+{
+	struct nswrite_async_future future = {
+		.data.ns = ns,
+		.data.lane = lane,
+		.data.buf = buf,
+		.data.count = count,
+		.data.off = off,
+		.data.vdm = vdm,
+		.data.internal.memcpy_started = 0,
+		.output.return_value = 0,
+	};
+
+	FUTURE_INIT(&future, nswrite_async_future_impl);
+
+	return future;
+}
+/*
+ * END of nswrite_async_future
+ */
+
+static struct ns_callback_async ns_cb_async = {
+	.nsread = nsread_async,
+	.nswrite = nswrite_async,
+	.nszero = NULL,
+	.nsmap = NULL,
+	.nssync = NULL,
+	.ns_is_zeroed = 0
+};
+#else
+static struct ns_callback_async ns_cb_async;
+#endif
+
 /*
  * blk_descr_create -- (internal) create block memory pool descriptor
  */
@@ -329,7 +488,7 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 	os_mutex_t *locks = NULL;
 
 	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.poolset_uuid,
-			(unsigned)ncpus * 2, pbp, &ns_cb);
+			(unsigned)ncpus * 2, pbp, &ns_cb, &ns_cb_async);
 
 	if (bttp == NULL)
 		goto err;	/* btt_init set errno, called LOG */
@@ -947,69 +1106,15 @@ pmemblk_fault_injection_enabled(void)
 }
 #endif
 
-#define PMEMBLK_USE_MINIASYNC 1
-
-/* Asynchronous blk operations */
-#ifdef PMEMBLK_USE_MINIASYNC
-
-#include <libminiasync/vdm.h>
-#include <libpmemblk/btt_async.h>
-
-/*
- * TODO: nsread -- (internal) read data from the namespace encapsulating the BTT
- * in an asynchronous way using libminiasync vdm
- */
-static enum future_state
-nsread_async_future_impl(struct future_context *ctx,
-	struct future_notifier *notifier)
+struct pmemblk_write_async_fut
+pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno,
+		struct vdm *vdm)
 {
-	struct nsread_async_future_data *data = future_context_get_data(ctx);
-	struct nsread_async_future_output *output = future_context_get_output(ctx);
-
-	if(!data->memcpy_started) {
-		struct pmemblk *pbp = (struct pmemblk *)data->ns;
-
-		LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp,
-		    data->lane, data->count, data->off);
-
-		if (data->off + data->count > pbp->datasize) {
-			ERR("offset + count (%zu) past end of data area (%zu)",
-			    (size_t)data->off + data->count, pbp->datasize);
-			/* TODO: should we set it in async features? */
-			errno = EINVAL;
-			output->return_value = -1;
-			return FUTURE_STATE_COMPLETE;
-		}
-		data->op = vdm_memcpy(data->vdm, data->buf,
-					(char *)pbp->data + data->off,
-					data->count, NULL);
-		data->memcpy_started = 1;
-	}
-
-	if(future_poll(FUTURE_AS_RUNNABLE(&data->op), NULL)
-		== FUTURE_STATE_COMPLETE) {
-		output->return_value = 0;
-		return FUTURE_STATE_COMPLETE;
-	} else {
-		return FUTURE_STATE_RUNNING;
-	}
-}
-
-static struct nsread_async_future
-nsread_async(void *ns, unsigned lane, void *buf,
-	size_t count, uint64_t off, struct vdm *vdm) {
-	struct nsread_async_future fut = {
-		.data.ns = ns,
-		.data.lane = lane,
+	struct pmemblk_write_async_fut future = {
+		.data.pbp = pbp,
 		.data.buf = buf,
-		.data.count = count,
-		.data.off = off,
-		.data.memcpy_started = 0,
+		.data.blockno = blockno,
 		.data.vdm = vdm,
-		.output.return_value = -1,
+		.output.return_value = 0,
 	};
-
-	return fut;
 }
-
-#endif

@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#include "libpmemblk/btt_async.h"
+
 /* callback functions passed to btt_init() */
 struct ns_callback {
 	int (*nsread)(void *ns, unsigned lane,
@@ -29,7 +31,8 @@ struct ns_callback {
 struct btt_info;
 
 struct btt *btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
-		unsigned maxlane, void *ns, const struct ns_callback *ns_cbp);
+		unsigned maxlane, void *ns, const struct ns_callback *ns_cbp,
+		const struct ns_callback_async *ns_cb_asyncp);
 unsigned btt_nlane(struct btt *bttp);
 size_t btt_nlba(struct btt *bttp);
 int btt_read(struct btt *bttp, unsigned lane, uint64_t lba, void *buf);
@@ -51,14 +54,6 @@ void btt_info_convert2h(struct btt_info *infop);
 void btt_info_convert2le(struct btt_info *infop);
 void btt_flog_convert2h(struct btt_flog *flogp);
 void btt_flog_convert2le(struct btt_flog *flogp);
-
-#ifdef PMEMBLK_USE_MINIASYNC
-
-#include "libminiasync/future.h"
-
-struct btt_get_free_block_fut btt_get_free_block(struct btt *bttp,
-		unsigned lane, uint64_t lba);
-#endif
 
 #ifdef __cplusplus
 }

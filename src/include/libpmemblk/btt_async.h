@@ -30,7 +30,7 @@ struct nsread_async_future_data {
     size_t count;
     uint64_t off;
 
-    bool memcpy_started;
+    int memcpy_started;
     struct vdm_operation_future op;
     struct vdm *vdm;
 };
@@ -45,15 +45,17 @@ FUTURE(nsread_async_future, struct nsread_async_future_data,
 
 /* START of nswrite_async */
 struct nswrite_async_future_data {
-    void* ns;
-    unsigned lane;
-    void *buf;
-    size_t count;
-    uint64_t off;
+	void* ns;
+	unsigned lane;
+	void *buf;
+	size_t count;
+	uint64_t off;
+	struct vdm *vdm;
 
-    bool memcpy_started;
-    struct vdm_operation_future op;
-    struct vdm *vdm;
+	struct {
+		struct vdm_operation_future memcpy_fut;
+		int memcpy_started;
+	} internal;
 };
 
 struct nswrite_async_future_output {
@@ -109,8 +111,15 @@ struct btt_write_async_future_data {
     unsigned lane;
     uint64_t lba;
     void *buf;
-
     struct vdm *vdm;
+
+    struct {
+	struct nswrite_async_future nswrite_fut;
+	int nswrite_started;
+	uint32_t premap_lba;
+	struct arena *arenap;
+	uint32_t free_entry;
+    } internal;
 };
 
 struct btt_write_async_future_output {
@@ -123,7 +132,11 @@ FUTURE(btt_write_async_future, struct btt_write_async_future_data,
 struct btt_write_async_future btt_write_async(struct btt *bttp, unsigned lane,
 	uint64_t lba, void *buf, struct vdm *vdm);
 /* END of btt_write_async */
-
+#else
+/* dummy ns async callback structure */
+struct ns_callback_async {
+	uint64_t unused; /* Avoid compiled empty struct error */
+};
 #endif
 
 #ifdef __cplusplus

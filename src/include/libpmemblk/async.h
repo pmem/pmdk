@@ -28,7 +28,7 @@ struct pmemblk_write_async_data {
 };
 
 struct pmemblk_write_async_output {
-	void *dest;
+	int return_value;
 };
 
 FUTURE(pmemblk_write_async_fut, struct pmemblk_write_async_data,
