@@ -220,6 +220,7 @@ struct btt {
 	 */
 	void *ns;
 	const struct ns_callback *ns_cbp;
+	const struct ns_callback_async *ns_cb_asyncp;
 };
 
 /*
@@ -1406,7 +1407,8 @@ lba_to_arena_lba(struct btt *bttp, uint64_t lba,
  */
 struct btt *
 btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
-		unsigned maxlane, void *ns, const struct ns_callback *ns_cbp)
+		unsigned maxlane, void *ns, const struct ns_callback *ns_cbp,
+		const struct ns_callback_async *ns_cb_asyncp)
 {
 	LOG(3, "rawsize %" PRIu64 " lbasize %u", rawsize, lbasize);
 
@@ -1429,6 +1431,7 @@ btt_init(uint64_t rawsize, uint32_t lbasize, uint8_t parent_uuid[],
 	bttp->lbasize = lbasize;
 	bttp->ns = ns;
 	bttp->ns_cbp = ns_cbp;
+	bttp->ns_cb_asyncp = ns_cb_asyncp;
 
 	/*
 	 * Load up layout, if it exists.
@@ -2101,91 +2104,113 @@ btt_fini(struct btt *bttp)
 /* Asynchronous btt operations */
 #ifdef PMEMBLK_USE_MINIASYNC
 
-#include "libminiasync/vdm.h"
+#include <libminiasync/vdm.h>
+#include "libpmemblk/btt_async.h"
 
 /*
- * START of the btt_get_free_block_fut
+ * START of the btt_write_async_future future
  */
 static enum future_state
-btt_get_free_block_impl(struct future_context *ctx,
+btt_write_async_future_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
-	struct btt_get_free_block_data *data = future_context_get_data(ctx);
-	struct btt_get_free_block_output *output =
+	struct btt_write_async_future_data *data = future_context_get_data(ctx);
+	struct btt_write_async_future_output *output =
 			future_context_get_output(ctx);
 
 	struct btt *bttp = data->bttp;
 	unsigned lane = data->lane;
 	uint64_t lba = data->lba;
+	void *buf = data->buf;
+	struct vdm *vdm = data->vdm;
 
-	LOG(3, "bttp %p lane %u lba %" PRIu64, bttp, lane, lba);
+	int ret = 0;
+	if (!data->internal.nswrite_started) {
+		LOG(3, "bttp %p lane %u lba %" PRIu64 " vdm %p", bttp, lane,
+				lba, vdm);
 
-	void *block = NULL;
-	if (invalid_lba(bttp, lba)) {
-		goto set_output;
-	}
-
-	/* first write through here will initialize the metadata layout */
-	if (!bttp->laidout) {
-		if (btt_layout_init(bttp, lane)) {
+		if (invalid_lba(bttp, lba)) {
+			ret = -1;
 			goto set_output;
 		}
+
+		/*
+		 * first write through here will initialize
+		 * the metadata layout
+		 */
+		if (!bttp->laidout) {
+			ret = btt_layout_init(bttp, lane);
+			if (ret)
+				goto set_output;
+		}
+
+		uint32_t premap_lba;
+		struct arena *arenap;
+		uint32_t free_entry;
+		ret = btt_get_free_entry(bttp, lane, lba, &free_entry, &arenap,
+				&premap_lba);
+		if (ret)
+			goto set_output;
+
+		LOG(3, "free_entry %u (before mask %u)", free_entry,
+					arenap->flogs[lane].flog.old_map);
+
+		/* wait for other threads to finish any reads on free block */
+		for (unsigned i = 0; i < bttp->nlane; i++)
+			while (arenap->rtt[i] == free_entry)
+				;
+
+		/* it is now safe to perform write to the free block */
+		uint64_t data_block_off = arenap->dataoff +
+			(uint64_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
+			arenap->internal_lbasize;
+
+		data->internal.nswrite_fut = bttp->ns_cb_asyncp->nswrite(
+				bttp->ns, lane, buf, bttp->lbasize,
+				data_block_off, vdm);
+		data->internal.premap_lba = premap_lba;
+		data->internal.arenap = arenap;
+		data->internal.free_entry = free_entry;
 	}
 
-	uint32_t premap_lba;
-	struct arena *arenap;
-	uint32_t free_entry;
-	if (btt_get_free_entry(bttp, lane, lba, &free_entry, &arenap,
-			&premap_lba)) {
-		goto set_output;
+	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.nswrite_fut), NULL) !=
+			FUTURE_STATE_COMPLETE) {
+		return FUTURE_STATE_RUNNING;
 	}
 
-	LOG(3, "free_entry %u (before mask %u)", free_entry,
-				arenap->flogs[lane].flog.old_map);
-
-	/* wait for other threads to finish any reads on free block */
-	for (unsigned i = 0; i < bttp->nlane; i++)
-		while (arenap->rtt[i] == free_entry)
-			;
-
-	/* it is now safe to perform write to the free block */
-	uint64_t data_block_off = arenap->dataoff +
-		(uint64_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
-		arenap->internal_lbasize;
-
-	uint32_t lbasize = bttp->lbasize;
-	struct pmemblk *pbp = (struct pmemblk *)bttp->ns;
-
-	if (data_block_off + lbasize > pbp->datasize) {
-		ERR("offset + count (%zu) past end of data area (%zu)",
-				(size_t)data_block_off + lbasize,
-				pbp->datasize);
-		errno = EINVAL;
-		goto set_output;
-	}
-
-	block = pbp->data + data_block_off;
+	/* make the new block active */
+	ret = btt_activate_block(bttp, lane, data->internal.arenap,
+			data->internal.free_entry, data->internal.premap_lba);
 
 set_output:
-	output->block = block;
-	output->lbasize = lbasize;
+	output->return_value = ret;
 
 	return FUTURE_STATE_COMPLETE;
 }
 
-struct btt_get_free_block_fut
-btt_get_free_block(struct btt *bttp, unsigned lane, uint64_t lba)
+/*
+ * btt_write_async_future -- return a future that writes a block to a btt
+ *                           namespace
+ */
+struct btt_write_async_future
+btt_write_async(struct btt *bttp, unsigned lane, uint64_t lba, void *buf,
+		struct vdm *vdm)
 {
-	struct btt_get_free_block_fut future;
-	future.data.bttp = bttp;
-	future.data.lane = lane;
-	future.data.lba = lba;
+	struct btt_write_async_future future = {
+		.data.bttp = bttp,
+		.data.lane = lane,
+		.data.lba = lba,
+		.data.buf = buf,
+		.data.vdm = vdm,
+		.data.internal.nswrite_started = 0,
+		.output.return_value = 0,
+	};
 
-	FUTURE_INIT(&future, btt_get_free_block_impl);
+	FUTURE_INIT(&future, btt_write_async_future_impl);
 
 	return future;
 }
 /*
- * END of the btt_get_free_block_fut
+ * END of the btt_write_async_future future
  */
 #endif
