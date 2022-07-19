@@ -21,10 +21,10 @@ extern "C" {
 #endif
 
 struct pmemblk_write_async_data {
-	PMEMblkpool *pbp,
-	void *buf,
-	long long blockno,
-	struct vdm *vdm,
+	PMEMblkpool *pbp;
+	void *buf;
+	long long blockno;
+	struct vdm *vdm;
 };
 
 struct pmemblk_write_async_output {
