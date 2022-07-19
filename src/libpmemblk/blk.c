@@ -984,14 +984,14 @@ nsread_async_future_impl(struct future_context *ctx,
 					(char *)pbp->data + data->off,
 					data->count, NULL);
 		data->memcpy_started = 1;
+	}
+
+	if(future_poll(FUTURE_AS_RUNNABLE(&data->op), NULL)
+		== FUTURE_STATE_COMPLETE) {
+		output->return_value = 0;
+		return FUTURE_STATE_COMPLETE;
 	} else {
-		if(future_poll(FUTURE_AS_RUNNABLE(&data->op), NULL)
-			== FUTURE_STATE_COMPLETE) {
-			output->return_value = 0;
-			return FUTURE_STATE_COMPLETE;
-		} else {
-			return FUTURE_STATE_RUNNING;
-		}
+		return FUTURE_STATE_RUNNING;
 	}
 }
 
