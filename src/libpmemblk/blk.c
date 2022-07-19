@@ -953,7 +953,7 @@ pmemblk_fault_injection_enabled(void)
 #ifdef PMEMBLK_USE_MINIASYNC
 
 #include <libminiasync/vdm.h>
-#include <libminiasync/btt_async.h>
+#include <libpmemblk/btt_async.h>
 
 /*
  * TODO: nsread -- (internal) read data from the namespace encapsulating the BTT
@@ -965,18 +965,18 @@ nsread_async_future_impl(struct future_context *ctx,
 {
 	struct nsread_async_future_data *data = future_context_get_data(ctx);
 
-	struct pmemblk *pbp = (struct pmemblk *)ns;
+	struct pmemblk *pbp = (struct pmemblk *)data->ns;
 
-	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, lane, count, off);
+	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, data->lane, data->count, data->off);
 
-	if (off + count > pbp->datasize) {
+	if (data->off + data->count > pbp->datasize) {
 		ERR("offset + count (%zu) past end of data area (%zu)",
-			(size_t)off + count, pbp->datasize);
+			(size_t)data->off + data->count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
 
-	memcpy(buf, (char *)pbp->data + off, count);
+	memcpy(data->buf, (char *)pbp->data + data->off, data->count);
 
 	return 0;
 }

@@ -24,11 +24,11 @@ extern "C" {
 
 /* START of nsread_async */
 struct nsread_async_future_data {
-    void *ns,
-    unsigned lane,
-    void *buf,
-    size_t count,
-    uint64_t off,
+    void *ns;
+    unsigned lane;
+    void *buf;
+    size_t count;
+    uint64_t off;
 
     struct vdm_operation op;
     struct vdm *vdm;
@@ -44,11 +44,11 @@ FUTURE(nsread_async_future, struct nsread_async_future_data,
 
 /* START of nswrite_async */
 struct nswrite_async_future_data {
-    void *ns,
-    unsigned lane,
-    void *buf,
-    size_t count,
-    uint64_t off
+    void* ns;
+    unsigned lane;
+    void *buf;
+    size_t count;
+    uint64_t off;
 
     struct vdm_operation op;
     struct vdm *vdm;
@@ -75,16 +75,16 @@ struct ns_callback_async {
 	void (*nssync)(void *ns, unsigned lane, void *addr, size_t len);
 
 	int ns_is_zeroed;
-}
+};
 
 /* BTT futures */
 
 /* START of btt_read_async */
 struct btt_read_async_future_data {
-    struct btt *bttp,
-    unsigned lane,
-    uint64_t lba,
-    void *buf
+    struct btt *bttp;
+    unsigned lane;
+    uint64_t lba;
+    void *buf;
 
     int stage;
     struct vdm *vdm;
@@ -103,10 +103,10 @@ struct btt_read_async_future btt_read_async(struct btt *bttp, unsigned lane,
 
 /* START of btt_write_async */
 struct btt_write_async_future_data {
-    struct btt *bttp,
-    unsigned lane,
-    uint64_t lba,
-    void *buf
+    struct btt *bttp;
+    unsigned lane;
+    uint64_t lba;
+    void *buf;
 
     struct vdm *vdm;
 };
