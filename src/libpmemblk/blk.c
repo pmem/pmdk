@@ -397,6 +397,64 @@ nswrite_async(void *ns, unsigned lane, void *buf, size_t count, uint64_t off,
  * END of nswrite_async_future
  */
 
+/*
+ * START of the pmemblk_write_async_fut future
+ */
+static enum future_state
+pmemblk_write_async_impl(struct future_context *ctx,
+		struct future_notifier *notifier)
+{
+	struct pmemblk_write_async_data *data = future_context_get_data(ctx);
+	struct pmemblk_write_async_output *output =
+			future_context_get_output(ctx);
+
+	PMEMblkpool *pbp = data->pbp;
+	void *buf = data->buf;
+	long long blockno = data->blockno;
+	struct vdm *vdm = data->vdm;
+
+	if (!data->internal.btt_write_started) {
+		unsigned lane;
+		lane_enter(pbp, &lane);
+
+		data->internal.lane = lane;
+		data->internal.btt_write_started = 1;
+		data->internal.btt_write_fut = btt_write_async(pbp->bttp, lane,
+				blockno, buf, vdm);
+	}
+
+	/*
+	 * XXX: The lane lock is kept even when 'pmemblk_write_async_future'
+	 * cannot make progress.
+	 */
+	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
+			!= FUTURE_STATE_COMPLETE) {
+		return FUTURE_STATE_RUNNING;
+	}
+
+	lane_exit(pbp, data->internal.lane);
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+struct pmemblk_write_async_fut
+pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno,
+		struct vdm *vdm)
+{
+	struct pmemblk_write_async_fut future = {
+		.data.pbp = pbp,
+		.data.buf = buf,
+		.data.blockno = blockno,
+		.data.vdm = vdm,
+		.output.return_value = 0,
+	};
+
+	FUTURE_INIT(&future, pmemblk_write_async_impl);
+}
+/*
+ * END of the pmemblk_write_async_fut future
+ */
+
 static struct ns_callback_async ns_cb_async = {
 	.nsread = nsread_async,
 	.nswrite = nswrite_async,
@@ -1105,16 +1163,3 @@ pmemblk_fault_injection_enabled(void)
 	return core_fault_injection_enabled();
 }
 #endif
-
-struct pmemblk_write_async_fut
-pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno,
-		struct vdm *vdm)
-{
-	struct pmemblk_write_async_fut future = {
-		.data.pbp = pbp,
-		.data.buf = buf,
-		.data.blockno = blockno,
-		.data.vdm = vdm,
-		.output.return_value = 0,
-	};
-}
