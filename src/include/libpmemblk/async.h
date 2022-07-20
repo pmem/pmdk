@@ -25,7 +25,6 @@ struct pmemblk_write_async_data {
 	PMEMblkpool *pbp;
 	void *buf;
 	long long blockno;
-	struct vdm *vdm;
 
 	struct {
 		struct btt_write_async_future btt_write_fut;
@@ -42,7 +41,7 @@ FUTURE(pmemblk_write_async_fut, struct pmemblk_write_async_data,
 		struct pmemblk_write_async_output);
 
 struct pmemblk_write_async_fut pmemblk_write_async(PMEMblkpool *pbp, void *buf,
-		long long blockno, struct vdm *vdm);
+		long long blockno);
 #endif
 
 #ifdef __cplusplus
