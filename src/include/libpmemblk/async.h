@@ -14,6 +14,7 @@
 #ifdef PMEMBLK_USE_MINIASYNC
 
 #include <libpmemblk/base.h>
+#include <libpmemblk/btt_async.h>
 #include <libminiasync/vdm.h>
 
 #ifdef __cplusplus
@@ -25,6 +26,12 @@ struct pmemblk_write_async_data {
 	void *buf;
 	long long blockno;
 	struct vdm *vdm;
+
+	struct {
+		struct btt_write_async_future btt_write_fut;
+		int btt_write_started;
+		unsigned lane;
+	} internal;
 };
 
 struct pmemblk_write_async_output {

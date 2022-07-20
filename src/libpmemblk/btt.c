@@ -2173,8 +2173,8 @@ btt_write_async_future_impl(struct future_context *ctx,
 		data->internal.free_entry = free_entry;
 	}
 
-	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.nswrite_fut), NULL) !=
-			FUTURE_STATE_COMPLETE) {
+	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.nswrite_fut), NULL)
+			!= FUTURE_STATE_COMPLETE) {
 		return FUTURE_STATE_RUNNING;
 	}
 
