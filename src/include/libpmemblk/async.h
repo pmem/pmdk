@@ -22,6 +22,28 @@
 extern "C" {
 #endif
 
+#ifdef _WIN32
+
+#ifndef PMDK_UTF8_API
+#define pmemblk_xopen pmemblk_xopenW
+#define pmemblk_xcreate pmemblk_xcreateW
+#else
+#define pmemblk_xopen pmemblk_xopenU
+#define pmemblk_xcreate pmemblk_xcreateU
+#endif
+
+PMEMblkpool *pmemblk_xopenU(const char *path, size_t bsize, struct vdm *vdm);
+PMEMblkpool *pmemblk_xopenW(const wchar_t *path, size_t bsize, struct vdm *vdm);
+PMEMblkpool *pmemblk_xcreateU(const char *path, size_t bsize,
+		size_t poolsize, mode_t mode, struct vdm *vdm);
+PMEMblkpool *pmemblk_xcreateW(const wchar_t *path, size_t bsize,
+		size_t poolsize, mode_t mode, struct vdm *vdm);
+#else
+PMEMblkpool *pmemblk_xopen(const char *path, size_t bsize, struct vdm *vdm);
+PMEMblkpool *pmemblk_xcreate(const char *path, size_t bsize, size_t poolsize,
+		mode_t mode, struct vdm *vdm);
+#endif
+
 /* START of pmemblk_read_async future */
 enum pmemblk_read_stages{
 	PMEMBLK_READ_INITIALIZED = 0,
