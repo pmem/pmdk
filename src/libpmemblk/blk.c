@@ -411,7 +411,6 @@ pmemblk_write_async_impl(struct future_context *ctx,
 	PMEMblkpool *pbp = data->pbp;
 	void *buf = data->buf;
 	long long blockno = data->blockno;
-	struct vdm *vdm = data->vdm;
 
 	if (!data->internal.btt_write_started) {
 		unsigned lane;
@@ -420,7 +419,7 @@ pmemblk_write_async_impl(struct future_context *ctx,
 		data->internal.lane = lane;
 		data->internal.btt_write_started = 1;
 		data->internal.btt_write_fut = btt_write_async(pbp->bttp, lane,
-				blockno, buf, vdm);
+				blockno, buf, pbp->vdm);
 	}
 
 	/*
@@ -438,23 +437,24 @@ pmemblk_write_async_impl(struct future_context *ctx,
 }
 
 struct pmemblk_write_async_fut
-pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno,
-		struct vdm *vdm)
+pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 {
 	struct pmemblk_write_async_fut future = {
 		.data.pbp = pbp,
 		.data.buf = buf,
 		.data.blockno = blockno,
-		.data.vdm = vdm,
 		.output.return_value = 0,
 	};
 
 	FUTURE_INIT(&future, pmemblk_write_async_impl);
+
+	return future;
 }
 /*
  * END of the pmemblk_write_async_fut future
  */
 
+/* async callbacks for btt_init() */
 static struct ns_callback_async ns_cb_async = {
 	.nsread = nsread_async,
 	.nswrite = nswrite_async,
@@ -684,6 +684,24 @@ PMEMblkpool *
 pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 {
 	return pmemblk_createU(path, bsize, poolsize, mode);
+}
+
+/*
+ * pmemblk_xcreate -- create a block memory pool that uses provided data mover
+ *                    for asynchronus memory movement operations
+ */
+PMEMblkpool *
+pmemblk_xcreate(const char *path, size_t bsize, size_t poolsize, mode_t mode,
+		struct vdm *vdm)
+{
+	PMEMblkpool *pbp =  pmemblk_createU(path, bsize, poolsize, mode);
+	/*
+	 * XXX: Create default blk data mover to be used in case provided
+	 * vdm is NULL.
+	 */
+	pbp->vdm = vdm ? vdm : NULL;
+
+	return pbp;
 }
 #else
 /*
