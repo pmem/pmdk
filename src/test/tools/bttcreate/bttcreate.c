@@ -339,7 +339,8 @@ main(int argc, char *argv[])
 	struct btt *bttp = btt_init(opts.poolsize - BTT_CREATE_DEF_OFFSET_SIZE,
 		opts.blocksize, opts.uuid, opts.maxlanes,
 		(void *)&btt_context,
-		&btt_ns_callback);
+		&btt_ns_callback,
+		NULL);
 	if (!bttp) {
 		printf("Error: Cannot initialize BTT layer\n");
 		res = -1;

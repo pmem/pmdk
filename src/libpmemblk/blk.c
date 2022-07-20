@@ -376,12 +376,18 @@ nswrite_async_future_impl(struct future_context *ctx,
 		data->internal.memcpy_fut =
 				vdm_memcpy(vdm, dest, buf, count, 0);
 		data->internal.memcpy_started = 1;
+
+		/* unprotect the memory (debug version only) */
+		RANGE_RW(dest, count, pbp->is_dev_dax);
 	}
 
 	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.memcpy_fut), NULL) !=
 			FUTURE_STATE_COMPLETE) {
 		return FUTURE_STATE_RUNNING;
 	}
+
+	/* protect the memory again (debug version only) */
+	RANGE_RO(dest, count, pbp->is_dev_dax);
 
 	if (pbp->is_pmem)
 		pmem_drain();
@@ -416,7 +422,6 @@ nswrite_async(void *ns, unsigned lane, void *buf, size_t count, uint64_t off,
 /*
  * END of nswrite_async_future
  */
-
 
 /*
  * START of the pmemblk_read_async future
@@ -513,8 +518,7 @@ pmemblk_write_async_impl(struct future_context *ctx,
 	 * XXX: The lane lock is kept even when 'pmemblk_write_async_future'
 	 * cannot make progress.
 	 */
-	if (future_poll(
-		FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
+	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
 			!= FUTURE_STATE_COMPLETE) {
 		return FUTURE_STATE_RUNNING;
 	}
