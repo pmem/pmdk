@@ -61,6 +61,25 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane)
 }
 
 /*
+ * lane_enter -- (internal) acquire a unique lane number
+ */
+static int
+lane_try_enter(PMEMblkpool *pbp, unsigned *lane)
+{
+	unsigned mylane;
+
+	mylane = util_fetch_and_add32(&pbp->next_lane, 1) % pbp->nlane;
+
+	/* lane selected, grab the per-lane lock */
+	if(util_mutex_trylock(&pbp->locks[mylane]) == 0) {
+		*lane = mylane;
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+/*
  * lane_exit -- (internal) drop lane lock
  */
 static void
@@ -414,7 +433,11 @@ pmemblk_write_async_impl(struct future_context *ctx,
 
 	if (!data->internal.btt_write_started) {
 		unsigned lane;
-		lane_enter(pbp, &lane);
+		if(data->internal.lane == -1) {
+			if (lane_try_enter(pbp, &lane) == -1) {
+				return FUTURE_STATE_RUNNING;
+			}
+		}
 
 		data->internal.lane = lane;
 		data->internal.btt_write_started = 1;
@@ -426,7 +449,8 @@ pmemblk_write_async_impl(struct future_context *ctx,
 	 * XXX: The lane lock is kept even when 'pmemblk_write_async_future'
 	 * cannot make progress.
 	 */
-	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
+	if (future_poll(
+		FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
 			!= FUTURE_STATE_COMPLETE) {
 		return FUTURE_STATE_RUNNING;
 	}
@@ -443,6 +467,7 @@ pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 		.data.pbp = pbp,
 		.data.buf = buf,
 		.data.blockno = blockno,
+		.data.internal.lane = -1,
 		.output.return_value = 0,
 	};
 
