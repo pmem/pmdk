@@ -2124,12 +2124,12 @@ btt_read_async_future_impl(struct future_context *ctx,
 	uint64_t lba = data->lba;
 	void *buf = data->buf;
 	struct vdm *vdm = data->vdm;
-	int stage = data->stage;
+	int *stage = data->stage;
 
-	if (stage < BTT_READ_STARTED) {
+	if (*stage < BTT_READ_STARTED) {
 		LOG(3, "bttp %p lane %u lba %" PRIu64, bttp, lane, lba);
 
-		stage = BTT_READ_STARTED;
+		*stage = BTT_READ_STARTED;
 
 		if (invalid_lba(bttp, lba)) {
 			output->return_value = -1;
@@ -2143,11 +2143,11 @@ btt_read_async_future_impl(struct future_context *ctx,
 		if (!bttp->laidout) {
 			data->internal.vdm_fut = vdm_memset(
 				vdm, buf, '\0', bttp->lbasize, NULL);
-			stage = BTT_READ_ZEROS;
+			*stage = BTT_READ_ZEROS;
 		}
 	}
 
-	if (stage == BTT_READ_ZEROS) {
+	if (*stage == BTT_READ_ZEROS) {
 		if (future_poll(
 			FUTURE_AS_RUNNABLE(
 				&data->internal.vdm_fut), NULL
@@ -2160,7 +2160,7 @@ btt_read_async_future_impl(struct future_context *ctx,
 		}
 	}
 
-	if (stage == BTT_READ_STARTED) {
+	if (*stage == BTT_READ_STARTED) {
 		/* find which arena LBA lives in, and the offset to the map entry */
 		uint32_t premap_lba;
 		uint64_t map_entry_off;
@@ -2259,10 +2259,10 @@ btt_read_async_future_impl(struct future_context *ctx,
 		data->internal.nsread_fut = (*bttp->ns_cb_asyncp->nsread)
 			(bttp->ns, lane, buf, bttp->lbasize, data_block_off,
 				vdm);
-		stage = BTT_READ_PREPARED;
+		*stage = BTT_READ_PREPARED;
 	}
 
-	if (stage == BTT_READ_PREPARED) {
+	if (*stage == BTT_READ_PREPARED) {
 		if (future_poll(
 			FUTURE_AS_RUNNABLE(
 				&data->internal.nsread_fut), NULL
@@ -2271,7 +2271,7 @@ btt_read_async_future_impl(struct future_context *ctx,
 		}
 	}
 
-	stage = BTT_READ_COMPLETE;
+	*stage = BTT_READ_COMPLETE;
 	/* done with read, so clear out rtt entry */
 	data->internal.arenap->rtt[lane] = BTT_MAP_ENTRY_ERROR;
 
@@ -2280,17 +2280,20 @@ btt_read_async_future_impl(struct future_context *ctx,
 
 struct btt_read_async_future
 btt_read_async(struct btt *bttp, unsigned lane,
-	uint64_t lba, void *buf, struct vdm *vdm) {
+	uint64_t lba, void *buf, struct vdm *vdm, int *stage) {
 	struct btt_read_async_future future = {
 		.data.bttp = bttp,
 		.data.lane = lane,
 		.data.lba = lba,
 		.data.buf = buf,
 		.data.vdm = vdm,
-		.data.stage = 0,
+		.data.stage = stage,
 
 		.output.return_value = -1,
 	};
+
+	FUTURE_INIT(&future, btt_read_async_future_impl);
+	return future;
 }
 /*
  * END of btt_read_async_future
