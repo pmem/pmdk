@@ -21,6 +21,36 @@
 extern "C" {
 #endif
 
+/* START of pmemblk_read_async future */
+enum pmemblk_read_stages{
+	PMEMBLK_READ_WAITING_FOR_LANE = 0,
+	PMEMBLK_READ_PREPARED = 1,
+	PMEMBLK_READ_COMPLETE = 2,
+};
+struct pmemblk_read_async_future_data {
+    PMEMblkpool *pbp;
+    void *buf;
+    long long blockno;
+
+    int stage;
+    struct {
+	struct btt_read_async_future btt_read_fut;
+	unsigned lane;
+    } internal;
+};
+
+struct pmemblk_read_async_future_output {
+    int return_value;
+};
+
+FUTURE(pmemblk_read_async_future, struct pmemblk_read_async_future_data,
+	struct pmemblk_read_async_future_output);
+
+struct pmemblk_read_async_future pmemblk_read_async(PMEMblkpool *pbp, void *buf,
+	long long blockno);
+/* END of pmemblk_read_async future */
+
+/* START of pmemblk_write_async future */
 struct pmemblk_write_async_data {
 	PMEMblkpool *pbp;
 	void *buf;
@@ -42,6 +72,7 @@ FUTURE(pmemblk_write_async_fut, struct pmemblk_write_async_data,
 
 struct pmemblk_write_async_fut pmemblk_write_async(PMEMblkpool *pbp, void *buf,
 		long long blockno);
+/* END of pmemblk_write_async future */
 #endif
 
 #ifdef __cplusplus
