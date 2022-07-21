@@ -98,7 +98,7 @@ struct btt_read_async_future_data {
     void *buf;
     struct vdm *vdm;
 
-    int stage;
+    int *stage;
     struct {
 	union {
 	    struct vdm_operation_future vdm_fut;
@@ -116,7 +116,7 @@ FUTURE(btt_read_async_future, struct btt_read_async_future_data,
 		struct btt_read_async_future_output);
 
 struct btt_read_async_future btt_read_async(struct btt *bttp, unsigned lane,
-	uint64_t lba, void *buf, struct vdm *vdm);
+	uint64_t lba, void *buf, struct vdm *vdm, int *stage);
 /* END of btt_read_async */
 
 /* START of btt_write_async */
