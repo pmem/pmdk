@@ -321,7 +321,7 @@ nsread_async_future_impl(struct future_context *ctx,
 static struct nsread_async_future
 nsread_async(void *ns, unsigned lane, void *buf,
 	size_t count, uint64_t off, struct vdm *vdm) {
-	struct nsread_async_future fut = {
+	struct nsread_async_future future = {
 		.data.ns = ns,
 		.data.lane = lane,
 		.data.buf = buf,
@@ -332,7 +332,8 @@ nsread_async(void *ns, unsigned lane, void *buf,
 		.output.return_value = -1,
 	};
 
-	return fut;
+	FUTURE_INIT(&future, nsread_async_future_impl);
+	return future;
 }
 /*
  * END of nsread_async_future
@@ -414,6 +415,70 @@ nswrite_async(void *ns, unsigned lane, void *buf, size_t count, uint64_t off,
 }
 /*
  * END of nswrite_async_future
+ */
+
+
+/*
+ * START of the pmemblk_read_async future
+ */
+static enum future_state
+pmemblk_read_async_impl(struct future_context *ctx,
+	struct future_notifier *notifier)
+{
+	struct pmemblk_read_async_future_data *data =
+		future_context_get_data(ctx);
+	struct pmemblk_read_async_future_output *output =
+		future_context_get_output(ctx);
+
+	PMEMblkpool *pbp = data->pbp;
+	void *buf = data->buf;
+	long long blockno = data->blockno;
+	int stage = data->stage;
+
+	if (data->stage == PMEMBLK_READ_WAITING_FOR_LANE) {
+		if (data->internal.lane == -1) {
+			if (lane_try_enter(pbp, &data->internal.lane) == -1) {
+				return FUTURE_STATE_RUNNING;
+			}
+		}
+		data->internal.btt_read_fut = btt_read_async(pbp->bttp,
+			data->internal.lane, blockno, buf, pbp->vdm);
+		stage = PMEMBLK_READ_PREPARED;
+	}
+
+	/*
+	 * XXX: The lane lock is kept even when 'pmemblk_write_async_future'
+	 * cannot make progress.
+	 */
+	if (future_poll(
+		FUTURE_AS_RUNNABLE(&data->internal.btt_read_fut), NULL)
+	    != FUTURE_STATE_COMPLETE) {
+		return FUTURE_STATE_RUNNING;
+	}
+
+	stage = PMEMBLK_READ_COMPLETE;
+	lane_exit(pbp, data->internal.lane);
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+struct pmemblk_read_async_future
+pmemblk_read_async(PMEMblkpool *pbp, void *buf, long long blockno)
+{
+	struct pmemblk_read_async_future future = {
+		.data.pbp = pbp,
+		.data.buf = buf,
+		.data.blockno = blockno,
+		.data.internal.lane = -1,
+		.output.return_value = PMEMBLK_READ_WAITING_FOR_LANE,
+	};
+
+	FUTURE_INIT(&future, pmemblk_read_async_impl);
+
+	return future;
+}
+/*
+ * END of the pmemblk_read_async future
  */
 
 /*

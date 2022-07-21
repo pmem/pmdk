@@ -84,14 +84,28 @@ struct ns_callback_async {
 /* BTT futures */
 
 /* START of btt_read_async */
+
+enum btt_read_stages{
+    BTT_READ_STARTED = 10,
+    BTT_READ_ZEROS = 11,
+    BTT_READ_PREPARED = 12,
+    BTT_READ_COMPLETE = 13,
+};
 struct btt_read_async_future_data {
     struct btt *bttp;
     unsigned lane;
     uint64_t lba;
     void *buf;
+    struct vdm *vdm;
 
     int stage;
-    struct vdm *vdm;
+    struct {
+	union {
+	    struct vdm_operation_future vdm_fut;
+	    struct nsread_async_future nsread_fut;
+	};
+	struct arena *arenap;
+    } internal;
 };
 
 struct btt_read_async_future_output {
