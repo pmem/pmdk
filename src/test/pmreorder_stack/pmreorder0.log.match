@@ -1,35 +1,5 @@
 WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
 WARNING:pmreorder:Call trace:
-
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
-WARNING:pmreorder:Call trace:
-Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
-WARNING:pmreorder:Call trace:
-Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
-WARNING:pmreorder:Call trace:
-Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-Store [2]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
-WARNING:pmreorder:Call trace:
 Store [0]:
     by	$(nW): write_fields (pmreorder_stack.c:$(N))
     by	$(nW): main (pmreorder_stack.c:$(N))
@@ -40,30 +10,6 @@ Store [2]:
     by	$(nW): write_fields (pmreorder_stack.c:$(N))
     by	$(nW): main (pmreorder_stack.c:$(N))
 Store [3]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
-WARNING:pmreorder:Call trace:
-
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
-WARNING:pmreorder:Call trace:
-Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
-WARNING:pmreorder:Call trace:
-Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-Store [2]:
     by	$(nW): write_fields (pmreorder_stack.c:$(N))
     by	$(nW): main (pmreorder_stack.c:$(N))
 
