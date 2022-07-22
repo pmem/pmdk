@@ -2372,6 +2372,10 @@ btt_write_async_future_impl(struct future_context *ctx,
 		return FUTURE_STATE_RUNNING;
 	}
 
+	ret = data->internal.nswrite_fut.output.return_value;
+	if (ret)
+		goto set_output;
+
 	/* make the new block active */
 	ret = btt_activate_block(bttp, lane, data->internal.arenap,
 			data->internal.free_entry, data->internal.premap_lba);
@@ -2383,8 +2387,7 @@ set_output:
 }
 
 /*
- * btt_write_async_future -- return a future that writes a block to a btt
- *                           namespace
+ * btt_write_async -- return a future that writes a block to a btt namespace
  */
 struct btt_write_async_future
 btt_write_async(struct btt *bttp, unsigned lane, uint64_t lba, void *buf,

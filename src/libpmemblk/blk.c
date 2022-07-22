@@ -500,7 +500,22 @@ pmemblk_write_async_impl(struct future_context *ctx,
 	void *buf = data->buf;
 	long long blockno = data->blockno;
 
+	int ret = 0;
 	if (!data->internal.btt_write_started) {
+		if (pbp->rdonly) {
+			ERR("EROFS (pool is read-only)");
+			errno = EROFS;
+			ret = -1;
+			goto set_output;
+		}
+
+		if (blockno < 0) {
+			ERR("negative block number");
+			errno = EINVAL;
+			ret = -1;
+			goto set_output;
+		}
+
 		unsigned lane;
 		if(data->internal.lane == -1) {
 			if (lane_try_enter(pbp, &lane) == -1) {
@@ -523,7 +538,12 @@ pmemblk_write_async_impl(struct future_context *ctx,
 		return FUTURE_STATE_RUNNING;
 	}
 
+	ret = data->internal.btt_write_fut.output.return_value;
+
 	lane_exit(pbp, data->internal.lane);
+
+set_output:
+	output->return_value = ret;
 
 	return FUTURE_STATE_COMPLETE;
 }
@@ -769,6 +789,28 @@ err:
 	return NULL;
 }
 
+/*
+ * pmemblk_xcreateU -- create a block memory pool that uses provided data mover
+ *                     for asynchronus memory movement operations
+ */
+#ifndef _WIN32
+static inline
+#endif
+PMEMblkpool *
+pmemblk_xcreateU(const char *path, size_t bsize, size_t poolsize, mode_t mode,
+		struct vdm *vdm)
+{
+	PMEMblkpool *pbp = pmemblk_createU(path, bsize, poolsize, mode);
+	/*
+	 * XXX: Create default blk data mover to be used in case provided
+	 * vdm is NULL.
+	 */
+	LOG(3, "vdm %p", vdm);
+	pbp->vdm = vdm ? vdm : NULL;
+
+	return pbp;
+}
+
 #ifndef _WIN32
 /*
  * pmemblk_create -- create a block memory pool
@@ -787,14 +829,7 @@ PMEMblkpool *
 pmemblk_xcreate(const char *path, size_t bsize, size_t poolsize, mode_t mode,
 		struct vdm *vdm)
 {
-	PMEMblkpool *pbp =  pmemblk_createU(path, bsize, poolsize, mode);
-	/*
-	 * XXX: Create default blk data mover to be used in case provided
-	 * vdm is NULL.
-	 */
-	pbp->vdm = vdm ? vdm : NULL;
-
-	return pbp;
+	return pmemblk_xcreateU(path, bsize, poolsize, mode, vdm);
 }
 #else
 /*
@@ -809,6 +844,24 @@ pmemblk_createW(const wchar_t *path, size_t bsize, size_t poolsize,
 		return NULL;
 
 	PMEMblkpool *ret = pmemblk_createU(upath, bsize, poolsize, mode);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+
+/*
+ * pmemblk_xcreateW -- create a block memory pool that uses provided data mover
+ *                     for asynchronus memory movement operations
+ */
+PMEMblkpool *
+pmemblk_xcreateW(const wchar_t *path, size_t bsize, size_t poolsize,
+		mode_t mode, struct vdm *vdm)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return NULL;
+
+	PMEMblkpool *ret = pmemblk_xcreateU(upath, bsize, poolsize, mode, vdm);
 
 	util_free_UTF8(upath);
 	return ret;
@@ -900,6 +953,27 @@ pmemblk_openU(const char *path, size_t bsize)
 	return blk_open_common(path, bsize, COW_at_open ? POOL_OPEN_COW : 0);
 }
 
+/*
+ * pmemblk_xopenU -- open a block memory pool that uses provided data mover for
+ *                   asynchronus memory movement operations
+ */
+#ifndef _WIN32
+static inline
+#endif
+PMEMblkpool *
+pmemblk_xopenU(const char *path, size_t bsize, struct vdm *vdm)
+{
+	PMEMblkpool *pbp = pmemblk_openU(path, bsize);
+	/*
+	 * XXX: Create default blk data mover to be used in case provided
+	 * vdm is NULL.
+	 */
+	LOG(3, "vdm %p", vdm);
+	pbp->vdm = vdm ? vdm : NULL;
+
+	return pbp;
+}
+
 #ifndef _WIN32
 /*
  * pmemblk_open -- open a block memory pool
@@ -908,6 +982,16 @@ PMEMblkpool *
 pmemblk_open(const char *path, size_t bsize)
 {
 	return pmemblk_openU(path, bsize);
+}
+
+/*
+ * pmemblk_xopen -- open a block memory pool that uses provided data mover
+ *                  for asynchronus memory movement operations
+ */
+PMEMblkpool *
+pmemblk_xopen(const char *path, size_t bsize, struct vdm *vdm)
+{
+	return pmemblk_xopenU(path, bsize, vdm);
 }
 #else
 /*
@@ -921,6 +1005,23 @@ pmemblk_openW(const wchar_t *path, size_t bsize)
 		return NULL;
 
 	PMEMblkpool *ret = pmemblk_openU(upath, bsize);
+
+	util_free_UTF8(upath);
+	return ret;
+}
+
+/*
+ * pmemblk_xopenW -- open a block memory pool that uses provided data mover
+ *                   for asynchronus memory movement operations
+ */
+PMEMblkpool *
+pmemblk_xopenW(const wchar_t *path, size_t bsize, struct vdm *vdm)
+{
+	char *upath = util_toUTF8(path);
+	if (upath == NULL)
+		return NULL;
+
+	PMEMblkpool *ret = pmemblk_xopenU(upath, bsize, vdm);
 
 	util_free_UTF8(upath);
 	return ret;
