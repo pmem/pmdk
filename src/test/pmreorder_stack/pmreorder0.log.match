@@ -1,84 +1,90 @@
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
 WARNING:pmreorder:Call trace:
 
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C771: write_fields (pmreorder_stack.c:49)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C771: write_fields (pmreorder_stack.c:49)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C763: write_fields (pmreorder_stack.c:48)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C771: write_fields (pmreorder_stack.c:49)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C763: write_fields (pmreorder_stack.c:48)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [2]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C755: write_fields (pmreorder_stack.c:47)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C771: write_fields (pmreorder_stack.c:49)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C763: write_fields (pmreorder_stack.c:48)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [2]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C755: write_fields (pmreorder_stack.c:47)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [3]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C748: write_fields (pmreorder_stack.c:46)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
 WARNING:pmreorder:Call trace:
 
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
-WARNING:pmreorder:Call trace:
-Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
-
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C809: write_fields (pmreorder_stack.c:54)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
+
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
+WARNING:pmreorder:Call trace:
+Store [0]:
+    by	0x10C809: write_fields (pmreorder_stack.c:54)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C817: write_fields (pmreorder_stack.c:55)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
+
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
+WARNING:pmreorder:Call trace:
+Store [0]:
+    by	0x10C809: write_fields (pmreorder_stack.c:54)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
+Store [1]:
+    by	0x10C817: write_fields (pmreorder_stack.c:55)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [2]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C825: write_fields (pmreorder_stack.c:56)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 
-WARNING:pmreorder:File $(nW)/testfile (base: 0x$(nW), size: 0x$(nW)) inconsistent
+WARNING:pmreorder:File /tmp/test_pmreorder_stack0/testfile (base: 0x5000000, size: 0x400000) inconsistent
 WARNING:pmreorder:Call trace:
 Store [0]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C809: write_fields (pmreorder_stack.c:54)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [1]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C817: write_fields (pmreorder_stack.c:55)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [2]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C825: write_fields (pmreorder_stack.c:56)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 Store [3]:
-    by	$(nW): write_fields (pmreorder_stack.c:$(N))
-    by	$(nW): main (pmreorder_stack.c:$(N))
+    by	0x10C833: write_fields (pmreorder_stack.c:57)
+    by	0x10CCBB: main (pmreorder_stack.c:133)
 
