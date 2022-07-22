@@ -48,7 +48,7 @@ in the command line options to check whether files are in a consistent state.
 To help with this task, pmreorder sets an environmental variable
 PMREORDER_MARKERS. Said variable contains a subset of markers
 passed from the application, which is visible at the current state
-of pmreordering. Individual markers are separated by vertical bar (‘|’).
+of reordering. Individual markers are separated by vertical bar (‘|’).
 
 Example of how PMREORDER_MARKERS variable can be parsed in c++ using regex
 based environment variable tokener:
