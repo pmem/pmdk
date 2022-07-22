@@ -18,10 +18,14 @@ LIBPMEMBLK_1.0 {
 		pmemblk_ctl_set;
 		pmemblk_nblock;
 		pmemblk_read;
+		pmemblk_read_async;
 		pmemblk_write;
+		pmemblk_write_async;
 		pmemblk_set_zero;
 		pmemblk_set_error;
 		pmemblk_bsize;
+		pmemblk_xcreate;
+		pmemblk_xopen;
 		fault_injection;
 	local:
 		*;

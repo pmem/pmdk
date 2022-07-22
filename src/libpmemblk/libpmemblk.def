@@ -29,8 +29,14 @@ EXPORTS
 	pmemblk_bsize
 	pmemblk_nblock
 	pmemblk_read
+	pmemblk_read_async
 	pmemblk_write
+	pmemblk_write_async
 	pmemblk_set_zero
 	pmemblk_set_error
+	pmemblk_xcreateU
+	pmemblk_xcreateW
+	pmemblk_xopenU
+	pmemblk_xopenW
 
 	DllMain
