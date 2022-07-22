@@ -2126,10 +2126,10 @@ btt_read_async_future_impl(struct future_context *ctx,
 	struct vdm *vdm = data->vdm;
 	int *stage = data->stage;
 
-	if (*stage < BTT_READ_STARTED) {
+	if (*stage == BTT_READ_INITIALIZED) {
 		LOG(3, "bttp %p lane %u lba %" PRIu64, bttp, lane, lba);
 
-		*stage = BTT_READ_STARTED;
+		*stage = BTT_READ_PREPARATION;
 
 		if (invalid_lba(bttp, lba)) {
 			output->return_value = -1;
@@ -2160,7 +2160,7 @@ btt_read_async_future_impl(struct future_context *ctx,
 		}
 	}
 
-	if (*stage == BTT_READ_STARTED) {
+	if (*stage == BTT_READ_PREPARATION) {
 		/* find which arena LBA lives in, and the offset to the map entry */
 		uint32_t premap_lba;
 		uint64_t map_entry_off;
@@ -2259,10 +2259,10 @@ btt_read_async_future_impl(struct future_context *ctx,
 		data->internal.nsread_fut = (*bttp->ns_cb_asyncp->nsread)
 			(bttp->ns, lane, buf, bttp->lbasize, data_block_off,
 				vdm);
-		*stage = BTT_READ_PREPARED;
+		*stage = BTT_READ_IN_PROGRESS;
 	}
 
-	if (*stage == BTT_READ_PREPARED) {
+	if (*stage == BTT_READ_IN_PROGRESS) {
 		if (future_poll(
 			FUTURE_AS_RUNNABLE(
 				&data->internal.nsread_fut), NULL
@@ -2292,6 +2292,7 @@ btt_read_async(struct btt *bttp, unsigned lane,
 		.output.return_value = -1,
 	};
 
+	*stage = BTT_READ_INITIALIZED;
 	FUTURE_INIT(&future, btt_read_async_future_impl);
 	return future;
 }

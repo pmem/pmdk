@@ -11,6 +11,7 @@
 #ifndef LIBPMEMBLK_ASYNC_H
 #define LIBPMEMBLK_ASYNC_H 1
 
+/* TODO: Move those ifdefs out of the file */
 #ifdef PMEMBLK_USE_MINIASYNC
 
 #include <libpmemblk/base.h>
@@ -23,9 +24,10 @@ extern "C" {
 
 /* START of pmemblk_read_async future */
 enum pmemblk_read_stages{
-	PMEMBLK_READ_WAITING_FOR_LANE = 0,
-	PMEMBLK_READ_PREPARED = 1,
-	PMEMBLK_READ_COMPLETE = 2,
+	PMEMBLK_READ_INITIALIZED = 0,
+	PMEMBLK_READ_WAITING_FOR_LANE = 1,
+	PMEMBLK_READ_IN_PROGRESS = 2,
+	PMEMBLK_READ_COMPLETE = 20,
 };
 struct pmemblk_read_async_future_data {
     PMEMblkpool *pbp;
