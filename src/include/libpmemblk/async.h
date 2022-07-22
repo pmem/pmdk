@@ -75,7 +75,7 @@ struct pmemblk_read_async_future pmemblk_read_async(PMEMblkpool *pbp, void *buf,
 /* END of pmemblk_read_async future */
 
 /* START of pmemblk_write_async future */
-struct pmemblk_write_async_data {
+struct pmemblk_write_async_future_data {
 	PMEMblkpool *pbp;
 	void *buf;
 	long long blockno;
@@ -87,15 +87,15 @@ struct pmemblk_write_async_data {
 	} internal;
 };
 
-struct pmemblk_write_async_output {
+struct pmemblk_write_async_future_output {
 	int return_value;
 };
 
-FUTURE(pmemblk_write_async_fut, struct pmemblk_write_async_data,
-		struct pmemblk_write_async_output);
+FUTURE(pmemblk_write_async_future, struct pmemblk_write_async_future_data,
+		struct pmemblk_write_async_future_output);
 
-struct pmemblk_write_async_fut pmemblk_write_async(PMEMblkpool *pbp, void *buf,
-		long long blockno);
+struct pmemblk_write_async_future pmemblk_write_async(PMEMblkpool *pbp,
+		void *buf, long long blockno);
 /* END of pmemblk_write_async future */
 #endif
 
