@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * unittest.h -- the mundane stuff shared by all unit tests
@@ -668,6 +668,11 @@ struct test_case {
 	int (*func)(const struct test_case *tc, int argc, char *argv[]);
 };
 
+struct markers {
+	unsigned markers_no;
+	char **markers;
+};
+
 /*
  * get_tc -- return test case of specified name
  */
@@ -749,6 +754,53 @@ if (off != sizeof(type))\
 		"sizeof(%s) = %lu, fields size = %lu",\
 		STR(type), last, STR(type), sizeof(type), off);\
 } while (0)
+
+/*
+ * get_markers - return list of the markers passed by pmreorder
+ */
+static inline struct markers *
+get_markers(char *input)
+{
+	if (!input)
+		return NULL;
+
+	struct markers *m = malloc(sizeof(struct markers));
+	char *s = malloc(sizeof(char) * strlen(input));
+	char *delim = "|";
+
+	strncpy(s, input, strlen(input));
+
+	m->markers_no = 0;
+	while (*s)
+		if (strcmp(s++, delim) == 0)
+			m->markers_no++;
+	m->markers = malloc(m->markers_no * sizeof(char *));
+
+	strncpy(s, input, strlen(input));
+
+	char *token = strtok(input, delim);
+	int i = 0;
+
+	while (token != NULL) {
+		m->markers[i] = malloc(strlen(token) * sizeof(char));
+		strncpy(m->markers[i], token, strlen(token));
+		i++;
+		printf(" %s\n", token);
+		token = strtok(NULL, delim);
+	}
+
+	free(s);
+	return m;
+}
+
+static inline void
+delete_markers(struct markers *m)
+{
+	for (unsigned i = 0; i < m->markers_no; i++)
+		free(m->markers[i]);
+	free(m->markers);
+	free(m);
+}
 
 /*
  * AddressSanitizer
