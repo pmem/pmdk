@@ -486,14 +486,15 @@ pmemblk_read_async(PMEMblkpool *pbp, void *buf, long long blockno)
  */
 
 /*
- * START of the pmemblk_write_async_fut future
+ * START of the pmemblk_write_async_future future
  */
 static enum future_state
 pmemblk_write_async_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
-	struct pmemblk_write_async_data *data = future_context_get_data(ctx);
-	struct pmemblk_write_async_output *output =
+	struct pmemblk_write_async_future_data *data =
+			future_context_get_data(ctx);
+	struct pmemblk_write_async_future_output *output =
 			future_context_get_output(ctx);
 
 	PMEMblkpool *pbp = data->pbp;
@@ -548,10 +549,10 @@ set_output:
 	return FUTURE_STATE_COMPLETE;
 }
 
-struct pmemblk_write_async_fut
+struct pmemblk_write_async_future
 pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 {
-	struct pmemblk_write_async_fut future = {
+	struct pmemblk_write_async_future future = {
 		.data.pbp = pbp,
 		.data.buf = buf,
 		.data.blockno = blockno,
@@ -564,7 +565,7 @@ pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 	return future;
 }
 /*
- * END of the pmemblk_write_async_fut future
+ * END of the pmemblk_write_async_future future
  */
 
 /* async callbacks for btt_init() */
