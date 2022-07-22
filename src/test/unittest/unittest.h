@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * unittest.h -- the mundane stuff shared by all unit tests
@@ -749,6 +749,55 @@ if (off != sizeof(type))\
 		"sizeof(%s) = %lu, fields size = %lu",\
 		STR(type), last, STR(type), sizeof(type), off);\
 } while (0)
+
+struct markers {
+	size_t markers_no;
+	char **markers;
+};
+
+/*
+ * get_markers - parse markers from pmreorder
+ *		(which are passed in the form of char array
+ *		e.g."MARKER.BEGIN|MARKER.END")
+ *		and return struct including list of markers
+ *		and information about its quantity
+ */
+static inline struct markers *
+get_markers(char *input)
+{
+	if (!input)
+		return NULL;
+
+	struct markers *log = MALLOC(sizeof(struct markers));
+	const char *delim = "|";
+
+	log->markers_no = 1;
+	for (char *s = input; *s != '\0'; s++)
+		if (strncmp(s, delim, strlen(delim)) == 0)
+			log->markers_no++;
+	log->markers = MALLOC(log->markers_no * sizeof(char *));
+
+	int i = 0;
+	char *tmp = input;
+	char *token;
+
+	while ((token = strtok_r(tmp, delim, &tmp))) {
+		log->markers[i] = MALLOC(strlen(token) * sizeof(char));
+		strncpy(log->markers[i], token, strlen(token));
+		i++;
+	}
+
+	return log;
+}
+
+static inline void
+delete_markers(struct markers *log)
+{
+	for (size_t i = 0; i < log->markers_no; i++)
+		FREE(log->markers[i]);
+	FREE(log->markers);
+	FREE(log);
+}
 
 /*
  * AddressSanitizer
