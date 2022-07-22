@@ -1,0 +1,5854 @@
+diff --git a/meson.build b/meson.build
+index bd6810d50..97b599345 100644
+--- a/meson.build
++++ b/meson.build
+@@ -43,7 +43,6 @@ fs = import('fs')
+ 
+ rt_dep = cc.find_library('rt')
+ libdl_dep = cc.find_library('dl')
+-libm_dep = cc.find_library('m')
+ 
+ threads_dep = dependency('threads')
+ # TODO: Add wrap (autotools)
+diff --git a/meson_options.txt b/meson_options.txt
+index 89a99bc18..ffe16f3fa 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -4,7 +4,7 @@ option('rpmem', type: 'boolean', value: true,
+     description: 'RPMEM support')
+ option('tools', type: 'boolean', value: true,
+     description: 'Build tools')
+-option('tests', type: 'boolean', value: true,
++option('tests', type: 'boolean', value: false,
+     description: 'Build tests')
+ option('doc', type: 'boolean', value: true,
+     description: 'Build manuals')
+diff --git a/src/libpmem/meson.build b/src/libpmem/meson.build
+index f45a4a560..f9c9812cb 100644
+--- a/src/libpmem/meson.build
++++ b/src/libpmem/meson.build
+@@ -29,7 +29,7 @@ libpmem = library(
+ 
+ libpmem_dep = declare_dependency(
+     link_with: libpmem,
+-    include_directories: root_include,
++    include_directories: include_directories('.')
+ )
+ 
+ if meson.version().version_compare('>=0.54')
+diff --git a/src/libpmem2/meson.build b/src/libpmem2/meson.build
+index c2d13abc2..01acda830 100644
+--- a/src/libpmem2/meson.build
++++ b/src/libpmem2/meson.build
+@@ -1,4 +1,4 @@
+-sources = files()
++sources = []
+ compile_args = []
+ includes = [include_directories('.')]
+ 
+diff --git a/src/libpmemset/meson.build b/src/libpmemset/meson.build
+index 7f36b0133..45d0a705e 100644
+--- a/src/libpmemset/meson.build
++++ b/src/libpmemset/meson.build
+@@ -34,10 +34,7 @@ libpmemset = library(
+ )
+ 
+ libpmemset_dep = declare_dependency(
+-    link_with: libpmemset,
+-    include_directories: [
+-        include_directories('.'),
+-    ],
++    link_with: libpmemset
+ )
+ 
+ if meson.version().version_compare('>=0.54')
+diff --git a/src/librpmem/meson.build b/src/librpmem/meson.build
+index 98ebeaf3e..f21f86ebe 100644
+--- a/src/librpmem/meson.build
++++ b/src/librpmem/meson.build
+@@ -40,10 +40,7 @@ librpmem = library(
+ 
+ librpmem_dep = declare_dependency(
+     link_with: librpmem,
+-    include_directories: [
+-	    include_directories('.'),
+-	    include_directories('../rpmem_common'),
+-    ],
++    include_directories: include_directories('.')
+ )
+ 
+ if meson.version().version_compare('>=0.54')
+diff --git a/src/test/arch_flags/meson.build b/src/test/arch_flags/meson.build
+deleted file mode 100644
+index 1cbceced3..000000000
+--- a/src/test/arch_flags/meson.build
++++ /dev/null
+@@ -1,15 +0,0 @@
+-sources = files(
+-    'arch_flags.c',
+-)
+-
+-dependencies = []
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/blk_include/meson.build b/src/test/blk_include/meson.build
+deleted file mode 100644
+index cb683c949..000000000
+--- a/src/test/blk_include/meson.build
++++ /dev/null
+@@ -1,15 +0,0 @@
+-sources = files(
+-    'blk_include.c',
+-)
+-
+-dependencies = []
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/blk_nblock/meson.build b/src/test/blk_nblock/meson.build
+deleted file mode 100644
+index d2ead6ad5..000000000
+--- a/src/test/blk_nblock/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'blk_nblock.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/blk_non_zero/meson.build b/src/test/blk_non_zero/meson.build
+deleted file mode 100644
+index 7be243e99..000000000
+--- a/src/test/blk_non_zero/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'blk_non_zero.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/blk_pool/meson.build b/src/test/blk_pool/meson.build
+deleted file mode 100644
+index 6512809f5..000000000
+--- a/src/test/blk_pool/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'blk_pool.c',
+-)
+-
+-dependencies = [
+-	libpmemblk_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemspoil' dependency
+\ No newline at end of file
+diff --git a/src/test/blk_pool_lock/meson.build b/src/test/blk_pool_lock/meson.build
+deleted file mode 100644
+index ab7c3cd36..000000000
+--- a/src/test/blk_pool_lock/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'blk_pool_lock.c',
+-)
+-
+-dependencies = [
+-	libpmemblk_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/blk_pool_win/meson.build b/src/test/blk_pool_win/meson.build
+deleted file mode 100644
+index 1d433316b..000000000
+--- a/src/test/blk_pool_win/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'blk_pool_win.c',
+-)
+-
+-dependencies = [
+-	libpmemblk_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/blk_recovery/meson.build b/src/test/blk_recovery/meson.build
+deleted file mode 100644
+index 5882046a5..000000000
+--- a/src/test/blk_recovery/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'blk_recovery.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/blk_rw/meson.build b/src/test/blk_rw/meson.build
+deleted file mode 100644
+index d914a3c40..000000000
+--- a/src/test/blk_rw/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'blk_rw.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/blk_rw_mt/meson.build b/src/test/blk_rw_mt/meson.build
+deleted file mode 100644
+index 7db32e9e5..000000000
+--- a/src/test/blk_rw_mt/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'blk_rw_mt.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/checksum/meson.build b/src/test/checksum/meson.build
+deleted file mode 100644
+index 3835e7114..000000000
+--- a/src/test/checksum/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'checksum.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/compat_incompat_features/meson.build b/src/test/compat_incompat_features/meson.build
+deleted file mode 100644
+index c4b0e636e..000000000
+--- a/src/test/compat_incompat_features/meson.build
++++ /dev/null
+@@ -1,22 +0,0 @@
+-sources = files(
+-    'pool_open.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-    libpmemlog_dep,
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemspoil' dependency
+\ No newline at end of file
+diff --git a/src/test/ctl_cow/meson.build b/src/test/ctl_cow/meson.build
+deleted file mode 100644
+index 640cfec84..000000000
+--- a/src/test/ctl_cow/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'ctl_cow.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-    libpmemlog_dep,
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/ctl_prefault/meson.build b/src/test/ctl_prefault/meson.build
+deleted file mode 100644
+index af2977faa..000000000
+--- a/src/test/ctl_prefault/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'ctl_prefault.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-    libpmemlog_dep,
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/getopt/meson.build b/src/test/getopt/meson.build
+deleted file mode 100644
+index 4829ebfaa..000000000
+--- a/src/test/getopt/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'getopt.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/libpmempool_api/meson.build b/src/test/libpmempool_api/meson.build
+deleted file mode 100644
+index c89cc769b..000000000
+--- a/src/test/libpmempool_api/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'libpmempool_test.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    'libpmempool_test',
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemspoil' and 'bttcreate' dependency
+diff --git a/src/test/libpmempool_api_win/meson.build b/src/test/libpmempool_api_win/meson.build
+deleted file mode 100644
+index 214ec918c..000000000
+--- a/src/test/libpmempool_api_win/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'libpmempool_test_win.c',
+-)
+-
+-dependencies = [
+-	libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/libpmempool_check_version/meson.build b/src/test/libpmempool_check_version/meson.build
+deleted file mode 100644
+index 40d2b9ac9..000000000
+--- a/src/test/libpmempool_check_version/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'libpmempool_check_version.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/libpmempool_feature/meson.build b/src/test/libpmempool_feature/meson.build
+deleted file mode 100644
+index 190639c88..000000000
+--- a/src/test/libpmempool_feature/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'libpmempool_feature.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/libpmempool_include/meson.build b/src/test/libpmempool_include/meson.build
+deleted file mode 100644
+index dd6165573..000000000
+--- a/src/test/libpmempool_include/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'libpmempool_include.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/libpmempool_rm/meson.build b/src/test/libpmempool_rm/meson.build
+deleted file mode 100644
+index a6594bf8a..000000000
+--- a/src/test/libpmempool_rm/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'libpmempool_rm.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/libpmempool_rm_win/meson.build b/src/test/libpmempool_rm_win/meson.build
+deleted file mode 100644
+index 5ed352933..000000000
+--- a/src/test/libpmempool_rm_win/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'libpmempool_rm_win.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/libpmempool_sync/meson.build b/src/test/libpmempool_sync/meson.build
+deleted file mode 100644
+index a91d4dcd7..000000000
+--- a/src/test/libpmempool_sync/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'libpmempool_sync.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemspoil' and 'pmemobjcli' dependency
+diff --git a/src/test/libpmempool_sync_win/meson.build b/src/test/libpmempool_sync_win/meson.build
+deleted file mode 100644
+index b858186e5..000000000
+--- a/src/test/libpmempool_sync_win/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'libpmempool_sync_win.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemspoil' and 'pmemobjcli' dependency
+diff --git a/src/test/libpmempool_transform/meson.build b/src/test/libpmempool_transform/meson.build
+deleted file mode 100644
+index de8c46eab..000000000
+--- a/src/test/libpmempool_transform/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'libpmempool_transform.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemobjcli' dependency
+diff --git a/src/test/libpmempool_transform_win/meson.build b/src/test/libpmempool_transform_win/meson.build
+deleted file mode 100644
+index 46de8685e..000000000
+--- a/src/test/libpmempool_transform_win/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'libpmempool_transform_win.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemobjcli' dependency
+diff --git a/src/test/log_basic/meson.build b/src/test/log_basic/meson.build
+deleted file mode 100644
+index 1e4d133a8..000000000
+--- a/src/test/log_basic/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'log_basic.c',
+-)
+-
+-dependencies = [
+-    libpmemlog_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/log_include/meson.build b/src/test/log_include/meson.build
+deleted file mode 100644
+index cb72152a3..000000000
+--- a/src/test/log_include/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'log_include.c',
+-)
+-
+-dependencies = [
+-    libpmemlog_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/log_pool/meson.build b/src/test/log_pool/meson.build
+deleted file mode 100644
+index 30987e059..000000000
+--- a/src/test/log_pool/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'log_pool.c',
+-)
+-
+-dependencies = [
+-    libpmemlog_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemspoil' dependency
+diff --git a/src/test/log_pool_lock/meson.build b/src/test/log_pool_lock/meson.build
+deleted file mode 100644
+index aa2fa818a..000000000
+--- a/src/test/log_pool_lock/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'log_pool_lock.c',
+-)
+-
+-dependencies = [
+-    libpmemlog_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/log_pool_win/meson.build b/src/test/log_pool_win/meson.build
+deleted file mode 100644
+index 25af59647..000000000
+--- a/src/test/log_pool_win/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'log_pool_win.c',
+-)
+-
+-dependencies = [
+-    libpmemlog_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemspoil' dependency
+diff --git a/src/test/log_recovery/meson.build b/src/test/log_recovery/meson.build
+deleted file mode 100644
+index eba861af3..000000000
+--- a/src/test/log_recovery/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'log_recovery.c',
+-)
+-
+-dependencies = [
+-    libpmemlog_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/log_walker/meson.build b/src/test/log_walker/meson.build
+deleted file mode 100644
+index b7c8de606..000000000
+--- a/src/test/log_walker/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'log_walker.c',
+-)
+-
+-dependencies = [
+-    libpmemlog_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/meson.build b/src/test/meson.build
+index fc44d3059..b28e6ffb0 100644
+--- a/src/test/meson.build
++++ b/src/test/meson.build
+@@ -1,345 +1,295 @@
+-tests = [
+-    'arch_flags',
+-    'blk_include',
+-    'blk_nblock',
+-    'blk_non_zero',
+-    'blk_pool',
+-    'blk_pool_lock',
+-    'blk_pool_win',
+-    'blk_recovery',
+-    'blk_rw',
+-    'blk_rw_mt',
+-#     'bttdevice',
+-    'checksum',
+-    'compat_incompat_features',
+-    'ctl_cow',
+-    'ctl_prefault',#     'daxio',
+-#     'ex_libpmem',
+-#     'ex_libpmem2',
+-#     'ex_libpmemblk',
+-#     'ex_libpmemlog',
+-#     'ex_libpmemobj',
+-#     'ex_libpmemset',
+-#     'ex_librpmem_basic',
+-#     'ex_librpmem_fibonacci',
+-#     'ex_librpmem_hello',
+-#     'ex_librpmem_manpage',
+-#     'ex_linkedlist',
+-#     'ex_pmreorder',
+-    'getopt',
+-    'libpmempool_api',
+-    'libpmempool_api_win',
+-#     'libpmempool_backup',
+-#     'libpmempool_bttdev',
+-    'libpmempool_check_version',
+-    'libpmempool_feature',
+-    'libpmempool_include',
+-#     'libpmempool_map_flog',
+-    'libpmempool_rm',
+-#     'libpmempool_rm_remote',
+-    'libpmempool_rm_win',
+-    'libpmempool_sync',
+-    'libpmempool_sync_win',
+-    'libpmempool_transform',
+-    'libpmempool_transform_win',
+-    'log_basic',
+-    'log_include',
+-    'log_pool',
+-    'log_pool_lock',
+-    'log_pool_win',
+-    'log_recovery',
+-    'log_walker',
+-#     'magic',
+-    'mmap',
+-    'mmap_fixed',
+-    'obj_action',
+-    'obj_alloc',
+-    'obj_badblock',
+-    'obj_basic_integration',
+-    'obj_bucket',
+-    'obj_check',
+-    'obj_check_remote',
+-    'obj_constructor',
+-    'obj_critnib',
+-    'obj_critnib_mt',
+-    'obj_ctl_alignment',
+-    'obj_ctl_alloc_class',
+-    'obj_ctl_alloc_class_config',
+-    'obj_ctl_arenas',
+-    'obj_ctl_config',
+-    'obj_ctl_debug',
+-    'obj_ctl_heap_size',
+-    'obj_ctl_stats',
+-    'obj_debug',
+-    'obj_defrag',
+-    'obj_defrag_advanced',
+-    'obj_direct',
+-    'obj_direct_volatile',
+-    'obj_extend',
+-    'obj_first_next',
+-    'obj_fragmentation',
+-    'obj_fragmentation2',
+-    'obj_heap',
+-#     'obj_heap_interrupt',
+-    'obj_heap_state',
+-    'obj_include',
+-    'obj_lane',
+-    'obj_layout',
+-#     'obj_list',
+-#     'obj_list_insert',
+-    'obj_list_macro',
+-#     'obj_list_move',
+-#     'obj_list_recovery',
+-#     'obj_list_remove',
+-#     'obj_list_valgrind',
+-    'obj_locks',
+-    'obj_many_size_allocs',
+-    'obj_mem',
+-    'obj_memblock',
+-    'obj_memcheck',
+-    'obj_memcheck_register',
+-    'obj_memops',
+-    'obj_oid_thread',
+-    'obj_out_of_memory',
+-#     'obj_persist_count',
+-    'obj_pmalloc_basic',
+-    'obj_pmalloc_mt',
+-    'obj_pmalloc_oom_mt',
+-    'obj_pmalloc_rand_mt',
+-    'obj_pmemcheck',
+-    'obj_pool',
+-    'obj_pool_lock',
+-    'obj_pool_lookup',
+-    'obj_pool_open_mt',
+-    'obj_pool_win',
+-    'obj_realloc',
+-    'obj_recovery',
+-    'obj_recreate',
+-    'obj_reorder_basic',
+-    'obj_root',
+-#     'obj_rpmem_basic_integration',
+-#     'obj_rpmem_heap_interrupt',
+-#     'obj_rpmem_heap_state',
+-    'obj_sds',
+-    'obj_strdup',
+-#     'obj_sync',
+-    'obj_toid',
+-    'obj_tx_add_range',
+-    'obj_tx_add_range_direct',
+-    'obj_tx_alloc',
+-    'obj_tx_callbacks',
+-    'obj_tx_flow',
+-    'obj_tx_free',
+-    'obj_tx_invalid',
+-    'obj_tx_lock',
+-    'obj_tx_locks',
+-    'obj_tx_locks_abort',
+-    'obj_tx_mt',
+-    'obj_tx_realloc',
+-    'obj_tx_strdup',
+-    'obj_tx_user_data',
+-    'obj_ulog_size',
+-    'obj_zones',
+-    'out_err',
+-    'out_err_mt',
+-    'out_err_mt_win',
+-    'out_err_win',
+-#     'pmem_deep_persist',
+-    'pmem_eADR_functions',
+-#     'pmem_has_auto_flush',
+-#     'pmem_has_auto_flush_win',
+-    'pmem_include',
+-    'pmem_is_pmem',
+-    'pmem_is_pmem_posix',
+-    'pmem_is_pmem_windows',
+-#     'pmem_map_file',
+-    'pmem_map_file_trunc',
+-#     'pmem_map_file_win',
+-    'pmem_memcpy',
+-    'pmem_memmove',
+-    'pmem_memset',
+-    'pmem_movnt',
+-    'pmem_movnt_align',
+-    'pmem_unmap',
+-    'pmem_valgr_simple',
+-    'pmem2_api',
+-    'pmem2_badblock',
+-#     'pmem2_badblock_mocks',
+-    'pmem2_compat',
+-    'pmem2_config',
+-#     'pmem2_deep_flush',
+-#     'pmem2_future',
+-#     'pmem2_granularity',
+-#     'pmem2_granularity_detection',
+-    'pmem2_include',
+-    'pmem2_integration',
+-    'pmem2_map',
+-    'pmem2_map_from_existing',
+-    'pmem2_map_prot',
+-    'pmem2_mem_ext',
+-    'pmem2_memcpy',
+-    'pmem2_memmove',
+-    'pmem2_memset',
+-#     'pmem2_mover',
+-    'pmem2_movnt',
+-    'pmem2_movnt_align',
+-    'pmem2_perror',
+-#     'pmem2_persist',
+-    'pmem2_persist_valgrind',
+-    'pmem2_source',
+-    'pmem2_source_alignment',
+-    'pmem2_source_numa',
+-    'pmem2_source_size',
+-    'pmem2_usc',
+-    'pmem2_vm_reservation',
+-#     'pmemobjcli',
+-#     'pmempool_check',
+-#     'pmempool_create',
+-#     'pmempool_dump',
+-#     'pmempool_feature',
+-#     'pmempool_feature_remote',
+-#     'pmempool_help',
+-#     'pmempool_info',
+-#     'pmempool_info_remote',
+-#     'pmempool_rm',
+-#     'pmempool_rm_remote',
+-#     'pmempool_sync',
+-#     'pmempool_sync_remote',
+-#     'pmempool_transform',
+-#     'pmempool_transform_remote',
+-    'pmemset_badblock',
+-    'pmemset_config',
+-#     'pmemset_deep_flush',
+-    'pmemset_event',
+-    'pmemset_file',
+-    'pmemset_include',
+-    'pmemset_map_config',
+-    'pmemset_memcpy',
+-    'pmemset_memmove',
+-    'pmemset_memset',
+-    'pmemset_new',
+-    'pmemset_part',
+-    'pmemset_perror',
+-    'pmemset_persist',
+-    'pmemset_sds',
+-    'pmemset_source',
+-#     'pmemspoil',
+-    'pmreorder_flushes',
+-    'pmreorder_simple',
+-    'pmreorder_stack',
+-    'remote_basic',
+-    'remote_obj_basic',
+-    'rpmem_addr',
+-    'rpmem_addr_ext',
+-    'rpmem_basic',
+-    'rpmem_fip',
+-    'rpmem_obc',
+-    'rpmem_obc_int',
+-    'rpmem_proto',
+-    'rpmemd_config',
+-    'rpmemd_db',
+-#     'rpmemd_dbg',
+-    'rpmemd_log',
+-    'rpmemd_obc',
+-    'rpmemd_util',
+-#     'scope',
+-    'set_funcs',
+-#     'signal_handle',
+-#     'sync-remotes',
+-#     'tools',
+-    'traces',
+-    'traces_custom_function',
+-    'traces_pmem',
+-#     'unicode_api',
+-#     'unicode_match_script',
+-#     'unittest',
+-    'util_badblock',
+-    'util_cpuid',
+-    'util_ctl',
+-    'util_extent',
+-    'util_file_create',
+-    'util_file_open',
+-    'util_is_absolute',
+-    'util_is_poolset',
+-    'util_is_zeroed',
+-    'util_map_proc',
+-    'util_parse_size',
+-    'util_pool_hdr',
+-#     'util_poolset',
+-    'util_poolset_foreach',
+-    'util_poolset_parse',
+-    'util_poolset_size',
+-    'util_ravl',
+-#     'util_sds',
+-    'util_uuid_generate',
+-    'util_vec',
+-    'util_vecq',
+-#     'win_common',
+-#     'win_lists',
+-#     'win_mmap_dtor',
+-#     'win_poolset_unmap',
+-#     'win_signal',
+-]
++tests = {
++    'arch_flags': {},
++    'blk_include': {},
++    'blk_nblock': {},
++    'blk_non_zero': {},
++    'blk_pool': {},
++    'blk_pool_lock': {},
++    'blk_pool_win': {},
++    'blk_recovery': {},
++    'blk_rw': {},
++    'blk_rw_mt': {},
++    'bttdevice': {},
++    'checksum': {},
++    'compat_incompat_features': {},
++    'ctl_cow': {},
++    'ctl_prefault': {},
++    'daxio': {},
++    'ex_libpmem': {},
++    'ex_libpmem2': {},
++    'ex_libpmemblk': {},
++    'ex_libpmemlog': {},
++    'ex_libpmemobj': {},
++    'ex_libpmemset': {},
++    'ex_librpmem_basic': {},
++    'ex_librpmem_fibonacci': {},
++    'ex_librpmem_hello': {},
++    'ex_librpmem_manpage': {},
++    'ex_linkedlist': {},
++    'ex_pmreorder': {},
++    'getopt': {},
++    'libpmempool_api': {},
++    'libpmempool_api_win': {},
++    'libpmempool_backup': {},
++    'libpmempool_bttdev': {},
++    'libpmempool_check_version': {},
++    'libpmempool_feature': {},
++    'libpmempool_include': {},
++    'libpmempool_map_flog': {},
++    'libpmempool_rm': {},
++    'libpmempool_rm_remote': {},
++    'libpmempool_rm_win': {},
++    'libpmempool_sync': {},
++    'libpmempool_sync_win': {},
++    'libpmempool_transform': {},
++    'libpmempool_transform_win': {},
++    'log_basic': {},
++    'log_include': {},
++    'log_pool': {},
++    'log_pool_lock': {},
++    'log_pool_win': {},
++    'log_recovery': {},
++    'log_walker': {},
++    'magic': {},
++    'mmap': {},
++    'mmap_fixed': {},
++    'obj_action': {},
++    'obj_alloc': {},
++    'obj_badblock': {},
++    'obj_basic_integration': {},
++    'obj_bucket': {},
++    'obj_check': {},
++    'obj_check_remote': {},
++    'obj_constructor': {},
++    'obj_critnib': {},
++    'obj_critnib_mt': {},
++    'obj_ctl_alignment': {},
++    'obj_ctl_alloc_class': {},
++    'obj_ctl_alloc_class_config': {},
++    'obj_ctl_arenas': {},
++    'obj_ctl_config': {},
++    'obj_ctl_debug': {},
++    'obj_ctl_heap_size': {},
++    'obj_ctl_stats': {},
++    'obj_debug': {},
++    'obj_defrag': {},
++    'obj_defrag_advanced': {},
++    'obj_direct': {},
++    'obj_direct_volatile': {},
++    'obj_extend': {},
++    'obj_first_next': {},
++    'obj_fragmentation': {},
++    'obj_fragmentation2': {},
++    'obj_heap': {},
++    'obj_heap_interrupt': {},
++    'obj_heap_state': {},
++    'obj_include': {},
++    'obj_lane': {},
++    'obj_layout': {},
++    'obj_list': {},
++    'obj_list_insert': {},
++    'obj_list_macro': {},
++    'obj_list_move': {},
++    'obj_list_recovery': {},
++    'obj_list_remove': {},
++    'obj_list_valgrind': {},
++    'obj_locks': {},
++    'obj_many_size_allocs': {},
++    'obj_mem': {},
++    'obj_memblock': {},
++    'obj_memcheck': {},
++    'obj_memcheck_register': {},
++    'obj_memops': {},
++    'obj_oid_thread': {},
++    'obj_out_of_memory': {},
++    'obj_persist_count': {},
++    'obj_pmalloc_basic': {},
++    'obj_pmalloc_mt': {},
++    'obj_pmalloc_oom_mt': {},
++    'obj_pmalloc_rand_mt': {},
++    'obj_pmemcheck': {},
++    'obj_pool': {},
++    'obj_pool_lock': {},
++    'obj_pool_lookup': {},
++    'obj_pool_open_mt': {},
++    'obj_pool_win': {},
++    'obj_realloc': {},
++    'obj_recovery': {},
++    'obj_recreate': {},
++    'obj_reorder_basic': {},
++    'obj_root': {},
++    'obj_rpmem_basic_integration': {},
++    'obj_rpmem_heap_interrupt': {},
++    'obj_rpmem_heap_state': {},
++    'obj_sds': {},
++    'obj_strdup': {},
++    'obj_sync': {},
++    'obj_toid': {},
++    'obj_tx_add_range': {},
++    'obj_tx_add_range_direct': {},
++    'obj_tx_alloc': {},
++    'obj_tx_callbacks': {},
++    'obj_tx_flow': {},
++    'obj_tx_free': {},
++    'obj_tx_invalid': {},
++    'obj_tx_lock': {},
++    'obj_tx_locks': {},
++    'obj_tx_locks_abort': {},
++    'obj_tx_mt': {},
++    'obj_tx_realloc': {},
++    'obj_tx_strdup': {},
++    'obj_tx_user_data': {},
++    'obj_ulog_size': {},
++    'obj_zones': {},
++    'out_err': {},
++    'out_err_mt': {},
++    'out_err_mt_win': {},
++    'out_err_win': {},
++    'pmem2_api': {},
++    'pmem2_badblock': {},
++    'pmem2_badblock_mocks': {},
++    'pmem2_compat': {},
++    'pmem2_config': {},
++    'pmem2_deep_flush': {},
++    'pmem2_granularity': {},
++    'pmem2_granularity_detection': {},
++    'pmem2_include': {},
++    'pmem2_integration': {},
++    'pmem2_map': {},
++    'pmem2_map_from_existing': {},
++    'pmem2_map_prot': {},
++    'pmem2_memcpy': {},
++    'pmem2_mem_ext': {},
++    'pmem2_memmove': {},
++    'pmem2_memset': {},
++    'pmem2_movnt': {},
++    'pmem2_movnt_align': {},
++    'pmem2_perror': {},
++    'pmem2_persist': {},
++    'pmem2_persist_valgrind': {},
++    'pmem2_source': {},
++    'pmem2_source_alignment': {},
++    'pmem2_source_numa': {},
++    'pmem2_source_size': {},
++    'pmem2_usc': {},
++    'pmem2_vm_reservation': {},
++    'pmem_deep_persist': {},
++    'pmem_eADR_functions': {},
++    'pmem_has_auto_flush': {},
++    'pmem_has_auto_flush_win': {},
++    'pmem_include': {},
++    'pmem_is_pmem': {},
++    'pmem_is_pmem_posix': {},
++    'pmem_is_pmem_windows': {},
++    'pmem_map_file': {},
++    'pmem_map_file_trunc': {},
++    'pmem_map_file_win': {},
++    'pmem_memcpy': {},
++    'pmem_memmove': {},
++    'pmem_memset': {},
++    'pmem_movnt': {},
++    'pmem_movnt_align': {},
++    'pmemobjcli': {},
++    'pmempool_check': {},
++    'pmempool_create': {},
++    'pmempool_dump': {},
++    'pmempool_feature': {},
++    'pmempool_feature_remote': {},
++    'pmempool_help': {},
++    'pmempool_info': {},
++    'pmempool_info_remote': {},
++    'pmempool_rm': {},
++    'pmempool_rm_remote': {},
++    'pmempool_sync': {},
++    'pmempool_sync_remote': {},
++    'pmempool_transform': {},
++    'pmempool_transform_remote': {},
++    'pmemset_badblock': {},
++    'pmemset_config': {},
++    'pmemset_deep_flush': {},
++    'pmemset_event': {},
++    'pmemset_file': {},
++    'pmemset_include': {},
++    'pmemset_map_config': {},
++    'pmemset_memcpy': {},
++    'pmemset_memmove': {},
++    'pmemset_memset': {},
++    'pmemset_new': {},
++    'pmemset_part': {},
++    'pmemset_perror': {},
++    'pmemset_persist': {},
++    'pmemset_sds': {},
++    'pmemset_source': {},
++    'pmemspoil': {},
++    'pmem_unmap': {},
++    'pmem_valgr_simple': {},
++    'pmreorder_flushes': {},
++    'pmreorder_simple': {},
++    'pmreorder_stack': {},
++    'remote_basic': {},
++    'remote_obj_basic': {},
++    'rpmem_addr': {},
++    'rpmem_addr_ext': {},
++    'rpmem_basic': {},
++    'rpmemd_config': {},
++    'rpmemd_db': {},
++    'rpmemd_dbg': {},
++    'rpmemd_log': {},
++    'rpmemd_obc': {},
++    'rpmemd_util': {},
++    'rpmem_fip': {},
++    'rpmem_obc': {},
++    'rpmem_obc_int': {},
++    'rpmem_proto': {},
++    'scope': {},
++    'set_funcs': {},
++    'signal_handle': {},
++    'sync-remotes': {},
++    'tools': {},
++    'traces': {},
++    'traces_custom_function': {},
++    'traces_pmem': {},
++    'unicode_api': {},
++    'unicode_match_script': {},
++    'unittest': {},
++    'util_badblock': {},
++    'util_cpuid': {},
++    'util_ctl': {},
++    'util_extent': {},
++    'util_file_create': {},
++    'util_file_open': {},
++    'util_is_absolute': {},
++    'util_is_poolset': {},
++    'util_is_zeroed': {},
++    'util_map_proc': {},
++    'util_parse_size': {},
++    'util_pool_hdr': {},
++    'util_poolset': {},
++    'util_poolset_foreach': {},
++    'util_poolset_parse': {},
++    'util_poolset_size': {},
++    'util_ravl': {},
++    'util_sds': {},
++    'util_uuid_generate': {},
++    'util_vec': {},
++    'util_vecq': {},
++    'win_common': {},
++    'win_lists': {},
++    'win_mmap_dtor': {},
++    'win_poolset_unmap': {},
++    'win_signal': {},
++}
+ 
+-unittest_sources = files(
+-    'unittest/ut_alloc.c',
+-    'unittest/ut_backtrace.c',
+-    'unittest/ut_fh.c',
+-    'unittest/ut_file.c',
+-    'unittest/ut_pthread.c',
+-    'unittest/ut_signal.c',
+-    'unittest/ut.c',
+-)
+-
+-unittest_dep = declare_dependency(
+-    sources: unittest_sources,
+-    include_directories: [
+-        include_directories('./unittest'),
+-        #root_include,
+-    ]
+-)
+-
+-unittest_pmem2_sources = files(
+-    'unittest/ut_pmem2_config.c',
+-    'unittest/ut_pmem2_map.c',
+-    'unittest/ut_pmem2_setup_integration.c',
+-    'unittest/ut_pmem2_setup.c',
+-    'unittest/ut_pmem2_source.c',
+-    'unittest/ut_pmem2_utils.c',
+-)
+-
+-unittest_pmem2_dep = declare_dependency(
+-    sources: unittest_pmem2_sources,
+-    include_directories: [
+-        include_directories('./unittest'),
+-    ]
+-)
+-
+-unittest_pmemset_sources = files(
+-    'unittest/ut_pmemset_utils.c',
+-)
+-
+-unittest_pmemset_dep = declare_dependency(
+-    sources: unittest_pmemset_sources,
+-    include_directories: [
+-        include_directories('./unittest'),
+-    ]
+-)
+-
+-test_dependencies = [
+-    libndctl_dep,
+-    libdaxctl_dep,
+-    libpmem_dep,
+-    pmemcommon_dep,
+-    pmemcore_dep,
+-    threads_dep,
+-    unittest_dep,
+-]
+-
+-foreach t : tests
+-    if (t.endswith('_win') or t.startswith('win_') or t.endswith('_windows')) and host_machine.system() != 'windows'
+-        continue # skip 'windows only' test cases on platforms different than windows
++foreach t, attrs : tests
++    if not attrs.get('enabled', true)
++        continue
+     endif
+ 
+-    subdir(t)
++    e = executable(
++        t,
++        attrs.get('sources'),
++        c_args: attrs.get('c_args', []),
++        include_directories: attrs.get('include_directories', []),
++        dependencies: attrs.get('dependencies', []),
++    )
+ endforeach
+diff --git a/src/test/mmap/meson.build b/src/test/mmap/meson.build
+deleted file mode 100644
+index 0860c9f56..000000000
+--- a/src/test/mmap/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'mmap.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/mmap_fixed/meson.build b/src/test/mmap_fixed/meson.build
+deleted file mode 100644
+index efddda2bc..000000000
+--- a/src/test/mmap_fixed/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'mmap_fixed.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_action/meson.build b/src/test/obj_action/meson.build
+deleted file mode 100644
+index 795387e50..000000000
+--- a/src/test/obj_action/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_action.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_alloc/meson.build b/src/test/obj_alloc/meson.build
+deleted file mode 100644
+index 436cf5f4c..000000000
+--- a/src/test/obj_alloc/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_alloc.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_badblock/meson.build b/src/test/obj_badblock/meson.build
+deleted file mode 100644
+index 4dabb8da9..000000000
+--- a/src/test/obj_badblock/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_badblock.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_basic_integration/meson.build b/src/test/obj_basic_integration/meson.build
+deleted file mode 100644
+index fe9b874b5..000000000
+--- a/src/test/obj_basic_integration/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_basic_integration.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_bucket/meson.build b/src/test/obj_bucket/meson.build
+deleted file mode 100644
+index 0b05e80e1..000000000
+--- a/src/test/obj_bucket/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_bucket.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_check/meson.build b/src/test/obj_check/meson.build
+deleted file mode 100644
+index 46bcc7824..000000000
+--- a/src/test/obj_check/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'obj_check.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'pmemspoil', 'pmemwrite' and 'pmemalloc' dependency
+diff --git a/src/test/obj_check_remote/meson.build b/src/test/obj_check_remote/meson.build
+deleted file mode 100644
+index 61c80d024..000000000
+--- a/src/test/obj_check_remote/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'obj_check_remote.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+-
+-# TODO: 'scp_to_remote_nodes' dependency
+diff --git a/src/test/obj_constructor/meson.build b/src/test/obj_constructor/meson.build
+deleted file mode 100644
+index d0d098f6b..000000000
+--- a/src/test/obj_constructor/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_constructor.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_critnib/meson.build b/src/test/obj_critnib/meson.build
+deleted file mode 100644
+index 1cf17c337..000000000
+--- a/src/test/obj_critnib/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_critnib.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_critnib_mt/meson.build b/src/test/obj_critnib_mt/meson.build
+deleted file mode 100644
+index 5bf56f841..000000000
+--- a/src/test/obj_critnib_mt/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_critnib_mt.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ctl_alignment/meson.build b/src/test/obj_ctl_alignment/meson.build
+deleted file mode 100644
+index 3a5a9e1a0..000000000
+--- a/src/test/obj_ctl_alignment/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ctl_alignment.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ctl_alloc_class/meson.build b/src/test/obj_ctl_alloc_class/meson.build
+deleted file mode 100644
+index 5300d4255..000000000
+--- a/src/test/obj_ctl_alloc_class/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ctl_alloc_class.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ctl_alloc_class_config/meson.build b/src/test/obj_ctl_alloc_class_config/meson.build
+deleted file mode 100644
+index 2bfdaa716..000000000
+--- a/src/test/obj_ctl_alloc_class_config/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ctl_alloc_class_config.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ctl_arenas/meson.build b/src/test/obj_ctl_arenas/meson.build
+deleted file mode 100644
+index a2493d449..000000000
+--- a/src/test/obj_ctl_arenas/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ctl_arenas.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ctl_config/meson.build b/src/test/obj_ctl_config/meson.build
+deleted file mode 100644
+index 724669f59..000000000
+--- a/src/test/obj_ctl_config/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ctl_config.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ctl_debug/meson.build b/src/test/obj_ctl_debug/meson.build
+deleted file mode 100644
+index d286e2970..000000000
+--- a/src/test/obj_ctl_debug/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ctl_debug.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ctl_heap_size/meson.build b/src/test/obj_ctl_heap_size/meson.build
+deleted file mode 100644
+index 828e8e937..000000000
+--- a/src/test/obj_ctl_heap_size/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ctl_heap_size.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ctl_stats/meson.build b/src/test/obj_ctl_stats/meson.build
+deleted file mode 100644
+index 835f0c39f..000000000
+--- a/src/test/obj_ctl_stats/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ctl_stats.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_debug/meson.build b/src/test/obj_debug/meson.build
+deleted file mode 100644
+index 108eab4bc..000000000
+--- a/src/test/obj_debug/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_debug.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_defrag/meson.build b/src/test/obj_defrag/meson.build
+deleted file mode 100644
+index 58d4183e4..000000000
+--- a/src/test/obj_defrag/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_defrag.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_defrag_advanced/meson.build b/src/test/obj_defrag_advanced/meson.build
+deleted file mode 100644
+index bc1d28ffb..000000000
+--- a/src/test/obj_defrag_advanced/meson.build
++++ /dev/null
+@@ -1,22 +0,0 @@
+-sources = files(
+-    'obj_defrag_advanced.c',
+-    'pgraph.c',
+-    'vgraph.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    include_directories('.'),
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_direct/meson.build b/src/test/obj_direct/meson.build
+deleted file mode 100644
+index d29a24f83..000000000
+--- a/src/test/obj_direct/meson.build
++++ /dev/null
+@@ -1,22 +0,0 @@
+-sources = files(
+-    'obj_direct.c',
+-    'obj_direct_inline.c',
+-    'obj_direct_non_inline.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    include_directories('.'),
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_direct_volatile/meson.build b/src/test/obj_direct_volatile/meson.build
+deleted file mode 100644
+index a63aea6c5..000000000
+--- a/src/test/obj_direct_volatile/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_direct_volatile.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_extend/meson.build b/src/test/obj_extend/meson.build
+deleted file mode 100644
+index 1ee19818b..000000000
+--- a/src/test/obj_extend/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_extend.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_first_next/meson.build b/src/test/obj_first_next/meson.build
+deleted file mode 100644
+index 33a5fbbf3..000000000
+--- a/src/test/obj_first_next/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_first_next.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_fragmentation/meson.build b/src/test/obj_fragmentation/meson.build
+deleted file mode 100644
+index 2a14a78a2..000000000
+--- a/src/test/obj_fragmentation/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_fragmentation.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_fragmentation2/meson.build b/src/test/obj_fragmentation2/meson.build
+deleted file mode 100644
+index 22a3bbb63..000000000
+--- a/src/test/obj_fragmentation2/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'obj_fragmentation2.c',
+-)
+-
+-dependencies = [
+-    libm_dep,
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_heap/meson.build b/src/test/obj_heap/meson.build
+deleted file mode 100644
+index 41230e352..000000000
+--- a/src/test/obj_heap/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_heap.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_heap_state/meson.build b/src/test/obj_heap_state/meson.build
+deleted file mode 100644
+index 7edca1135..000000000
+--- a/src/test/obj_heap_state/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_heap_state.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_include/meson.build b/src/test/obj_include/meson.build
+deleted file mode 100644
+index 7cf4ef394..000000000
+--- a/src/test/obj_include/meson.build
++++ /dev/null
+@@ -1,30 +0,0 @@
+-sources = files(
+-    'obj_atomic_base_include.c',
+-    'obj_atomic_include.c',
+-    'obj_base_include.c',
+-    'obj_iterator_base_include.c',
+-    'obj_iterator_include.c',
+-    'obj_lists_atomic_base_include.c',
+-    'obj_lists_atomic_include.c',
+-    'obj_pool_base_include.c',
+-    'obj_pool_include.c',
+-    'obj_thread_include.c',
+-    'obj_tx_base_include.c',
+-    'obj_tx_include.c',
+-    'obj_types_include.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_lane/meson.build b/src/test/obj_lane/meson.build
+deleted file mode 100644
+index 16a39745c..000000000
+--- a/src/test/obj_lane/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_lane.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_layout/meson.build b/src/test/obj_layout/meson.build
+deleted file mode 100644
+index ee86fbe0d..000000000
+--- a/src/test/obj_layout/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_layout.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_list_macro/meson.build b/src/test/obj_list_macro/meson.build
+deleted file mode 100644
+index f90123963..000000000
+--- a/src/test/obj_list_macro/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_list_macro.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_locks/meson.build b/src/test/obj_locks/meson.build
+deleted file mode 100644
+index 724024b50..000000000
+--- a/src/test/obj_locks/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_locks.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_many_size_allocs/meson.build b/src/test/obj_many_size_allocs/meson.build
+deleted file mode 100644
+index d5bc83b2f..000000000
+--- a/src/test/obj_many_size_allocs/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_many_size_allocs.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_mem/meson.build b/src/test/obj_mem/meson.build
+deleted file mode 100644
+index ca7c9b2a0..000000000
+--- a/src/test/obj_mem/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_mem.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_memblock/meson.build b/src/test/obj_memblock/meson.build
+deleted file mode 100644
+index b08b13ffe..000000000
+--- a/src/test/obj_memblock/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_memblock.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_memcheck/meson.build b/src/test/obj_memcheck/meson.build
+deleted file mode 100644
+index ea5799257..000000000
+--- a/src/test/obj_memcheck/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_memcheck.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_memcheck_register/meson.build b/src/test/obj_memcheck_register/meson.build
+deleted file mode 100644
+index 20dc9d8a3..000000000
+--- a/src/test/obj_memcheck_register/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_memcheck_register.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_memops/meson.build b/src/test/obj_memops/meson.build
+deleted file mode 100644
+index 39c5a525d..000000000
+--- a/src/test/obj_memops/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_memops.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_oid_thread/meson.build b/src/test/obj_oid_thread/meson.build
+deleted file mode 100644
+index 727fdc9f4..000000000
+--- a/src/test/obj_oid_thread/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_oid_thread.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_out_of_memory/meson.build b/src/test/obj_out_of_memory/meson.build
+deleted file mode 100644
+index 4bbfb24d5..000000000
+--- a/src/test/obj_out_of_memory/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_out_of_memory.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pmalloc_basic/meson.build b/src/test/obj_pmalloc_basic/meson.build
+deleted file mode 100644
+index 62dbe5898..000000000
+--- a/src/test/obj_pmalloc_basic/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pmalloc_basic.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pmalloc_mt/meson.build b/src/test/obj_pmalloc_mt/meson.build
+deleted file mode 100644
+index 84c5a9426..000000000
+--- a/src/test/obj_pmalloc_mt/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pmalloc_mt.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pmalloc_oom_mt/meson.build b/src/test/obj_pmalloc_oom_mt/meson.build
+deleted file mode 100644
+index 9583b1c3d..000000000
+--- a/src/test/obj_pmalloc_oom_mt/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pmalloc_oom_mt.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pmalloc_rand_mt/meson.build b/src/test/obj_pmalloc_rand_mt/meson.build
+deleted file mode 100644
+index 94a79935c..000000000
+--- a/src/test/obj_pmalloc_rand_mt/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pmalloc_rand_mt.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pmemcheck/meson.build b/src/test/obj_pmemcheck/meson.build
+deleted file mode 100644
+index 0f1223b28..000000000
+--- a/src/test/obj_pmemcheck/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pmemcheck.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pool/meson.build b/src/test/obj_pool/meson.build
+deleted file mode 100644
+index 3f7e9c0a9..000000000
+--- a/src/test/obj_pool/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pool.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pool_lock/meson.build b/src/test/obj_pool_lock/meson.build
+deleted file mode 100644
+index 600870169..000000000
+--- a/src/test/obj_pool_lock/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pool_lock.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pool_lookup/meson.build b/src/test/obj_pool_lookup/meson.build
+deleted file mode 100644
+index 1de0e2d2d..000000000
+--- a/src/test/obj_pool_lookup/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pool_lookup.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pool_open_mt/meson.build b/src/test/obj_pool_open_mt/meson.build
+deleted file mode 100644
+index 4068ecab4..000000000
+--- a/src/test/obj_pool_open_mt/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pool_open_mt.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_pool_win/meson.build b/src/test/obj_pool_win/meson.build
+deleted file mode 100644
+index c1b94a1a9..000000000
+--- a/src/test/obj_pool_win/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_pool_win.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_realloc/meson.build b/src/test/obj_realloc/meson.build
+deleted file mode 100644
+index 4a800aaa4..000000000
+--- a/src/test/obj_realloc/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_realloc.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_recovery/meson.build b/src/test/obj_recovery/meson.build
+deleted file mode 100644
+index aed6d2e2e..000000000
+--- a/src/test/obj_recovery/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_recovery.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_recreate/meson.build b/src/test/obj_recreate/meson.build
+deleted file mode 100644
+index 17ec1ad0a..000000000
+--- a/src/test/obj_recreate/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_recreate.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_reorder_basic/meson.build b/src/test/obj_reorder_basic/meson.build
+deleted file mode 100644
+index b61b222f8..000000000
+--- a/src/test/obj_reorder_basic/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_reorder_basic.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_root/meson.build b/src/test/obj_root/meson.build
+deleted file mode 100644
+index 74b2116db..000000000
+--- a/src/test/obj_root/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_root.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_sds/meson.build b/src/test/obj_sds/meson.build
+deleted file mode 100644
+index 78f70b852..000000000
+--- a/src/test/obj_sds/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'obj_sds.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_strdup/meson.build b/src/test/obj_strdup/meson.build
+deleted file mode 100644
+index 5940be37c..000000000
+--- a/src/test/obj_strdup/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_strdup.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_toid/meson.build b/src/test/obj_toid/meson.build
+deleted file mode 100644
+index bd65d57ff..000000000
+--- a/src/test/obj_toid/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_toid.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_add_range/meson.build b/src/test/obj_tx_add_range/meson.build
+deleted file mode 100644
+index 58ea3d89e..000000000
+--- a/src/test/obj_tx_add_range/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_add_range.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_add_range_direct/meson.build b/src/test/obj_tx_add_range_direct/meson.build
+deleted file mode 100644
+index 6ab6dc4c5..000000000
+--- a/src/test/obj_tx_add_range_direct/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_add_range_direct.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_alloc/meson.build b/src/test/obj_tx_alloc/meson.build
+deleted file mode 100644
+index 0a42a23ac..000000000
+--- a/src/test/obj_tx_alloc/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_alloc.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_callbacks/meson.build b/src/test/obj_tx_callbacks/meson.build
+deleted file mode 100644
+index 9e86ca4b8..000000000
+--- a/src/test/obj_tx_callbacks/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_callbacks.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_flow/meson.build b/src/test/obj_tx_flow/meson.build
+deleted file mode 100644
+index 14c4e2448..000000000
+--- a/src/test/obj_tx_flow/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_flow.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_free/meson.build b/src/test/obj_tx_free/meson.build
+deleted file mode 100644
+index 38c512633..000000000
+--- a/src/test/obj_tx_free/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_free.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_invalid/meson.build b/src/test/obj_tx_invalid/meson.build
+deleted file mode 100644
+index c511252e8..000000000
+--- a/src/test/obj_tx_invalid/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_invalid.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_lock/meson.build b/src/test/obj_tx_lock/meson.build
+deleted file mode 100644
+index 708642139..000000000
+--- a/src/test/obj_tx_lock/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_lock.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_locks/meson.build b/src/test/obj_tx_locks/meson.build
+deleted file mode 100644
+index c209dc069..000000000
+--- a/src/test/obj_tx_locks/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_locks.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_locks_abort/meson.build b/src/test/obj_tx_locks_abort/meson.build
+deleted file mode 100644
+index e1c790bf4..000000000
+--- a/src/test/obj_tx_locks_abort/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_locks_abort.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_mt/meson.build b/src/test/obj_tx_mt/meson.build
+deleted file mode 100644
+index fe9c6e730..000000000
+--- a/src/test/obj_tx_mt/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_mt.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_realloc/meson.build b/src/test/obj_tx_realloc/meson.build
+deleted file mode 100644
+index 6619c9180..000000000
+--- a/src/test/obj_tx_realloc/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_realloc.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_strdup/meson.build b/src/test/obj_tx_strdup/meson.build
+deleted file mode 100644
+index 19454f922..000000000
+--- a/src/test/obj_tx_strdup/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_strdup.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_tx_user_data/meson.build b/src/test/obj_tx_user_data/meson.build
+deleted file mode 100644
+index 2331723f7..000000000
+--- a/src/test/obj_tx_user_data/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_tx_user_data.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_ulog_size/meson.build b/src/test/obj_ulog_size/meson.build
+deleted file mode 100644
+index aab413c82..000000000
+--- a/src/test/obj_ulog_size/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_ulog_size.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/obj_zones/meson.build b/src/test/obj_zones/meson.build
+deleted file mode 100644
+index 06c675de2..000000000
+--- a/src/test/obj_zones/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'obj_zones.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/out_err/meson.build b/src/test/out_err/meson.build
+deleted file mode 100644
+index 9d845da1a..000000000
+--- a/src/test/out_err/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'out_err.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/out_err_mt/meson.build b/src/test/out_err_mt/meson.build
+deleted file mode 100644
+index 34bbf5449..000000000
+--- a/src/test/out_err_mt/meson.build
++++ /dev/null
+@@ -1,21 +0,0 @@
+-sources = files(
+-    'out_err_mt.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-    libpmemlog_dep,
+-    libpmemobj_dep,
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/out_err_mt_win/meson.build b/src/test/out_err_mt_win/meson.build
+deleted file mode 100644
+index 8f0ddc6e6..000000000
+--- a/src/test/out_err_mt_win/meson.build
++++ /dev/null
+@@ -1,21 +0,0 @@
+-sources = files(
+-    'out_err_mt_win.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-    libpmemlog_dep,
+-    libpmemobj_dep,
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/out_err_win/meson.build b/src/test/out_err_win/meson.build
+deleted file mode 100644
+index 90c18d3b3..000000000
+--- a/src/test/out_err_win/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'out_err_win.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_api/meson.build b/src/test/pmem2_api/meson.build
+deleted file mode 100644
+index b6b49698f..000000000
+--- a/src/test/pmem2_api/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_api.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_badblock/meson.build b/src/test/pmem2_badblock/meson.build
+deleted file mode 100644
+index d8e21596e..000000000
+--- a/src/test/pmem2_badblock/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_badblock.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_compat/meson.build b/src/test/pmem2_compat/meson.build
+deleted file mode 100644
+index cf55a798a..000000000
+--- a/src/test/pmem2_compat/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_compat.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-    libpmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_config/meson.build b/src/test/pmem2_config/meson.build
+deleted file mode 100644
+index a70f9f8e8..000000000
+--- a/src/test/pmem2_config/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_config.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_include/meson.build b/src/test/pmem2_include/meson.build
+deleted file mode 100644
+index e0d72ea72..000000000
+--- a/src/test/pmem2_include/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmem2_include.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_integration/meson.build b/src/test/pmem2_integration/meson.build
+deleted file mode 100644
+index 03a6addb7..000000000
+--- a/src/test/pmem2_integration/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_integration.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_map/meson.build b/src/test/pmem2_map/meson.build
+deleted file mode 100644
+index 219c3322c..000000000
+--- a/src/test/pmem2_map/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_map.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_map_from_existing/meson.build b/src/test/pmem2_map_from_existing/meson.build
+deleted file mode 100644
+index f335abd1c..000000000
+--- a/src/test/pmem2_map_from_existing/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_map_from_existing.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_map_prot/meson.build b/src/test/pmem2_map_prot/meson.build
+deleted file mode 100644
+index ce8ecb4cf..000000000
+--- a/src/test/pmem2_map_prot/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_map_prot.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_mem_ext/meson.build b/src/test/pmem2_mem_ext/meson.build
+deleted file mode 100644
+index 2e54f3ddd..000000000
+--- a/src/test/pmem2_mem_ext/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_mem_ext.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_memcpy/meson.build b/src/test/pmem2_memcpy/meson.build
+deleted file mode 100644
+index d1f433e33..000000000
+--- a/src/test/pmem2_memcpy/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'pmem2_memcpy.c',
+-    'memcpy_common.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_memmove/meson.build b/src/test/pmem2_memmove/meson.build
+deleted file mode 100644
+index 454f4cd4e..000000000
+--- a/src/test/pmem2_memmove/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'pmem2_memmove.c',
+-    'memmove_common.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_memset/meson.build b/src/test/pmem2_memset/meson.build
+deleted file mode 100644
+index 7efbb6804..000000000
+--- a/src/test/pmem2_memset/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'pmem2_memset.c',
+-    'memset_common.c'
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_movnt/meson.build b/src/test/pmem2_movnt/meson.build
+deleted file mode 100644
+index 9ecbd6c37..000000000
+--- a/src/test/pmem2_movnt/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_movnt.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_movnt_align/meson.build b/src/test/pmem2_movnt_align/meson.build
+deleted file mode 100644
+index 0a6aa23c5..000000000
+--- a/src/test/pmem2_movnt_align/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'pmem2_movnt_align.c',
+-    'movnt_align_common.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_perror/meson.build b/src/test/pmem2_perror/meson.build
+deleted file mode 100644
+index 5a68050a5..000000000
+--- a/src/test/pmem2_perror/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_perror.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_persist_valgrind/meson.build b/src/test/pmem2_persist_valgrind/meson.build
+deleted file mode 100644
+index 7897106e6..000000000
+--- a/src/test/pmem2_persist_valgrind/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_persist_valgrind.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_source/meson.build b/src/test/pmem2_source/meson.build
+deleted file mode 100644
+index 807fa06e5..000000000
+--- a/src/test/pmem2_source/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_source.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_source_alignment/meson.build b/src/test/pmem2_source_alignment/meson.build
+deleted file mode 100644
+index be5573572..000000000
+--- a/src/test/pmem2_source_alignment/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_source_alignment.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_source_numa/meson.build b/src/test/pmem2_source_numa/meson.build
+deleted file mode 100644
+index 4d6e46a22..000000000
+--- a/src/test/pmem2_source_numa/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_source_numa.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_source_size/meson.build b/src/test/pmem2_source_size/meson.build
+deleted file mode 100644
+index 8587ce447..000000000
+--- a/src/test/pmem2_source_size/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_source_size.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_usc/meson.build b/src/test/pmem2_usc/meson.build
+deleted file mode 100644
+index 4e8a1fce9..000000000
+--- a/src/test/pmem2_usc/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_usc.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem2_vm_reservation/meson.build b/src/test/pmem2_vm_reservation/meson.build
+deleted file mode 100644
+index 2319d962e..000000000
+--- a/src/test/pmem2_vm_reservation/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem2_vm_reservation.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    unittest_pmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_eADR_functions/meson.build b/src/test/pmem_eADR_functions/meson.build
+deleted file mode 100644
+index 9ca727aff..000000000
+--- a/src/test/pmem_eADR_functions/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmem_eADR_functions.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_include/meson.build b/src/test/pmem_include/meson.build
+deleted file mode 100644
+index 0f85078c9..000000000
+--- a/src/test/pmem_include/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmem_include.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_is_pmem/meson.build b/src/test/pmem_is_pmem/meson.build
+deleted file mode 100644
+index 7a68a4cc0..000000000
+--- a/src/test/pmem_is_pmem/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmem_is_pmem.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_is_pmem_posix/meson.build b/src/test/pmem_is_pmem_posix/meson.build
+deleted file mode 100644
+index 616f4ed22..000000000
+--- a/src/test/pmem_is_pmem_posix/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem_is_pmem_posix.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-    libpmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_is_pmem_windows/meson.build b/src/test/pmem_is_pmem_windows/meson.build
+deleted file mode 100644
+index de4644638..000000000
+--- a/src/test/pmem_is_pmem_windows/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmem_is_pmem_windows.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-    libpmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_map_file_trunc/meson.build b/src/test/pmem_map_file_trunc/meson.build
+deleted file mode 100644
+index 244a87a55..000000000
+--- a/src/test/pmem_map_file_trunc/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmem_map_file_trunc.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_memcpy/meson.build b/src/test/pmem_memcpy/meson.build
+deleted file mode 100644
+index 77eaa23e5..000000000
+--- a/src/test/pmem_memcpy/meson.build
++++ /dev/null
+@@ -1,21 +0,0 @@
+-sources = files(
+-    'pmem_memcpy.c',
+-    '../pmem2_memcpy/memcpy_common.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    include_directories('../pmem2_memcpy') # testcase needs memcpy_common.h
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_memmove/meson.build b/src/test/pmem_memmove/meson.build
+deleted file mode 100644
+index 169bc18ac..000000000
+--- a/src/test/pmem_memmove/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'pmem_memmove.c',
+-    '../pmem2_memmove/memmove_common.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    include_directories('../pmem2_memmove') # testcase needs memmove_common.h
+-]
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_memset/meson.build b/src/test/pmem_memset/meson.build
+deleted file mode 100644
+index 569f630cf..000000000
+--- a/src/test/pmem_memset/meson.build
++++ /dev/null
+@@ -1,21 +0,0 @@
+-sources = files(
+-    'pmem_memset.c',
+-    '../pmem2_memset/memset_common.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-	    include_directories('../pmem2_memset') # testcase needs memset_common.h
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_movnt/meson.build b/src/test/pmem_movnt/meson.build
+deleted file mode 100644
+index 5c0df8269..000000000
+--- a/src/test/pmem_movnt/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmem_movnt.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_movnt_align/meson.build b/src/test/pmem_movnt_align/meson.build
+deleted file mode 100644
+index b68d0abfb..000000000
+--- a/src/test/pmem_movnt_align/meson.build
++++ /dev/null
+@@ -1,21 +0,0 @@
+-sources = files(
+-    'pmem_movnt_align.c',
+-    '../pmem2_movnt_align/movnt_align_common.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    include_directories('../pmem2_movnt_align') # testcase needs movnt_align_common.h
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_unmap/meson.build b/src/test/pmem_unmap/meson.build
+deleted file mode 100644
+index e6dd6075b..000000000
+--- a/src/test/pmem_unmap/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmem_unmap.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmem_valgr_simple/meson.build b/src/test/pmem_valgr_simple/meson.build
+deleted file mode 100644
+index 90be14928..000000000
+--- a/src/test/pmem_valgr_simple/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmem_valgr_simple.c',
+-)
+-
+-dependencies = [
+-    libpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_badblock/meson.build b/src/test/pmemset_badblock/meson.build
+deleted file mode 100644
+index 5bdde562b..000000000
+--- a/src/test/pmemset_badblock/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_badblock.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_config/meson.build b/src/test/pmemset_config/meson.build
+deleted file mode 100644
+index 219203379..000000000
+--- a/src/test/pmemset_config/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_config.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_deep_flush/meson.build b/src/test/pmemset_deep_flush/meson.build
+deleted file mode 100644
+index 34d8b75c7..000000000
+--- a/src/test/pmemset_deep_flush/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'pmemset_deep_flush.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_event/meson.build b/src/test/pmemset_event/meson.build
+deleted file mode 100644
+index 32c474781..000000000
+--- a/src/test/pmemset_event/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_event.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_file/meson.build b/src/test/pmemset_file/meson.build
+deleted file mode 100644
+index 9af9f7a7c..000000000
+--- a/src/test/pmemset_file/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_file.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_include/meson.build b/src/test/pmemset_include/meson.build
+deleted file mode 100644
+index 68bdd6581..000000000
+--- a/src/test/pmemset_include/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_include.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_map_config/meson.build b/src/test/pmemset_map_config/meson.build
+deleted file mode 100644
+index 51978b458..000000000
+--- a/src/test/pmemset_map_config/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_map_config.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_memcpy/meson.build b/src/test/pmemset_memcpy/meson.build
+deleted file mode 100644
+index 6db640b3a..000000000
+--- a/src/test/pmemset_memcpy/meson.build
++++ /dev/null
+@@ -1,22 +0,0 @@
+-sources = files(
+-    'pmemset_memcpy.c',
+-    '../pmem2_memcpy/memcpy_common.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    include_directories('../pmem2_memcpy'),
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_memmove/meson.build b/src/test/pmemset_memmove/meson.build
+deleted file mode 100644
+index f20e69a1e..000000000
+--- a/src/test/pmemset_memmove/meson.build
++++ /dev/null
+@@ -1,22 +0,0 @@
+-sources = files(
+-    'pmemset_memmove.c',
+-    '../pmem2_memmove/memmove_common.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    include_directories('../pmem2_memmove'),
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_memset/meson.build b/src/test/pmemset_memset/meson.build
+deleted file mode 100644
+index f31c01037..000000000
+--- a/src/test/pmemset_memset/meson.build
++++ /dev/null
+@@ -1,22 +0,0 @@
+-sources = files(
+-    'pmemset_memset.c',
+-    '../pmem2_memset/memset_common.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    include_directories('../pmem2_memset'),
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_new/meson.build b/src/test/pmemset_new/meson.build
+deleted file mode 100644
+index af834287b..000000000
+--- a/src/test/pmemset_new/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_new.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_part/meson.build b/src/test/pmemset_part/meson.build
+deleted file mode 100644
+index 2270b714b..000000000
+--- a/src/test/pmemset_part/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'pmemset_part.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_perror/meson.build b/src/test/pmemset_perror/meson.build
+deleted file mode 100644
+index 55a7516ff..000000000
+--- a/src/test/pmemset_perror/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_perror.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_persist/meson.build b/src/test/pmemset_persist/meson.build
+deleted file mode 100644
+index c777ec2be..000000000
+--- a/src/test/pmemset_persist/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_persist.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_sds/meson.build b/src/test/pmemset_sds/meson.build
+deleted file mode 100644
+index 3c87aecf9..000000000
+--- a/src/test/pmemset_sds/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'pmemset_sds.c',
+-)
+-
+-dependencies = [
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmemset_source/meson.build b/src/test/pmemset_source/meson.build
+deleted file mode 100644
+index a4c9a6127..000000000
+--- a/src/test/pmemset_source/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'pmemset_source.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-    libpmemset_dep,
+-    unittest_pmemset_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmreorder_flushes/meson.build b/src/test/pmreorder_flushes/meson.build
+deleted file mode 100644
+index a7a031b9c..000000000
+--- a/src/test/pmreorder_flushes/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'pmreorder_flushes.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmreorder_simple/meson.build b/src/test/pmreorder_simple/meson.build
+deleted file mode 100644
+index 004296886..000000000
+--- a/src/test/pmreorder_simple/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'pmreorder_simple.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/pmreorder_stack/meson.build b/src/test/pmreorder_stack/meson.build
+deleted file mode 100644
+index c33117974..000000000
+--- a/src/test/pmreorder_stack/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'pmreorder_stack.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/remote_basic/meson.build b/src/test/remote_basic/meson.build
+deleted file mode 100644
+index b90492756..000000000
+--- a/src/test/remote_basic/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'remote_basic.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/remote_obj_basic/meson.build b/src/test/remote_obj_basic/meson.build
+deleted file mode 100644
+index 5ebf7ff8f..000000000
+--- a/src/test/remote_obj_basic/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'remote_obj_basic.c',
+-)
+-
+-dependencies = [
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmem_addr/meson.build b/src/test/rpmem_addr/meson.build
+deleted file mode 100644
+index 1a6bb06eb..000000000
+--- a/src/test/rpmem_addr/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'rpmem_addr.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmem_addr_ext/meson.build b/src/test/rpmem_addr_ext/meson.build
+deleted file mode 100644
+index 80d705f90..000000000
+--- a/src/test/rpmem_addr_ext/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'rpmem_addr_ext.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmem_basic/meson.build b/src/test/rpmem_basic/meson.build
+deleted file mode 100644
+index 89339a534..000000000
+--- a/src/test/rpmem_basic/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'rpmem_basic.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmem_fip/meson.build b/src/test/rpmem_fip/meson.build
+deleted file mode 100644
+index a9fc3a0cf..000000000
+--- a/src/test/rpmem_fip/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'rpmem_fip_oob.c',
+-    'rpmem_fip_test.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmem_obc/meson.build b/src/test/rpmem_obc/meson.build
+deleted file mode 100644
+index b3308dbef..000000000
+--- a/src/test/rpmem_obc/meson.build
++++ /dev/null
+@@ -1,25 +0,0 @@
+-sources = files(
+-    'rpmem_obc_test_close.c',
+-    'rpmem_obc_test_common.c',
+-    'rpmem_obc_test_create.c',
+-    'rpmem_obc_test_misc.c',
+-    'rpmem_obc_test_open.c',
+-    'rpmem_obc_test_set_attr.c',
+-    'rpmem_obc_test.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmem_obc_int/meson.build b/src/test/rpmem_obc_int/meson.build
+deleted file mode 100644
+index 4431f2f7c..000000000
+--- a/src/test/rpmem_obc_int/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'rpmem_obc_int.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmem_proto/meson.build b/src/test/rpmem_proto/meson.build
+deleted file mode 100644
+index abd3da02f..000000000
+--- a/src/test/rpmem_proto/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'rpmem_proto.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmemd_config/meson.build b/src/test/rpmemd_config/meson.build
+deleted file mode 100644
+index 331dc5f4d..000000000
+--- a/src/test/rpmemd_config/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'rpmemd_config_test.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmemd_db/meson.build b/src/test/rpmemd_db/meson.build
+deleted file mode 100644
+index 7eefaa447..000000000
+--- a/src/test/rpmemd_db/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'rpmemd_db_test.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmemd_dbg/meson.build b/src/test/rpmemd_dbg/meson.build
+deleted file mode 100644
+index d3261fb78..000000000
+--- a/src/test/rpmemd_dbg/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'rpmemd_dbg.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmemd_log/meson.build b/src/test/rpmemd_log/meson.build
+deleted file mode 100644
+index fc697fb81..000000000
+--- a/src/test/rpmemd_log/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'rpmemd_log_test.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmemd_obc/meson.build b/src/test/rpmemd_obc/meson.build
+deleted file mode 100644
+index 43148d0bc..000000000
+--- a/src/test/rpmemd_obc/meson.build
++++ /dev/null
+@@ -1,26 +0,0 @@
+-sources = files(
+-    'rpmemd_obc_test_close.c',
+-    'rpmemd_obc_test_common.c',
+-    'rpmemd_obc_test_create.c',
+-    'rpmemd_obc_test_misc.c',
+-    'rpmemd_obc_test_msg_hdr.c',
+-    'rpmemd_obc_test_open.c',
+-    'rpmemd_obc_test_set_attr.c',
+-    'rpmemd_obc_test.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/rpmemd_util/meson.build b/src/test/rpmemd_util/meson.build
+deleted file mode 100644
+index 2d06df8c1..000000000
+--- a/src/test/rpmemd_util/meson.build
++++ /dev/null
+@@ -1,19 +0,0 @@
+-sources = files(
+-    'rpmemd_util_test.c',
+-)
+-
+-dependencies = [
+-    librpmem_dep,
+-    rpmemd_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/set_funcs/meson.build b/src/test/set_funcs/meson.build
+deleted file mode 100644
+index bbf6f3574..000000000
+--- a/src/test/set_funcs/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'set_funcs.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-    libpmemlog_dep,
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/traces/meson.build b/src/test/traces/meson.build
+deleted file mode 100644
+index 10e0ee719..000000000
+--- a/src/test/traces/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'traces.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/traces_custom_function/meson.build b/src/test/traces_custom_function/meson.build
+deleted file mode 100644
+index e4328f9eb..000000000
+--- a/src/test/traces_custom_function/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'traces_custom_function.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/traces_pmem/meson.build b/src/test/traces_pmem/meson.build
+deleted file mode 100644
+index 5835e3cee..000000000
+--- a/src/test/traces_pmem/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'traces_pmem.c',
+-)
+-
+-dependencies = [
+-    libpmemblk_dep,
+-    libpmemlog_dep,
+-    libpmemobj_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_badblock/meson.build b/src/test/util_badblock/meson.build
+deleted file mode 100644
+index 878bb354d..000000000
+--- a/src/test/util_badblock/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_badblock.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_cpuid/meson.build b/src/test/util_cpuid/meson.build
+deleted file mode 100644
+index 45d2faa3d..000000000
+--- a/src/test/util_cpuid/meson.build
++++ /dev/null
+@@ -1,20 +0,0 @@
+-sources = files(
+-    'util_cpuid.c',
+-)
+-
+-dependencies = [
+-    libpmem2_dep,
+-]
+-
+-c_args = []
+-include_directories = [
+-    '../../libpmem2/x86_64',
+-]
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_ctl/meson.build b/src/test/util_ctl/meson.build
+deleted file mode 100644
+index 1e2682d2d..000000000
+--- a/src/test/util_ctl/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_ctl.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_extent/meson.build b/src/test/util_extent/meson.build
+deleted file mode 100644
+index ddbc79247..000000000
+--- a/src/test/util_extent/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_extent.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_file_create/meson.build b/src/test/util_file_create/meson.build
+deleted file mode 100644
+index d050e8031..000000000
+--- a/src/test/util_file_create/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_file_create.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_file_open/meson.build b/src/test/util_file_open/meson.build
+deleted file mode 100644
+index 4a3170284..000000000
+--- a/src/test/util_file_open/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_file_open.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_is_absolute/meson.build b/src/test/util_is_absolute/meson.build
+deleted file mode 100644
+index d7221f0ce..000000000
+--- a/src/test/util_is_absolute/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_is_absolute.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_is_poolset/meson.build b/src/test/util_is_poolset/meson.build
+deleted file mode 100644
+index fe26445bd..000000000
+--- a/src/test/util_is_poolset/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_is_poolset.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_is_zeroed/meson.build b/src/test/util_is_zeroed/meson.build
+deleted file mode 100644
+index bffd8dae1..000000000
+--- a/src/test/util_is_zeroed/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_is_zeroed.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_map_proc/meson.build b/src/test/util_map_proc/meson.build
+deleted file mode 100644
+index 1c09c9d24..000000000
+--- a/src/test/util_map_proc/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_map_proc.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_parse_size/meson.build b/src/test/util_parse_size/meson.build
+deleted file mode 100644
+index 8f5f75e2d..000000000
+--- a/src/test/util_parse_size/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_parse_size.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_pool_hdr/meson.build b/src/test/util_pool_hdr/meson.build
+deleted file mode 100644
+index 759f390ff..000000000
+--- a/src/test/util_pool_hdr/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_pool_hdr.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_poolset_foreach/meson.build b/src/test/util_poolset_foreach/meson.build
+deleted file mode 100644
+index a227b2511..000000000
+--- a/src/test/util_poolset_foreach/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_poolset_foreach.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_poolset_parse/meson.build b/src/test/util_poolset_parse/meson.build
+deleted file mode 100644
+index 6a34ce6dc..000000000
+--- a/src/test/util_poolset_parse/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_poolset_parse.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_poolset_size/meson.build b/src/test/util_poolset_size/meson.build
+deleted file mode 100644
+index a44e14e57..000000000
+--- a/src/test/util_poolset_size/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_poolset_size.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_ravl/meson.build b/src/test/util_ravl/meson.build
+deleted file mode 100644
+index a0f9e3599..000000000
+--- a/src/test/util_ravl/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_ravl.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_sds/meson.build b/src/test/util_sds/meson.build
+deleted file mode 100644
+index 50aeee149..000000000
+--- a/src/test/util_sds/meson.build
++++ /dev/null
+@@ -1,18 +0,0 @@
+-sources = files(
+-    'util_sds.c',
+-)
+-
+-dependencies = [
+-    libpmempool_dep,
+-]
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_uuid_generate/meson.build b/src/test/util_uuid_generate/meson.build
+deleted file mode 100644
+index 5f76c2913..000000000
+--- a/src/test/util_uuid_generate/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_uuid_generate.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_vec/meson.build b/src/test/util_vec/meson.build
+deleted file mode 100644
+index f522d69ac..000000000
+--- a/src/test/util_vec/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_vec.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/test/util_vecq/meson.build b/src/test/util_vecq/meson.build
+deleted file mode 100644
+index a97253776..000000000
+--- a/src/test/util_vecq/meson.build
++++ /dev/null
+@@ -1,16 +0,0 @@
+-sources = files(
+-    'util_vecq.c',
+-)
+-
+-dependencies = []
+-
+-c_args = []
+-include_directories = []
+-
+-executable(
+-    t,
+-    sources,
+-    c_args: c_args,
+-    include_directories: include_directories,
+-    dependencies: dependencies + test_dependencies,
+-)
+diff --git a/src/tools/meson.build b/src/tools/meson.build
+index 37d514cee..60c0f144a 100644
+--- a/src/tools/meson.build
++++ b/src/tools/meson.build
+@@ -101,23 +101,3 @@ foreach t, params : tools
+         install: true
+     )
+ endforeach
+-
+-rpmemd_dep = declare_dependency(
+-    dependencies: [
+-	    libfabric_dep,
+-    ],
+-    sources: files(
+-        'rpmemd/rpmemd_log.c',
+-        'rpmemd/rpmemd_config.c',
+-        'rpmemd/rpmemd_obc.c',
+-        'rpmemd/rpmemd_db.c',
+-        'rpmemd/rpmemd_fip.c',
+-        'rpmemd/rpmemd_util.c',
+-        '../rpmem_common/rpmem_common.c',
+-        '../rpmem_common/rpmem_fip_common.c',
+-    ),
+-    include_directories: [
+-        include_directories('rpmemd'),
+-        include_directories('../rpmem_common'),
+-    ],
+-)
