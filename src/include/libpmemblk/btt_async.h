@@ -66,7 +66,7 @@ FUTURE(nswrite_async_future, struct nswrite_async_future_data,
 		struct nswrite_async_future_output);
 /* END of nswrite_async */
 
-/* TODO: Could be in a private header!!! */
+/* TODO: Could be in a private header? */
 struct ns_callback_async {
 	struct nsread_async_future (*nsread)(void *ns, unsigned lane,
 		void *buf, size_t count, uint64_t off, struct vdm *vdm);
@@ -84,14 +84,29 @@ struct ns_callback_async {
 /* BTT futures */
 
 /* START of btt_read_async */
+
+enum btt_read_stages{
+    BTT_READ_INITIALIZED = 10,
+    BTT_READ_ZEROS = 11,
+    BTT_READ_PREPARATION = 12,
+    BTT_READ_IN_PROGRESS = 13,
+    BTT_READ_COMPLETE = 14,
+};
 struct btt_read_async_future_data {
     struct btt *bttp;
     unsigned lane;
     uint64_t lba;
     void *buf;
-
-    int stage;
     struct vdm *vdm;
+
+    int *stage;
+    struct {
+	union {
+	    struct vdm_operation_future vdm_fut;
+	    struct nsread_async_future nsread_fut;
+	};
+	struct arena *arenap;
+    } internal;
 };
 
 struct btt_read_async_future_output {
@@ -102,7 +117,7 @@ FUTURE(btt_read_async_future, struct btt_read_async_future_data,
 		struct btt_read_async_future_output);
 
 struct btt_read_async_future btt_read_async(struct btt *bttp, unsigned lane,
-	uint64_t lba, void *buf, struct vdm *vdm);
+	uint64_t lba, void *buf, struct vdm *vdm, int *stage);
 /* END of btt_read_async */
 
 /* START of btt_write_async */

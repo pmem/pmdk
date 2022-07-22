@@ -61,6 +61,25 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane)
 }
 
 /*
+ * lane_enter -- (internal) acquire a unique lane number
+ */
+static int
+lane_try_enter(PMEMblkpool *pbp, unsigned *lane)
+{
+	unsigned mylane;
+
+	mylane = util_fetch_and_add32(&pbp->next_lane, 1) % pbp->nlane;
+
+	/* lane selected, grab the per-lane lock */
+	if(util_mutex_trylock(&pbp->locks[mylane]) == 0) {
+		*lane = mylane;
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
+/*
  * lane_exit -- (internal) drop lane lock
  */
 static void
@@ -274,11 +293,11 @@ nsread_async_future_impl(struct future_context *ctx,
 		struct pmemblk *pbp = (struct pmemblk *)data->ns;
 
 		LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp,
-		    data->lane, data->count, data->off);
+			data->lane, data->count, data->off);
 
 		if (data->off + data->count > pbp->datasize) {
 			ERR("offset + count (%zu) past end of data area (%zu)",
-			    (size_t)data->off + data->count, pbp->datasize);
+				(size_t)data->off + data->count, pbp->datasize);
 			/* TODO: should we set it in async features? */
 			errno = EINVAL;
 			output->return_value = -1;
@@ -302,7 +321,7 @@ nsread_async_future_impl(struct future_context *ctx,
 static struct nsread_async_future
 nsread_async(void *ns, unsigned lane, void *buf,
 	size_t count, uint64_t off, struct vdm *vdm) {
-	struct nsread_async_future fut = {
+	struct nsread_async_future future = {
 		.data.ns = ns,
 		.data.lane = lane,
 		.data.buf = buf,
@@ -313,7 +332,8 @@ nsread_async(void *ns, unsigned lane, void *buf,
 		.output.return_value = -1,
 	};
 
-	return fut;
+	FUTURE_INIT(&future, nsread_async_future_impl);
+	return future;
 }
 /*
  * END of nsread_async_future
@@ -397,6 +417,69 @@ nswrite_async(void *ns, unsigned lane, void *buf, size_t count, uint64_t off,
  * END of nswrite_async_future
  */
 
+
+/*
+ * START of the pmemblk_read_async future
+ */
+static enum future_state
+pmemblk_read_async_impl(struct future_context *ctx,
+	struct future_notifier *notifier)
+{
+	struct pmemblk_read_async_future_data *data =
+		future_context_get_data(ctx);
+	struct pmemblk_read_async_future_output *output =
+		future_context_get_output(ctx);
+
+	PMEMblkpool *pbp = data->pbp;
+	void *buf = data->buf;
+	long long blockno = data->blockno;
+	int *stage = &data->stage;
+
+	if (*stage <= PMEMBLK_READ_WAITING_FOR_LANE) {
+		if (lane_try_enter(pbp, &data->internal.lane) == -1) {
+			*stage = PMEMBLK_READ_WAITING_FOR_LANE;
+			return FUTURE_STATE_RUNNING;
+		}
+		data->internal.btt_read_fut = btt_read_async(pbp->bttp,
+			data->internal.lane, blockno, buf, pbp->vdm, stage);
+		*stage = PMEMBLK_READ_IN_PROGRESS;
+	}
+
+	/*
+	 * XXX: The lane lock is kept even when 'pmemblk_write_async_future'
+	 * cannot make progress.
+	 */
+	if (future_poll(
+		FUTURE_AS_RUNNABLE(&data->internal.btt_read_fut), NULL)
+		!= FUTURE_STATE_COMPLETE) {
+		return FUTURE_STATE_RUNNING;
+	}
+
+	*stage = PMEMBLK_READ_COMPLETE;
+	lane_exit(pbp, data->internal.lane);
+
+	return FUTURE_STATE_COMPLETE;
+}
+
+struct pmemblk_read_async_future
+pmemblk_read_async(PMEMblkpool *pbp, void *buf, long long blockno)
+{
+	struct pmemblk_read_async_future future = {
+		.data.pbp = pbp,
+		.data.buf = buf,
+		.data.blockno = blockno,
+		.data.internal.lane = -1,
+		.output.return_value = PMEMBLK_READ_INITIALIZED,
+	};
+
+	FUTURE_INIT(&future, pmemblk_read_async_impl);
+
+	return future;
+}
+/*
+ * END of the pmemblk_read_async future
+ */
+
 /*
  * START of the pmemblk_write_async_fut future
  */
@@ -414,7 +497,11 @@ pmemblk_write_async_impl(struct future_context *ctx,
 
 	if (!data->internal.btt_write_started) {
 		unsigned lane;
-		lane_enter(pbp, &lane);
+		if(data->internal.lane == -1) {
+			if (lane_try_enter(pbp, &lane) == -1) {
+				return FUTURE_STATE_RUNNING;
+			}
+		}
 
 		data->internal.lane = lane;
 		data->internal.btt_write_started = 1;
@@ -426,7 +513,8 @@ pmemblk_write_async_impl(struct future_context *ctx,
 	 * XXX: The lane lock is kept even when 'pmemblk_write_async_future'
 	 * cannot make progress.
 	 */
-	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
+	if (future_poll(
+		FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
 			!= FUTURE_STATE_COMPLETE) {
 		return FUTURE_STATE_RUNNING;
 	}
@@ -443,6 +531,7 @@ pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 		.data.pbp = pbp,
 		.data.buf = buf,
 		.data.blockno = blockno,
+		.data.internal.lane = -1,
 		.output.return_value = 0,
 	};
 

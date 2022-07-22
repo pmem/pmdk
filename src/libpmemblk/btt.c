@@ -2108,13 +2108,207 @@ btt_fini(struct btt *bttp)
 #include "libpmemblk/btt_async.h"
 
 /*
+ * START of btt_read_async_future
+ */
+static enum future_state
+btt_read_async_future_impl(struct future_context *ctx,
+		struct future_notifier *notifier)
+{
+	struct btt_read_async_future_data *data =
+		future_context_get_data(ctx);
+	struct btt_read_async_future_output *output =
+		future_context_get_output(ctx);
+
+	struct btt *bttp = data->bttp;
+	unsigned lane = data->lane;
+	uint64_t lba = data->lba;
+	void *buf = data->buf;
+	struct vdm *vdm = data->vdm;
+	int *stage = data->stage;
+
+	if (*stage == BTT_READ_INITIALIZED) {
+		LOG(3, "bttp %p lane %u lba %" PRIu64, bttp, lane, lba);
+
+		*stage = BTT_READ_PREPARATION;
+
+		if (invalid_lba(bttp, lba)) {
+			output->return_value = -1;
+			return FUTURE_STATE_COMPLETE;
+		}
+
+		/*
+		 * if there's no layout written yet,
+		 * all reads come back as zeros
+		 */
+		if (!bttp->laidout) {
+			data->internal.vdm_fut = vdm_memset(
+				vdm, buf, '\0', bttp->lbasize, NULL);
+			*stage = BTT_READ_ZEROS;
+		}
+	}
+
+	if (*stage == BTT_READ_ZEROS) {
+		if (future_poll(
+			FUTURE_AS_RUNNABLE(
+				&data->internal.vdm_fut), NULL
+		) == FUTURE_STATE_COMPLETE) {
+			/* TODO: vdm error handling? */
+			output->return_value = 0;
+			return FUTURE_STATE_COMPLETE;
+		} else {
+			return FUTURE_STATE_RUNNING;
+		}
+	}
+
+	if (*stage == BTT_READ_PREPARATION) {
+		/* find which arena LBA lives in, and the offset to the map entry */
+		uint32_t premap_lba;
+		uint64_t map_entry_off;
+		if (lba_to_arena_lba(bttp, lba, &data->internal.arenap,
+			&premap_lba) < 0) {
+			output->return_value = -1;
+			return FUTURE_STATE_COMPLETE;
+		}
+
+		/* convert pre-map LBA into an offset into the map */
+		map_entry_off = data->internal.arenap->mapoff +
+				BTT_MAP_ENTRY_SIZE * premap_lba;
+
+		/*
+		 * Read the current map entry to get the post-map LBA for the data
+		 * block read.
+		 */
+		uint32_t entry;
+
+		if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &entry,
+			sizeof(entry), map_entry_off) < 0) {
+			output->return_value = -1;
+			return FUTURE_STATE_COMPLETE;
+		}
+
+		entry = le32toh(entry);
+
+		/*
+		 * Retries come back to the top of this loop (for a rare case where
+		 * the map is changed by another thread doing writes to the same LBA).
+		 */
+		while (1) {
+			/*
+			 * TODO: I think it's not a problem for runtime future execution
+			 * TODO: because it may block a little during multithreaded usage
+			 */
+			if (map_entry_is_error(entry)) {
+				ERR("EIO due to map entry error flag");
+				errno = EIO;
+				return -1;
+			}
+
+			if (map_entry_is_zero_or_initial(entry))
+				return zero_block(bttp, buf);
+
+			/*
+			 * Record the post-map LBA in the read tracking table during
+			 * the read.  The write will check entries in the read tracking
+			 * table before allocating a block for a write, waiting for
+			 * outstanding reads on that block to complete.
+			 *
+			 * Since we already checked for error, zero, and initial
+			 * states above, the entry must have both error and zero
+			 * bits set at this point (BTT_MAP_ENTRY_NORMAL).  We store
+			 * the entry that way, with those bits set, in the rtt and
+			 * btt_write() will check for it the same way, with the bits
+			 * both set.
+			 */
+			data->internal.arenap->rtt[lane] = entry;
+			util_synchronize();
+
+			/*
+			 * In case this thread was preempted between reading entry and
+			 * storing it in the rtt, check to see if the map changed.  If
+			 * it changed, the block about to be read is at least free now
+			 * (in the flog, but that's okay since the data will still be
+			 * undisturbed) and potentially allocated and being used for
+			 * another write (data disturbed, so not okay to continue).
+			 */
+			uint32_t latest_entry;
+			if ((*bttp->ns_cbp->nsread)(bttp->ns, lane,
+				&latest_entry,
+				sizeof(latest_entry), map_entry_off) < 0) {
+				data->internal.arenap->rtt[lane] = BTT_MAP_ENTRY_ERROR;
+				output->return_value = -1;
+				return FUTURE_STATE_COMPLETE;
+			}
+
+			latest_entry = le32toh(latest_entry);
+
+			if (entry == latest_entry)
+				break;/* map stayed the same */
+			else
+				entry = latest_entry;/* try again */
+		}
+
+		/*
+		 * It is safe to read the block now, since the rtt protects the
+		 * block from getting re-allocated to something else by a write.
+		 */
+		uint64_t data_block_off =
+			data->internal.arenap->dataoff +
+			(uint64_t)(entry & BTT_MAP_ENTRY_LBA_MASK) *
+			data->internal.arenap->internal_lbasize;
+
+		data->internal.nsread_fut = (*bttp->ns_cb_asyncp->nsread)
+			(bttp->ns, lane, buf, bttp->lbasize, data_block_off,
+				vdm);
+		*stage = BTT_READ_IN_PROGRESS;
+	}
+
+	if (*stage == BTT_READ_IN_PROGRESS) {
+		if (future_poll(
+			FUTURE_AS_RUNNABLE(
+				&data->internal.nsread_fut), NULL
+		) != FUTURE_STATE_COMPLETE) {
+			return FUTURE_STATE_RUNNING;
+		}
+	}
+
+	*stage = BTT_READ_COMPLETE;
+	/* done with read, so clear out rtt entry */
+	data->internal.arenap->rtt[lane] = BTT_MAP_ENTRY_ERROR;
+
+	return data->internal.nsread_fut.output.return_value;
+}
+
+struct btt_read_async_future
+btt_read_async(struct btt *bttp, unsigned lane,
+	uint64_t lba, void *buf, struct vdm *vdm, int *stage) {
+	struct btt_read_async_future future = {
+		.data.bttp = bttp,
+		.data.lane = lane,
+		.data.lba = lba,
+		.data.buf = buf,
+		.data.vdm = vdm,
+		.data.stage = stage,
+
+		.output.return_value = -1,
+	};
+
+	*stage = BTT_READ_INITIALIZED;
+	FUTURE_INIT(&future, btt_read_async_future_impl);
+	return future;
+}
+/*
+ * END of btt_read_async_future
+ */
+
+/*
  * START of the btt_write_async_future future
  */
 static enum future_state
 btt_write_async_future_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
-	struct btt_write_async_future_data *data = future_context_get_data(ctx);
+	struct btt_write_async_future_data *data =
+			future_context_get_data(ctx);
 	struct btt_write_async_future_output *output =
 			future_context_get_output(ctx);
 
