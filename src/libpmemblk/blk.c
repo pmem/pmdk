@@ -486,7 +486,7 @@ pmemblk_read_async(PMEMblkpool *pbp, void *buf, long long blockno)
  */
 
 /*
- * START of the pmemblk_write_async_future future
+ * START of the pmemblk_write_async_fut future
  */
 static enum future_state
 pmemblk_write_async_impl(struct future_context *ctx,
@@ -500,9 +500,10 @@ pmemblk_write_async_impl(struct future_context *ctx,
 	PMEMblkpool *pbp = data->pbp;
 	void *buf = data->buf;
 	long long blockno = data->blockno;
+	int *stage = &data->stage;
 
-	int ret = 0;
-	if (!data->internal.btt_write_started) {
+	int ret;
+	if (*stage <= PMEMBLK_WRITE_WAITING_FOR_LANE) {
 		if (pbp->rdonly) {
 			ERR("EROFS (pool is read-only)");
 			errno = EROFS;
@@ -517,30 +518,26 @@ pmemblk_write_async_impl(struct future_context *ctx,
 			goto set_output;
 		}
 
-		unsigned lane;
-		if(data->internal.lane == -1) {
-			if (lane_try_enter(pbp, &lane) == -1) {
-				return FUTURE_STATE_RUNNING;
-			}
+		if (lane_try_enter(pbp, &data->internal.lane) == -1) {
+			*stage = PMEMBLK_READ_WAITING_FOR_LANE;
+			return FUTURE_STATE_RUNNING;
 		}
-
-		data->internal.lane = lane;
-		data->internal.btt_write_started = 1;
 		data->internal.btt_write_fut = btt_write_async(pbp->bttp, lane,
-				blockno, buf, pbp->vdm);
+			blockno, buf, pbp->vdm);
+		*stage = PMEMBLK_WRITE_IN_PROGRESS;
 	}
 
 	/*
 	 * XXX: The lane lock is kept even when 'pmemblk_write_async_future'
 	 * cannot make progress.
 	 */
-	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
+	if (future_poll(
+		FUTURE_AS_RUNNABLE(&data->internal.btt_write_fut), NULL)
 			!= FUTURE_STATE_COMPLETE) {
 		return FUTURE_STATE_RUNNING;
 	}
 
-	ret = data->internal.btt_write_fut.output.return_value;
-
+	*stage = PMEMBLK_WRITE_COMPLETE;
 	lane_exit(pbp, data->internal.lane);
 
 set_output:
@@ -549,14 +546,16 @@ set_output:
 	return FUTURE_STATE_COMPLETE;
 }
 
-struct pmemblk_write_async_future
+struct pmemblk_write_async_fut
 pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 {
-	struct pmemblk_write_async_future future = {
+	struct pmemblk_write_async_fut future = {
 		.data.pbp = pbp,
 		.data.buf = buf,
 		.data.blockno = blockno,
 		.data.internal.lane = -1,
+		.data.stage = PMEMBLK_WRITE_INITIALIZED,
+
 		.output.return_value = 0,
 	};
 
@@ -565,7 +564,7 @@ pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 	return future;
 }
 /*
- * END of the pmemblk_write_async_future future
+ * END of the pmemblk_write_async_fut future
  */
 
 /* async callbacks for btt_init() */
