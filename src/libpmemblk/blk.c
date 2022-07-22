@@ -48,7 +48,8 @@ static const struct pool_attr Blk_open_attr = {
  * lane_enter -- (internal) acquire a unique lane number
  */
 static void
-lane_enter(PMEMblkpool *pbp, unsigned *lane) {
+lane_enter(PMEMblkpool *pbp, unsigned *lane)
+{
 	unsigned mylane;
 
 	mylane = util_fetch_and_add32(&pbp->next_lane, 1) % pbp->nlane;
@@ -63,13 +64,14 @@ lane_enter(PMEMblkpool *pbp, unsigned *lane) {
  * lane_enter -- (internal) acquire a unique lane number
  */
 static int
-lane_try_enter(PMEMblkpool *pbp, unsigned *lane) {
+lane_try_enter(PMEMblkpool *pbp, unsigned *lane)
+{
 	unsigned mylane;
 
 	mylane = util_fetch_and_add32(&pbp->next_lane, 1) % pbp->nlane;
 
 	/* lane selected, grab the per-lane lock */
-	if (util_mutex_trylock(&pbp->locks[mylane]) == 0) {
+	if(util_mutex_trylock(&pbp->locks[mylane]) == 0) {
 		*lane = mylane;
 		return 0;
 	} else {
@@ -81,7 +83,8 @@ lane_try_enter(PMEMblkpool *pbp, unsigned *lane) {
  * lane_exit -- (internal) drop lane lock
  */
 static void
-lane_exit(PMEMblkpool *pbp, unsigned mylane) {
+lane_exit(PMEMblkpool *pbp, unsigned mylane)
+{
 	util_mutex_unlock(&pbp->locks[mylane]);
 }
 
@@ -92,20 +95,20 @@ lane_exit(PMEMblkpool *pbp, unsigned mylane) {
  * do I/O on the memory pool containing the BTT layout.
  */
 static int
-nsread(void *ns, unsigned lane, void *buf, size_t count, uint64_t off) {
-	struct pmemblk *pbp = (struct pmemblk *) ns;
+nsread(void *ns, unsigned lane, void *buf, size_t count, uint64_t off)
+{
+	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %u count %zu off %"
-	PRIu64, pbp, lane, count, off);
+	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
 		ERR("offset + count (%zu) past end of data area (%zu)",
-			(size_t) off + count, pbp->datasize);
+				(size_t)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
 
-	memcpy(buf, (char *) pbp->data + off, count);
+	memcpy(buf, (char *)pbp->data + off, count);
 
 	return 0;
 }
@@ -118,20 +121,20 @@ nsread(void *ns, unsigned lane, void *buf, size_t count, uint64_t off) {
  */
 static int
 nswrite(void *ns, unsigned lane, const void *buf, size_t count,
-		uint64_t off) {
-	struct pmemblk *pbp = (struct pmemblk *) ns;
+		uint64_t off)
+{
+	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %u count %zu off %"
-	PRIu64, pbp, lane, count, off);
+	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
 		ERR("offset + count (%zu) past end of data area (%zu)",
-			(size_t) off + count, pbp->datasize);
+				(size_t)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
 
-	void *dest = (char *) pbp->data + off;
+	void *dest = (char *)pbp->data + off;
 
 #ifdef DEBUG
 	/* grab debug write lock */
@@ -173,17 +176,17 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
  * do I/O on the memory pool containing the BTT layout.
  */
 static ssize_t
-nsmap(void *ns, unsigned lane, void **addrp, size_t len, uint64_t off) {
-	struct pmemblk *pbp = (struct pmemblk *) ns;
+nsmap(void *ns, unsigned lane, void **addrp, size_t len, uint64_t off)
+{
+	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(12, "pbp %p lane %u len %zu off %"
-	PRIu64, pbp, lane, len, off);
+	LOG(12, "pbp %p lane %u len %zu off %" PRIu64, pbp, lane, len, off);
 
-	ASSERT(((ssize_t) len) >= 0);
+	ASSERT(((ssize_t)len) >= 0);
 
 	if (off + len >= pbp->datasize) {
 		ERR("offset + len (%zu) past end of data area (%zu)",
-			(size_t) off + len, pbp->datasize - 1);
+				(size_t)off + len, pbp->datasize - 1);
 		errno = EINVAL;
 		return -1;
 	}
@@ -192,11 +195,11 @@ nsmap(void *ns, unsigned lane, void **addrp, size_t len, uint64_t off) {
 	 * Since the entire file is memory-mapped, this callback
 	 * can always provide the entire length requested.
 	 */
-	*addrp = (char *) pbp->data + off;
+	*addrp = (char *)pbp->data + off;
 
 	LOG(12, "returning addr %p", *addrp);
 
-	return (ssize_t) len;
+	return (ssize_t)len;
 }
 
 /*
@@ -211,8 +214,9 @@ nsmap(void *ns, unsigned lane, void **addrp, size_t len, uint64_t off) {
  * do I/O on the memory pool containing the BTT layout.
  */
 static void
-nssync(void *ns, unsigned lane, void *addr, size_t len) {
-	struct pmemblk *pbp = (struct pmemblk *) ns;
+nssync(void *ns, unsigned lane, void *addr, size_t len)
+{
+	struct pmemblk *pbp = (struct pmemblk *)ns;
 
 	LOG(12, "pbp %p lane %u addr %p len %zu", pbp, lane, addr, len);
 
@@ -229,20 +233,20 @@ nssync(void *ns, unsigned lane, void *addr, size_t len) {
  * zero the memory pool containing the BTT layout.
  */
 static int
-nszero(void *ns, unsigned lane, size_t count, uint64_t off) {
-	struct pmemblk *pbp = (struct pmemblk *) ns;
+nszero(void *ns, unsigned lane, size_t count, uint64_t off)
+{
+	struct pmemblk *pbp = (struct pmemblk *)ns;
 
-	LOG(13, "pbp %p lane %u count %zu off %"
-	PRIu64, pbp, lane, count, off);
+	LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp, lane, count, off);
 
 	if (off + count > pbp->datasize) {
 		ERR("offset + count (%zu) past end of data area (%zu)",
-			(size_t) off + count, pbp->datasize);
+				(size_t)off + count, pbp->datasize);
 		errno = EINVAL;
 		return -1;
 	}
 
-	void *dest = (char *) pbp->data + off;
+	void *dest = (char *)pbp->data + off;
 
 	/* unprotect the memory (debug version only) */
 	RANGE_RW(dest, count, pbp->is_dev_dax);
@@ -257,12 +261,12 @@ nszero(void *ns, unsigned lane, size_t count, uint64_t off) {
 
 /* callbacks for btt_init() */
 static struct ns_callback ns_cb = {
-		.nsread = nsread,
-		.nswrite = nswrite,
-		.nszero = nszero,
-		.nsmap = nsmap,
-		.nssync = nssync,
-		.ns_is_zeroed = 0
+	.nsread = nsread,
+	.nswrite = nswrite,
+	.nszero = nszero,
+	.nsmap = nsmap,
+	.nssync = nssync,
+	.ns_is_zeroed = 0
 };
 
 /* Asynchronous blk operations */
@@ -556,7 +560,8 @@ static struct ns_callback_async ns_cb_async;
  * blk_descr_create -- (internal) create block memory pool descriptor
  */
 static void
-blk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed) {
+blk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed)
+{
 	LOG(3, "pbp %p bsize %u zeroed %d", pbp, bsize, zeroed);
 
 	/* create the required metadata */
@@ -571,13 +576,14 @@ blk_descr_create(PMEMblkpool *pbp, uint32_t bsize, int zeroed) {
  * blk_descr_check -- (internal) validate block memory pool descriptor
  */
 static int
-blk_descr_check(PMEMblkpool *pbp, size_t *bsize) {
+blk_descr_check(PMEMblkpool *pbp, size_t *bsize)
+{
 	LOG(3, "pbp %p bsize %zu", pbp, *bsize);
 
 	size_t hdr_bsize = le32toh(pbp->bsize);
 	if (*bsize && *bsize != hdr_bsize) {
 		ERR("wrong bsize (%zu), pool created with bsize %zu",
-			*bsize, hdr_bsize);
+				*bsize, hdr_bsize);
 		errno = EINVAL;
 		return -1;
 	}
@@ -591,16 +597,17 @@ blk_descr_check(PMEMblkpool *pbp, size_t *bsize) {
  * blk_runtime_init -- (internal) initialize block memory pool runtime data
  */
 static int
-blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly) {
+blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
+{
 	LOG(3, "pbp %p bsize %zu rdonly %d",
-		pbp, bsize, rdonly);
+			pbp, bsize, rdonly);
 
 	/* remove volatile part of header */
 	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-								 sizeof(struct pmemblk) -
-								 sizeof(struct pool_hdr) -
-								 sizeof(pbp->bsize) -
-								 sizeof(pbp->is_zeroed));
+			sizeof(struct pmemblk) -
+			sizeof(struct pool_hdr) -
+			sizeof(pbp->bsize) -
+			sizeof(pbp->is_zeroed));
 
 	/*
 	 * Use some of the memory pool area for run-time info.  This
@@ -608,11 +615,11 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly) {
 	 * created here, so no need to worry about byte-order.
 	 */
 	pbp->rdonly = rdonly;
-	pbp->data = (char *) pbp->addr +
-				roundup(sizeof(*pbp), BLK_FORMAT_DATA_ALIGN);
-	ASSERT(((char *) pbp->addr + pbp->size) >= (char *) pbp->data);
+	pbp->data = (char *)pbp->addr +
+			roundup(sizeof(*pbp), BLK_FORMAT_DATA_ALIGN);
+	ASSERT(((char *)pbp->addr + pbp->size) >= (char *)pbp->data);
 	pbp->datasize = (size_t)
-			(((char *) pbp->addr + pbp->size) - (char *) pbp->data);
+			(((char *)pbp->addr + pbp->size) - (char *)pbp->data);
 
 	LOG(4, "data area %p data size %zu bsize %zu",
 		pbp->data, pbp->datasize, bsize);
@@ -627,11 +634,11 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly) {
 	struct btt *bttp = NULL;
 	os_mutex_t *locks = NULL;
 
-	bttp = btt_init(pbp->datasize, (uint32_t) bsize, pbp->hdr.poolset_uuid,
-					(unsigned) ncpus * 2, pbp, &ns_cb, &ns_cb_async);
+	bttp = btt_init(pbp->datasize, (uint32_t)bsize, pbp->hdr.poolset_uuid,
+			(unsigned)ncpus * 2, pbp, &ns_cb, &ns_cb_async);
 
 	if (bttp == NULL)
-		goto err;    /* btt_init set errno, called LOG */
+		goto err;	/* btt_init set errno, called LOG */
 
 	pbp->bttp = bttp;
 
@@ -665,7 +672,7 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly) {
 
 	return 0;
 
-	err:
+err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
 	if (bttp)
@@ -680,12 +687,11 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly) {
 #ifndef _WIN32
 static inline
 #endif
-		PMEMblkpool
-*
-
-pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode) {
+PMEMblkpool *
+pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode)
+{
 	LOG(3, "path %s bsize %zu poolsize %zu mode %o",
-		path, bsize, poolsize, mode);
+			path, bsize, poolsize, mode);
 
 	/* check if bsize is valid */
 	if (bsize == 0) {
@@ -710,8 +716,8 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode) {
 		adj_pool_attr.features.incompat &= ~POOL_FEAT_SDS;
 
 	if (util_pool_create(&set, path, poolsize, PMEMBLK_MIN_POOL,
-						 PMEMBLK_MIN_PART, &adj_pool_attr, NULL,
-						 REPLICAS_DISABLED) != 0) {
+			PMEMBLK_MIN_PART, &adj_pool_attr, NULL,
+			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;
 	}
@@ -719,11 +725,11 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode) {
 	ASSERT(set->nreplicas > 0);
 
 	struct pool_replica *rep = set->replica[0];
-	PMEMblkpool * pbp = rep->part[0].addr;
+	PMEMblkpool *pbp = rep->part[0].addr;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-								 sizeof(struct pmemblk) -
-								 ((uintptr_t) & pbp->addr - (uintptr_t) & pbp->hdr));
+			sizeof(struct pmemblk) -
+			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
 
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
@@ -735,7 +741,7 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode) {
 	ASSERT(!pbp->is_dev_dax || pbp->is_pmem);
 
 	/* create pool descriptor */
-	blk_descr_create(pbp, (uint32_t) bsize, set->zeroed);
+	blk_descr_create(pbp, (uint32_t)bsize, set->zeroed);
 
 	/* initialize runtime parts */
 	if (blk_runtime_init(pbp, bsize, 0) != 0) {
@@ -751,7 +757,7 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode) {
 	LOG(3, "pbp %p", pbp);
 	return pbp;
 
-	err:
+err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
 	util_poolset_close(set, DELETE_CREATED_PARTS);
@@ -760,12 +766,12 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode) {
 }
 
 #ifndef _WIN32
-
 /*
  * pmemblk_create -- create a block memory pool
  */
 PMEMblkpool *
-pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode) {
+pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode)
+{
 	return pmemblk_createU(path, bsize, poolsize, mode);
 }
 
@@ -775,8 +781,9 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode) {
  */
 PMEMblkpool *
 pmemblk_xcreate(const char *path, size_t bsize, size_t poolsize, mode_t mode,
-				struct vdm *vdm) {
-	PMEMblkpool * pbp = pmemblk_createU(path, bsize, poolsize, mode);
+		struct vdm *vdm)
+{
+	PMEMblkpool *pbp =  pmemblk_createU(path, bsize, poolsize, mode);
 	/*
 	 * XXX: Create default blk data mover to be used in case provided
 	 * vdm is NULL.
@@ -785,7 +792,6 @@ pmemblk_xcreate(const char *path, size_t bsize, size_t poolsize, mode_t mode,
 
 	return pbp;
 }
-
 #else
 /*
  * pmemblk_createW -- create a block memory pool
@@ -815,13 +821,14 @@ pmemblk_createW(const wchar_t *path, size_t bsize, size_t poolsize,
  * will supply the block size).
  */
 static PMEMblkpool *
-blk_open_common(const char *path, size_t bsize, unsigned flags) {
+blk_open_common(const char *path, size_t bsize, unsigned flags)
+{
 	LOG(3, "path %s bsize %zu flags 0x%x", path, bsize, flags);
 
 	struct pool_set *set;
 
 	if (util_pool_open(&set, path, PMEMBLK_MIN_PART, &Blk_open_attr,
-					   NULL, NULL, flags) != 0) {
+			NULL, NULL, flags) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
@@ -829,11 +836,11 @@ blk_open_common(const char *path, size_t bsize, unsigned flags) {
 	ASSERT(set->nreplicas > 0);
 
 	struct pool_replica *rep = set->replica[0];
-	PMEMblkpool * pbp = rep->part[0].addr;
+	PMEMblkpool *pbp = rep->part[0].addr;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&pbp->addr,
-								 sizeof(struct pmemblk) -
-								 ((uintptr_t) & pbp->addr - (uintptr_t) & pbp->hdr));
+			sizeof(struct pmemblk) -
+			((uintptr_t)&pbp->addr - (uintptr_t)&pbp->hdr));
 
 	pbp->addr = pbp;
 	pbp->size = rep->repsize;
@@ -867,7 +874,7 @@ blk_open_common(const char *path, size_t bsize, unsigned flags) {
 	LOG(3, "pbp %p", pbp);
 	return pbp;
 
-	err:
+err:
 	LOG(4, "error clean up");
 	int oerrno = errno;
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
@@ -881,25 +888,23 @@ blk_open_common(const char *path, size_t bsize, unsigned flags) {
 #ifndef _WIN32
 static inline
 #endif
-		PMEMblkpool
-*
-
-pmemblk_openU(const char *path, size_t bsize) {
+PMEMblkpool *
+pmemblk_openU(const char *path, size_t bsize)
+{
 	LOG(3, "path %s bsize %zu", path, bsize);
 
 	return blk_open_common(path, bsize, COW_at_open ? POOL_OPEN_COW : 0);
 }
 
 #ifndef _WIN32
-
 /*
  * pmemblk_open -- open a block memory pool
  */
 PMEMblkpool *
-pmemblk_open(const char *path, size_t bsize) {
+pmemblk_open(const char *path, size_t bsize)
+{
 	return pmemblk_openU(path, bsize);
 }
-
 #else
 /*
  * pmemblk_openW -- open a block memory pool
@@ -922,14 +927,15 @@ pmemblk_openW(const wchar_t *path, size_t bsize)
  * pmemblk_close -- close a block memory pool
  */
 void
-pmemblk_close(PMEMblkpool *pbp) {
+pmemblk_close(PMEMblkpool *pbp)
+{
 	LOG(3, "pbp %p", pbp);
 
 	btt_fini(pbp->bttp);
 	if (pbp->locks) {
 		for (unsigned i = 0; i < pbp->nlane; i++)
 			util_mutex_destroy(&pbp->locks[i]);
-		Free((void *) pbp->locks);
+		Free((void *)pbp->locks);
 	}
 
 #ifdef DEBUG
@@ -944,7 +950,8 @@ pmemblk_close(PMEMblkpool *pbp) {
  * pmemblk_bsize -- return size of block for specified pool
  */
 size_t
-pmemblk_bsize(PMEMblkpool *pbp) {
+pmemblk_bsize(PMEMblkpool *pbp)
+{
 	LOG(3, "pbp %p", pbp);
 
 	return le32toh(pbp->bsize);
@@ -954,7 +961,8 @@ pmemblk_bsize(PMEMblkpool *pbp) {
  * pmemblk_nblock -- return number of usable blocks in a block memory pool
  */
 size_t
-pmemblk_nblock(PMEMblkpool *pbp) {
+pmemblk_nblock(PMEMblkpool *pbp)
+{
 	LOG(3, "pbp %p", pbp);
 
 	return btt_nlba(pbp->bttp);
@@ -964,7 +972,8 @@ pmemblk_nblock(PMEMblkpool *pbp) {
  * pmemblk_read -- read a block in a block memory pool
  */
 int
-pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno) {
+pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno)
+{
 	LOG(3, "pbp %p buf %p blockno %lld", pbp, buf, blockno);
 
 	if (blockno < 0) {
@@ -977,7 +986,7 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno) {
 
 	lane_enter(pbp, &lane);
 
-	int err = btt_read(pbp->bttp, lane, (uint64_t) blockno, buf);
+	int err = btt_read(pbp->bttp, lane, (uint64_t)blockno, buf);
 
 	lane_exit(pbp, lane);
 
@@ -988,7 +997,8 @@ pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno) {
  * pmemblk_write -- write a block (atomically) in a block memory pool
  */
 int
-pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno) {
+pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno)
+{
 	LOG(3, "pbp %p buf %p blockno %lld", pbp, buf, blockno);
 
 	if (pbp->rdonly) {
@@ -1007,7 +1017,7 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno) {
 
 	lane_enter(pbp, &lane);
 
-	int err = btt_write(pbp->bttp, lane, (uint64_t) blockno, buf);
+	int err = btt_write(pbp->bttp, lane, (uint64_t)blockno, buf);
 
 	lane_exit(pbp, lane);
 
@@ -1018,7 +1028,8 @@ pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno) {
  * pmemblk_set_zero -- zero a block in a block memory pool
  */
 int
-pmemblk_set_zero(PMEMblkpool *pbp, long long blockno) {
+pmemblk_set_zero(PMEMblkpool *pbp, long long blockno)
+{
 	LOG(3, "pbp %p blockno %lld", pbp, blockno);
 
 	if (pbp->rdonly) {
@@ -1037,7 +1048,7 @@ pmemblk_set_zero(PMEMblkpool *pbp, long long blockno) {
 
 	lane_enter(pbp, &lane);
 
-	int err = btt_set_zero(pbp->bttp, lane, (uint64_t) blockno);
+	int err = btt_set_zero(pbp->bttp, lane, (uint64_t)blockno);
 
 	lane_exit(pbp, lane);
 
@@ -1048,7 +1059,8 @@ pmemblk_set_zero(PMEMblkpool *pbp, long long blockno) {
  * pmemblk_set_error -- set the error state on a block in a block memory pool
  */
 int
-pmemblk_set_error(PMEMblkpool *pbp, long long blockno) {
+pmemblk_set_error(PMEMblkpool *pbp, long long blockno)
+{
 	LOG(3, "pbp %p blockno %lld", pbp, blockno);
 
 	if (pbp->rdonly) {
@@ -1067,7 +1079,7 @@ pmemblk_set_error(PMEMblkpool *pbp, long long blockno) {
 
 	lane_enter(pbp, &lane);
 
-	int err = btt_set_error(pbp->bttp, lane, (uint64_t) blockno);
+	int err = btt_set_error(pbp->bttp, lane, (uint64_t)blockno);
 
 	lane_exit(pbp, lane);
 
@@ -1078,17 +1090,17 @@ pmemblk_set_error(PMEMblkpool *pbp, long long blockno) {
  * pmemblk_checkU -- block memory pool consistency check
  */
 #ifndef _WIN32
-
 static inline
 #endif
 int
-pmemblk_checkU(const char *path, size_t bsize) {
+pmemblk_checkU(const char *path, size_t bsize)
+{
 	LOG(3, "path \"%s\" bsize %zu", path, bsize);
 
 	/* map the pool read-only */
-	PMEMblkpool * pbp = blk_open_common(path, bsize, POOL_OPEN_COW);
+	PMEMblkpool *pbp = blk_open_common(path, bsize, POOL_OPEN_COW);
 	if (pbp == NULL)
-		return -1;    /* errno set by blk_open_common() */
+		return -1;	/* errno set by blk_open_common() */
 
 	int retval = btt_check(pbp->bttp);
 	int oerrno = errno;
@@ -1099,15 +1111,14 @@ pmemblk_checkU(const char *path, size_t bsize) {
 }
 
 #ifndef _WIN32
-
 /*
  * pmemblk_check -- block memory pool consistency check
  */
 int
-pmemblk_check(const char *path, size_t bsize) {
+pmemblk_check(const char *path, size_t bsize)
+{
 	return pmemblk_checkU(path, bsize);
 }
-
 #else
 /*
  * pmemblk_checkW -- block memory pool consistency check
@@ -1130,51 +1141,51 @@ pmemblk_checkW(const wchar_t *path, size_t bsize)
  * pmemblk_ctl_getU -- programmatically executes a read ctl query
  */
 #ifndef _WIN32
-
 static inline
 #endif
 int
-pmemblk_ctl_getU(PMEMblkpool *pbp, const char *name, void *arg) {
+pmemblk_ctl_getU(PMEMblkpool *pbp, const char *name, void *arg)
+{
 	LOG(3, "pbp %p name %s arg %p", pbp, name, arg);
 	return ctl_query(pbp == NULL ? NULL : pbp->ctl, pbp,
-					 CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_READ, arg);
+			CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_READ, arg);
 }
 
 /*
  * pmemblk_ctl_setU -- programmatically executes a write ctl query
  */
 #ifndef _WIN32
-
 static inline
 #endif
 int
-pmemblk_ctl_setU(PMEMblkpool *pbp, const char *name, void *arg) {
+pmemblk_ctl_setU(PMEMblkpool *pbp, const char *name, void *arg)
+{
 	LOG(3, "pbp %p name %s arg %p", pbp, name, arg);
 	return ctl_query(pbp == NULL ? NULL : pbp->ctl, pbp,
-					 CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_WRITE, arg);
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_WRITE, arg);
 }
 
 /*
  * pmemblk_ctl_execU -- programmatically executes a runnable ctl query
  */
 #ifndef _WIN32
-
 static inline
 #endif
 int
-pmemblk_ctl_execU(PMEMblkpool *pbp, const char *name, void *arg) {
+pmemblk_ctl_execU(PMEMblkpool *pbp, const char *name, void *arg)
+{
 	LOG(3, "pbp %p name %s arg %p", pbp, name, arg);
 	return ctl_query(pbp == NULL ? NULL : pbp->ctl, pbp,
-					 CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
 }
 
 #ifndef _WIN32
-
 /*
  * pmemblk_ctl_get -- programmatically executes a read ctl query
  */
 int
-pmemblk_ctl_get(PMEMblkpool *pbp, const char *name, void *arg) {
+pmemblk_ctl_get(PMEMblkpool *pbp, const char *name, void *arg)
+{
 	return pmemblk_ctl_getU(pbp, name, arg);
 }
 
@@ -1182,7 +1193,8 @@ pmemblk_ctl_get(PMEMblkpool *pbp, const char *name, void *arg) {
  * pmemblk_ctl_set -- programmatically executes a write ctl query
  */
 int
-pmemblk_ctl_set(PMEMblkpool *pbp, const char *name, void *arg) {
+pmemblk_ctl_set(PMEMblkpool *pbp, const char *name, void *arg)
+{
 	return pmemblk_ctl_setU(pbp, name, arg);
 }
 
@@ -1190,10 +1202,10 @@ pmemblk_ctl_set(PMEMblkpool *pbp, const char *name, void *arg) {
  * pmemblk_ctl_exec -- programmatically executes a runnable ctl query
  */
 int
-pmemblk_ctl_exec(PMEMblkpool *pbp, const char *name, void *arg) {
+pmemblk_ctl_exec(PMEMblkpool *pbp, const char *name, void *arg)
+{
 	return pmemblk_ctl_execU(pbp, name, arg);
 }
-
 #else
 /*
  * pmemblk_ctl_getW -- programmatically executes a read ctl query
