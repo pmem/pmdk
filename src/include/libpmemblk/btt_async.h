@@ -66,7 +66,7 @@ FUTURE(nswrite_async_future, struct nswrite_async_future_data,
 		struct nswrite_async_future_output);
 /* END of nswrite_async */
 
-/* TODO: Could be in a private header!!! */
+/* TODO: Could be in a private header? */
 struct ns_callback_async {
 	struct nsread_async_future (*nsread)(void *ns, unsigned lane,
 		void *buf, size_t count, uint64_t off, struct vdm *vdm);
@@ -86,10 +86,11 @@ struct ns_callback_async {
 /* START of btt_read_async */
 
 enum btt_read_stages{
-    BTT_READ_STARTED = 10,
+    BTT_READ_INITIALIZED = 10,
     BTT_READ_ZEROS = 11,
-    BTT_READ_PREPARED = 12,
-    BTT_READ_COMPLETE = 13,
+    BTT_READ_PREPARATION = 12,
+    BTT_READ_IN_PROGRESS = 13,
+    BTT_READ_COMPLETE = 14,
 };
 struct btt_read_async_future_data {
     struct btt *bttp;
