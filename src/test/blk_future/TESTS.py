@@ -16,7 +16,9 @@ class PMEMOBJ_MOVER(t.Test):
     block_size = 512
     min_pool_size = 16 * t.MiB + 64 * t.KiB
     lba = 0
-    operation = 'c'
+
+    mt = False
+    nthreads = 16
 
     def setup(self, ctx):
         super().setup(ctx)
@@ -31,8 +33,12 @@ class PMEMOBJ_MOVER(t.Test):
         self.filepath = ctx.create_holey_file(self.min_pool_size, 'testfile')
 
     def run(self, ctx):
-        ctx.exec('blk_future', self.test_case, self.filepath, self.block_size,
-                 self.lba)
+        if self.mt:
+            ctx.exec('blk_future', self.test_case, self.filepath,
+                     self.block_size, self.nthreads)
+        else:
+            ctx.exec('blk_future', self.test_case, self.filepath,
+                     self.block_size, self.lba)
 
 
 class TEST0(PMEMOBJ_MOVER):
@@ -43,3 +49,10 @@ class TEST0(PMEMOBJ_MOVER):
 class TEST1(PMEMOBJ_MOVER):
     """verify pmemblk async read basic functionality"""
     test_case = "test_read_async_basic"
+
+
+class TEST2(PMEMOBJ_MOVER):
+    """test pmemblk async write in multithreaded environment"""
+    test_case = "test_async_write_mt"
+    mt = True
+    nthreads = 16
