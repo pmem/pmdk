@@ -51,7 +51,7 @@ enum pmemblk_read_stages{
 	PMEMBLK_READ_IN_PROGRESS = 2,
 	PMEMBLK_READ_COMPLETE = 20,
 };
-struct pmemblk_read_async_future_data {
+struct pmemblk_read_async_data {
     PMEMblkpool *pbp;
     void *buf;
     long long blockno;
@@ -63,12 +63,12 @@ struct pmemblk_read_async_future_data {
     } internal;
 };
 
-struct pmemblk_read_async_future_output {
+struct pmemblk_read_async_output {
     int return_value;
 };
 
-FUTURE(pmemblk_read_async_future, struct pmemblk_read_async_future_data,
-	struct pmemblk_read_async_future_output);
+FUTURE(pmemblk_read_async_future, struct pmemblk_read_async_data,
+	struct pmemblk_read_async_output);
 
 struct pmemblk_read_async_future pmemblk_read_async(PMEMblkpool *pbp, void *buf,
 	long long blockno);
@@ -97,10 +97,10 @@ struct pmemblk_write_async_output {
 	int return_value;
 };
 
-FUTURE(pmemblk_write_async_fut, struct pmemblk_write_async_data,
+FUTURE(pmemblk_write_async_future, struct pmemblk_write_async_data,
 		struct pmemblk_write_async_output);
 
-struct pmemblk_write_async_fut pmemblk_write_async(PMEMblkpool *pbp, void *buf,
+struct pmemblk_write_async_future pmemblk_write_async(PMEMblkpool *pbp, void *buf,
 		long long blockno);
 /* END of pmemblk_write_async future */
 #endif

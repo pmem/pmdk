@@ -2114,9 +2114,9 @@ static enum future_state
 btt_read_async_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
-	struct btt_read_async_future_data *data =
+	struct btt_read_async_data *data =
 		future_context_get_data(ctx);
-	struct btt_read_async_future_output *output =
+	struct btt_read_async_output *output =
 		future_context_get_output(ctx);
 
 	struct btt *bttp = data->bttp;
@@ -2332,9 +2332,9 @@ static enum future_state
 btt_write_async_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
-	struct btt_write_async_future_data *data =
+	struct btt_write_async_data *data =
 			future_context_get_data(ctx);
-	struct btt_write_async_future_output *output =
+	struct btt_write_async_output *output =
 			future_context_get_output(ctx);
 
 	struct btt *bttp = data->bttp;
