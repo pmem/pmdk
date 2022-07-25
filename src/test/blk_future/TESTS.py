@@ -7,7 +7,6 @@
 import sys
 
 import testframework as t
-from testframework import granularity as g
 from consts import MINIASYNC_LIBDIR
 
 

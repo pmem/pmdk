@@ -2291,7 +2291,6 @@ btt_read_async_impl(struct future_context *ctx,
 		return FUTURE_STATE_RUNNING;
 	}
 
-
 	/* done with read, so clear out rtt entry */
 	data->internal.arenap->rtt[lane] = BTT_MAP_ENTRY_ERROR;
 

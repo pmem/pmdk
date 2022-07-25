@@ -24,19 +24,19 @@ extern "C" {
 
 /* START of nsread_async */
 struct nsread_async_data {
-    void *ns;
-    unsigned lane;
-    void *buf;
-    size_t count;
-    uint64_t off;
+	void *ns;
+	unsigned lane;
+	void *buf;
+	size_t count;
+	uint64_t off;
 
-    int memcpy_started;
-    struct vdm_operation_future op;
-    struct vdm *vdm;
+	int memcpy_started;
+	struct vdm_operation_future op;
+	struct vdm *vdm;
 };
 
 struct nsread_async_output {
-    int return_value;
+	int return_value;
 };
 
 FUTURE(nsread_async_future, struct nsread_async_data,
@@ -45,7 +45,7 @@ FUTURE(nsread_async_future, struct nsread_async_data,
 
 /* START of nswrite_async */
 struct nswrite_async_data {
-	void* ns;
+	void *ns;
 	unsigned lane;
 	void *buf;
 	size_t count;
@@ -59,7 +59,7 @@ struct nswrite_async_data {
 };
 
 struct nswrite_async_output {
-    int return_value;
+	int return_value;
 };
 
 FUTURE(nswrite_async_future, struct nswrite_async_data,
@@ -75,9 +75,8 @@ struct ns_callback_async {
 	/* TODO: finish the list!!! */
 	int (*nszero)(void *ns, unsigned lane, size_t count, uint64_t off);
 	ssize_t (*nsmap)(void *ns, unsigned lane, void **addrp,
-			size_t len, uint64_t off);
+		size_t len, uint64_t off);
 	void (*nssync)(void *ns, unsigned lane, void *addr, size_t len);
-
 	int ns_is_zeroed;
 };
 
@@ -85,35 +84,35 @@ struct ns_callback_async {
 
 /* START of btt_read_async */
 
-enum btt_read_stages{
-    BTT_READ_INITIALIZED = 10,
-    BTT_READ_ZEROS = 11,
-    BTT_READ_PREPARATION = 12,
-    BTT_READ_IN_PROGRESS = 13,
+enum btt_read_stages {
+	BTT_READ_INITIALIZED = 10,
+	BTT_READ_ZEROS = 11,
+	BTT_READ_PREPARATION = 12,
+	BTT_READ_IN_PROGRESS = 13,
 };
 struct btt_read_async_data {
-    struct btt *bttp;
-    unsigned lane;
-    uint64_t lba;
-    void *buf;
-    struct vdm *vdm;
+	struct btt *bttp;
+	unsigned lane;
+	uint64_t lba;
+	void *buf;
+	struct vdm *vdm;
 
-    int *stage;
-    struct {
-	union {
-	    struct vdm_operation_future vdm_fut;
-	    struct nsread_async_future nsread_fut;
-	};
-	struct arena *arenap;
-    } internal;
+	int *stage;
+	struct {
+		union {
+			struct vdm_operation_future vdm_fut;
+			struct nsread_async_future nsread_fut;
+		};
+		struct arena *arenap;
+	} internal;
 };
 
 struct btt_read_async_output {
-    int return_value;
+	int return_value;
 };
 
 FUTURE(btt_read_async_future, struct btt_read_async_data,
-		struct btt_read_async_output);
+	struct btt_read_async_output);
 
 struct btt_read_async_future btt_read_async(struct btt *bttp, unsigned lane,
 	uint64_t lba, void *buf, struct vdm *vdm, int *stage);
@@ -121,32 +120,32 @@ struct btt_read_async_future btt_read_async(struct btt *bttp, unsigned lane,
 
 /* START of btt_write_async */
 enum btt_write_stages {
-    BTT_WRITE_INITIALIZED = 10,
-    BTT_WRITE_WAITING_FOR_READS = 11,
-    BTT_WRITE_IN_PROGRESS = 12,
+	BTT_WRITE_INITIALIZED = 10,
+	BTT_WRITE_WAITING_FOR_READS = 11,
+	BTT_WRITE_IN_PROGRESS = 12,
 };
 struct btt_write_async_data {
-    struct btt *bttp;
-    unsigned lane;
-    uint64_t lba;
-    void *buf;
-    struct vdm *vdm;
+	struct btt *bttp;
+	unsigned lane;
+	uint64_t lba;
+	void *buf;
+	struct vdm *vdm;
 
-    int *stage;
-    struct {
-	struct nswrite_async_future nswrite_fut;
-	uint32_t premap_lba;
-	struct arena *arenap;
-	uint32_t free_entry;
-    } internal;
+	int *stage;
+	struct {
+		struct nswrite_async_future nswrite_fut;
+		uint32_t premap_lba;
+		struct arena *arenap;
+		uint32_t free_entry;
+	} internal;
 };
 
 struct btt_write_async_output {
-    int return_value;
+	int return_value;
 };
 
 FUTURE(btt_write_async_future, struct btt_write_async_data,
-		struct btt_write_async_output);
+	struct btt_write_async_output);
 
 struct btt_write_async_future btt_write_async(struct btt *bttp, unsigned lane,
 	uint64_t lba, void *buf, struct vdm *vdm, int *stage);
