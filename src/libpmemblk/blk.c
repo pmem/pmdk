@@ -283,12 +283,12 @@ static struct ns_callback ns_cb = {
  * in an asynchronous way using libminiasync vdm
  */
 static enum future_state
-nsread_async_future_impl(struct future_context *ctx,
+nsread_async_impl(struct future_context *ctx,
 	struct future_notifier *notifier)
 {
-	struct nsread_async_future_data *data =
+	struct nsread_async_data *data =
 		future_context_get_data(ctx);
-	struct nsread_async_future_output *output =
+	struct nsread_async_output *output =
 		future_context_get_output(ctx);
 
 	if (!data->memcpy_started) {
@@ -334,7 +334,7 @@ nsread_async(void *ns, unsigned lane, void *buf,
 		.output.return_value = -1,
 	};
 
-	FUTURE_INIT(&future, nsread_async_future_impl);
+	FUTURE_INIT(&future, nsread_async_impl);
 	return future;
 }
 /*
@@ -345,11 +345,11 @@ nsread_async(void *ns, unsigned lane, void *buf,
  * START of nswrite_async_future
  */
 static enum future_state
-nswrite_async_future_impl(struct future_context *ctx,
+nswrite_async_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
-	struct nswrite_async_future_data *data = future_context_get_data(ctx);
-	struct nswrite_async_future_output *output =
+	struct nswrite_async_data *data = future_context_get_data(ctx);
+	struct nswrite_async_output *output =
 			future_context_get_output(ctx);
 
 	struct pmemblk *pbp = (struct pmemblk *)data->ns;
@@ -417,7 +417,7 @@ nswrite_async(void *ns, unsigned lane, void *buf, size_t count, uint64_t off,
 		.output.return_value = 0,
 	};
 
-	FUTURE_INIT(&future, nswrite_async_future_impl);
+	FUTURE_INIT(&future, nswrite_async_impl);
 
 	return future;
 }
@@ -432,7 +432,7 @@ static enum future_state
 pmemblk_read_async_impl(struct future_context *ctx,
 	struct future_notifier *notifier)
 {
-	struct pmemblk_read_async_future_data *data =
+	struct pmemblk_read_async_data *data =
 		future_context_get_data(ctx);
 	struct pmemblk_read_async_future_output *output =
 		future_context_get_output(ctx);
@@ -490,7 +490,7 @@ pmemblk_read_async(PMEMblkpool *pbp, void *buf, long long blockno)
  */
 
 /*
- * START of the pmemblk_write_async_fut future
+ * START of the pmemblk_write_async_future future
  */
 static enum future_state
 pmemblk_write_async_impl(struct future_context *ctx,
@@ -499,10 +499,7 @@ pmemblk_write_async_impl(struct future_context *ctx,
 	struct pmemblk_write_async_data *data =
 		future_context_get_data(ctx);
 	struct pmemblk_write_async_output *output =
-	struct pmemblk_write_async_future_data *data =
-			future_context_get_data(ctx);
-	struct pmemblk_write_async_future_output *output =
-			future_context_get_output(ctx);
+		future_context_get_data(ctx);
 
 	PMEMblkpool *pbp = data->pbp;
 	void *buf = data->buf;
@@ -553,17 +550,17 @@ set_output:
 	return FUTURE_STATE_COMPLETE;
 }
 
-struct pmemblk_write_async_fut
+struct pmemblk_write_async_future
 pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 {
-	struct pmemblk_write_async_fut future = {
+	struct pmemblk_write_async_future future = {
 		.data.pbp = pbp,
 		.data.buf = buf,
 		.data.blockno = blockno,
 		.data.internal.lane = -1,
 		.data.stage = PMEMBLK_WRITE_INITIALIZED,
 
-		.output.return_value = 0,
+		.output.return_value = -1,
 	};
 
 	FUTURE_INIT(&future, pmemblk_write_async_impl);
@@ -571,7 +568,7 @@ pmemblk_write_async(PMEMblkpool *pbp, void *buf, long long blockno)
 	return future;
 }
 /*
- * END of the pmemblk_write_async_fut future
+ * END of the pmemblk_write_async_future future
  */
 
 /* async callbacks for btt_init() */
