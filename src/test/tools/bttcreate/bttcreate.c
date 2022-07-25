@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 /*
  * bttcreate.c -- tool for generating BTT layout
  */
