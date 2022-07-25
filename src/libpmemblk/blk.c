@@ -331,6 +331,7 @@ nsread_async(void *ns, unsigned lane, void *buf,
 		.data.off = off,
 		.data.memcpy_started = 0,
 		.data.vdm = vdm,
+
 		.output.return_value = -1,
 	};
 
@@ -348,7 +349,8 @@ static enum future_state
 nswrite_async_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
-	struct nswrite_async_data *data = future_context_get_data(ctx);
+	struct nswrite_async_data *data =
+		future_context_get_data(ctx);
 	struct nswrite_async_output *output =
 			future_context_get_output(ctx);
 
@@ -396,6 +398,8 @@ nswrite_async_impl(struct future_context *ctx,
 	else
 		pmem_msync(dest, count);
 
+	ret = 0;
+
 set_output:
 	output->return_value = ret;
 
@@ -414,7 +418,8 @@ nswrite_async(void *ns, unsigned lane, void *buf, size_t count, uint64_t off,
 		.data.off = off,
 		.data.vdm = vdm,
 		.data.internal.memcpy_started = 0,
-		.output.return_value = 0,
+
+		.output.return_value = -1,
 	};
 
 	FUTURE_INIT(&future, nswrite_async_impl);
@@ -434,7 +439,7 @@ pmemblk_read_async_impl(struct future_context *ctx,
 {
 	struct pmemblk_read_async_data *data =
 		future_context_get_data(ctx);
-	struct pmemblk_read_async_future_output *output =
+	struct pmemblk_read_async_output *output =
 		future_context_get_output(ctx);
 
 	PMEMblkpool *pbp = data->pbp;
@@ -449,7 +454,6 @@ pmemblk_read_async_impl(struct future_context *ctx,
 		}
 		data->internal.btt_read_fut = btt_read_async(pbp->bttp,
 			data->internal.lane, blockno, buf, pbp->vdm, stage);
-		*stage = PMEMBLK_READ_IN_PROGRESS;
 	}
 
 	/*
@@ -462,8 +466,9 @@ pmemblk_read_async_impl(struct future_context *ctx,
 		return FUTURE_STATE_RUNNING;
 	}
 
-	*stage = PMEMBLK_READ_COMPLETE;
 	lane_exit(pbp, data->internal.lane);
+	output->return_value = 0;
+	*stage = PMEMBLK_READ_COMPLETE;
 
 	return FUTURE_STATE_COMPLETE;
 }
@@ -478,7 +483,7 @@ pmemblk_read_async(PMEMblkpool *pbp, void *buf, long long blockno)
 		.data.internal.lane = -1,
 		.data.stage = PMEMBLK_READ_INITIALIZED,
 
-		.output.return_value = 0,
+		.output.return_value = -1,
 	};
 
 	FUTURE_INIT(&future, pmemblk_read_async_impl);
@@ -499,7 +504,7 @@ pmemblk_write_async_impl(struct future_context *ctx,
 	struct pmemblk_write_async_data *data =
 		future_context_get_data(ctx);
 	struct pmemblk_write_async_output *output =
-		future_context_get_data(ctx);
+		future_context_get_output(ctx);
 
 	PMEMblkpool *pbp = data->pbp;
 	void *buf = data->buf;
@@ -528,7 +533,6 @@ pmemblk_write_async_impl(struct future_context *ctx,
 		}
 		data->internal.btt_write_fut = btt_write_async(pbp->bttp,
 			data->internal.lane, blockno, buf, pbp->vdm, stage);
-		*stage = PMEMBLK_WRITE_IN_PROGRESS;
 	}
 
 	/*
@@ -541,8 +545,9 @@ pmemblk_write_async_impl(struct future_context *ctx,
 		return FUTURE_STATE_RUNNING;
 	}
 
-	*stage = PMEMBLK_WRITE_COMPLETE;
 	lane_exit(pbp, data->internal.lane);
+	ret = data->internal.btt_write_fut.output.return_value;
+	*stage = PMEMBLK_WRITE_COMPLETE;
 
 set_output:
 	output->return_value = ret;
