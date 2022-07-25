@@ -71,7 +71,7 @@ lane_try_enter(PMEMblkpool *pbp, unsigned *lane)
 	mylane = util_fetch_and_add32(&pbp->next_lane, 1) % pbp->nlane;
 
 	/* lane selected, grab the per-lane lock */
-	if(util_mutex_trylock(&pbp->locks[mylane]) == 0) {
+	if (util_mutex_trylock(&pbp->locks[mylane]) == 0) {
 		*lane = mylane;
 		return 0;
 	} else {
@@ -286,10 +286,12 @@ static enum future_state
 nsread_async_future_impl(struct future_context *ctx,
 	struct future_notifier *notifier)
 {
-	struct nsread_async_future_data *data = future_context_get_data(ctx);
-	struct nsread_async_future_output *output = future_context_get_output(ctx);
+	struct nsread_async_future_data *data =
+		future_context_get_data(ctx);
+	struct nsread_async_future_output *output =
+		future_context_get_output(ctx);
 
-	if(!data->memcpy_started) {
+	if (!data->memcpy_started) {
 		struct pmemblk *pbp = (struct pmemblk *)data->ns;
 
 		LOG(13, "pbp %p lane %u count %zu off %" PRIu64, pbp,
@@ -309,7 +311,7 @@ nsread_async_future_impl(struct future_context *ctx,
 		data->memcpy_started = 1;
 	}
 
-	if(future_poll(FUTURE_AS_RUNNABLE(&data->op), NULL)
+	if (future_poll(FUTURE_AS_RUNNABLE(&data->op), NULL)
 		== FUTURE_STATE_COMPLETE) {
 		output->return_value = 0;
 		return FUTURE_STATE_COMPLETE;
@@ -528,7 +530,7 @@ pmemblk_write_async_impl(struct future_context *ctx,
 			return FUTURE_STATE_RUNNING;
 		}
 		data->internal.btt_write_fut = btt_write_async(pbp->bttp,
-			data->internal.lane,blockno, buf, pbp->vdm);
+			data->internal.lane, blockno, buf, pbp->vdm, stage);
 		*stage = PMEMBLK_WRITE_IN_PROGRESS;
 	}
 
