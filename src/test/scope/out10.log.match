@@ -7,6 +7,8 @@ pmemblk_check_versionW
 pmemblk_close
 pmemblk_createU
 pmemblk_createW
+pmemblk_xcreateU
+pmemblk_xcreateW
 pmemblk_ctl_execU
 pmemblk_ctl_execW
 pmemblk_ctl_getU
@@ -18,8 +20,12 @@ pmemblk_errormsgW
 pmemblk_nblock
 pmemblk_openU
 pmemblk_openW
+pmemblk_xopenU
+pmemblk_xopenW
 pmemblk_read
+pmemblk_read_async
 pmemblk_set_error
 pmemblk_set_funcs
 pmemblk_set_zero
 pmemblk_write
+pmemblk_write_async
