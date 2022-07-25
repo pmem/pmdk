@@ -64,6 +64,8 @@ main(int argc, char *argv[])
 	persist = pmem2_get_persist_fn(map);
 	persist(addr, size);
 
+	printf("address:%p\t string:%s\n",addr,addr);
+
 	pmem2_map_delete(&map);
 	pmem2_source_delete(&src);
 	pmem2_config_delete(&cfg);

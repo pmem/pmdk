@@ -1,0 +1,179 @@
+.TH "VMEM_MALLOC" "3" "2022-06-16" "PMDK - vmem API version 1.1" "PMDK Programmer's Manual"
+.nh \" Turn off hyphenation by default.
+.\" Copyright 2014-2022, Intel Corporation
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\"
+.\"     * Redistributions of source code must retain the above copyright
+.\"       notice, this list of conditions and the following disclaimer.
+.\"
+.\"     * Redistributions in binary form must reproduce the above copyright
+.\"       notice, this list of conditions and the following disclaimer in
+.\"       the documentation and/or other materials provided with the
+.\"       distribution.
+.\"
+.\"     * Neither the name of the copyright holder nor the names of its
+.\"       contributors may be used to endorse or promote products derived
+.\"       from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+.\" "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+.\" LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+.\" A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+.\" OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+.\" SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+.\" LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.SH NAME
+.PP
+\f[B]vmem_malloc\f[](), \f[B]vmem_calloc\f[](), \f[B]vmem_realloc\f[](),
+\f[B]vmem_free\f[](), \f[B]vmem_aligned_alloc\f[](),
+\f[B]vmem_strdup\f[](), \f[B]vmem_wcsdup\f[](),
+\f[B]vmem_malloc_usable_size\f[]() \- memory allocation related
+functions
+.SH SYNOPSIS
+.IP
+.nf
+\f[C]
+#include\ <libvmem.h>
+
+void\ *vmem_malloc(VMEM\ *vmp,\ size_t\ size);
+void\ vmem_free(VMEM\ *vmp,\ void\ *ptr);
+void\ *vmem_calloc(VMEM\ *vmp,\ size_t\ nmemb,\ size_t\ size);
+void\ *vmem_realloc(VMEM\ *vmp,\ void\ *ptr,\ size_t\ size);
+void\ *vmem_aligned_alloc(VMEM\ *vmp,\ size_t\ alignment,\ size_t\ size);
+char\ *vmem_strdup(VMEM\ *vmp,\ const\ char\ *s);
+wchar_t\ *vmem_wcsdup(VMEM\ *vmp,\ const\ wchar_t\ *s);
+size_t\ vmem_malloc_usable_size(VMEM\ *vmp,\ void\ *ptr);
+\f[]
+.fi
+.SH DESCRIPTION
+.PP
+This section describes the \f[I]malloc\f[]\-like API provided by
+\f[B]libvmem\f[](7).
+These functions provide the same semantics as their libc namesakes, but
+operate on the memory pools specified by their first arguments.
+.PP
+The \f[B]vmem_malloc\f[]() function provides the same semantics as
+\f[B]malloc\f[](3), but operates on the memory pool \f[I]vmp\f[] instead
+of the process heap supplied by the system.
+It allocates specified \f[I]size\f[] bytes.
+.PP
+The \f[B]vmem_free\f[]() function provides the same semantics as
+\f[B]free\f[](3), but operates on the memory pool \f[I]vmp\f[] instead
+of the process heap supplied by the system.
+It frees the memory space pointed to by \f[I]ptr\f[], which must have
+been returned by a previous call to \f[B]vmem_malloc\f[](),
+\f[B]vmem_calloc\f[]() or \f[B]vmem_realloc\f[]() for \f[I]the same pool
+of memory\f[].
+If \f[I]ptr\f[] is NULL, no operation is performed.
+.PP
+The \f[B]vmem_calloc\f[]() function provides the same semantics as
+\f[B]calloc\f[](3), but operates on the memory pool \f[I]vmp\f[] instead
+of the process heap supplied by the system.
+It allocates memory for an array of \f[I]nmemb\f[] elements of
+\f[I]size\f[] bytes each.
+The memory is set to zero.
+.PP
+The \f[B]vmem_realloc\f[]() function provides the same semantics as
+\f[B]realloc\f[](3), but operates on the memory pool \f[I]vmp\f[]
+instead of the process heap supplied by the system.
+It changes the size of the memory block pointed to by \f[I]ptr\f[] to
+\f[I]size\f[] bytes.
+The contents will be unchanged in the range from the start of the region
+up to the minimum of the old and new sizes.
+If the new size is larger than the old size, the added memory will
+\f[I]not\f[] be initialized.
+.PP
+Unless \f[I]ptr\f[] is NULL, it must have been returned by an earlier
+call to \f[B]vmem_malloc\f[](), \f[B]vmem_calloc\f[]() or
+\f[B]vmem_realloc\f[]().
+If \f[I]ptr\f[] is NULL, then the call is equivalent to
+\f[I]vmem_malloc(vmp, size)\f[], for all values of \f[I]size\f[]; if
+\f[I]size\f[] is equal to zero, and \f[I]ptr\f[] is not NULL, then the
+call is equivalent to \f[I]vmem_free(vmp, ptr)\f[].
+.PP
+The \f[B]vmem_aligned_alloc\f[]() function provides the same semantics
+as \f[B]aligned_alloc\f[](3), but operates on the memory pool
+\f[I]vmp\f[] instead of the process heap supplied by the system.
+It allocates \f[I]size\f[] bytes from the memory pool.
+The memory address will be a multiple of \f[I]alignment\f[], which must
+be a power of two.
+.PP
+The \f[B]vmem_strdup\f[]() function provides the same semantics as
+\f[B]strdup\f[](3), but operates on the memory pool \f[I]vmp\f[] instead
+of the process heap supplied by the system.
+Memory for the new string is obtained with \f[B]vmem_malloc\f[](), on
+the given memory pool, and can be freed with \f[B]vmem_free\f[]() on the
+same memory pool.
+.PP
+The \f[B]vmem_wcsdup\f[]() function provides the same semantics as
+\f[B]wcsdup\f[](3), but operates on the memory pool \f[I]vmp\f[] instead
+of the process heap supplied by the system.
+Memory for the new string is obtained with \f[B]vmem_malloc\f[](), on
+the given memory pool, and can be freed with \f[B]vmem_free\f[]() on the
+same memory pool.
+.PP
+The \f[B]vmem_malloc_usable_size\f[]() function provides the same
+semantics as \f[B]malloc_usable_size\f[](3), but operates on the memory
+pool \f[I]vmp\f[] instead of the process heap supplied by the system.
+.SH RETURN VALUE
+.PP
+On success, \f[B]vmem_malloc\f[]() returns a pointer to the allocated
+memory.
+If \f[I]size\f[] is 0, then \f[B]vmem_malloc\f[]() returns either NULL,
+or a unique pointer value that can later be successfully passed to
+\f[B]vmem_free\f[]().
+If \f[B]vmem_malloc\f[]() is unable to satisfy the allocation request,
+it returns NULL and sets \f[I]errno\f[] appropriately.
+.PP
+The \f[B]vmem_free\f[]() function returns no value.
+Undefined behavior occurs if frees do not correspond to allocated memory
+from the same memory pool.
+.PP
+On success, \f[B]vmem_calloc\f[]() returns a pointer to the allocated
+memory.
+If \f[I]nmemb\f[] or \f[I]size\f[] is 0, then \f[B]vmem_calloc\f[]()
+returns either NULL, or a unique pointer value that can later be
+successfully passed to \f[B]vmem_free\f[]().
+If \f[B]vmem_calloc\f[]() is unable to satisfy the allocation request,
+it returns NULL and sets \f[I]errno\f[] appropriately.
+.PP
+On success, \f[B]vmem_realloc\f[]() returns a pointer to the allocated
+memory, which may be different from \f[I]ptr\f[].
+If the area pointed to was moved, a \f[I]vmem_free(vmp, ptr)\f[] is
+done.
+If \f[B]vmem_realloc\f[]() is unable to satisfy the allocation request,
+it returns NULL and sets \f[I]errno\f[] appropriately.
+.PP
+On success, \f[B]vmem_aligned_alloc\f[]() returns a pointer to the
+allocated memory.
+If \f[B]vmem_aligned_alloc\f[]() is unable to satisfy the allocation
+request, it returns NULL and sets \f[I]errno\f[] appropriately.
+.PP
+On success, \f[B]vmem_strdup\f[]() returns a pointer to a new string
+which is a duplicate of the string \f[I]s\f[].
+If \f[B]vmem_strdup\f[]() is unable to satisfy the allocation request,
+it returns NULL and sets \f[I]errno\f[] appropriately.
+.PP
+On success, \f[B]vmem_wcsdup\f[]() returns a pointer to a new wide
+character string which is a duplicate of the wide character string
+\f[I]s\f[].
+If \f[B]vmem_wcsdup\f[]() is unable to satisfy the allocation request,
+it returns NULL and sets \f[I]errno\f[] appropriately.
+.PP
+The \f[B]vmem_malloc_usable_size\f[]() function returns the number of
+usable bytes in the block of allocated memory pointed to by
+\f[I]ptr\f[], a pointer to a block of memory allocated by
+\f[B]vmem_malloc\f[]() or a related function.
+If \f[I]ptr\f[] is NULL, 0 is returned.
+.SH SEE ALSO
+.PP
+\f[B]calloc\f[](3), \f[B]free\f[](3), \f[B]malloc\f[](3),
+\f[B]malloc_usable_size\f[](3), \f[B]realloc\f[](3), \f[B]strdup\f[](3),
+\f[B]wcsdup\f[](3) \f[B]libvmem(7)\f[] and \f[B]<http://pmem.io>\f[]

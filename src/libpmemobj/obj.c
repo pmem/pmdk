@@ -212,7 +212,7 @@ obj_pool_init(void)
 
 	struct critnib *c;
 
-	if (pools_ht == NULL) {
+	if (pools_ht == NULL) {  //pool的哈希表为空 需要初始化
 		c = critnib_new();
 		if (c == NULL)
 			FATAL("!critnib_new for pools_ht");

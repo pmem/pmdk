@@ -1,0 +1,316 @@
+.TH "LIBVMEM" "7" "2022-06-16" "PMDK - vmem API version 1.1" "PMDK Programmer's Manual"
+.nh \" Turn off hyphenation by default.
+.\" Copyright 2014-2022, Intel Corporation
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\"
+.\"     * Redistributions of source code must retain the above copyright
+.\"       notice, this list of conditions and the following disclaimer.
+.\"
+.\"     * Redistributions in binary form must reproduce the above copyright
+.\"       notice, this list of conditions and the following disclaimer in
+.\"       the documentation and/or other materials provided with the
+.\"       distribution.
+.\"
+.\"     * Neither the name of the copyright holder nor the names of its
+.\"       contributors may be used to endorse or promote products derived
+.\"       from this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+.\" "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+.\" LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+.\" A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+.\" OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+.\" SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+.\" LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.SH NAME
+.PP
+\f[B]libvmem\f[] \- volatile memory allocation library
+.SH SYNOPSIS
+.IP
+.nf
+\f[C]
+#include\ <libvmem.h>
+cc\ ...\ \-lvmem
+\f[]
+.fi
+.SS Managing overall library behavior:
+.IP
+.nf
+\f[C]
+const\ char\ *vmem_check_version(
+\ \ \ \ unsigned\ major_required,
+\ \ \ \ unsigned\ minor_required);
+
+void\ vmem_set_funcs(
+\ \ \ \ void\ *(*malloc_func)(size_t\ size),
+\ \ \ \ void\ (*free_func)(void\ *ptr),
+\ \ \ \ void\ *(*realloc_func)(void\ *ptr,\ size_t\ size),
+\ \ \ \ char\ *(*strdup_func)(const\ char\ *s),
+\ \ \ \ void\ (*print_func)(const\ char\ *s));
+\f[]
+.fi
+.SS Error handling:
+.IP
+.nf
+\f[C]
+const\ char\ *vmem_errormsg(void);
+\f[]
+.fi
+.SS Other library functions:
+.PP
+A description of other \f[B]libvmem\f[] functions can be found on the
+following manual pages:
+.IP \[bu] 2
+memory pool management: \f[B]vmem_create\f[](3)
+.IP \[bu] 2
+memory allocation related functions: \f[B]vmem_malloc\f[](3)
+.SH DESCRIPTION
+.PP
+\f[B]libvmem\f[] provides common \f[I]malloc\f[]\-like interfaces to
+memory pools built on memory\-mapped files.
+These interfaces are for traditional \f[B]volatile\f[] memory allocation
+but, unlike the functions described in \f[B]malloc\f[](3), the memory
+managed by \f[B]libvmem\f[] may have different attributes, depending on
+the file system containing the memory\-mapped files.
+In particular, \f[B]libvmem\f[] is part of the \f[I]Persistent Memory
+Development Kit\f[] because it is sometimes useful to use non\-volatile
+memory as a volatile memory pool, leveraging its capacity, cost, or
+performance characteristics.
+.PP
+\f[B]libvmem\f[] uses the \f[B]mmap\f[](2) system call to create a pool
+of volatile memory.
+The library is most useful when used with \f[I]Direct Access\f[] storage
+(DAX), which is memory\-addressable persistent storage that supports
+load/store access without being paged via the system page cache.
+A Persistent Memory\-aware file system is typically used to provide this
+type of access.
+Memory\-mapping a file from a Persistent Memory\-aware file system
+provides the raw memory pools, and this library supplies the more
+familiar \f[I]malloc\f[]\-like interfaces on top of those pools.
+.PP
+Under normal usage, \f[B]libvmem\f[] will never print messages or
+intentionally cause the process to exit.
+Exceptions to this are prints caused by calls to
+\f[B]vmem_stats_print\f[](3), or by enabling debugging as described
+under \f[B]DEBUGGING AND ERROR HANDLING\f[] below.
+The library uses \f[B]pthreads\f[] to be fully MT\-safe, but never
+creates or destroys threads itself.
+The library does not make use of any signals, networking, and never
+calls \f[B]select\f[](2) or \f[B]poll\f[](2).
+The system memory allocation routines like \f[B]malloc\f[](3) and
+\f[B]free\f[](3) are used by \f[B]libvmem\f[] for managing a small
+amount of run\-time state, but applications are allowed to override
+these calls if necessary (see the description of
+\f[B]vmem_set_funcs\f[]() below).
+.PP
+\f[B]libvmem\f[] interfaces are grouped into three categories: those
+that manage memory pools, those providing the basic memory allocation
+functions, and those interfaces less commonly used for managing the
+overall library behavior.
+.SH MANAGING LIBRARY BEHAVIOR
+.PP
+The \f[B]vmem_check_version\f[]() function is used to see if the
+installed \f[B]libvmem\f[] supports the version of the library API
+required by an application.
+The easiest way to do this is for the application to supply the
+compile\-time version information, supplied by defines in
+\f[B]<libvmem.h>\f[], like this:
+.IP
+.nf
+\f[C]
+reason\ =\ vmem_check_version(VMEM_MAJOR_VERSION,
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VMEM_MINOR_VERSION);
+if\ (reason\ !=\ NULL)\ {
+\ \ \ \ /*\ version\ check\ failed,\ reason\ string\ tells\ you\ why\ */
+}
+\f[]
+.fi
+.PP
+Any mismatch in the major version number is considered a failure, but a
+library with a newer minor version number will pass this check since
+increasing minor versions imply backwards compatibility.
+.PP
+An application can also check specifically for the existence of an
+interface by checking for the version where that interface was
+introduced.
+These versions are documented in this man page as follows: unless
+otherwise specified, all interfaces described here are available in
+version 1.0 of the library.
+Interfaces added after version 1.0 will contain the text \f[I]introduced
+in version x.y\f[] in the section of this manual describing the feature.
+.PP
+When the version check is successful, \f[B]vmem_check_version\f[]()
+returns NULL.
+Otherwise, \f[B]vmem_check_version\f[]() returns a static string
+describing the reason for failing the version check.
+The returned string must not be modified or freed.
+.PP
+The \f[B]vmem_set_funcs\f[]() function allows an application to override
+some interfaces used internally by \f[B]libvmem\f[].
+Passing NULL for any of the handlers will cause the \f[B]libvmem\f[]
+default function to be used.
+The only functions in the malloc family used by the library are
+represented by the first four arguments to \f[B]vmem_set_funcs\f[]().
+While the library does not make heavy use of the system malloc
+functions, it does allocate approximately 4\-8 kilobytes for each memory
+pool in use.
+The \f[I]print_func\f[] function is called by \f[B]libvmem\f[] when the
+\f[B]vmem_stats_print\f[]() entry point is used, or when additional
+tracing is enabled in the debug version of the library as described in
+\f[B]DEBUGGING AND ERROR HANDLING\f[], below.
+The default \f[I]print_func\f[] used by the library prints to the file
+specified by the \f[B]VMEM_LOG_FILE\f[] environment variable, or to
+\f[I]stderr\f[] if that variable is not set.
+.SH CAVEATS
+.PP
+\f[B]libvmem\f[] relies on the library destructor being called from the
+main thread.
+For this reason, all functions that might trigger destruction (e.g.
+\f[B]dlclose\f[](3)) should be called in the main thread.
+Otherwise some of the resources associated with that thread might not be
+cleaned up properly.
+.SH DEBUGGING AND ERROR HANDLING
+.PP
+If an error is detected during the call to a \f[B]libvmem\f[] function,
+the application may retrieve an error message describing the reason for
+the failure from \f[B]vmem_errormsg\f[]().
+This function returns a pointer to a static buffer containing the last
+error message logged for the current thread.
+If \f[I]errno\f[] was set, the error message may include a description
+of the corresponding error code as returned by \f[B]strerror\f[](3).
+The error message buffer is thread\-local; errors encountered in one
+thread do not affect its value in other threads.
+The buffer is never cleared by any library function; its content is
+significant only when the return value of the immediately preceding call
+to a \f[B]libvmem\f[] function indicated an error, or if \f[I]errno\f[]
+was set.
+The application must not modify or free the error message string, but it
+may be modified by subsequent calls to other library functions.
+.PP
+Two versions of \f[B]libvmem\f[] are typically available on a
+development system.
+The normal version is optimized for performance.
+That version skips checks that impact performance and never logs any
+trace information or performs any run\-time assertions.
+A second version, accessed when using libraries from
+\f[B]/usr/lib/pmdk_debug\f[], contains run\-time assertions and trace
+points.
+The typical way to access the debug version is to set the
+\f[B]LD_LIBRARY_PATH\f[] environment variable to
+\f[B]/usr/lib/pmdk_debug\f[] or \f[B]/usr/lib64/pmdk_debug\f[], as
+appropriate.
+Debugging output is controlled using the following environment
+variables.
+These variables have no effect on the non\-debug version of the library.
+.IP \[bu] 2
+\f[B]VMEM_LOG_LEVEL\f[]
+.PP
+The value of \f[B]VMEM_LOG_LEVEL\f[] enables trace points in the debug
+version of the library, as follows:
+.IP \[bu] 2
+\f[B]0\f[] \- Tracing is disabled.
+This is the default level when \f[B]VMEM_LOG_LEVEL\f[] is not set.
+Only statistics are logged, and then only in response to a call to
+\f[B]vmem_stats_print\f[]().
+.IP \[bu] 2
+\f[B]1\f[] \- Additional details on any errors detected are logged, in
+addition to returning the \f[I]errno\f[]\-based errors as usual.
+.IP \[bu] 2
+\f[B]2\f[] \- A trace of basic operations is logged.
+.IP \[bu] 2
+\f[B]3\f[] \- Enables a very verbose amount of function call tracing in
+the library.
+.IP \[bu] 2
+\f[B]4\f[] \- Enables voluminous tracing information about all memory
+allocations and deallocations.
+.PP
+Unless \f[B]VMEM_LOG_FILE\f[] is set, debugging output is written to
+\f[I]stderr\f[].
+.IP \[bu] 2
+\f[B]VMEM_LOG_FILE\f[]
+.PP
+Specifies the name of a file where all logging information should be
+written.
+If the last character in the name is "\-", the \f[I]PID\f[] of the
+current process will be appended to the file name when the log file is
+created.
+If \f[B]VMEM_LOG_FILE\f[] is not set, output is written to
+\f[I]stderr\f[].
+.SH EXAMPLE
+.PP
+The following example creates a memory pool, allocates some memory to
+contain the string "hello, world", and then frees that memory.
+.IP
+.nf
+\f[C]
+#include\ <stdio.h>
+#include\ <stdlib.h>
+#include\ <string.h>
+#include\ <libvmem.h>
+
+int
+main(int\ argc,\ char\ *argv[])
+{
+\ \ \ \ VMEM\ *vmp;
+\ \ \ \ char\ *ptr;
+
+\ \ \ \ /*\ create\ minimum\ size\ pool\ of\ memory\ */
+\ \ \ \ if\ ((vmp\ =\ vmem_create("/pmem\-fs",
+\ \ \ \ \ \ \ \ \ \ \ \ VMEM_MIN_POOL))\ ==\ NULL)\ {
+\ \ \ \ \ \ \ \ perror("vmem_create");
+\ \ \ \ \ \ \ \ exit(1);
+\ \ \ \ }
+
+\ \ \ \ if\ ((ptr\ =\ vmem_malloc(vmp,\ 100))\ ==\ NULL)\ {
+\ \ \ \ \ \ \ \ perror("vmem_malloc");
+\ \ \ \ \ \ \ \ exit(1);
+\ \ \ \ }
+
+\ \ \ \ strcpy(ptr,\ "hello,\ world");
+
+\ \ \ \ /*\ give\ the\ memory\ back\ */
+\ \ \ \ vmem_free(vmp,\ ptr);
+
+\ \ \ \ /*\ ...\ */
+
+\ \ \ \ vmem_delete(vmp);
+}
+\f[]
+.fi
+.PP
+See <http://pmem.io/pmdk/libvmem> for more examples using the
+\f[B]libvmem\f[] API.
+.SH BUGS
+.PP
+Unlike the normal \f[B]malloc\f[](3), which asks the system for
+additional memory when it runs out, \f[B]libvmem\f[] allocates the size
+it is told to and never attempts to grow or shrink that memory pool.
+.SH ACKNOWLEDGEMENTS
+.PP
+\f[B]libvmem\f[] depends on jemalloc, written by Jason Evans, to do the
+heavy lifting of managing dynamic memory allocation.
+See: <http://www.canonware.com/jemalloc>
+.PP
+\f[B]libvmem\f[] builds on the persistent memory programming model
+recommended by the SNIA NVM Programming Technical Work Group:
+<http://snia.org/nvmp>
+.SH SEE ALSO
+.PP
+\f[B]mmap\f[](2), \f[B]dlclose\f[](3), \f[B]malloc\f[](3),
+\f[B]strerror\f[](3), \f[B]vmem_create\f[](3), \f[B]vmem_malloc\f[](3),
+and \f[B]<http://pmem.io>\f[]
+.PP
+On Linux:
+.PP
+\f[B]jemalloc\f[](3), \f[B]pthreads\f[](7)
+.PP
+On FreeBSD:
+.PP
+\f[B]pthread\f[](3)
