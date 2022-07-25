@@ -2111,7 +2111,7 @@ btt_fini(struct btt *bttp)
  * START of btt_read_async_future
  */
 static enum future_state
-btt_read_async_future_impl(struct future_context *ctx,
+btt_read_async_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
 	struct btt_read_async_future_data *data =
@@ -2126,14 +2126,15 @@ btt_read_async_future_impl(struct future_context *ctx,
 	struct vdm *vdm = data->vdm;
 	int *stage = data->stage;
 
+	int ret;
 	if (*stage == BTT_READ_INITIALIZED) {
 		LOG(3, "bttp %p lane %u lba %" PRIu64, bttp, lane, lba);
 
 		*stage = BTT_READ_PREPARATION;
 
 		if (invalid_lba(bttp, lba)) {
-			output->return_value = -1;
-			return FUTURE_STATE_COMPLETE;
+			ret = -1;
+			goto set_output;
 		}
 
 		/*
@@ -2153,8 +2154,8 @@ btt_read_async_future_impl(struct future_context *ctx,
 				&data->internal.vdm_fut), NULL
 		) == FUTURE_STATE_COMPLETE) {
 			/* TODO: vdm error handling? */
-			output->return_value = 0;
-			return FUTURE_STATE_COMPLETE;
+			ret = 0;
+			goto set_output;
 		} else {
 			return FUTURE_STATE_RUNNING;
 		}
@@ -2166,8 +2167,8 @@ btt_read_async_future_impl(struct future_context *ctx,
 		uint64_t map_entry_off;
 		if (lba_to_arena_lba(bttp, lba, &data->internal.arenap,
 			&premap_lba) < 0) {
-			output->return_value = -1;
-			return FUTURE_STATE_COMPLETE;
+			ret = -1;
+			goto set_output;
 		}
 
 		/* convert pre-map LBA into an offset into the map */
@@ -2182,8 +2183,8 @@ btt_read_async_future_impl(struct future_context *ctx,
 
 		if ((*bttp->ns_cbp->nsread)(bttp->ns, lane, &entry,
 			sizeof(entry), map_entry_off) < 0) {
-			output->return_value = -1;
-			return FUTURE_STATE_COMPLETE;
+			ret = -1;
+			goto set_output;
 		}
 
 		entry = le32toh(entry);
@@ -2200,11 +2201,20 @@ btt_read_async_future_impl(struct future_context *ctx,
 			if (map_entry_is_error(entry)) {
 				ERR("EIO due to map entry error flag");
 				errno = EIO;
-				return -1;
+				ret = -1;
+				goto set_output;
 			}
 
-			if (map_entry_is_zero_or_initial(entry))
-				return zero_block(bttp, buf);
+			if (map_entry_is_zero_or_initial(entry)) {
+				data->internal.vdm_fut = vdm_memset(
+					vdm, buf, '\0', bttp->lbasize, NULL);
+				*stage = BTT_READ_ZEROS;
+				/*
+				 * We might change it into goto in order to
+				 * limit polls required to complete the future
+				 */
+				return FUTURE_STATE_RUNNING;
+			}
 
 			/*
 			 * Record the post-map LBA in the read tracking table during
@@ -2235,8 +2245,8 @@ btt_read_async_future_impl(struct future_context *ctx,
 				&latest_entry,
 				sizeof(latest_entry), map_entry_off) < 0) {
 				data->internal.arenap->rtt[lane] = BTT_MAP_ENTRY_ERROR;
-				output->return_value = -1;
-				return FUTURE_STATE_COMPLETE;
+				ret = -1;
+				goto set_output;
 			}
 
 			latest_entry = le32toh(latest_entry);
@@ -2275,7 +2285,12 @@ btt_read_async_future_impl(struct future_context *ctx,
 	/* done with read, so clear out rtt entry */
 	data->internal.arenap->rtt[lane] = BTT_MAP_ENTRY_ERROR;
 
-	return data->internal.nsread_fut.output.return_value;
+	ret = data->internal.nsread_fut.output.return_value;
+
+set_output:
+	output->return_value = ret;
+
+	return FUTURE_STATE_COMPLETE;
 }
 
 struct btt_read_async_future
