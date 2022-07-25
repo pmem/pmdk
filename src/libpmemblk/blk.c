@@ -494,6 +494,9 @@ static enum future_state
 pmemblk_write_async_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
+	struct pmemblk_write_async_data *data =
+		future_context_get_data(ctx);
+	struct pmemblk_write_async_output *output =
 	struct pmemblk_write_async_future_data *data =
 			future_context_get_data(ctx);
 	struct pmemblk_write_async_future_output *output =
