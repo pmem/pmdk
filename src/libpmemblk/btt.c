@@ -2272,16 +2272,18 @@ btt_read_async_impl(struct future_context *ctx,
 		*stage = BTT_READ_IN_PROGRESS;
 	}
 
-	if (*stage == BTT_READ_IN_PROGRESS) {
-		if (future_poll(
-			FUTURE_AS_RUNNABLE(
-				&data->internal.nsread_fut), NULL
-		) != FUTURE_STATE_COMPLETE) {
-			return FUTURE_STATE_RUNNING;
-		}
+	/*
+	 * Now the stage must be BTT_READ_IN_PROGRESS, so we do not
+	 * need an if clause.
+	 */
+	if (future_poll(
+		FUTURE_AS_RUNNABLE(
+			&data->internal.nsread_fut), NULL
+	) != FUTURE_STATE_COMPLETE) {
+		return FUTURE_STATE_RUNNING;
 	}
 
-	*stage = BTT_READ_COMPLETE;
+
 	/* done with read, so clear out rtt entry */
 	data->internal.arenap->rtt[lane] = BTT_MAP_ENTRY_ERROR;
 
@@ -2308,7 +2310,7 @@ btt_read_async(struct btt *bttp, unsigned lane,
 	};
 
 	*stage = BTT_READ_INITIALIZED;
-	FUTURE_INIT(&future, btt_read_async_future_impl);
+	FUTURE_INIT(&future, btt_read_async_impl);
 	return future;
 }
 /*
@@ -2319,7 +2321,7 @@ btt_read_async(struct btt *bttp, unsigned lane,
  * START of the btt_write_async_future future
  */
 static enum future_state
-btt_write_async_future_impl(struct future_context *ctx,
+btt_write_async_impl(struct future_context *ctx,
 		struct future_notifier *notifier)
 {
 	struct btt_write_async_future_data *data =
@@ -2332,11 +2334,12 @@ btt_write_async_future_impl(struct future_context *ctx,
 	uint64_t lba = data->lba;
 	void *buf = data->buf;
 	struct vdm *vdm = data->vdm;
+	int *stage = data->stage;
 
-	int ret = 0;
-	if (!data->internal.nswrite_started) {
+	int ret;
+	if (*stage == BTT_WRITE_INITIALIZED) {
 		LOG(3, "bttp %p lane %u lba %" PRIu64 " vdm %p", bttp, lane,
-				lba, vdm);
+			lba, vdm);
 
 		if (invalid_lba(bttp, lba)) {
 			ret = -1;
@@ -2353,33 +2356,42 @@ btt_write_async_future_impl(struct future_context *ctx,
 				goto set_output;
 		}
 
-		uint32_t premap_lba;
-		struct arena *arenap;
-		uint32_t free_entry;
-		ret = btt_get_free_entry(bttp, lane, lba, &free_entry, &arenap,
-				&premap_lba);
+		ret = btt_get_free_entry(bttp, lane, lba,
+			&data->internal.free_entry, &data->internal.arenap,
+			&data->internal.premap_lba);
 		if (ret)
 			goto set_output;
 
-		LOG(3, "free_entry %u (before mask %u)", free_entry,
-					arenap->flogs[lane].flog.old_map);
+		LOG(3, "free_entry %u (before mask %u)",
+			data->internal.free_entry,
+			data->internal.arenap->flogs[lane].flog.old_map);
+	}
 
+	/*
+	 * If the stage is ...INITIALIZED it means that it's the first poll
+	 * of the future. If it's ...WAITING_FOR_READS it means that we polled
+	 * the future, some reads were in progress, so it returned RUNNING.
+	 */
+	if(*stage <= BTT_WRITE_WAITING_FOR_READS){
 		/* wait for other threads to finish any reads on free block */
-		for (unsigned i = 0; i < bttp->nlane; i++)
-			while (arenap->rtt[i] == free_entry)
-				;
+		for (unsigned i = 0; i < bttp->nlane; i++) {
+			if (data->internal.arenap->rtt[i] ==
+			    data->internal.free_entry) {
+				*stage = BTT_WRITE_WAITING_FOR_READS;
+				return FUTURE_STATE_RUNNING;
+			}
+		}
 
 		/* it is now safe to perform write to the free block */
-		uint64_t data_block_off = arenap->dataoff +
-			(uint64_t)(free_entry & BTT_MAP_ENTRY_LBA_MASK) *
-			arenap->internal_lbasize;
+		uint64_t data_block_off = data->internal.arenap->dataoff +
+				(uint64_t)(data->internal.free_entry &
+				BTT_MAP_ENTRY_LBA_MASK) *
+				data->internal.arenap->internal_lbasize;
 
 		data->internal.nswrite_fut = bttp->ns_cb_asyncp->nswrite(
 				bttp->ns, lane, buf, bttp->lbasize,
 				data_block_off, vdm);
-		data->internal.premap_lba = premap_lba;
-		data->internal.arenap = arenap;
-		data->internal.free_entry = free_entry;
+		*stage = BTT_WRITE_IN_PROGRESS;
 	}
 
 	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.nswrite_fut), NULL)
@@ -2406,7 +2418,7 @@ set_output:
  */
 struct btt_write_async_future
 btt_write_async(struct btt *bttp, unsigned lane, uint64_t lba, void *buf,
-		struct vdm *vdm)
+		struct vdm *vdm, int *stage)
 {
 	struct btt_write_async_future future = {
 		.data.bttp = bttp,
@@ -2414,12 +2426,13 @@ btt_write_async(struct btt *bttp, unsigned lane, uint64_t lba, void *buf,
 		.data.lba = lba,
 		.data.buf = buf,
 		.data.vdm = vdm,
-		.data.internal.nswrite_started = 0,
+		.data.stage = stage,
+
 		.output.return_value = 0,
 	};
 
-	FUTURE_INIT(&future, btt_write_async_future_impl);
-
+	*stage = BTT_WRITE_INITIALIZED;
+	FUTURE_INIT(&future, btt_write_async_impl);
 	return future;
 }
 /*
