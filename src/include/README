@@ -24,6 +24,8 @@ libpmemobj.h -- definitions of libpmemobj entry points (see libpmemobj(7))
 
 libpmempool.h -- definitions of libpmempool entry points (see libpmempool(7))
 
+pmreorder.h -- helper functions for pmreorder tool (see pmreorder(1))
+
 Experimental libraries:
 
 libpmemset.h -- definitions of libpmemset entry points (see libpmemset(7))
