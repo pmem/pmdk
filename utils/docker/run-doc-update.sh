@@ -25,6 +25,9 @@ BOT_NAME="pmem-bot"
 USER_NAME="pmem"
 PAGES_REPO_NAME="pmem.github.io"
 
+DOC_REPO_DIR=$(mktemp -d -t pmem_io-XXX)
+ARTIFACTS_DIR=$(mktemp -d -t ARTIFACTS-XXX)
+
 ORIGIN="https://${DOC_UPDATE_GITHUB_TOKEN}@github.com/${BOT_NAME}/${PAGES_REPO_NAME}"
 UPSTREAM="https://github.com/${USER_NAME}/${PAGES_REPO_NAME}"
 
@@ -44,20 +47,18 @@ if [ -z "${TARGET_DOCS_DIR}" ]; then
 	exit 1
 fi
 
-cd ${WORKDIR}
+pushd ${WORKDIR}/doc
 echo "Build docs and copy man & web md"
-cd ./doc
 make -j$(nproc) web
-cd ..
 
-mv ./doc/web_linux ../
-mv ./doc/web_windows ../
-mv ./doc/generated/libs_map.yml ../
-cd ..
+mv ./web_linux ${ARTIFACTS_DIR}
+mv ./web_windows ${ARTIFACTS_DIR}
+mv ./generated/libs_map.yml ${ARTIFACTS_DIR}
+popd
 
 echo "Clone bot's pmem.io repo"
-git clone ${ORIGIN}
-cd ${PAGES_REPO_NAME}
+git clone --depth=1 ${ORIGIN} ${DOC_REPO_DIR}
+pushd ${DOC_REPO_DIR}
 git remote add upstream ${UPSTREAM}
 git fetch upstream
 
@@ -71,14 +72,14 @@ git checkout -B ${DOCS_BRANCH_NAME} upstream/main
 git clean -dfx
 
 echo "Copy content"
-rsync -a ../web_linux/ ./content/pmdk/manpages/linux/${TARGET_DOCS_DIR}/ --delete
-rsync -a ../web_windows/ ./content/pmdk/manpages/windows/${TARGET_DOCS_DIR}/ --delete \
+rsync -a ${ARTIFACTS_DIR}/web_linux/ ./content/pmdk/manpages/linux/${TARGET_DOCS_DIR}/ --delete
+rsync -a ${ARTIFACTS_DIR}/web_windows/ ./content/pmdk/manpages/windows/${TARGET_DOCS_DIR}/ --delete \
 	--exclude='librpmem'	\
 	--exclude='rpmemd' --exclude='pmreorder'	\
 	--exclude='daxio'
 
 if [ ${TARGET_BRANCH} = "master" ]; then
-	cp ../libs_map.yml data/
+	cp ${ARTIFACTS_DIR}/libs_map.yml data/
 fi
 
 echo "Add and push changes"
@@ -96,10 +97,8 @@ GITHUB_TOKEN=${DOC_UPDATE_GITHUB_TOKEN} hub pull-request -f \
 	-h ${BOT_NAME}:${DOCS_BRANCH_NAME} \
 	-m "pmdk: automatic docs update for '${TARGET_BRANCH}'" && true
 
-cd ..
-rm -r ${PAGES_REPO_NAME}
-rm -r ./web_linux
-rm -r ./web_windows
-rm ./libs_map.yml
+popd
+rm -rf ${DOC_REPO_DIR}
+rm -rf ${ARTIFACTS_DIR}
 
 exit 0
