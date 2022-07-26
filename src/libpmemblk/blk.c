@@ -136,31 +136,13 @@ nswrite(void *ns, unsigned lane, const void *buf, size_t count,
 
 	void *dest = (char *)pbp->data + off;
 
-#ifdef DEBUG
-	/* grab debug write lock */
-	util_mutex_lock(&pbp->write_lock);
-#endif
-
-	/* unprotect the memory (debug version only) */
-	RANGE_RW(dest, count, pbp->is_dev_dax);
-
-	if (pbp->is_pmem)
+	if (pbp->is_pmem) {
 		pmem_memcpy_nodrain(dest, buf, count);
-	else
-		memcpy(dest, buf, count);
-
-	/* protect the memory again (debug version only) */
-	RANGE_RO(dest, count, pbp->is_dev_dax);
-
-#ifdef DEBUG
-	/* release debug write lock */
-	util_mutex_unlock(&pbp->write_lock);
-#endif
-
-	if (pbp->is_pmem)
 		pmem_drain();
-	else
+	} else {
+		memcpy(dest, buf, count);
 		pmem_msync(dest, count);
+	}
 
 	return 0;
 }
@@ -247,14 +229,7 @@ nszero(void *ns, unsigned lane, size_t count, uint64_t off)
 	}
 
 	void *dest = (char *)pbp->data + off;
-
-	/* unprotect the memory (debug version only) */
-	RANGE_RW(dest, count, pbp->is_dev_dax);
-
 	pmem_memset_persist(dest, 0, count);
-
-	/* protect the memory again (debug version only) */
-	RANGE_RO(dest, count, pbp->is_dev_dax);
 
 	return 0;
 }
@@ -380,18 +355,12 @@ nswrite_async_impl(struct future_context *ctx,
 		data->internal.memcpy_fut =
 				vdm_memcpy(vdm, dest, buf, count, 0);
 		data->internal.memcpy_started = 1;
-
-		/* unprotect the memory (debug version only) */
-		RANGE_RW(dest, count, pbp->is_dev_dax);
 	}
 
 	if (future_poll(FUTURE_AS_RUNNABLE(&data->internal.memcpy_fut), NULL) !=
 			FUTURE_STATE_COMPLETE) {
 		return FUTURE_STATE_RUNNING;
 	}
-
-	/* protect the memory again (debug version only) */
-	RANGE_RO(dest, count, pbp->is_dev_dax);
 
 	if (pbp->is_pmem)
 		pmem_drain();
@@ -687,11 +656,6 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 
 	pbp->locks = locks;
 
-#ifdef DEBUG
-	/* initialize debug lock */
-	util_mutex_init(&pbp->write_lock);
-#endif
-
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -699,9 +663,6 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 	 * use. It is not considered an error if this fails.
 	 */
 	RANGE_NONE(pbp->addr, sizeof(struct pool_hdr), pbp->is_dev_dax);
-
-	/* the data area should be kept read-only for debug version */
-	RANGE_RO(pbp->data, pbp->datasize, pbp->is_dev_dax);
 
 	return 0;
 
@@ -1051,11 +1012,6 @@ pmemblk_close(PMEMblkpool *pbp)
 			util_mutex_destroy(&pbp->locks[i]);
 		Free((void *)pbp->locks);
 	}
-
-#ifdef DEBUG
-	/* destroy debug lock */
-	util_mutex_destroy(&pbp->write_lock);
-#endif
 
 	util_poolset_close(pbp->set, DO_NOT_DELETE_PARTS);
 }

@@ -65,11 +65,6 @@ struct pmemblk {
 	struct pool_set *set;	/* pool set info */
 
 	struct vdm *vdm; /* miniasync abstraction for virtual data mover */
-
-#ifdef DEBUG
-	/* held during read/write mprotected sections */
-	os_mutex_t write_lock;
-#endif
 };
 
 /* data area starts at this alignment after the struct pmemblk above */
