@@ -8,7 +8,7 @@ title: "libpmem2 | PMDK"
 header: "pmem2 API version 1.0"
 ---
 
-[comment]: <> (SPDX-License-Identifier: BSD-3-Clause
+[comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2019-2020, Intel Corporation)
 
 [comment]: <> (pmem2_map_delete.3 -- man page for libpmem2 pmem2_map_delete operation)

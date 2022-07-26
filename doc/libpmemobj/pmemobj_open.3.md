@@ -51,7 +51,7 @@ To use the pmem-resident transactional object store provided by
 with the _UW(pmemobj_create) function described below. Existing pools
 may be opened with the _UW(pmemobj_open) function.
 
-As of **libpmemobj** **1.11**, these functions are thread-safe; be careful
+Since **libpmemobj** **1.11**, these functions are thread-safe; be careful
 if you have to use earlier versions of the library.
 
 Once created, the memory pool is represented by an opaque handle,
