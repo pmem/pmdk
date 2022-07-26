@@ -672,6 +672,7 @@ provided in the command line options to check whether files are in a consistent 
 %{_bindir}/pmreorder
 %{_datadir}/pmreorder/*.py
 %{_mandir}/man1/pmreorder.1.gz
+%{_includedir}/pmreorder.h
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 

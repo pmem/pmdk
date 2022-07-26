@@ -842,6 +842,7 @@ cat << EOF > debian/pmreorder.install
 usr/bin/pmreorder
 usr/share/pmreorder/*.py
 $MAN1_DIR/pmreorder.1
+$INC_DIR/pmreorder.h
 EOF
 
 cat << EOF > debian/pmreorder.lintian-overrides
