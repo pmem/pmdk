@@ -8,7 +8,7 @@ title: "libpmem2 | PMDK"
 header: "pmem2 API version 1.0"
 ---
 
-[comment]: <> (SPDX-License-Identifier: BSD-3-Clause
+[comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2020, Intel Corporation)
 
 [comment]: <> (pmem2_get_persist_fn.3 -- man page for pmem2_get_persist_fn)
