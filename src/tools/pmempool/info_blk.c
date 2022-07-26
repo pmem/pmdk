@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -509,13 +509,7 @@ err:
 static void
 info_blk_descriptor(struct pmem_info *pip, int v, struct pmemblk *pbp)
 {
-	size_t pmemblk_size;
-
-#ifdef DEBUG
-	pmemblk_size = offsetof(struct pmemblk, write_lock);
-#else
-	pmemblk_size = sizeof(*pbp);
-#endif
+	size_t pmemblk_size = sizeof(*pbp);
 
 	outv_title(v, "PMEM BLK Header");
 	/* dump pmemblk header without pool_hdr */
