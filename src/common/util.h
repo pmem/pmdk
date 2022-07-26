@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2022, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -287,7 +287,7 @@ typedef enum {
 #error MSVC ports of util_atomic_ only work on X86_64
 #endif
 
-#if _MSC_VER > 1911
+#if _MSC_VER > 2000
 #error util_atomic_ utility functions not tested with this version of VC++
 #error These utility functions are not future proof, as they are not
 #error based on publicly available documentation.
