@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * pmem.h -- internal definitions for libpmem
@@ -41,6 +41,8 @@ static inline void
 pmem_inject_fault_at(enum pmem_allocation_type type, int nth,
 						const char *at)
 {
+	SUPPRESS_UNUSED(type, nth, at);
+
 	abort();
 }
 
