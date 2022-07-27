@@ -35,11 +35,10 @@ struct pmem2_future pmem2_memcpy_async(struct pmem2_map *map,
 	void *pmemdest, const void *src, size_t len, unsigned flags);
 
 struct pmem2_future pmem2_memmove_async(struct pmem2_map *map, void *pmemdest, const void *src,
-	size_t len, unsigned flags)
+	size_t len, unsigned flags);
 
 struct pmem2_future pmem2_memset_async(struct pmem2_map *map,
-	void *pmemstr,	int c, size_t n, unsigned flags)
-{
+	void *pmemstr,	int c, size_t n, unsigned flags);
 ```
 
 # DESCRIPTION #
