@@ -2143,7 +2143,7 @@ btt_read_async_impl(struct future_context *ctx,
 		 */
 		if (!bttp->laidout) {
 			data->internal.vdm_fut = vdm_memset(
-				vdm, buf, '\0', bttp->lbasize, NULL);
+				vdm, buf, '\0', bttp->lbasize, 0);
 			*stage = BTT_READ_ZEROS;
 		}
 	}
@@ -2212,7 +2212,7 @@ btt_read_async_impl(struct future_context *ctx,
 
 			if (map_entry_is_zero_or_initial(entry)) {
 				data->internal.vdm_fut = vdm_memset(
-					vdm, buf, '\0', bttp->lbasize, NULL);
+					vdm, buf, '\0', bttp->lbasize, 0);
 				*stage = BTT_READ_ZEROS;
 				/*
 				 * We might change it into goto in order to
