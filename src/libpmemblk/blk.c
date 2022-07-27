@@ -282,7 +282,7 @@ nsread_async_impl(struct future_context *ctx,
 		}
 		data->op = vdm_memcpy(data->vdm, data->buf,
 					(char *)pbp->data + data->off,
-					data->count, NULL);
+					data->count, 0);
 		data->memcpy_started = 1;
 	}
 

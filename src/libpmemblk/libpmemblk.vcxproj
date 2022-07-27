@@ -73,6 +73,9 @@
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\uuid.h" />
+    <ClInclude Include="..\include\libpmemblk\async.h" />
+    <ClInclude Include="..\include\libpmemblk\base.h" />
+    <ClInclude Include="..\include\libpmemblk\btt_async.h" />
     <ClInclude Include="..\libpmem2\auto_flush.h" />
     <ClInclude Include="..\libpmem2\auto_flush_windows.h" />
     <ClInclude Include="..\libpmem2\config.h" />
@@ -125,7 +128,11 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>PMEMBLK_USE_MINIASYNC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
