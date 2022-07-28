@@ -334,7 +334,6 @@ nswrite_async_impl(struct future_context *ctx,
 	void *buf = data->buf;
 	size_t count = data->count;
 	uint64_t off = data->off;
-
 	struct vdm *vdm = data->vdm;
 
 	void *dest = (char *)pbp->data + off;
@@ -352,8 +351,29 @@ nswrite_async_impl(struct future_context *ctx,
 			goto set_output;
 		}
 
+		/* XXX: use pmem2_mem* operation instead of vdm_operation */
+		int eADR = pmem_has_auto_flush();
+		int durable = vdm_is_supported(vdm, VDM_F_MEM_DURABLE);
+
+		int vdm_flags;
+		int needs_flushing;
+		if (eADR) {
+			/* eADR can take care of persistence */
+			vdm_flags = 0;
+			needs_flushing = 0;
+		} else if (pbp->is_pmem && durable) {
+			/* Data mover engine can take care of persistence */
+			vdm_flags = VDM_F_MEM_DURABLE;
+			needs_flushing = 0;
+		} else {
+			/* We need to persist the write manually */
+			vdm_flags = 0;
+			needs_flushing = 1;
+		}
+
+		data->internal.needs_flushing = needs_flushing;
 		data->internal.memcpy_fut =
-				vdm_memcpy(vdm, dest, buf, count, 0);
+				vdm_memcpy(vdm, dest, buf, count, vdm_flags);
 		data->internal.memcpy_started = 1;
 	}
 
@@ -362,10 +382,13 @@ nswrite_async_impl(struct future_context *ctx,
 		return FUTURE_STATE_RUNNING;
 	}
 
-	if (pbp->is_pmem)
-		pmem_drain();
-	else
-		pmem_msync(dest, count);
+	if (data->internal.needs_flushing) {
+		if (pbp->is_pmem) {
+			pmem_drain();
+		} else {
+			pmem_msync(dest, count);
+		}
+	}
 
 	ret = 0;
 

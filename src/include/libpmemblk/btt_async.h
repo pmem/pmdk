@@ -55,6 +55,7 @@ struct nswrite_async_data {
 	struct {
 		struct vdm_operation_future memcpy_fut;
 		int memcpy_started;
+		int needs_flushing;
 	} internal;
 };
 
