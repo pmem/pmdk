@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2022, Intel Corporation */
 
 #ifndef PMEM2_SOURCE_H
 #define PMEM2_SOURCE_H
@@ -21,6 +21,7 @@ enum pmem2_source_type {
 	PMEM2_SOURCE_ANON,
 	PMEM2_SOURCE_FD,
 	PMEM2_SOURCE_HANDLE,
+	PMEM2_SOURCE_EXISTING,
 
 	MAX_PMEM2_SOURCE_TYPE
 };
@@ -44,6 +45,13 @@ struct pmem2_source {
 				dev_t st_dev;
 			};
 #endif
+
+			/* PMEM2_SOURCE_EXISTING */
+			struct {
+				void *addr;
+				size_t size;
+				int is_pmem;
+			} existing;
 		};
 	} value;
 };

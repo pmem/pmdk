@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -95,6 +95,9 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 	if (src->type == PMEM2_SOURCE_ANON) {
 		*size = src->value.size;
 		return 0;
+	} else if (src->type == PMEM2_SOURCE_EXISTING) {
+		*size = src->value.existing.size;
+		return 0;
 	}
 
 	ASSERT(src->type == PMEM2_SOURCE_FD);
@@ -148,7 +151,8 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 		return 0;
 	}
 
-	ASSERT(src->type == PMEM2_SOURCE_FD);
+	ASSERT(src->type == PMEM2_SOURCE_FD ||
+			src->type == PMEM2_SOURCE_EXISTING);
 
 	switch (src->value.ftype) {
 	case PMEM2_FTYPE_DEVDAX: {

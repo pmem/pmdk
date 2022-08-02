@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 #include "source.h"
 #include "alloc.h"
@@ -20,6 +20,31 @@ pmem2_source_from_anon(struct pmem2_source **src, size_t size)
 
 	srcp->type = PMEM2_SOURCE_ANON;
 	srcp->value.size = size;
+
+	*src = srcp;
+
+	return 0;
+}
+
+/*
+ * pmem2_source_from_existing -- create a source from an existing virtual
+ *                               memory mapping
+ */
+int
+pmem2_source_from_existing(struct pmem2_source **src, void *addr, size_t size,
+		int is_pmem)
+{
+	PMEM2_ERR_CLR();
+
+	int ret;
+	struct pmem2_source *srcp = pmem2_malloc(sizeof(*srcp), &ret);
+	if (ret)
+		return ret;
+
+	srcp->type = PMEM2_SOURCE_EXISTING;
+	srcp->value.existing.addr = addr;
+	srcp->value.existing.size = size;
+	srcp->value.existing.is_pmem = is_pmem == 1 ? 1 : 0;
 
 	*src = srcp;
 

@@ -1,11 +1,12 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 #
 
 import os
 
 import testframework as t
+from testframework import granularity as g
 
 
 class PMEM2_MAP(t.Test):
@@ -231,4 +232,23 @@ class TEST29(PMEM2_MAP):
 class TEST30(PMEM2_MAP):
     """map alignment test for small pages"""
     test_case = "test_map_huge_alignment"
+    filesize = 16 * t.KiB
+
+
+class TEST31(PMEM2_MAP):
+    """map from source of type PMEM2_SOURCE_EXISTING"""
+    test_case = "test_map_with_source_existing"
+    filesize = 16 * t.KiB
+
+
+@g.require_granularity(g.CACHELINE, g.BYTE)
+class TEST32(PMEM2_MAP):
+    """map from source of type PMEM2_SOURCE_EXISTING with file on pmem"""
+    test_case = "test_map_with_source_existing_pmem"
+    filesize = 16 * t.KiB
+
+
+class TEST33(PMEM2_MAP_DEVDAX):
+    """map from source of type PMEM2_SOURCE_EXISTING with devdax file"""
+    test_case = "test_map_with_source_existing"
     filesize = 16 * t.KiB
