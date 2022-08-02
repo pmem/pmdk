@@ -38,6 +38,7 @@ pmem2_source_device_idU
 pmem2_source_device_idW
 pmem2_source_device_usc
 pmem2_source_from_anon
+pmem2_source_from_existing
 pmem2_source_from_fd
 pmem2_source_from_handle
 pmem2_source_get_handle

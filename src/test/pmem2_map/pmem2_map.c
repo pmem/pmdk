@@ -889,6 +889,85 @@ test_map_huge_alignment(const struct test_case *tc, int argc,
 	return 2;
 }
 
+static void
+map_with_source_existing(char *file, size_t size, int is_pmem)
+{
+	struct pmem2_config cfg;
+	struct pmem2_source *src;
+	struct pmem2_map *map;
+
+	int fd = OPEN(file, O_RDWR);
+	if (fd < 0)
+		UT_FATAL("open: %s", file);
+
+	void *addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+			0);
+	if (!addr) {
+		UT_FATAL("!mmap");
+	}
+
+	int ret = pmem2_source_from_existing(&src, addr, size, is_pmem);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_init(&cfg);
+	cfg.offset = 0;
+	cfg.requested_max_granularity = PMEM2_GRANULARITY_PAGE;
+
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(map, NULL);
+
+	void *map_addr = pmem2_map_get_address(map);
+	UT_ASSERTeq(map_addr, addr);
+	size_t map_size = pmem2_map_get_size(map);
+	UT_ASSERTeq(map_size, size);
+
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	PMEM2_SOURCE_DELETE(&src);
+	munmap(addr, size);
+	CLOSE(fd);
+}
+
+/*
+ * test_map_with_source_existing - map from source of type PMEM2_SOURCE_EXISTING
+ */
+static int
+test_map_with_source_existing(const struct test_case *tc, int argc,
+					char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_with_source_existing <file> "
+				"<filesize>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+
+	map_with_source_existing(file, size, 0);
+
+	return 2;
+}
+
+/*
+ * test_map_with_source_existing_pmem - map from source of type
+ *                                      PMEM2_SOURCE_EXISTING with file on pmem
+ */
+static int
+test_map_with_source_existing_pmem(const struct test_case *tc, int argc,
+					char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_with_source_existing_pmem <file> "
+				"<filesize>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+
+	map_with_source_existing(file, size, 1);
+
+	return 2;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -915,6 +994,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_sharing_private_rdonly_file),
 	TEST_CASE(test_map_sharing_private_devdax),
 	TEST_CASE(test_map_huge_alignment),
+	TEST_CASE(test_map_with_source_existing),
+	TEST_CASE(test_map_with_source_existing_pmem),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

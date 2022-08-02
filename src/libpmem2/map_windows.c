@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 /*
  * map_windows.c -- pmem2_map (Windows)
@@ -150,201 +150,215 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		return PMEM2_E_GRANULARITY_NOT_SET;
 	}
 
-	ret = pmem2_source_size(src, &file_size);
-	if (ret)
-		return ret;
-
-	size_t src_alignment;
-	ret = pmem2_source_alignment(src, &src_alignment);
-	if (ret)
-		return ret;
-
-	size_t length;
-	ret = pmem2_config_validate_length(cfg, file_size, src_alignment);
-	if (ret)
-		return ret;
-
-	size_t effective_offset;
-	ret = pmem2_validate_offset(cfg, &effective_offset, src_alignment);
-	if (ret)
-		return ret;
-
-	if (src->type == PMEM2_SOURCE_ANON)
-		effective_offset = 0;
-
-	/* without user-provided length, map to the end of the file */
-	if (cfg->length)
-		length = cfg->length;
-	else
-		length = file_size - effective_offset;
-
-	HANDLE map_handle = INVALID_HANDLE_VALUE;
-	if (src->type == PMEM2_SOURCE_HANDLE) {
-		map_handle = src->value.handle;
-	} else if (src->type == PMEM2_SOURCE_ANON) {
-		/* no extra settings */
-	} else {
-		ASSERT(0);
-	}
-
-	DWORD proto = PAGE_READWRITE;
-	DWORD access = FILE_MAP_ALL_ACCESS;
-
-	/* Unsupported flag combinations */
-	if ((cfg->protection_flag == PMEM2_PROT_NONE) ||
-			(cfg->protection_flag == PMEM2_PROT_WRITE) ||
-			(cfg->protection_flag == PMEM2_PROT_EXEC) ||
-			(cfg->protection_flag == (PMEM2_PROT_WRITE |
-					PMEM2_PROT_EXEC))) {
-		ERR("Windows does not support "
-				"this protection flag combination.");
-		return PMEM2_E_NOSUPP;
-	}
-
-	/* Translate protection flags into Windows flags */
-	if (cfg->protection_flag & PMEM2_PROT_WRITE) {
-		if (cfg->protection_flag & PMEM2_PROT_EXEC) {
-			proto = PAGE_EXECUTE_READWRITE;
-			access = FILE_MAP_READ | FILE_MAP_WRITE |
-			FILE_MAP_EXECUTE;
-		} else {
-			/*
-			 * Due to the already done exclusion
-			 * of incorrect combinations, PROT_WRITE
-			 * implies PROT_READ
-			 */
-			proto = PAGE_READWRITE;
-			access = FILE_MAP_READ | FILE_MAP_WRITE;
-		}
-	} else if (cfg->protection_flag & PMEM2_PROT_READ) {
-		if (cfg->protection_flag & PMEM2_PROT_EXEC) {
-			proto = PAGE_EXECUTE_READ;
-			access = FILE_MAP_READ | FILE_MAP_EXECUTE;
-		} else {
-			proto = PAGE_READONLY;
-			access = FILE_MAP_READ;
-		}
-	}
-
-	if (cfg->sharing == PMEM2_PRIVATE) {
-		if (cfg->protection_flag & PMEM2_PROT_EXEC) {
-			proto = PAGE_EXECUTE_WRITECOPY;
-			access = FILE_MAP_EXECUTE | FILE_MAP_COPY;
-		} else {
-			/*
-			 * If FILE_MAP_COPY is set,
-			 * protection is changed to read/write
-			 */
-			proto = PAGE_READONLY;
-			access = FILE_MAP_COPY;
-		}
-	}
-
-	/* create a file mapping handle */
-	HANDLE mh = create_mapping(map_handle, effective_offset, length,
-		proto, &err);
-
-	if (!mh) {
-		if (err == ERROR_ALREADY_EXISTS) {
-			ERR("mapping already exists");
-			return PMEM2_E_MAPPING_EXISTS;
-		} else if (err == ERROR_ACCESS_DENIED) {
-			return PMEM2_E_NO_ACCESS;
-		}
-		return pmem2_lasterror_to_err();
-	}
-
+	size_t length = 0;
+	HANDLE mh = NULL;
 	void *base;
-	void *rsv = cfg->reserv;
-	if (rsv) {
-		void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
-		size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
-		size_t rsv_offset = cfg->reserv_offset;
-
-		if (rsv_offset % Mmap_align) {
-			ret = PMEM2_E_OFFSET_UNALIGNED;
-			ERR(
-				"offset from the beginning of virtual memory "
-				"reservation %zu is not a multiple of %llu",
-				rsv_offset, Mmap_align);
-			goto err_close_mapping_handle;
-		}
-
-		if (rsv_offset + length > rsv_size) {
-			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
-			ERR(
-				"length of the mapping %zu combined with the "
-				"offset into the reservation %zu exceeds virtual "
-				"memory reservation size %zu",
-				length, effective_offset, rsv_size);
-			goto err_close_mapping_handle;
-		}
-
-		if (vm_reservation_map_find_acquire(rsv, rsv_offset, length)) {
-			ret = PMEM2_E_MAPPING_EXISTS;
-			ERR(
-				"region of the reservation %p at the offset %zu and "
-				"length %zu is at least partly occupied by other mapping",
-				rsv, rsv_offset, length);
-			goto err_reservation_release;
-		}
-
-		void *addr = (char *)rsv_addr + rsv_offset;
-		/*
-		 * Before mapping to the reservation, it is necessary to split
-		 * the unoccupied region into separate placeholders,
-		 * so that the size to be mapped and the cut out placeholder
-		 * size will be the same.
-		 */
-		ret = vm_reservation_split_placeholders(rsv, addr, length);
-		if (ret)
-			goto err_reservation_release;
-
-		/* replace placeholder with a regular mapping */
-		base = MapViewOfFile3(mh,
-			NULL,
-			addr, /* addr in reservation */
-			effective_offset,
-			length,
-			MEM_REPLACE_PLACEHOLDER,
-			proto,
-			NULL,
-			0);
-
-		if (base == NULL) {
-			ERR("!!MapViewOfFile3");
-			DWORD ret_windows = GetLastError();
-			if (ret_windows == ERROR_INVALID_ADDRESS)
-				ret = PMEM2_E_MAPPING_EXISTS;
-			else
-				ret = pmem2_lasterror_to_err();
-			goto err_merge_reservation_regions;
-		}
-
-		ASSERTeq(base, addr);
+	void *rsv;
+	if (src->type == PMEM2_SOURCE_EXISTING) {
+		/* source is already mapped */
+		base = src->value.existing.addr;
+		length = src->value.existing.size;
+		rsv = NULL;
 	} else {
-		/* obtain a pointer to the mapping view */
-		base = MapViewOfFile(mh,
-			access,
-			HIDWORD(effective_offset),
-			LODWORD(effective_offset),
-			length);
+		ret = pmem2_source_size(src, &file_size);
+		if (ret)
+			return ret;
 
-		if (base == NULL) {
-			ERR("!!MapViewOfFile");
-			ret = pmem2_lasterror_to_err();
-			goto err_close_mapping_handle;
+		size_t src_alignment;
+		ret = pmem2_source_alignment(src, &src_alignment);
+		if (ret)
+			return ret;
+
+		ret = pmem2_config_validate_length(cfg, file_size,
+				src_alignment);
+		if (ret)
+			return ret;
+
+		size_t effective_offset;
+		ret = pmem2_validate_offset(cfg, &effective_offset,
+				src_alignment);
+		if (ret)
+			return ret;
+
+		if (src->type == PMEM2_SOURCE_ANON)
+			effective_offset = 0;
+
+		/* without user-provided length, map to the end of the file */
+		if (cfg->length)
+			length = cfg->length;
+		else
+			length = file_size - effective_offset;
+
+		HANDLE map_handle = INVALID_HANDLE_VALUE;
+		if (src->type == PMEM2_SOURCE_HANDLE) {
+			map_handle = src->value.handle;
+		} else if (src->type == PMEM2_SOURCE_ANON) {
+			/* no extra settings */
+		} else {
+			ASSERT(0);
 		}
-	}
 
-	if (!CloseHandle(mh)) {
-		ERR("!!CloseHandle");
-		ret = pmem2_lasterror_to_err();
-		goto err_undo_mapping;
+		DWORD proto = PAGE_READWRITE;
+		DWORD access = FILE_MAP_ALL_ACCESS;
+
+		/* Unsupported flag combinations */
+		if ((cfg->protection_flag == PMEM2_PROT_NONE) ||
+				(cfg->protection_flag == PMEM2_PROT_WRITE) ||
+				(cfg->protection_flag == PMEM2_PROT_EXEC) ||
+				(cfg->protection_flag == (PMEM2_PROT_WRITE |
+						PMEM2_PROT_EXEC))) {
+			ERR("Windows does not support "
+					"this protection flag combination.");
+			return PMEM2_E_NOSUPP;
+		}
+
+		/* Translate protection flags into Windows flags */
+		if (cfg->protection_flag & PMEM2_PROT_WRITE) {
+			if (cfg->protection_flag & PMEM2_PROT_EXEC) {
+				proto = PAGE_EXECUTE_READWRITE;
+				access = FILE_MAP_READ | FILE_MAP_WRITE |
+				FILE_MAP_EXECUTE;
+			} else {
+				/*
+				 * Due to the already done exclusion
+				 * of incorrect combinations, PROT_WRITE
+				 * implies PROT_READ
+				 */
+				proto = PAGE_READWRITE;
+				access = FILE_MAP_READ | FILE_MAP_WRITE;
+			}
+		} else if (cfg->protection_flag & PMEM2_PROT_READ) {
+			if (cfg->protection_flag & PMEM2_PROT_EXEC) {
+				proto = PAGE_EXECUTE_READ;
+				access = FILE_MAP_READ | FILE_MAP_EXECUTE;
+			} else {
+				proto = PAGE_READONLY;
+				access = FILE_MAP_READ;
+			}
+		}
+
+		if (cfg->sharing == PMEM2_PRIVATE) {
+			if (cfg->protection_flag & PMEM2_PROT_EXEC) {
+				proto = PAGE_EXECUTE_WRITECOPY;
+				access = FILE_MAP_EXECUTE | FILE_MAP_COPY;
+			} else {
+				/*
+				 * If FILE_MAP_COPY is set,
+				 * protection is changed to read/write
+				 */
+				proto = PAGE_READONLY;
+				access = FILE_MAP_COPY;
+			}
+		}
+
+		/* create a file mapping handle */
+		mh = create_mapping(map_handle, effective_offset, length,
+			proto, &err);
+
+		if (!mh) {
+			if (err == ERROR_ALREADY_EXISTS) {
+				ERR("mapping already exists");
+				return PMEM2_E_MAPPING_EXISTS;
+			} else if (err == ERROR_ACCESS_DENIED) {
+				return PMEM2_E_NO_ACCESS;
+			}
+			return pmem2_lasterror_to_err();
+		}
+
+		rsv = cfg->reserv;
+		if (rsv) {
+			void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+			size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+			size_t rsv_offset = cfg->reserv_offset;
+
+			if (rsv_offset % Mmap_align) {
+				ret = PMEM2_E_OFFSET_UNALIGNED;
+				ERR(
+					"offset from the beginning of virtual memory "
+					"reservation %zu is not a multiple of %llu",
+					rsv_offset, Mmap_align);
+				goto err_close_mapping_handle;
+			}
+
+			if (rsv_offset + length > rsv_size) {
+				ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
+				ERR(
+					"length of the mapping %zu combined with the "
+					"offset into the reservation %zu exceeds virtual "
+					"memory reservation size %zu",
+					length, effective_offset, rsv_size);
+				goto err_close_mapping_handle;
+			}
+
+			if (vm_reservation_map_find_acquire(rsv, rsv_offset,
+					length)) {
+				ret = PMEM2_E_MAPPING_EXISTS;
+				ERR(
+					"region of the reservation %p at the offset %zu and "
+					"length %zu is at least partly occupied by other mapping",
+					rsv, rsv_offset, length);
+				goto err_reservation_release;
+			}
+
+			void *addr = (char *)rsv_addr + rsv_offset;
+			/*
+			 * Before mapping to the reservation, it is necessary to
+			 * split the unoccupied region into separate
+			 * placeholders, so that the size to be mapped and the
+			 * cut out placeholder size will be the same.
+			 */
+			ret = vm_reservation_split_placeholders(rsv, addr,
+					length);
+			if (ret)
+				goto err_reservation_release;
+
+			/* replace placeholder with a regular mapping */
+			base = MapViewOfFile3(mh,
+				NULL,
+				addr, /* addr in reservation */
+				effective_offset,
+				length,
+				MEM_REPLACE_PLACEHOLDER,
+				proto,
+				NULL,
+				0);
+
+			if (base == NULL) {
+				ERR("!!MapViewOfFile3");
+				DWORD ret_windows = GetLastError();
+				if (ret_windows == ERROR_INVALID_ADDRESS)
+					ret = PMEM2_E_MAPPING_EXISTS;
+				else
+					ret = pmem2_lasterror_to_err();
+				goto err_merge_reservation_regions;
+			}
+
+			ASSERTeq(base, addr);
+		} else {
+			/* obtain a pointer to the mapping view */
+			base = MapViewOfFile(mh,
+				access,
+				HIDWORD(effective_offset),
+				LODWORD(effective_offset),
+				length);
+
+			if (base == NULL) {
+				ERR("!!MapViewOfFile");
+				ret = pmem2_lasterror_to_err();
+				goto err_close_mapping_handle;
+			}
+		}
+
+		if (!CloseHandle(mh)) {
+			ERR("!!CloseHandle");
+			ret = pmem2_lasterror_to_err();
+			goto err_undo_mapping;
+		}
 	}
 
 	enum pmem2_granularity available_min_granularity =
 		PMEM2_GRANULARITY_PAGE;
+	bool eADR = (pmem2_auto_flush() == 1);
 	if (src->type == PMEM2_SOURCE_HANDLE) {
 		int direct_access = is_direct_access(src->value.handle);
 		if (direct_access < 0) {
@@ -352,11 +366,13 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			goto err_undo_mapping;
 		}
 
-		bool eADR = (pmem2_auto_flush() == 1);
 		available_min_granularity =
 			get_min_granularity(eADR, direct_access, cfg->sharing);
 	} else if (src->type == PMEM2_SOURCE_ANON) {
 		available_min_granularity = PMEM2_GRANULARITY_BYTE;
+	} else if (src->type == PMEM2_SOURCE_EXISTING) {
+		available_min_granularity = get_min_granularity(eADR,
+				src->value.existing.is_pmem, cfg->sharing);
 	} else {
 		ASSERT(0);
 	}
@@ -437,7 +453,7 @@ err_free_map_struct:
 err_undo_mapping:
 	if (rsv)
 		vm_reservation_unmap(rsv, base, length);
-	else
+	else if (src->type != PMEM2_SOURCE_EXISTING)
 		UnmapViewOfFile(base);
 err_merge_reservation_regions:
 	if (rsv)
@@ -446,7 +462,8 @@ err_reservation_release:
 	if (rsv)
 		vm_reservation_release(rsv);
 err_close_mapping_handle:
-	CloseHandle(mh);
+	if (src->type != PMEM2_SOURCE_EXISTING)
+		CloseHandle(mh);
 	return ret;
 }
 
@@ -491,7 +508,13 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 			ret = vm_reservation_map_unregister_release(rsv, map);
 			if (ret)
 				goto err_register_map;
-		} else {
+		} else if (map->source.type != PMEM2_SOURCE_EXISTING) {
+			/*
+			 * Source of type PMEM2_SOURCE_EXISTING describes an
+			 * already mapped source provided by the user.
+			 * Therefore, the user is responsible for unmapping
+			 * the memory range.
+			 */
 			if (!UnmapViewOfFile(map->addr)) {
 				ERR("!!UnmapViewOfFile");
 				ret = pmem2_lasterror_to_err();

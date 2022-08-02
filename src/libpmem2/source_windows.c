@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 /*
  * source_windows.c -- windows specific pmem2_source implementation
@@ -135,7 +135,11 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 	if (src->type == PMEM2_SOURCE_ANON) {
 		*size = src->value.size;
 		return 0;
+	} else if (src->type == PMEM2_SOURCE_EXISTING) {
+		*size = src->value.existing.size;
+		return 0;
 	}
+
 	ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
 
 	BY_HANDLE_FILE_INFORMATION info;

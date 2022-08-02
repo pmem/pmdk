@@ -485,6 +485,117 @@ test_miniasync_mover(const struct test_case *tc, int argc, char *argv[])
 	return 1;
 }
 
+static void
+memops_source_existing(char *file, size_t size, int is_pmem)
+{
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	struct pmem2_map *map;
+
+	int fd = OPEN(file, O_RDWR);
+	if (fd < 0)
+		UT_FATAL("open: %s", file);
+
+	void *addr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
+			0);
+	if (!addr) {
+		UT_FATAL("!mmap");
+	}
+
+	int ret = pmem2_source_from_existing(&src, addr, size, is_pmem);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_new(&cfg);
+	pmem2_config_set_offset(cfg, 0);
+	pmem2_config_set_required_store_granularity(cfg,
+			PMEM2_GRANULARITY_PAGE);
+
+	ret = pmem2_map_new(&map, cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(map, NULL);
+
+	char *map_addr = pmem2_map_get_address(map);
+	UT_ASSERTeq(map_addr, addr);
+	size_t map_size = pmem2_map_get_size(map);
+	UT_ASSERTeq(map_size, size);
+
+	/* test asynchronous memset */
+	char *memset_cmp = malloc(4096);
+	memset(memset_cmp, 0xAF, 4096);
+
+	struct pmem2_future set =
+			pmem2_memset_async(map, map_addr, 0xAF, 4096, 0);
+	FUTURE_BUSY_POLL(&set);
+
+	if (memcmp(memset_cmp, map_addr, 4096))
+		UT_FATAL("data should be equal");
+
+	/* test asynchronous memcpy */
+	struct pmem2_future cpy =
+		pmem2_memcpy_async(map, map_addr + 4096, map_addr, 4096, 0);
+	FUTURE_BUSY_POLL(&cpy);
+
+	if (memcmp(map_addr, map_addr + 4096, 4096))
+		UT_FATAL("data should be equal");
+
+	/* test asynchronous memmove */
+	struct pmem2_future move =
+		pmem2_memmove_async(map, map_addr + 8192, map_addr, 8192, 0);
+	FUTURE_BUSY_POLL(&move);
+
+	if (memcmp(map_addr, map_addr + 8192, 8192))
+		UT_FATAL("data should be equal");
+
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	munmap(addr, size);
+	CLOSE(fd);
+}
+
+/*
+ * test_mover_memops_src_existing -- test functionality of pmem2 default
+ *                                   mover with the source from existing mapping
+ *
+ */
+static int
+test_mover_memops_src_existing(const struct test_case *tc, int argc,
+					char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_mover_memops_src_existing <file> "
+				"<filesize>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+
+	memops_source_existing(file, size, 0);
+
+	return 2;
+}
+
+/*
+ * test_mover_memops_src_existing_pmem -- test functionality of pmem2 default
+ *                                        mover with the source on pmem from
+ *                                        existing mapping
+ */
+static int
+test_mover_memops_src_existing_pmem(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_mover_memops_src_existing_pmem <file> "
+				"<filesize>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+
+	memops_source_existing(file, size, 1);
+
+	return 2;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -495,7 +606,10 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_mover_memcpy_multithreaded),
 	TEST_CASE(test_mover_memmove_multithreaded),
 	TEST_CASE(test_mover_memset_multithreaded),
-	TEST_CASE(test_miniasync_mover)};
+	TEST_CASE(test_miniasync_mover),
+	TEST_CASE(test_mover_memops_src_existing),
+	TEST_CASE(test_mover_memops_src_existing_pmem),
+};
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
 

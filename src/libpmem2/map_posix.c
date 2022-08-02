@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2022, Intel Corporation */
 
 /*
  * map_posix.c -- pmem2_map (POSIX)
@@ -295,7 +295,6 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 	int ret = 0;
 	struct pmem2_map *map;
-	size_t file_len;
 	*map_ptr = NULL;
 
 	if (cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
@@ -304,48 +303,6 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 		return PMEM2_E_GRANULARITY_NOT_SET;
 	}
-
-	size_t src_alignment;
-	ret = pmem2_source_alignment(src, &src_alignment);
-	if (ret)
-		return ret;
-
-	/* get file size */
-	ret = pmem2_source_size(src, &file_len);
-	if (ret)
-		return ret;
-
-	/* get offset */
-	size_t effective_offset;
-	ret = pmem2_validate_offset(cfg, &effective_offset, src_alignment);
-	if (ret)
-		return ret;
-	ASSERTeq(effective_offset, cfg->offset);
-
-	if (src->type == PMEM2_SOURCE_ANON)
-		effective_offset = 0;
-
-	os_off_t off = (os_off_t)effective_offset;
-
-	/* map input and output variables */
-	bool map_sync = false;
-	/*
-	 * MAP_SHARED - is required to mmap directly the underlying hardware
-	 * MAP_FIXED - is required to mmap at exact address pointed by hint
-	 */
-	int flags = MAP_FIXED;
-	void *addr;
-
-	/* "translate" pmem2 protection flags into linux flags */
-	int proto = 0;
-	if (cfg->protection_flag == PMEM2_PROT_NONE)
-		proto = PROT_NONE;
-	if (cfg->protection_flag & PMEM2_PROT_EXEC)
-		proto |= PROT_EXEC;
-	if (cfg->protection_flag & PMEM2_PROT_READ)
-		proto |= PROT_READ;
-	if (cfg->protection_flag & PMEM2_PROT_WRITE)
-		proto |= PROT_WRITE;
 
 	if (src->type == PMEM2_SOURCE_FD) {
 		if (src->value.ftype == PMEM2_FTYPE_DIR) {
@@ -364,114 +321,169 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		}
 	}
 
-	size_t content_length, reserved_length = 0;
-	ret = pmem2_config_validate_length(cfg, file_len, src_alignment);
-	if (ret)
-		return ret;
-
-	/* without user-provided length, map to the end of the file */
-	if (cfg->length)
-		content_length = cfg->length;
-	else
-		content_length = file_len - effective_offset;
-
-	void *reserv_region = NULL;
-	void *rsv = cfg->reserv;
-	if (rsv) {
-		size_t alignment = src_alignment;
-
-		void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
-		size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
-		size_t rsv_offset = cfg->reserv_offset;
-
-		reserved_length = roundup(content_length, Pagesize);
-
-		if (rsv_offset % Mmap_align) {
-			ret = PMEM2_E_OFFSET_UNALIGNED;
-			ERR(
-				"virtual memory reservation offset %zu is not a multiple of %llu",
-					rsv_offset, Mmap_align);
+	void *addr;
+	bool is_pmem = false;
+	size_t reserved_length = 0;
+	size_t content_length = 0;
+	void *rsv;
+	if (src->type == PMEM2_SOURCE_EXISTING) {
+		/* source is already mapped */
+		addr = src->value.existing.addr;
+		reserved_length = src->value.existing.size;
+		is_pmem = (src->value.existing.is_pmem == 1);
+		content_length = reserved_length;
+		rsv = NULL;
+	} else {
+		size_t src_size;
+		size_t src_offset;
+		size_t src_alignment;
+		ret = pmem2_source_alignment(src, &src_alignment);
+		if (ret)
 			return ret;
+
+		ret = pmem2_source_size(src, &src_size);
+		if (ret)
+			return ret;
+
+		ret = pmem2_validate_offset(cfg, &src_offset, src_alignment);
+		if (ret)
+			return ret;
+		ASSERTeq(src_offset, cfg->offset);
+
+		if (src->type == PMEM2_SOURCE_ANON ||
+				src->type == PMEM2_SOURCE_EXISTING)
+			src_offset = 0;
+
+		ret = pmem2_config_validate_length(cfg, src_size,
+				src_alignment);
+		if (ret)
+			return ret;
+
+		/* without user-provided length, map to the end of the file */
+		if (cfg->length)
+			content_length = cfg->length;
+		else
+			content_length = src_size - src_offset;
+
+		void *reserved_region = NULL;
+		/* when no reservation is set in the config, create a new one */
+		rsv = cfg->reserv;
+		if (rsv) {
+			size_t alignment = src_alignment;
+
+			void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+			size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+			size_t rsv_offset = cfg->reserv_offset;
+
+			reserved_length = roundup(content_length, Pagesize);
+
+			if (rsv_offset % Mmap_align) {
+				ret = PMEM2_E_OFFSET_UNALIGNED;
+				ERR(
+					"virtual memory reservation offset %zu is not a multiple of %llu",
+						rsv_offset, Mmap_align);
+				return ret;
+			}
+
+			if (rsv_offset + reserved_length > rsv_size) {
+				ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
+				ERR(
+					"Reservation %p has not enough space for the intended content",
+						rsv);
+				return ret;
+			}
+
+			reserved_region = (char *)rsv_addr + rsv_offset;
+			if ((size_t)reserved_region % alignment) {
+				ret = PMEM2_E_ADDRESS_UNALIGNED;
+				ERR(
+					"base mapping address %p (virtual memory reservation address + offset)" \
+					" is not a multiple of %zu required by device DAX",
+						reserved_region, alignment);
+				return ret;
+			}
+
+			/* check if the region in the reservation is occupied */
+			if (vm_reservation_map_find_acquire(rsv, rsv_offset,
+					reserved_length)) {
+				ret = PMEM2_E_MAPPING_EXISTS;
+				ERR(
+					"region of the reservation %p at the offset %zu and "
+					"length %zu is at least partly occupied by other mapping",
+					rsv, rsv_offset, reserved_length);
+				goto err_reservation_release;
+			}
+		} else {
+			size_t alignment = get_map_alignment(content_length,
+					src_alignment);
+
+			/* find a hint for the mapping */
+			ret = map_reserve(content_length, alignment,
+					&reserved_region, &reserved_length,
+					cfg);
+			if (ret != 0) {
+				if (ret == PMEM2_E_MAPPING_EXISTS)
+					LOG(1,
+						"given mapping region is already occupied");
+				else
+					LOG(1,
+						"cannot find a contiguous region of given size");
+				return ret;
+			}
 		}
 
-		if (rsv_offset + reserved_length > rsv_size) {
-			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
-			ERR(
-				"Reservation %p has not enough space for the intended content",
-					rsv);
-			return ret;
+		ASSERTne(reserved_region, NULL);
+		ASSERTne(reserved_length, 0);
+
+		/*
+		 * MAP_SHARED - is required to mmap directly the underlying
+		 *              hardware
+		 * MAP_FIXED - is required to mmap at exact address pointed by
+		 *             hint
+		 */
+		int flags = MAP_FIXED;
+		if (cfg->sharing == PMEM2_PRIVATE) {
+			flags |= MAP_PRIVATE;
 		}
 
-		reserv_region = (char *)rsv_addr + rsv_offset;
-		if ((size_t)reserv_region % alignment) {
-			ret = PMEM2_E_ADDRESS_UNALIGNED;
-			ERR(
-				"base mapping address %p (virtual memory reservation address + offset)" \
-				" is not a multiple of %zu required by device DAX",
-					reserv_region, alignment);
-			return ret;
+		int map_fd = INVALID_FD;
+		if (src->type == PMEM2_SOURCE_FD) {
+			map_fd = src->value.fd;
+		} else if (src->type == PMEM2_SOURCE_ANON) {
+			flags |= MAP_ANONYMOUS;
+		} else {
+			ASSERT(0);
 		}
 
-		/* check if the region in the reservation is occupied */
-		if (vm_reservation_map_find_acquire(rsv, rsv_offset,
-				reserved_length)) {
-			ret = PMEM2_E_MAPPING_EXISTS;
-			ERR(
-				"region of the reservation %p at the offset %zu and "
-				"length %zu is at least partly occupied by other mapping",
-				rsv, rsv_offset, reserved_length);
+		/* "translate" pmem2 protection flags into linux flags */
+		int proto = 0;
+		if (cfg->protection_flag == PMEM2_PROT_NONE)
+			proto = PROT_NONE;
+		if (cfg->protection_flag & PMEM2_PROT_EXEC)
+			proto |= PROT_EXEC;
+		if (cfg->protection_flag & PMEM2_PROT_READ)
+			proto |= PROT_READ;
+		if (cfg->protection_flag & PMEM2_PROT_WRITE)
+			proto |= PROT_WRITE;
+
+		ret = file_map(reserved_region, content_length, proto, flags,
+				map_fd, (os_off_t)src_offset, &is_pmem, &addr);
+		if (ret) {
+			/*
+			 * unmap the reservation mapping only
+			 * if it wasn't provided by the config
+			 */
+			if (!rsv)
+				munmap(reserved_region, reserved_length);
+
+			if (ret == -EACCES)
+				ret = PMEM2_E_NO_ACCESS;
+			else if (ret == -ENOTSUP)
+				ret = PMEM2_E_NOSUPP;
+			else if (ret == -EEXIST)
+				ret =  PMEM2_E_MAPPING_EXISTS;
 			goto err_reservation_release;
 		}
-	} else {
-		size_t alignment = get_map_alignment(content_length,
-				src_alignment);
-
-		/* find a hint for the mapping */
-		ret = map_reserve(content_length, alignment, &reserv_region,
-				&reserved_length, cfg);
-		if (ret != 0) {
-			if (ret == PMEM2_E_MAPPING_EXISTS)
-				LOG(1,
-					"given mapping region is already occupied");
-			else
-				LOG(1,
-					"cannot find a contiguous region of given size");
-			return ret;
-		}
-	}
-
-	ASSERTne(reserv_region, NULL);
-
-	if (cfg->sharing == PMEM2_PRIVATE) {
-		flags |= MAP_PRIVATE;
-	}
-
-	int map_fd = INVALID_FD;
-	if (src->type == PMEM2_SOURCE_FD) {
-		map_fd = src->value.fd;
-	} else if (src->type == PMEM2_SOURCE_ANON) {
-		flags |= MAP_ANONYMOUS;
-	} else {
-		ASSERT(0);
-	}
-
-	ret = file_map(reserv_region, content_length, proto, flags, map_fd, off,
-			&map_sync, &addr);
-	if (ret) {
-		/*
-		 * unmap the reservation mapping only
-		 * if it wasn't provided by the config
-		 */
-		if (!rsv)
-			munmap(reserv_region, reserved_length);
-
-		if (ret == -EACCES)
-			ret = PMEM2_E_NO_ACCESS;
-		else if (ret == -ENOTSUP)
-			ret = PMEM2_E_NOSUPP;
-		else if (ret == -EEXIST)
-			ret =  PMEM2_E_MAPPING_EXISTS;
-		goto err_reservation_release;
 	}
 
 	LOG(3, "mapped at %p", addr);
@@ -479,7 +491,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	bool eADR = (pmem2_auto_flush() == 1);
 	enum pmem2_granularity available_min_granularity =
 		src->type == PMEM2_SOURCE_ANON ? PMEM2_GRANULARITY_BYTE :
-		get_min_granularity(eADR, map_sync, cfg->sharing);
+		get_min_granularity(eADR, is_pmem, cfg->sharing);
 
 	if (available_min_granularity > cfg->requested_max_granularity) {
 		const char *err = granularity_err_msg
@@ -563,7 +575,7 @@ err_undo_mapping:
 	 */
 	if (rsv)
 		vm_reservation_mend(rsv, addr, reserved_length);
-	else
+	else if (src->type != PMEM2_SOURCE_EXISTING)
 		unmap(addr, reserved_length);
 err_reservation_release:
 	if (rsv)
@@ -614,7 +626,13 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 			ret = vm_reservation_map_unregister_release(rsv, map);
 			if (ret)
 				goto err_register_map;
-		} else {
+		} else if (map->source.type != PMEM2_SOURCE_EXISTING) {
+			/*
+			 * Source of type PMEM2_SOURCE_EXISTING describes an
+			 * already mapped source provided by the user.
+			 * Therefore, the user is responsible for unmapping
+			 * the memory range.
+			 */
 			ret = unmap(map_addr, map_len);
 			if (ret)
 				goto err_register_map;
