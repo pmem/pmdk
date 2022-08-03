@@ -15,14 +15,6 @@ ENV DEBIAN_FRONTEND noninteractive
 # Additional parameters to build docker without building components
 ARG SKIP_SCRIPTS_DOWNLOAD
 
-# libfabric (optional if libfabric-dev >= 1.4.2 is installed)
-ENV FABRIC_DEPS "autoconf \
-	automake \
-	build-essential \
-	libtool \
-	unzip \
-	wget"
-
 ENV VALGRIND_DEPS "autoconf \
 	automake \
 	build-essential \
@@ -79,9 +71,6 @@ ENV MISC_DEPS "clang \
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
 
-# Copy install libfabric script
-COPY install-libfabric.sh install-libfabric.sh
-
 # Copy codecov patch and script to download scripts required in run-*.sh
 COPY download-scripts.sh download-scripts.sh
 COPY 0001-fix-generating-gcov-files-and-turn-off-verbose-log.patch \
@@ -90,7 +79,6 @@ COPY 0001-fix-generating-gcov-files-and-turn-off-verbose-log.patch \
 # Update the Apt cache and install basic tools
 RUN apt-get update && apt-get dist-upgrade -y \
 	&& apt-get install -y --no-install-recommends \
-	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
 	$BASE_DEPS \
 	$BENCH_DEPS \
@@ -102,7 +90,6 @@ RUN apt-get update && apt-get dist-upgrade -y \
 	$COVERITY_DEPS \
 	$MISC_DEPS \
 	&& ./install-valgrind.sh ubuntu \
-	&& ./install-libfabric.sh \
 	&& ./download-scripts.sh \
 	&& rm -rf /var/lib/apt/lists/*
 

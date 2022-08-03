@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2021, Intel Corporation
+# Copyright 2017-2022, Intel Corporation
 
 #
 # run-coverage.sh - is called inside a Docker container; runs tests
@@ -24,13 +24,10 @@ make -j$(nproc) COVERAGE=1
 make -j$(nproc) test COVERAGE=1
 
 # XXX: unfortunately valgrind raports issues in coverage instrumentation
-# which we have to ignore (-k flag), also there is dependency between
-# local and remote tests (which cannot be easily removed) we have to
-# run local and remote tests separately
+# which we have to ignore (-k flag)
 cd src/test
 # do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -kj2 pcheck-local-quiet TEST_BUILD=debug || true
-make check-remote-quiet TEST_BUILD=debug || true
 # do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -kj2 pycheck TEST_BUILD=debug || true
 cd ../..

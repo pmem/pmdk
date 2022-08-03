@@ -10,13 +10,6 @@
 FROM fedora:35
 MAINTAINER piotr.balcer@intel.com
 
-# libfabric (optional if libfabric-dev >= 1.4.2 is installed)
-ENV FABRIC_DEPS "\
-	autoconf \
-	automake \
-	libtool \
-	wget"
-
 ENV VALGRIND_DEPS "\
 	autoconf \
 	automake \
@@ -85,11 +78,7 @@ ENV MISC_DEPS "\
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
 
-# Copy install libfabric script
-COPY install-libfabric.sh install-libfabric.sh
-
 RUN dnf update -y && dnf install -y \
-	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
 	$BASE_DEPS \
 	$BENCH_DEPS \
@@ -101,7 +90,6 @@ RUN dnf update -y && dnf install -y \
 	$MISC_DEPS \
 	$TESTS_DEPS \
 	&& ./install-valgrind.sh fedora \
-	&& ./install-libfabric.sh fedora \
 	&& dnf clean all
 
 # Add user

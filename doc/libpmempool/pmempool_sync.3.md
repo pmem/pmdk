@@ -9,7 +9,7 @@ header: "pmempool API version 1.3"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2022, Intel Corporation)
 
 [comment]: <> (pmempool_sync.3 -- man page for pmempool sync and transform)
 
@@ -113,28 +113,6 @@ applied. The effective size of a replica is the sum of sizes of all its part
 files decreased by 4096 bytes per each part file. The 4096 bytes of each part
 file is utilized for storing internal metadata of the pool part files.=e=)
 
-_WINUX(,=q=When adding or deleting replicas, the two pool set files can differ
-only in the definitions of replicas which are to be added or deleted. When
-adding or removing pool set options (see **poolset**(5)), the rest of both pool
-set files have to be of the same structure. The operation of adding/removing
-a pool set option can be performed on a pool set with local replicas only. To
-add/remove a pool set option to/from a pool set with remote replicas, one has
-to remove the remote replicas first, then add/remove the option, and finally
-recreate the remote replicas having added/removed the pool set option to/from
-the remote replicas' poolset files.
-To add a replica it is necessary for its effective size to match or exceed the
-pool size. Otherwise the whole operation fails and no changes are applied.
-If none of the pool set options is used, the effective size of a replica is the
-sum of sizes of all its part files decreased by 4096 bytes per each part file.
-The 4096 bytes of each part file is utilized for storing internal metadata of
-the pool part files.
-If the option *SINGLEHDR* is used, the effective size of a replica is the sum of
-sizes of all its part files decreased once by 4096 bytes. In this case only
-the first part contains internal metadata.
-If the option *NOHDRS* is used, the effective size of a replica is the sum of
-sizes of all its part files. In this case none of the parts contains internal
-metadata.=e=)
-
 >NOTE: At the moment, *transform* operation is only supported for
 **libpmemobj**(7) pools, so _UW(pmempool_transform) cannot be used with other
 pool types (**libpmemlog**(7), **libpmemblk**(7)).
@@ -160,9 +138,6 @@ Otherwise, they return -1 and set *errno* appropriately.
   are identical.
 
 **EINVAL** Attempt to perform more than one transform operation at a time.
-
-**ENOTSUP** The pool set contains a remote replica, but remote replication
-  is not supported (**librpmem**(7) is not available).
 
 # NOTES #
 

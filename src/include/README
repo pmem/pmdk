@@ -27,5 +27,3 @@ libpmempool.h -- definitions of libpmempool entry points (see libpmempool(7))
 Experimental libraries:
 
 libpmemset.h -- definitions of libpmemset entry points (see libpmemset(7))
-
-librpmem.h -- definitions of librpmem entry points (see librpmem(7))

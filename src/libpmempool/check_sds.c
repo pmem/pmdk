@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2021, Intel Corporation */
+/* Copyright 2018-2022, Intel Corporation */
 
 /*
  * check_shutdown_state.c -- shutdown state check
@@ -55,9 +55,6 @@ sds_check_replica(location *loc)
 	LOG(3, NULL);
 
 	struct pool_replica *rep = REP(loc->set, loc->replica);
-
-	if (rep->remote)
-		return 0;
 
 	/* make a copy of sds as we shouldn't modify a pool */
 	struct shutdown_state old_sds = loc->hdr.sds;

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * obj.h -- internal definitions for obj module
@@ -87,15 +87,12 @@ typedef void *(*memmove_local_fn)(void *dest, const void *src, size_t len,
 		unsigned flags);
 typedef void *(*memset_local_fn)(void *dest, int c, size_t len, unsigned flags);
 
-typedef int (*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
-				size_t len, unsigned lane, unsigned flags);
-
 typedef uint64_t type_num_t;
 
 #define CONVERSION_FLAG_OLD_SET_CACHE ((1ULL) << 0)
 
 /* PMEM_OBJ_POOL_HEAD_SIZE Without the unused and unused2 arrays */
-#define PMEM_OBJ_POOL_HEAD_SIZE 2196
+#define PMEM_OBJ_POOL_HEAD_SIZE 2110
 #define PMEM_OBJ_POOL_UNUSED2_SIZE (PMEM_PAGESIZE \
 					- OBJ_DSC_P_UNUSED\
 					- PMEM_OBJ_POOL_HEAD_SIZE)
@@ -159,15 +156,6 @@ struct pmemobjpool {
 
 	PMEMmutex rootlock;	/* root object lock */
 	int is_master_replica;
-	int has_remote_replicas;
-
-	/* remote replica section */
-	void *rpp;	/* RPMEMpool opaque handle if it is a remote replica */
-	uintptr_t remote_base;	/* beginning of the remote pool */
-	char *node_addr;	/* address of a remote node */
-	char *pool_desc;	/* descriptor of a poolset */
-
-	persist_remote_fn persist_remote; /* remote persist function */
 
 	int vg_boot;
 	int tx_debug_skip_expensive_checks;
@@ -247,8 +235,6 @@ OBJ_OFF_IS_VALID_FROM_CTX(void *ctx, uint64_t offset)
 
 void obj_init(void);
 void obj_fini(void);
-int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
-		size_t length);
 
 /*
  * (debug helper macro) logs notice message if used inside a transaction

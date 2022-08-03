@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # prepare-for-build.sh - is called inside a Docker container; prepares
@@ -17,7 +17,7 @@ if [ "$CI_RUN" == "YES" ]; then
 	echo $USERPASS | sudo -S chown -R $(id -u).$(id -g) $WORKDIR
 fi
 
-# Configure tests (e.g. ssh for remote tests) unless the current configuration
+# Configure tests (e.g. python tests) unless the current configuration
 # should be preserved
 KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}
 if [[ "$KEEP_TEST_CONFIG" == 0 ]]; then

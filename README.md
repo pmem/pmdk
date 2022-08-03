@@ -33,7 +33,6 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 	* [Testing Libraries](#testing-libraries-on-windows)
 8. [Debugging](#debugging)
 9. [Experimental Packages](#experimental-packages)
-	* [librpmem and rpmemd packages](#the-librpmem-and-rpmemd-packages)
 	* [Experimental support for 64-bit ARM](#experimental-support-for-64-bit-arm)
 10. [Contact Us](#contact-us)
 
@@ -56,9 +55,7 @@ Libraries available in this repository:
 
 - [libpmemset](https://pmem.io/pmdk/libpmemset/):  (**still in progress**) aims to provide the core functionality any persistent application should have. (EXPERIMENTAL)
 
-- [librpmem](https://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs. (DEPRECATED)
-
-**Librpmem** library is deprecated. If you are interested in a remote persistent
+**Librpmem** library has been removed from PMDK repository. If you are interested in a remote persistent
 memory support please look at new library [rpma](https://github.com/pmem/rpma).
 
 If you're looking for *libvmem* and *libvmmalloc*, they have been moved to a
@@ -77,7 +74,7 @@ For information on how these libraries are licensed, see our [LICENSE](LICENSE) 
 >
 ><sup>2</sup> PMDK for Windows is feature complete, but not yet considered production quality.
 >
-><sup>3</sup> DAX and **libfabric** are not yet supported in FreeBSD, so at this time PMDK is available as a technical preview release for development purposes.
+><sup>3</sup> DAX is not yet supported in FreeBSD, so at this time PMDK is available as a technical preview release for development purposes.
 
 ## Getting Started
 
@@ -140,8 +137,6 @@ You will need to install the following required packages on the build system:
 
 The following packages are required only by selected PMDK components
 or features:
-
-* **libfabric** (v1.4.2 or later) -- required by **librpmem**
 
 ><sup>1</sup> PMDK depends on libndctl to support RAS features. It is possible
 to disable this support by passing NDCTL_ENABLE=n to "make", but we strongly

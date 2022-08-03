@@ -43,7 +43,7 @@ part of such a *pool set* may be stored on a different pmem-aware filesystem.
 
 To improve reliability and eliminate single point of failure, **libpmemobj**(7)
 also allows all the data written to a persistent memory pool to be copied
-to local _WINUX(,or remote) pool *replicas*, thereby providing backup for the
+to local pool *replicas*, thereby providing backup for the
 persistent memory pool by producing a *mirrored pool set*. In practice,
 the pool replicas may be considered as binary copies of the "master" pool set.
 Data replication is not supported in **libpmemblk**(7) and **libpmemlog**(7).
@@ -147,27 +147,8 @@ $ pmempool create log mypool.set
 Sections defining replica sets are optional. There may be multiple replica
 sections.
 
-Local replica sections begin with a line containing only the literal string
+Replica sections begin with a line containing only the literal string
 "REPLICA", followed by one or more pool part lines as described above.
-
-_WINUX(,
-=q=Remote replica sections consist of the *REPLICA* keyword, followed on
-the same line by the address of a remote host and a relative path to a
-remote pool set file:
-
-```
-REPLICA [<user>@]<hostname> [<relative-path>/]<remote-pool-set-file>
-```
-
-+ *hostname* must be in the format recognized by the **ssh**(1) remote login
-client
-
-+ *pathname* is relative to the root config directory on the target
-node - see **librpmem**(7)
-
-There are no other lines in the remote replica section - the REPLICA line
-defines a remote replica entirely.
-=e=)
 
 Here is an example "myobjpool.set" file with replicas:
 
@@ -180,10 +161,7 @@ PMEMPOOLSET
 # local replica
 REPLICA
 500G /mountpoint3/mymirror.part0
-200G /mountpoint4/mymirror.part1 _WINUX(,=q=
-
-# remote replica
-REPLICA user@example.com remote-objpool.set=e=)
+200G /mountpoint4/mymirror.part1
 ```
 
 The files in the object pool set may be created by running the following command:
@@ -191,10 +169,6 @@ The files in the object pool set may be created by running the following command
 ```
 $ pmempool create --layout="mylayout" obj myobjpool.set
 ```
-
-_WINUX(,
-=q=Remote replica cannot have replicas, i.e. a remote pool set file cannot
-define any replicas.=e=)
 
 # POOL SET OPTIONS #
 
@@ -204,29 +178,17 @@ supported:
 
 + *SINGLEHDR*
 
-+ *NOHDRS*
-
 If the *SINGLEHDR* option is used, only the first part in each replica contains
 the pool part internal metadata. In that case the effective size of a replica
 is the sum of sizes of all its part files decreased once by 4096 bytes.
 
-The *NOHDRS* option can appear only in the remote pool set file, when
-**librpmem** does not serve as a means of replication for **libpmemobj** pool.
-In that case none of the pool parts contains internal metadata.
-The effective size of such a replica is the sum of sizes of all its part files.
-
-Options *SINGLEHDR* and *NOHDRS* are mutually exclusive. If both are specified
+Option *SINGLEHDR* is mutually exclusive. It is specified
 in a pool set file, creating or opening the pool will fail with an error.
 
-When using the *SINGLEHDR* or *NOHDRS* option, one can concatenate more than one
+When using the *SINGLEHDR* option, one can concatenate more than one
 Device DAX devices with any internal alignments in one replica.
 
-The *SINGLEHDR* option concerns only replicas that are local to the pool set
-file. That is if one wants to create a pool set with the *SINGLEHDR* option
-and with remote replicas, one has to add this option to the local pool set file
-as well as to every single remote pool set file.
-
-Using the *SINGLEHDR* and *NOHDRS* options has important implications for data
+Using the *SINGLEHDR* option has important implications for data
 integrity checking and recoverability in case of a pool set damage.
 See _UW(pmempool_sync) API for more information about pool set recovery.
 
@@ -266,7 +228,7 @@ Creation of all the parts of the pool set and the associated replica sets can
 be done with the **pmemobj_create**(3), **pmemblk_create**(3) or
 **pmemlog_create**(3) function, or by using the **pmempool**(1) utility.
 
-Restoring data from a local _WINUX(,or remote) replica can be done by using the
+Restoring data from a replica can be done by using the
 **pmempool-sync**(1) command or the _UW(pmempool_sync) API from the
 **libpmempool**(7) library.
 

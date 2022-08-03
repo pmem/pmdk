@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * libpmempool_rm -- a unittest for pmempool_rm.
@@ -33,9 +33,6 @@ main(int argc, char *argv[])
 		switch (opt) {
 		case 'f':
 			flags |= PMEMPOOL_RM_FORCE;
-			break;
-		case 'r':
-			flags |= PMEMPOOL_RM_POOLSET_REMOTE;
 			break;
 		case 'l':
 			flags |= PMEMPOOL_RM_POOLSET_LOCAL;

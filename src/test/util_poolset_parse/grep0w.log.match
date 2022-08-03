@@ -7,7 +7,6 @@ $(*)pool5$(nW).set [invalid token found in the current line:2]
 $(*)set file format correct ($(nW)pool6$(nW).set)
 $(*)pool7$(nW).set [no replica parts:4]
 $(*)pool8$(nW).set [exactly 'REPLICA' expected:3]
-$(*)pool9$(nW).set [address of remote node and descriptor of remote pool set expected:3]
 $(*)pool10$(nW).set [invalid token found in the current line:4]
 $(*)set file format correct ($(nW)pool11$(nW).set)
 $(*)set file format correct ($(nW)pool12$(nW).set)
@@ -36,8 +35,6 @@ $(*)set file format correct ($(nW)pool34$(nW).set)
 $(*)set file format correct ($(nW)pool35$(nW).set)
 $(*)set file format correct ($(nW)pool36$(nW).set)
 $(*)set file format correct ($(nW)pool37$(nW).set)
-$(*)pool38$(nW).set [address of remote node and descriptor of remote pool set expected:7]
-$(*)pool39$(nW).set [incorrect descriptor (must be a relative path):7]
 $(*)pool40$(nW).set [cannot determine size of a part:2]
 $(*)pool41$(nW).set [cannot determine size of a part:4]
 $(*)pool42$(nW).set [cannot determine size of a part:8]
@@ -59,5 +56,4 @@ $(*)pool57$(nW).set [unknown option:2]
 $(*)pool58$(nW).set [unknown option:3]
 $(*)pool59$(nW).set [unknown option:6]
 $(*)pool60$(nW).set [invalid token found in the current line:2]
-$(*)pool61$(nW).set [invalid token found in the current line:3]
-$(*)pool62$(nW).set [unexpected parts for remote replica:4]
+$(*)set file format correct ($(nW)pool61$(nW).set)

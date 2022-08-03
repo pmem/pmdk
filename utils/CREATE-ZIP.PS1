@@ -67,7 +67,6 @@ foreach ($app in $apps) {
 Copy-Item -Recurse ($rootdir + "src\include") ($zipdir)
 Remove-Item -Force ($zipdir + "include\.cstyleignore")
 Remove-Item -Force ($zipdir + "include\README")
-Remove-Item -Force ($zipdir + "include\librpmem.h")
 Copy-Item ($rootdir + "README.md") ($zipdir)
 Copy-Item ($rootdir + "LICENSE") ($zipdir)
 Copy-Item ($rootdir + "ChangeLog") ($zipdir)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2021, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 
 #
 # build-dpkg.sh - Script for building deb packages
@@ -59,10 +59,6 @@ do
 		;;
 	-f)
 		TEST_CONFIG_FILE="$2"
-		shift 2
-		;;
-	-r)
-		BUILD_RPMEM="$2"
 		shift 2
 		;;
 	-n)
@@ -139,98 +135,6 @@ function convert_changelog() {
 			echo "    ${MESSAGE}"
 		fi
 	done < $1
-}
-
-function rpmem_install_triggers_overrides() {
-cat << EOF > debian/librpmem.install
-$LIB_DIR/librpmem.so.*
-EOF
-
-cat << EOF > debian/librpmem.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-librpmem: package-name-doesnt-match-sonames
-EOF
-
-cat << EOF > debian/librpmem-dev.install
-$LIB_DIR/pmdk_debug/librpmem.a $LIB_DIR/pmdk_dbg/
-$LIB_DIR/pmdk_debug/librpmem.so $LIB_DIR/pmdk_dbg/
-$LIB_DIR/pmdk_debug/librpmem.so.* $LIB_DIR/pmdk_dbg/
-$LIB_DIR/librpmem.so
-$LIB_DIR/pkgconfig/librpmem.pc
-$INC_DIR/librpmem.h
-$MAN7_DIR/librpmem.7
-$MAN3_DIR/rpmem_*.3
-EOF
-
-cat << EOF > debian/librpmem-dev.triggers
-interest man-db
-EOF
-
-cat << EOF > debian/librpmem-dev.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-# The following warnings are triggered by a bug in debhelper:
-# https://bugs.debian.org/204975
-postinst-has-useless-call-to-ldconfig
-postrm-has-useless-call-to-ldconfig
-# We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
-EOF
-
-cat << EOF > debian/rpmemd.install
-usr/bin/rpmemd
-$MAN1_DIR/rpmemd.1
-EOF
-
-cat << EOF > debian/rpmemd.triggers
-interest man-db
-EOF
-
-cat << EOF > debian/rpmemd.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-EOF
-}
-
-function append_rpmem_control() {
-cat << EOF >> $CONTROL_FILE
-
-Package: librpmem
-Architecture: any
-Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory remote access support library
- librpmem provides low-level support for remote access to persistent memory
- (pmem) utilizing RDMA-capable RNICs. The library can be used to replicate
- remotely a memory region over RDMA protocol. It utilizes appropriate
- persistency mechanism based on remote node’s platform capabilities. The
- librpmem utilizes the ssh client to authenticate a user on remote node and for
- encryption of connection’s out-of-band configuration data.
- .
- This library is for applications that use remote persistent memory directly,
- without the help of any library-supplied transactions or memory allocation.
- Higher-level libraries that build on libpmem are available and are recommended
- for most applications.
-
-Package: librpmem-dev
-Section: libdevel
-Architecture: any
-Depends: librpmem (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for librpmem
- librpmem provides low-level support for remote access to persistent memory
- (pmem) utilizing RDMA-capable RNICs.
- .
- This package contains libraries and header files used for linking programs
- against librpmem.
-
-Package: rpmemd
-Section: misc
-Architecture: any
-Priority: optional
-Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: rpmem daemon
- Daemon for Remote Persistent Memory support.
-EOF
 }
 
 function libpmem2_install_triggers_overrides() {
@@ -848,13 +752,6 @@ cat << EOF > debian/pmreorder.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 EOF
-
-# librpmem & rpmemd
-if [ "${BUILD_RPMEM}" = "y" ]
-then
-	append_rpmem_control;
-	rpmem_install_triggers_overrides;
-fi
 
 # libpmem2
 if [ "${PMEM2_INSTALL}" == "y" ]

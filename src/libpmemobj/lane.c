@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * lane.c -- lane implementation
@@ -509,17 +509,6 @@ get_lane_info_record(PMEMobjpool *pop)
 unsigned
 lane_hold(PMEMobjpool *pop, struct lane **lanep)
 {
-	/*
-	 * Before runtime lane initialization all remote operations are
-	 * executed using RLANE_DEFAULT.
-	 */
-	if (unlikely(!pop->lanes_desc.runtime_nlanes)) {
-		ASSERT(pop->has_remote_replicas);
-		if (lanep != NULL)
-			FATAL("cannot obtain section before lane's init");
-		return RLANE_DEFAULT;
-	}
-
 	struct lane_info *lane = get_lane_info_record(pop);
 	while (unlikely(lane->lane_idx == UINT64_MAX)) {
 		/* initial wrap to next CL */
@@ -556,11 +545,6 @@ lane_hold(PMEMobjpool *pop, struct lane **lanep)
 void
 lane_release(PMEMobjpool *pop)
 {
-	if (unlikely(!pop->lanes_desc.runtime_nlanes)) {
-		ASSERT(pop->has_remote_replicas);
-		return;
-	}
-
 	struct lane_info *lane = get_lane_info_record(pop);
 
 	ASSERTne(lane, NULL);

@@ -63,7 +63,7 @@ There are following test set files available:
 	- TEST 34 - correct set file: blank lines
 	- TEST 35 - correct set file: blank lines
 	- TEST 36 - correct set file: whitespace before size
-	- TEST 37 - correct set file: remote replica
+	- TEST 37 - correct set file: replica word at the beginning
 	- TEST 38 - incorrect set file: invalid replica's part's line:
                     missing descriptor
 	- TEST 39 - incorrect set file: invalid replica's part's line:
@@ -79,7 +79,6 @@ There are following test set files available:
 
 	- TEST 60 - incorrect set file: too many tokens in part's line
 	- TEST 61 - incorrect set file: invalid "REPLICA" line (too many tokens)
-	- TEST 62 - incorrect set file: unexpected parts for remote replica
 
 Additional scenarios for Device DAX (require Device DAX to be present):
 	- TEST1 - set file with one Device DAX part
