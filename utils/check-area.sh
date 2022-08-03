@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 #
 # Finds applicable area name for specified commit id.
@@ -36,7 +36,6 @@ echo "Areas computed basing on the list of modified files: (see utils/check-area
 categorize core      -e "^src/core/"
 categorize pmem      -e "^src/libpmem/"     -e "^src/include/libpmem.h"
 categorize pmem2     -e "^src/libpmem2/"    -e "^src/include/libpmem2.h" -e "^src/include/libpmem2/"
-categorize rpmem     -e "^src/librpmem/"    -e "^src/include/librpmem.h" -e "^src/tools/rpmemd/" -e "^src/rpmem_common/"
 categorize log       -e "^src/libpmemlog/"  -e "^src/include/libpmemlog.h"
 categorize blk       -e "^src/libpmemblk/"  -e "^src/include/libpmemblk.h"
 categorize obj       -e "^src/libpmemobj/"  -e "^src/include/libpmemobj.h" -e "^src/include/libpmemobj/"

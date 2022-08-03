@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2021, Intel Corporation
+# Copyright 2017-2022, Intel Corporation
 
 #
 # build-local.sh - runs a Docker container from a Docker image with environment
@@ -26,7 +26,6 @@ set -e
 export KEEP_CONTAINER=${KEEP_CONTAINER:-0}
 export KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}
 export TEST_BUILD=${TEST_BUILD:-all}
-export REMOTE_TESTS=${REMOTE_TESTS:-1}
 export MAKE_PKG=${MAKE_PKG:-0}
 export EXTRA_CFLAGS=${EXTRA_CFLAGS}
 export EXTRA_CXXFLAGS=${EXTRA_CXXFLAGS:-}
@@ -100,7 +99,6 @@ docker run --name=$containerName -ti \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env EXTRA_CXXFLAGS=$EXTRA_CXXFLAGS \
 	--env EXTRA_LDFLAGS=$EXTRA_LDFLAGS \
-	--env REMOTE_TESTS=$REMOTE_TESTS \
 	--env CONFIGURE_TESTS=$CONFIGURE_TESTS \
 	--env TEST_BUILD=$TEST_BUILD \
 	--env WORKDIR=$WORKDIR \

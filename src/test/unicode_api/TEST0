@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
 # src/test/unicode_api/TEST0 -- unicode C API check
@@ -18,7 +18,7 @@ require_command clang
 
 SRC=../..
 HEADERS_DIR=$SRC/include
-EXC_PATT="set_funcs|strdup|rpmem"
+EXC_PATT="set_funcs|strdup"
 FAILED=0
 DEF_COL=6
 

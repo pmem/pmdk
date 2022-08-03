@@ -9,7 +9,7 @@ header: "pmem Tools version 1.4"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2016-2022, Intel Corporation)
 
 [comment]: <> (pmempool-rm.1 -- man page for pmempool-rm)
 
@@ -32,15 +32,12 @@ $ pmempool rm [<options>] <file>..
 # DESCRIPTION #
 
 The **pmempool rm** command removes each specified file. If the specified file
-is a pool set file, all pool files (single-file pool or part files) and remote
-replicas are removed. By default the **pmempool rm** does not remove pool set
-files. All local and remote pool files are removed using **unlink**(3) call,
+is a pool set file, all pool files (single-file pool or part files) are removed.
+By default the **pmempool rm** does not remove pool set
+files. All pool files are removed using **unlink**(3) call,
 except the pools created on **device dax** which are zeroed instead.
-If specified file does not exist, the remote pool is broken or not accessible,
-the **pmempool rm** command terminates with an error code. By default it prompts
-before removing *write-protected* local files.
-See **REMOTE REPLICATION** section for more details about support for remote
-pools.
+If specified file does not exist the **pmempool rm** command terminates with an error code.
+By default it prompts before removing *write-protected* files.
 See **EXAMPLES** section for example usage of the *rm* command.
 
 ##### Available options: #####
@@ -59,15 +56,11 @@ Remove only pool files and do not remove pool set files (default behaviour).
 
 `-a, --all`
 
-Remove all pool set files - local and remote.
+Remove all pool set files.
 
 `-l, --local`
 
 Remove local pool set files.
-
-`-r, --remote`
-
-Remove remote pool set files.
 
 `-f, --force`
 
@@ -75,14 +68,7 @@ Remove all specified files, ignore nonexistent files, never prompt.
 
 `-i, --interactive`
 
-Prompt before removing every single file or remote pool.
-
-# REMOTE REPLICATION #
-
-A remote pool is removed using **rpmem_remove**(3) function if **librpmem**(7)
-library is available. If a pool set file contains remote replication but
-**librpmem**(7) is not available, the **pmempool rm** command terminates with
-an error code, unless the **-f, --force** option is specified.
+Prompt before removing every single file.
 
 # EXAMPLE #
 
@@ -102,10 +88,9 @@ Remove all pool files from the "pool.set", do not remove *pool.set* itself.
 $ pmempool rm -a pool.set
 ```
 
-Remove all pool files from the "pool.set", remove the local pool set file and all
-remote pool set files.
+Remove all pool files from the "pool.set".
 
 # SEE ALSO #
 
 **pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7), **librpmem**(7) and **<https://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

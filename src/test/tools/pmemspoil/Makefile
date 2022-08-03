@@ -1,12 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 #
 # Makefile -- Makefile for pmemspoil tool
 #
 
 TOP=../../../..
-
-SCP_TO_REMOTE_NODES = y
 
 TARGET = pmemspoil
 

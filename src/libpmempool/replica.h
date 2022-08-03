@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * replica.h -- module for synchronizing and transforming poolset
@@ -45,11 +45,6 @@ extern "C" {
  * called by pmempool_transform
  */
 #define IS_TRANSFORMED		(1U << 10)
-
-/*
- * Number of lanes utilized when working with remote replicas
- */
-#define REMOTE_NLANES	1
 
 /*
  * Helping structures for storing part's health status

@@ -1,6 +1,0 @@
-persistency policy:
-    persist method: General Purpose Server Persistency Method
-    persist flush: pmem_msync
-persistency policy:
-    persist method: General Purpose Server Persistency Method
-    persist flush: pmem_persist

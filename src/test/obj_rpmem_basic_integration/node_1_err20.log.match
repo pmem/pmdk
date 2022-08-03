@@ -1,1 +1,0 @@
-$(*) obj_rpmem_basic_integration/TEST20: Error: pmemobj_create: $(nW)/testset_local: Invalid argument

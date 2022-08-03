@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 
 #
 # RUNTESTS -- setup the environment and run each test
@@ -16,7 +16,6 @@ usage()
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 		[ -o timeout ] [ -s test-file | -u test-sequence ] [-k skip-dir ]
 		[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
-		[ -q provider ] [ -r persistency-method ]
 		[tests...]
 -h			print this help message
 -n			dry run
@@ -54,10 +53,6 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			force-enable (enable when test does not require drd, but
 			obey test's explicit drd disable)
 -c			check pool files with pmempool check utility
--q provider		run test only with specified fabric provider
-			provider: verbs, sockets, all (default)
--r persistency-method	run tests only with specified persistency method
-			persistency-method: GPSPM, APM, all (default)
 EOF
 	exit 1
 }
@@ -66,8 +61,6 @@ EOF
 # runtest_local -- run test using provided parameters
 #
 runtest_local() {
-	export CLEAN_FAILED_REMOTE=n
-
 	local verbose_old=-1
 	for vt in ${verbose_tests//:/ }; do
 		[ "$RUNTEST_DIR" == "$vt" ] && {
@@ -106,10 +99,6 @@ runtest_local() {
 			((fail_count+=1))
 
 			if [ "$CLEAN_FAILED" == "y" ]; then
-				if [[ $CMD_STR == *"RPMEM_PROVIDER"* ]]; then
-					export CLEAN_FAILED_REMOTE=y
-					eval "$CMD_STR"
-				fi
 				dir_rm=$(<$TEMP_LOC)
 				rm -Rf $dir_rm
 				if [ $? -ne 0 ]; then
@@ -128,29 +117,12 @@ runtest_local() {
 }
 
 #
-# runtest_remote -- add remote persistency parameters and run a test
-#	usage: runtest_remote <provider> <persistency-method>
-#
-runtest_remote() {
-	local params="$RUNTEST_PARAMS"
-	for prov in $1; do
-		for pm in $2; do
-			export RUNTEST_PARAMS="$params RPMEM_PROVIDER=$prov RPMEM_PM=$pm"
-			runtest_local
-		done
-	done
-}
-
-#
 # load_default_global_test_configuration -- load a default global configuration
 #
 load_default_global_test_configuration() {
 	global_req_testtype=all
 	global_req_fstype=all
 	global_req_buildtype=all
-	global_req_provider=none
-	global_req_pmethod=none
-	global_req_rpmem_valgrind=n
 	global_req_timeout='3m'
 
 	return 0
@@ -174,18 +146,12 @@ read_global_test_configuration() {
 	unset CONF_GLOBAL_TEST_TYPE
 	unset CONF_GLOBAL_FS_TYPE
 	unset CONF_GLOBAL_BUILD_TYPE
-	unset CONF_GLOBAL_RPMEM_PROVIDER
-	unset CONF_GLOBAL_RPMEM_PMETHOD
-	unset CONF_GLOBAL_RPMEM_VALGRIND
 	unset CONF_GLOBAL_TIMEOUT
 
 	# unset all local settings
 	unset CONF_TEST_TYPE
 	unset CONF_FS_TYPE
 	unset CONF_BUILD_TYPE
-	unset CONF_RPMEM_PROVIDER
-	unset CONF_RPMEM_PMETHOD
-	unset CONF_RPMEM_VALGRIND
 	unset CONF_TIMEOUT
 
 	. config.sh
@@ -193,9 +159,6 @@ read_global_test_configuration() {
 	[ -n "$CONF_GLOBAL_TEST_TYPE" ] && global_req_testtype=$CONF_GLOBAL_TEST_TYPE
 	[ -n "$CONF_GLOBAL_FS_TYPE" ] && global_req_fstype=$CONF_GLOBAL_FS_TYPE
 	[ -n "$CONF_GLOBAL_BUILD_TYPE" ] && global_req_buildtype=$CONF_GLOBAL_BUILD_TYPE
-	[ -n "$CONF_GLOBAL_RPMEM_PROVIDER" ] && global_req_provider=$CONF_GLOBAL_RPMEM_PROVIDER
-	[ -n "$CONF_GLOBAL_RPMEM_PMETHOD" ] && global_req_pmethod=$CONF_GLOBAL_RPMEM_PMETHOD
-	[ -n "$CONF_GLOBAL_RPMEM_VALGRIND" ] && global_req_rpmem_valgrind=$CONF_GLOBAL_RPMEM_VALGRIND
 	[ -n "$CONF_GLOBAL_TIMEOUT" ] && global_req_timeout=$CONF_GLOBAL_TIMEOUT
 
 	return 0
@@ -210,17 +173,11 @@ read_test_configuration() {
 	req_testtype=$global_req_testtype
 	req_fstype=$global_req_fstype
 	req_buildtype=$global_req_buildtype
-	req_provider=$global_req_provider
-	req_pmethod=$global_req_pmethod
-	req_rpmem_valgrind=$global_req_rpmem_valgrind
 	req_timeout=$global_req_timeout
 
 	[ -n "${CONF_TEST_TYPE[$1]}" ] && req_testtype=${CONF_TEST_TYPE[$1]}
 	[ -n "${CONF_FS_TYPE[$1]}" ] && req_fstype=${CONF_FS_TYPE[$1]}
 	[ -n "${CONF_BUILD_TYPE[$1]}" ] && req_buildtype=${CONF_BUILD_TYPE[$1]}
-	[ -n "${CONF_RPMEM_PROVIDER[$1]}" ] && req_provider=${CONF_RPMEM_PROVIDER[$1]}
-	[ -n "${CONF_RPMEM_PMETHOD[$1]}" ] && req_pmethod=${CONF_RPMEM_PMETHOD[$1]}
-	[ -n "${CONF_RPMEM_VALGRIND[$1]}" ] && req_rpmem_valgrind=${CONF_RPMEM_VALGRIND[$1]}
 	if [ -n "$runtest_timeout" ]; then
 		req_timeout="$runtest_timeout"
 	else
@@ -328,39 +285,8 @@ runtest() {
 			exit 1
 		}
 
-		[ "$req_rpmem_valgrind" == "y" -a "$RPMEM_VALGRIND_ENABLED" != "y" ] && {
-			echo "$UNITTEST_NAME: SKIP: remote valgrind tests disabled"
-			continue
-		}
-
 		fss=$(intersection "$fstype" "$req_fstype" "none pmem non-pmem any")
 		builds=$(intersection "$buildtype" "$req_buildtype" "debug nondebug static-debug static-nondebug")
-		provs=$(intersection "$provider" "$req_provider" "verbs sockets")
-		pmeths=$(intersection "$pmethod" "$req_pmethod" "GPSPM APM")
-
-		# remote tests require both providers and pmethods
-		# local tests require neither providers nor pmethods
-		# anything in between indicates invalid test configuration
-		[ "$req_provider" == "none" -a "$req_pmethod" != "none" ] ||
-			[ "$req_provider" != "none" -a "$req_pmethod" == "none" ] && {
-				echo "$UNITTEST_NAME: invalid test configuration"
-				echo "CONF_(GLOBAL_)RPMEM_PROVIDER ($req_provider) and " \
-					"CONF_(GLOBAL_)RPMEM_PMETHOD ($req_pmethod) have to be set both or neither"
-				exit 1
-			}
-
-		# skip remote test if required providers or persistency methods are missing
-		# remote tests have req_provider != "none"
-		[ "$req_provider" != "none" ] && {
-			[ -z "$provs" ] && {
-				echo "$UNITTEST_NAME: SKIP: required providers ($req_provider) are missing"
-				continue
-			}
-			[ -z "$pmeths" ] && {
-				echo "$UNITTEST_NAME: SKIP: required pmethods ($req_pmethod) are missing"
-				continue
-			}
-		}
 
 		# for each fs-type being tested...
 		for fs in $fss
@@ -398,12 +324,7 @@ runtest() {
 				# to not overwrite logs skip other tests from the group
 				# if KEEP_GOING=y and test fail
 				if [ "$keep_going_skip" == "n" ]; then
-					# remote tests have req_provider != "none"
-					if [ "$req_provider" != "none" ]; then
-						runtest_remote "$provs" "$pmeths"
-					else
-						runtest_local
-					fi
+					runtest_local
 				fi
 			done
 		done
@@ -431,8 +352,6 @@ EOF
 def_buildtype=all
 testtype=check
 fstype=all
-provider=all
-pmethod=all
 testconfig="./testconfig.sh"
 killopt="-k 10s"
 runtest_timeout="3m"
@@ -457,8 +376,6 @@ verbose_tests=
 [ -n "$TEST_TYPE" ] && testtype=$TEST_TYPE
 [ -n "$TEST_FS" ] && fstype=$TEST_FS
 [ -n "$TEST_TIMEOUT" ] && runtest_timeout=$TEST_TIMEOUT
-[ -n "$TEST_PROVIDERS" ] && provider=$TEST_PROVIDERS
-[ -n "$TEST_PMETHODS" ] && pmethod=$TEST_PMETHODS
 [ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
 [ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
 
@@ -671,30 +588,6 @@ do
 		check_pool=1
 		shift
 		;;
-	-q)
-		provider="$2"
-		shift 2
-		case "$provider"
-		in
-		verbs|sockets|all)
-			;;
-		*)
-			usage "bad provider: $provider"
-			;;
-		esac
-		;;
-	-r)
-		pmethod="$2"
-		shift 2
-		case "$pmethod"
-		in
-		GPSPM|APM|all)
-			;;
-		*)
-			usage "bad persistency-method: $pmethod"
-			;;
-		esac
-		;;
 	--)
 		shift
 		break
@@ -743,8 +636,6 @@ done
 		check_pool_str="no"
 	fi
 	echo "    check-pool: $check_pool_str"
-	echo "    provider: $provider"
-	echo "    persistency-method: $pmethod"
 	echo "    skip-dir: $skip_dir"
 	echo Tests: $*
 }

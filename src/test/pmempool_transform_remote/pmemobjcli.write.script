@@ -1,3 +1,0 @@
-pmemobj_root 11M
-str_root_copy 0 TestOK111
-str_root_copy 10M TestOK222

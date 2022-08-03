@@ -1,3 +1,0 @@
-rpmem_open: Pool set or its part doesn't exist or it is unavailable
-removing pool failed: remote command failed
-rpmem_create: Pool already exists

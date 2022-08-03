@@ -1,2 +1,0 @@
-error: cannot remove 'testset_remote' on $(nW): $(S)
-error: removing '$(nW)testset_local' failed: $(S)

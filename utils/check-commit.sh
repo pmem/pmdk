@@ -35,7 +35,7 @@ if [[ $body =~ "git-subtree-dir: src/deps/miniasync" ]]; then
 fi
 
 # valid area names
-AREAS="pmem\|pmem2\|rpmem\|log\|blk\|obj\|pool\|set\|test\|benchmark\|examples\|doc\|core\|common\|daxio\|pmreorder"
+AREAS="pmem\|pmem2\|log\|blk\|obj\|pool\|set\|test\|benchmark\|examples\|doc\|core\|common\|daxio\|pmreorder"
 
 prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
 

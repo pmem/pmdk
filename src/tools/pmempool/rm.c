@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * rm.c -- pmempool rm command main source file
@@ -20,10 +20,6 @@
 #include "rm.h"
 #include "set.h"
 
-#ifdef USE_RPMEM
-#include "librpmem.h"
-#endif
-
 enum ask_type {
 	ASK_SOMETIMES,	/* ask before removing write-protected files */
 	ASK_ALWAYS,	/* always ask */
@@ -37,13 +33,10 @@ static int force;
 /* poolset files options */
 #define RM_POOLSET_NONE		(0)
 #define RM_POOLSET_LOCAL	(1 << 0)
-#define RM_POOLSET_REMOTE	(1 << 1)
-#define RM_POOLSET_ALL		(RM_POOLSET_LOCAL | RM_POOLSET_REMOTE)
+#define RM_POOLSET_ALL		(RM_POOLSET_LOCAL)
 static int rm_poolset_mode;
 /* mode of interaction */
 static enum ask_type ask_mode;
-/* indicates whether librpmem is available */
-static int rpmem_avail;
 
 /* help message */
 static const char * const help_str =
@@ -53,16 +46,15 @@ static const char * const help_str =
 "  -h, --help           Print this help message.\n"
 "  -v, --verbose        Be verbose.\n"
 "  -s, --only-pools     Remove only pool files (default).\n"
-"  -a, --all            Remove all poolset files - local and remote.\n"
+"  -a, --all            Remove all poolset files.\n"
 "  -l, --local          Remove local poolset files\n"
-"  -r, --remote         Remove remote poolset files\n"
 "  -f, --force          Ignore nonexisting files.\n"
 "  -i, --interactive    Prompt before every single removal.\n"
 "\n"
 "For complete documentation see %s-rm(1) manual page.\n";
 
 /* short options string */
-static const char *optstr = "hvsfialr";
+static const char *optstr = "hvsfial";
 /* long options */
 static const struct option long_options[] = {
 	{"help",	no_argument,		NULL, 'h'},
@@ -70,7 +62,6 @@ static const struct option long_options[] = {
 	{"only-pools",	no_argument,		NULL, 's'},
 	{"all",		no_argument,		NULL, 'a'},
 	{"local",	no_argument,		NULL, 'l'},
-	{"remote",	no_argument,		NULL, 'r'},
 	{"force",	no_argument,		NULL, 'f'},
 	{"interactive",	no_argument,		NULL, 'i'},
 	{NULL,		0,			NULL,  0 },
@@ -133,80 +124,6 @@ rm_file(const char *file)
 }
 
 /*
- * remove_remote -- (internal) remove remote pool
- */
-static int
-remove_remote(const char *target, const char *pool_set)
-{
-#ifdef USE_RPMEM
-	char cask = 'y';
-	switch (ask_mode) {
-	case ASK_ALWAYS:
-		cask = '?';
-		break;
-	case ASK_NEVER:
-	case ASK_SOMETIMES:
-		cask = 'y';
-		break;
-	default:
-		outv_err("unknown state");
-		return 1;
-	}
-
-	char ans = ask_Yn(cask, "remove remote pool '%s' on '%s'?",
-		pool_set, target);
-	if (ans == INV_ANS)
-		outv(1, "invalid answer\n");
-
-	if (ans != 'y')
-		return 0;
-
-	if (!rpmem_avail) {
-		if (force) {
-			outv(1, "cannot remove '%s' on '%s' -- "
-				"librpmem not available", pool_set, target);
-			return 0;
-		}
-
-		outv_err("!cannot remove '%s' on '%s' -- "
-			"librpmem not available", pool_set, target);
-		return 1;
-	}
-
-	int flags = 0;
-	if (rm_poolset_mode & RM_POOLSET_REMOTE)
-		flags |= RPMEM_REMOVE_POOL_SET;
-	if (force)
-		flags |= RPMEM_REMOVE_FORCE;
-
-	int ret = Rpmem_remove(target, pool_set, flags);
-	if (ret) {
-		if (force) {
-			ret = 0;
-			outv(1, "cannot remove '%s' on '%s'",
-					pool_set, target);
-		} else {
-			/*
-			 * Callback cannot return < 0 value because it
-			 * is interpreted as error in parsing poolset file.
-			 */
-			ret = 1;
-			outv_err("!cannot remove '%s' on '%s'",
-					pool_set, target);
-		}
-	} else {
-		outv(1, "removed '%s' on '%s'\n",
-				pool_set, target);
-	}
-
-	return ret;
-#else
-	outv_err("remote replication not supported");
-	return 1;
-#endif
-}
-
-/*
  * rm_poolset_cb -- (internal) callback for removing replicas
  */
 static int
@@ -214,30 +131,26 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 {
 	int *error = (int *)arg;
 	int ret;
-	if (pf->is_remote) {
-		ret = remove_remote(pf->remote->node_addr,
-					pf->remote->pool_desc);
+
+	const char *part_file = pf->part->path;
+
+	outv(2, "part file   : %s\n", part_file);
+
+	int exists = util_file_exists(part_file);
+	if (exists < 0)
+		ret = 1;
+	else if (!exists) {
+		/*
+		 * Ignore not accessible file if force
+		 * flag is set.
+		 */
+		if (force)
+			return 0;
+
+		ret = 1;
+		outv_err("!cannot remove file '%s'", part_file);
 	} else {
-		const char *part_file = pf->part->path;
-
-		outv(2, "part file   : %s\n", part_file);
-
-		int exists = util_file_exists(part_file);
-		if (exists < 0)
-			ret = 1;
-		else if (!exists) {
-			/*
-			 * Ignore not accessible file if force
-			 * flag is set.
-			 */
-			if (force)
-				return 0;
-
-			ret = 1;
-			outv_err("!cannot remove file '%s'", part_file);
-		} else {
-			ret = rm_file(part_file);
-		}
+		ret = rm_file(part_file);
 	}
 
 	if (ret)
@@ -296,9 +209,6 @@ pmempool_rm_func(const char *appname, int argc, char *argv[])
 		case 'l':
 			rm_poolset_mode |= RM_POOLSET_LOCAL;
 			break;
-		case 'r':
-			rm_poolset_mode |= RM_POOLSET_REMOTE;
-			break;
 		case 'f':
 			force = 1;
 			ask_mode = ASK_NEVER;
@@ -318,15 +228,6 @@ pmempool_rm_func(const char *appname, int argc, char *argv[])
 		print_usage(appname);
 		return 1;
 	}
-
-#ifdef USE_RPMEM
-	/*
-	 * Try to load librpmem, if loading failed -
-	 * assume it is not available.
-	 */
-	util_remote_init();
-	rpmem_avail = !util_remote_load();
-#endif
 
 	int lret = 0;
 	for (int i = optind; i < argc; i++) {
