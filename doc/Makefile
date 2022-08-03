@@ -147,17 +147,6 @@ MANPAGES_3_DUMMY += libpmemset/pmemset_config_delete.3 libpmemset/pmemset_delete
 		    libpmemset/pmemset_source_pwrite_mcsafe.3
 endif
 
-ifeq ($(BUILD_RPMEM),y)
-MANPAGES_7_MD += librpmem/librpmem.7.md
-MANPAGES_3_MD += librpmem/rpmem_create.3.md
-MANPAGES_3_MD += librpmem/rpmem_persist.3.md
-MANPAGES_1_MD += rpmemd/rpmemd.1.md
-MANPAGES_3_DUMMY += librpmem/rpmem_open.3 librpmem/rpmem_set_attr.3 librpmem/rpmem_close.3 \
-		    librpmem/rpmem_read.3 librpmem/rpmem_remove.3 librpmem/rpmem_check_version.3 \
-		    librpmem/rpmem_errormsg.3 librpmem/rpmem_deep_persist.3 librpmem/rpmem_flush.3 \
-		    librpmem/rpmem_drain.3
-endif
-
 ifeq ($(NDCTL_ENABLE),y)
 MANPAGES_1_MD += daxio/daxio.1.md
 endif

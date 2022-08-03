@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * transform.c -- a module for poolset transforming
@@ -67,9 +67,6 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 	int ret = 0;
 	for (unsigned r = repn; r < set->nreplicas; ++r) {
 		struct pool_replica *repr = set->replica[r];
-		/* skip remote replicas */
-		if (repr->remote != NULL)
-			continue;
 
 		/* avoid superfluous comparisons */
 		unsigned i = (r == repn) ? partn + 1 : 0;
@@ -114,34 +111,6 @@ out:
 }
 
 /*
- * check_if_remote_replica_used_once -- (internal) check if remote replica is
- *                                      used only once in the rest of the
- *                                      poolset
- */
-static int
-check_if_remote_replica_used_once(struct pool_set *set, unsigned repn)
-{
-	LOG(3, "set %p, repn %u", set, repn);
-	struct remote_replica *rep = REP(set, repn)->remote;
-	ASSERTne(rep, NULL);
-	for (unsigned r = repn + 1; r < set->nreplicas; ++r) {
-		/* skip local replicas */
-		if (REP(set, r)->remote == NULL)
-			continue;
-
-		struct remote_replica *repr = REP(set, r)->remote;
-		/* XXX: add comparing resolved addresses of the nodes */
-		if (strcmp(rep->node_addr, repr->node_addr) == 0 &&
-				strcmp(rep->pool_desc, repr->pool_desc) == 0) {
-			ERR("remote replica %u is used multiple times", repn);
-			errno = EINVAL;
-			return -1;
-		}
-	}
-	return 0;
-}
-
-/*
  * check_paths -- (internal) check if directories for part files exist
  *                and if paths for part files do not repeat in the poolset
  */
@@ -151,17 +120,12 @@ check_paths(struct pool_set *set)
 	LOG(3, "set %p", set);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
-		if (rep->remote != NULL) {
-			if (check_if_remote_replica_used_once(set, r))
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			if (replica_check_local_part_dir(set, r, p))
 				return -1;
-		} else {
-			for (unsigned p = 0; p < rep->nparts; ++p) {
-				if (replica_check_local_part_dir(set, r, p))
-					return -1;
 
-				if (check_if_part_used_once(set, r, p))
-					return -1;
-			}
+			if (check_if_part_used_once(set, r, p))
+				return -1;
 		}
 	}
 	return 0;
@@ -261,24 +225,16 @@ compare_replicas(struct pool_replica *r1, struct pool_replica *r2)
 {
 	LOG(3, "r1 %p, r2 %p", r1, r2);
 	LOG(4, "r1->nparts: %u, r2->nparts: %u", r1->nparts, r2->nparts);
-	/* both replicas are local */
-	if (r1->remote == NULL && r2->remote == NULL) {
-		if (r1->nparts != r2->nparts)
-			return 1;
 
-		for (unsigned p = 0; p < r1->nparts; ++p) {
-			if (compare_parts(&r1->part[p], &r2->part[p]))
-				return 1;
-		}
-		return 0;
+	if (r1->nparts != r2->nparts)
+		return 1;
+
+	for (unsigned p = 0; p < r1->nparts; ++p) {
+		if (compare_parts(&r1->part[p], &r2->part[p]))
+			return 1;
 	}
-	/* both replicas are remote */
-	if (r1->remote != NULL && r2->remote != NULL) {
-		return strcmp(r1->remote->node_addr, r2->remote->node_addr) ||
-			strcmp(r1->remote->pool_desc, r2->remote->pool_desc);
-	}
-	/* a remote and a local replicas */
-	return 1;
+
+	return 0;
 }
 
 /*
@@ -495,10 +451,6 @@ do_added_parts_exist(struct pool_set *set,
 
 		struct pool_replica *rep = REP(set, r);
 
-		/* skip remote replicas */
-		if (rep->remote)
-			continue;
-
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			/* check if part file exists */
 			int oerrno = errno;
@@ -528,17 +480,11 @@ delete_replicas(struct pool_set *set, struct poolset_compare_status *set_s)
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = REP(set, r);
 		if (replica_counterpart(r, set_s) == UNDEF_REPLICA) {
-			if (!rep->remote) {
-				if (util_replica_close_local(rep, r,
-						DELETE_ALL_PARTS))
-					return -1;
-			} else {
-				if (util_replica_close_remote(rep, r,
-						DELETE_ALL_PARTS))
-					return -1;
+			if (util_replica_close_local(rep, r,
+					DELETE_ALL_PARTS))
+				return -1;
 			}
 		}
-	}
 	return 0;
 }
 

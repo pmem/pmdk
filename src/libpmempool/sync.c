@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * sync.c -- a module for poolset synchronizing
@@ -19,11 +19,6 @@
 #include "os.h"
 #include "util_pmem.h"
 #include "util.h"
-
-#ifdef USE_RPMEM
-#include "rpmem_common.h"
-#include "rpmem_ssh.h"
-#endif
 
 #define BB_DATA_STR "offset 0x%zx, length 0x%zx, nhealthy %i"
 
@@ -79,47 +74,13 @@ sync_copy_data(void *src_addr, void *dst_addr, size_t off, size_t len,
 		"rep_h %p rep %p part %p",
 		src_addr, dst_addr, off, len, rep_h, rep, part);
 
-	int ret;
+	LOG(10,
+		"copying data (offset 0x%zx length 0x%zx) from local replica -- '%s'",
+		off, len, rep_h->part[0].path);
 
-	if (rep->remote) {
-		LOG(10,
-			"copying data (offset 0x%zx length 0x%zx) to remote node -- '%s' on '%s'",
-			off, len,
-			rep->remote->pool_desc,
-			rep->remote->node_addr);
-
-		ret = Rpmem_persist(rep->remote->rpp, off, len, 0, 0);
-		if (ret) {
-			LOG(1,
-				"copying data to remote node failed -- '%s' on '%s'",
-				rep->remote->pool_desc,
-				rep->remote->node_addr);
-			return -1;
-		}
-	} else if (rep_h->remote) {
-		LOG(10,
-			"reading data (offset 0x%zx length 0x%zx) from remote node -- '%s' on '%s'",
-			off, len,
-			rep_h->remote->pool_desc,
-			rep_h->remote->node_addr);
-
-		ret = Rpmem_read(rep_h->remote->rpp, dst_addr, off, len, 0);
-		if (ret) {
-			LOG(1,
-				"reading data from remote node failed -- '%s' on '%s'",
-				rep_h->remote->pool_desc,
-				rep_h->remote->node_addr);
-			return -1;
-		}
-	} else {
-		LOG(10,
-			"copying data (offset 0x%zx length 0x%zx) from local replica -- '%s'",
-			off, len, rep_h->part[0].path);
-
-		/* copy all data */
-		memcpy(dst_addr, src_addr, len);
-		util_persist(part->is_dev_dax, dst_addr, len);
-	}
+	/* copy all data */
+	memcpy(dst_addr, src_addr, len);
+	util_persist(part->is_dev_dax, dst_addr, len);
 
 	return 0;
 }
@@ -877,8 +838,6 @@ recreate_broken_parts(struct pool_set *set,
 		set, set_hs, fix_bad_blocks);
 
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-		if (set->replica[r]->remote)
-			continue;
 
 		struct pool_replica *broken_r = set->replica[r];
 
@@ -1115,7 +1074,7 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			if (off >= poolsize)
 				continue;
 
-			if (off + len > poolsize || rep->remote)
+			if (off + len > poolsize)
 				len = poolsize - off;
 
 			/*
@@ -1150,11 +1109,9 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 	/* get permissions of the first part of the source replica */
 	mode_t src_mode;
 	os_stat_t sb;
-	if (REP(set, src_repn)->remote) {
-		src_mode = def_mode;
-	} else if (os_stat(PART(REP(set, src_repn), 0)->path, &sb) != 0) {
+	if (os_stat(PART(REP(set, src_repn), 0)->path, &sb) != 0) {
 		ERR("cannot check file permissions of %s (replica %u, part %u)",
-				PART(REP(set, src_repn), 0)->path, src_repn, 0);
+			PART(REP(set, src_repn), 0)->path, src_repn, 0);
 		src_mode = def_mode;
 	} else {
 		src_mode = sb.st_mode;
@@ -1164,9 +1121,6 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken replicas */
 		if (!replica_is_replica_broken(r, set_hs))
-			continue;
-
-		if (set->replica[r]->remote)
 			continue;
 
 		for (unsigned p = 0; p < set_hs->replica[r]->nparts; p++) {
@@ -1321,30 +1275,6 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 }
 
 /*
- * update_remote_headers -- (internal) update headers of existing remote
- *                          replicas
- */
-static int
-update_remote_headers(struct pool_set *set)
-{
-	LOG(3, "set %p", set);
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		/* skip local or just created replicas */
-		if (REP(set, r)->remote == NULL ||
-				PART(REP(set, r), 0)->created == 1)
-			continue;
-
-		if (util_update_remote_header(set, r)) {
-			LOG(1,
-			    "updating header of a remote replica no. %u failed",
-			    r);
-			return -1;
-		}
-	}
-	return 0;
-}
-
-/*
  * update_uuids -- (internal) set all uuids that might have changed or be unset
  *                 after recreating parts
  */
@@ -1358,110 +1288,6 @@ update_uuids(struct pool_set *set, struct poolset_health_status *set_hs)
 
 		update_replicas_linkage(set, r);
 		update_poolset_uuids(set, r, set_hs);
-	}
-
-	if (update_remote_headers(set))
-		return -1;
-
-	return 0;
-}
-
-/*
- * remove_remote -- (internal) remove remote pool
- */
-static int
-remove_remote(const char *target, const char *pool_set)
-{
-	LOG(3, "target %s, pool_set %s", target, pool_set);
-#ifdef USE_RPMEM
-	struct rpmem_target_info *info = rpmem_target_parse(target);
-	if (!info)
-		goto err_parse;
-
-	struct rpmem_ssh *ssh = rpmem_ssh_exec(info, "--remove",
-			pool_set, "--force", NULL);
-	if (!ssh) {
-		goto err_ssh_exec;
-	}
-
-	if (rpmem_ssh_monitor(ssh, 0))
-		goto err_ssh_monitor;
-
-	int ret = rpmem_ssh_close(ssh);
-	rpmem_target_free(info);
-
-	return ret;
-err_ssh_monitor:
-	rpmem_ssh_close(ssh);
-err_ssh_exec:
-	rpmem_target_free(info);
-err_parse:
-	return -1;
-#else
-	FATAL("remote replication not supported");
-	return -1;
-#endif
-}
-
-/*
- * open_remote_replicas -- (internal) open all unbroken remote replicas
- */
-static int
-open_remote_replicas(struct pool_set *set,
-	struct poolset_health_status *set_hs)
-{
-	LOG(3, "set %p, set_hs %p", set, set_hs);
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct pool_replica *rep = set->replica[r];
-		if (!rep->remote)
-			continue;
-		if (!replica_is_replica_healthy(r, set_hs))
-			continue;
-
-		unsigned nlanes = REMOTE_NLANES;
-		int ret = util_poolset_remote_replica_open(set, r,
-				set->poolsize, 0, &nlanes);
-		if (ret) {
-			LOG(1, "Opening '%s' on '%s' failed",
-					rep->remote->pool_desc,
-					rep->remote->node_addr);
-			return ret;
-		}
-	}
-
-	return 0;
-}
-
-/*
- * create_remote_replicas -- (internal) recreate all broken replicas
- */
-static int
-create_remote_replicas(struct pool_set *set,
-	struct poolset_health_status *set_hs, unsigned flags)
-{
-	LOG(3, "set %p, set_hs %p", set, set_hs);
-	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct pool_replica *rep = set->replica[r];
-		if (!rep->remote)
-			continue;
-		if (replica_is_replica_healthy(r, set_hs))
-			continue;
-
-		if (!replica_is_poolset_transformed(flags)) {
-			/* ignore errors from remove operation */
-			remove_remote(rep->remote->node_addr,
-					rep->remote->pool_desc);
-		}
-
-		unsigned nlanes = REMOTE_NLANES;
-		int ret = util_poolset_remote_replica_open(set, r,
-				set->poolsize, 1, &nlanes);
-		if (ret) {
-			LOG(1, "Creating '%s' on '%s' failed",
-					rep->remote->pool_desc,
-					rep->remote->node_addr);
-			return ret;
-		}
 	}
 
 	return 0;
@@ -1541,17 +1367,9 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 		goto out;
 	}
 
-	/* this is required for opening remote pools */
 	set->poolsize = set_hs->replica[healthy_header]->pool_size;
 	LOG(3, "setting the pool size (%zu) from replica #%u",
 		set->poolsize, healthy_header);
-
-	/* open all remote replicas */
-	if (open_remote_replicas(set, set_hs)) {
-		ERR("opening remote replicas failed");
-		ret = -1;
-		goto out;
-	}
 
 	/* recalculate offset and length of bad blocks */
 	if (sync_recalc_badblocks(set, set_hs)) {
@@ -1607,13 +1425,6 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	/* create headers for broken parts */
 	if (create_headers_for_broken_parts(set, healthy_replica, set_hs)) {
 		ERR("creating headers for broken parts failed");
-		ret = -1;
-		goto out;
-	}
-
-	/* create all remote replicas */
-	if (create_remote_replicas(set, set_hs, flags)) {
-		ERR("creating remote replicas failed");
 		ret = -1;
 		goto out;
 	}

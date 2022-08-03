@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * heap.h -- internal definitions for heap
@@ -39,8 +39,7 @@ int heap_init(void *heap_start, uint64_t heap_size, uint64_t *sizep,
 	struct pmem_ops *p_ops);
 void heap_cleanup(struct palloc_heap *heap);
 int heap_check(void *heap_start, uint64_t heap_size);
-int heap_check_remote(void *heap_start, uint64_t heap_size,
-		struct remote_ops *ops);
+
 int heap_buckets_init(struct palloc_heap *heap);
 int heap_create_alloc_class_buckets(struct palloc_heap *heap,
 	struct alloc_class *c);

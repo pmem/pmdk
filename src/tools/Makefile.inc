@@ -237,10 +237,8 @@ else
 all:
 endif
 
-SYNC_FILE=.synced
-
 clean:
-	$(RM) $(OBJS) $(CLEAN_FILES) $(SYNC_FILE) $(TMP_HEADERS)
+	$(RM) $(OBJS) $(CLEAN_FILES) $(TMP_HEADERS)
 
 clobber: clean
 ifneq ($(TARGET),)
@@ -322,17 +320,8 @@ objdir=.
 test check pcheck: all
 
 TESTCONFIG=$(TOP)/src/test/testconfig.sh
-DIR_SYNC=$(TOP)/src/test/.sync-dir
 
 $(TESTCONFIG):
-
-sync-remotes: all $(SYNC_FILE)
-
-$(SYNC_FILE): $(TARGET) $(TESTCONFIG)
-ifeq ($(SCP_TO_REMOTE_NODES), y)
-	cp $(TARGET) $(DIR_SYNC)
-	@touch $(SYNC_FILE)
-endif
 
 sparse:
 	$(if $(TARGET), $(sparse-c))

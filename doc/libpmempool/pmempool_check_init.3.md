@@ -9,7 +9,7 @@ header: "pmempool API version 1.3"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2022, Intel Corporation)
 
 [comment]: <> (pmempool_check_init.3 -- man page for pmempool health check functions)
 
@@ -144,8 +144,6 @@ the same structure (the same number of parts with exactly the same size) as the
 *path* pool set.
 
 Backup is supported only if the source *pool set* has no defined replicas.
-
-Neither *path* nor *backup_path* may specify a pool set with remote replicas.
 
 The _UW(pmempool_check) function starts or resumes the check indicated by *ppc*.
 When the next status is generated, the check is paused and _UW(pmempool_check)

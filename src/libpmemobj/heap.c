@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * heap.c -- heap implementation
@@ -1839,56 +1839,6 @@ heap_check(void *heap_start, uint64_t heap_size)
 	}
 
 	return 0;
-}
-
-/*
- * heap_check_remote -- verifies if the heap of a remote pool is consistent
- *	and can be opened properly
- *
- * If successful function returns zero. Otherwise an error number is returned.
- */
-int
-heap_check_remote(void *heap_start, uint64_t heap_size, struct remote_ops *ops)
-{
-	if (heap_size < HEAP_MIN_SIZE) {
-		ERR("heap: invalid heap size");
-		return -1;
-	}
-
-	struct heap_layout *layout = heap_start;
-
-	struct heap_header header;
-	if (ops->read(ops->ctx, ops->base, &header, &layout->header,
-						sizeof(struct heap_header))) {
-		ERR("heap: obj_read_remote error");
-		return -1;
-	}
-
-	if (heap_verify_header(&header))
-		return -1;
-
-	struct zone *zone_buff = (struct zone *)Malloc(sizeof(struct zone));
-	if (zone_buff == NULL) {
-		ERR("heap: zone_buff malloc error");
-		return -1;
-	}
-	for (unsigned i = 0; i < heap_max_zone(heap_size); ++i) {
-		if (ops->read(ops->ctx, ops->base, zone_buff,
-				ZID_TO_ZONE(layout, i), sizeof(struct zone))) {
-			ERR("heap: obj_read_remote error");
-			goto out;
-		}
-
-		if (heap_verify_zone(zone_buff)) {
-			goto out;
-		}
-	}
-	Free(zone_buff);
-	return 0;
-
-out:
-	Free(zone_buff);
-	return -1;
 }
 
 /*

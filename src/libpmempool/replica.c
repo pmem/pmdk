@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * replica.c -- groups all commands for replica manipulation
@@ -482,25 +482,16 @@ replica_check_store_size(struct pool_set *set,
 	struct pool_replica *rep = set->replica[repn];
 	struct pmemobjpool pop;
 
-	if (rep->remote) {
-		memcpy(&pop.hdr, rep->part[0].hdr, sizeof(pop.hdr));
-		void *descr = (void *)((uintptr_t)&pop + POOL_HDR_SIZE);
-		if (Rpmem_read(rep->remote->rpp, descr, POOL_HDR_SIZE,
-			sizeof(pop) - POOL_HDR_SIZE, 0)) {
-			return -1;
-		}
-	} else {
-		/* round up map size to Mmap align size */
-		if (util_map_part(&rep->part[0], NULL,
-		    ALIGN_UP(sizeof(pop), rep->part[0].alignment),
-		    0, MAP_SHARED, 1)) {
-			return -1;
-		}
-
-		memcpy(&pop, rep->part[0].addr, sizeof(pop));
-
-		util_unmap_part(&rep->part[0]);
+	/* round up map size to Mmap align size */
+	if (util_map_part(&rep->part[0], NULL,
+		ALIGN_UP(sizeof(pop), rep->part[0].alignment),
+		0, MAP_SHARED, 1)) {
+		return -1;
 	}
+
+	memcpy(&pop, rep->part[0].addr, sizeof(pop));
+
+	util_unmap_part(&rep->part[0]);
 
 	void *dscp = (void *)((uintptr_t)&pop + sizeof(pop.hdr));
 
@@ -548,25 +539,6 @@ check_and_open_poolset_part_files(struct pool_set *set,
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
-		if (rep->remote) {
-			if (util_replica_open_remote(set, r, 0)) {
-				LOG(1, "cannot open remote replica no %u", r);
-				return -1;
-			}
-
-			unsigned nlanes = REMOTE_NLANES;
-			int ret = util_poolset_remote_open(rep, r,
-					rep->repsize, 0,
-					rep->part[0].addr,
-					rep->resvsize, &nlanes);
-			if (ret) {
-				rep_hs->flags |= IS_BROKEN;
-				LOG(1, "remote replica #%u marked as BROKEN",
-					r);
-			}
-
-			continue;
-		}
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			const char *path = rep->part[p].path;
@@ -609,8 +581,6 @@ map_all_unbroken_headers(struct pool_set *set,
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
-		if (rep->remote)
-			continue;
 
 		for (unsigned p = 0; p < rep->nhdrs; ++p) {
 			/* skip broken parts */
@@ -635,13 +605,7 @@ unmap_all_headers(struct pool_set *set)
 {
 	LOG(3, "set %p", set);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct pool_replica *rep = set->replica[r];
 		util_replica_close(set, r);
-
-		if (rep->remote && rep->remote->rpp) {
-			Rpmem_close(rep->remote->rpp);
-			rep->remote->rpp = NULL;
-		}
 	}
 
 	return 0;
@@ -660,15 +624,6 @@ check_checksums_and_signatures(struct pool_set *set,
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = REP(set, r);
 		struct replica_health_status *rep_hs = REP_HEALTH(set_hs, r);
-
-		/*
-		 * Checksums and signatures of remote replicas are checked
-		 * during opening them on the remote side by the rpmem daemon.
-		 * The local version of remote headers does not contain
-		 * such data.
-		 */
-		if (rep->remote)
-			continue;
 
 		for (unsigned p = 0; p < rep->nhdrs; ++p) {
 
@@ -871,15 +826,6 @@ replica_badblocks_recovery_files_check(struct pool_set *set,
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 
-		if (rep->remote) {
-			/*
-			 * Bad blocks in remote replicas currently are fixed
-			 * during opening by removing and recreating
-			 * the whole remote replica.
-			 */
-			continue;
-		}
-
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			const char *path = PART(rep, p)->path;
 			struct part_health_status *part_hs = &rep_hs->part[p];
@@ -954,10 +900,6 @@ replica_badblocks_recovery_files_read(struct pool_set *set,
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 
-		/* XXX: not supported yet */
-		if (rep->remote)
-			continue;
-
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			const char *path = PART(rep, p)->path;
 			struct part_health_status *part_hs = &rep_hs->part[p];
@@ -1020,10 +962,6 @@ replica_badblocks_recovery_files_create_empty(struct pool_set *set,
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 
-		/* XXX: not supported yet */
-		if (rep->remote)
-			continue;
-
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			part_hs = &rep_hs->part[p];
 			path = PART(rep, p)->path;
@@ -1083,10 +1021,6 @@ replica_badblocks_recovery_files_save(struct pool_set *set,
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 
-		/* XXX: not supported yet */
-		if (rep->remote)
-			continue;
-
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			struct part_health_status *part_hs = &rep_hs->part[p];
 
@@ -1122,10 +1056,6 @@ replica_badblocks_get(struct pool_set *set,
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
-
-		/* XXX: not supported yet */
-		if (rep->remote)
-			continue;
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			const char *path = PART(rep, p)->path;
@@ -1186,10 +1116,6 @@ replica_badblocks_clear(struct pool_set *set,
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
-
-		/* XXX: not supported yet */
-		if (rep->remote)
-			continue;
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			const char *path = PART(rep, p)->path;
@@ -1442,9 +1368,6 @@ check_shutdown_state(struct pool_set *set,
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 		struct pool_hdr *hdrp = HDR(rep, 0);
-
-		if (rep->remote)
-			continue;
 
 		if (hdrp == NULL) {
 			/* cannot verify shutdown state */
@@ -1864,11 +1787,7 @@ check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
 
 		/* get the size of a pool in the replica */
 		ssize_t replica_pool_size;
-		if (REP(set, r)->remote)
-			/* XXX: no way to get the size of a remote pool yet */
-			replica_pool_size = (ssize_t)set->poolsize;
-		else
-			replica_pool_size = replica_get_pool_size(set, r);
+		replica_pool_size = replica_get_pool_size(set, r);
 
 		if (replica_pool_size < 0) {
 			LOG(1, "getting pool size from replica %u failed", r);
@@ -1921,17 +1840,6 @@ replica_read_features(struct pool_set *set,
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
-		struct replica_health_status *rep_hs = set_hs->replica[r];
-
-		if (rep->remote) {
-			if (rep_hs->flags & IS_BROKEN)
-				continue;
-
-			struct pool_hdr *hdrp = rep->part[0].hdr;
-			memcpy(features, &hdrp->features, sizeof(*features));
-
-			return 0;
-		}
 
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
@@ -2137,9 +2045,6 @@ replica_check_part_sizes(struct pool_set *set, size_t min_size)
 	LOG(3, "set %p, min_size %zu", set, min_size);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
-		if (rep->remote != NULL)
-			/* skip remote replicas */
-			continue;
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			if (PART(rep, p)->filesize < min_size) {
@@ -2186,9 +2091,6 @@ replica_check_part_dirs(struct pool_set *set)
 	LOG(3, "set %p", set);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
-		if (rep->remote != NULL)
-			/* skip remote replicas */
-			continue;
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			if (replica_check_local_part_dir(set, r, p))
@@ -2233,8 +2135,6 @@ replica_open_poolset_part_files(struct pool_set *set)
 {
 	LOG(3, "set %p", set);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		if (set->replica[r]->remote)
-			continue;
 		if (replica_open_replica_part_files(set, r)) {
 			LOG(1, "opening replica %u, part files failed", r);
 			goto err;
@@ -2290,12 +2190,6 @@ pmempool_syncU(const char *poolset, unsigned flags)
 	if (set->nreplicas == 1) {
 		ERR("no replica(s) found in the pool set");
 		errno = EINVAL;
-		goto err_close_file;
-	}
-
-	if (set->remote && util_remote_load()) {
-		ERR("remote replication not available");
-		errno = ENOTSUP;
 		goto err_close_file;
 	}
 
@@ -2425,16 +2319,6 @@ pmempool_transformU(const char *poolset_src,
 		errno = EINVAL;
 		ERR("transform is not supported for given pool type: %s",
 				pool_get_pool_type_str(ptype));
-		goto err_free_poolout;
-	}
-
-	/* load remote library if needed */
-	if (set_in->remote && util_remote_load()) {
-		ERR("remote replication not available");
-		goto err_free_poolout;
-	}
-	if (set_out->remote && util_remote_load()) {
-		ERR("remote replication not available");
 		goto err_free_poolout;
 	}
 

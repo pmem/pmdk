@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * palloc.h -- internal definitions for persistent allocator
@@ -91,8 +91,6 @@ int palloc_init(void *heap_start, uint64_t heap_size, uint64_t *sizep,
 	struct pmem_ops *p_ops);
 void *palloc_heap_end(struct palloc_heap *h);
 int palloc_heap_check(void *heap_start, uint64_t heap_size);
-int palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
-	struct remote_ops *ops);
 void palloc_heap_cleanup(struct palloc_heap *heap);
 size_t palloc_heap(void *heap_start);
 

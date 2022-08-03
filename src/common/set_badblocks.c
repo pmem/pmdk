@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2022, Intel Corporation */
 
 /*
  * set_badblocks.c - common part of implementation of bad blocks API
@@ -34,14 +34,6 @@ badblocks_check_file_cb(struct part_file *pf, void *arg)
 	LOG(3, "part_file %p arg %p", pf, arg);
 
 	struct check_file_cb *pcfcb = arg;
-
-	if (pf->is_remote) {
-		/*
-		 * Remote replicas are checked for bad blocks
-		 * while opening in util_pool_open_remote().
-		 */
-		return 0;
-	}
 
 	int exists = util_file_exists(pf->part->path);
 	if (exists < 0)
@@ -108,13 +100,6 @@ badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
 	LOG(3, "part_file %p arg %p", pf, arg);
 
 	int *create = arg;
-
-	if (pf->is_remote) { /* XXX not supported yet */
-		LOG(1,
-			"WARNING: clearing bad blocks in remote replicas is not supported yet -- '%s:%s'",
-			pf->remote->node_addr, pf->remote->pool_desc);
-		return 0;
-	}
 
 	if (*create) {
 		/*
@@ -207,10 +192,6 @@ badblocks_recovery_file_exists(struct pool_set *set)
 
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
-
-		/* XXX: not supported yet */
-		if (rep->remote)
-			continue;
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			const char *path = PART(rep, p)->path;

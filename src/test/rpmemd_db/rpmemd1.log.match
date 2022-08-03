@@ -1,5 +1,0 @@
-part file '$(nW)/pool0.part.3' from pool set 'pool$(N).set' duplicated in pool set 'pool$(N).set'
-duplicate found in pool set file -- $(nW)/pool$(N).set: File exists
-cannot create pool set -- '$(nW)pool1.set': Resource temporarily unavailable
-cannot create pool set -- '$(nW)pool1.set': File exists
-cannot create pool set -- '$(nW)pool1.set': File exists

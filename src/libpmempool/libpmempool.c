@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * libpmempool.c -- entry points for libpmempool
@@ -15,11 +15,6 @@
 #include "pmempool.h"
 #include "pool.h"
 #include "check.h"
-
-#ifdef USE_RPMEM
-#include "rpmem_common.h"
-#include "rpmem_util.h"
-#endif
 
 #ifdef _WIN32
 #define ANSWER_BUFFSIZE 256
@@ -38,10 +33,6 @@ libpmempool_init(void)
 		PMEMPOOL_LOG_FILE_VAR, PMEMPOOL_MAJOR_VERSION,
 		PMEMPOOL_MINOR_VERSION);
 	LOG(3, NULL);
-#ifdef USE_RPMEM
-	util_remote_init();
-	rpmem_util_cmds_init();
-#endif
 }
 
 /*
@@ -54,11 +45,6 @@ void
 libpmempool_fini(void)
 {
 	LOG(3, NULL);
-#ifdef USE_RPMEM
-	util_remote_unload();
-	util_remote_fini();
-	rpmem_util_cmds_fini();
-#endif
 	common_fini();
 }
 

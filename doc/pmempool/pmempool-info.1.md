@@ -9,7 +9,7 @@ header: "pmem Tools version 1.4"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2016-2022, Intel Corporation)
 
 [comment]: <> (pmempool-info.1 -- man page for pmempool-info)
 
@@ -52,10 +52,6 @@ with error code and prints appropriate error message.
 Currently there is lack of interprocess synchronization for pool files,
 so the *info* command should be invoked off-line. Using **pmempool** on pool file which
 may be modified by another process may lead to unexpected errors in pool file.
-
-A poolset file passed to **pmempool info** may contain multiple replicas,
-also remote ones, but **pmempool** currently does not read any data from remote replicas.
-It prints only a remote node address and a remote replica descriptor.
 
 **pmempool info** opens pool file in *read-only* mode so the file
 will remain untouched after processing.

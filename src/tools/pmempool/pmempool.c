@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * pmempool.c -- pmempool main source file
@@ -25,11 +25,6 @@
 #include "feature.h"
 #include "set.h"
 #include "pmemcommon.h"
-
-#ifndef _WIN32
-#include "rpmem_common.h"
-#include "rpmem_util.h"
-#endif
 
 #define APPNAME	"pmempool"
 
@@ -245,11 +240,6 @@ main(int argc, char *argv[])
 			0 /* major version */,
 			0 /* minor version */);
 
-#ifndef _WIN32
-	util_remote_init();
-	rpmem_util_cmds_init();
-#endif
-
 	if (argc < 2) {
 		print_usage(APPNAME);
 		goto end;
@@ -283,11 +273,6 @@ main(int argc, char *argv[])
 	}
 
 end:
-
-#ifndef _WIN32
-	util_remote_fini();
-	rpmem_util_cmds_fini();
-#endif
 
 	common_fini();
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -48,7 +48,6 @@
 #include "out.h"
 #include "vec.h"
 #include "pool_hdr.h"
-#include "librpmem.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,7 +78,6 @@ struct pool_set_option {
 };
 
 #define POOL_LOCAL 0
-#define POOL_REMOTE 1
 
 #define REPLICAS_DISABLED 0
 #define REPLICAS_ENABLED 1
@@ -108,7 +106,6 @@ struct pool_set_part {
 	int created;		/* indicates newly created (zeroed) file */
 
 	/* util_poolset_open/create */
-	void *remote_hdr;	/* allocated header for remote replica */
 	void *hdr;		/* base address of header */
 	size_t hdrsize;		/* size of the header mapping */
 	int hdr_map_sync;	/* header mapped with MAP_SYNC */
@@ -128,13 +125,6 @@ struct pool_set_directory {
 
 };
 
-struct remote_replica {
-	void *rpp;		/* RPMEMpool opaque handle */
-	char *node_addr;	/* address of a remote node */
-	/* poolset descriptor is a pool set file name on a remote node */
-	char *pool_desc;	/* descriptor of a poolset */
-};
-
 struct pool_replica {
 	unsigned nparts;
 	unsigned nallocated;
@@ -142,8 +132,7 @@ struct pool_replica {
 	size_t repsize;		/* total size of all the parts (mappings) */
 	size_t resvsize;	/* min size of the address space reservation */
 	int is_pmem;		/* true if all the parts are in PMEM */
-	struct remote_replica *remote;	/* not NULL if the replica */
-					/* is a remote one */
+
 	VEC(, struct pool_set_directory) directory;
 	struct pool_set_part part[];
 };
@@ -156,7 +145,6 @@ struct pool_set {
 	int zeroed;		/* true if all the parts are new files */
 	size_t poolsize;	/* the smallest replica size */
 	int has_bad_blocks;	/* pool set contains bad blocks */
-	int remote;		/* true if contains a remote replica */
 	unsigned options;	/* enabled pool set options */
 
 	int directory_based;
@@ -170,17 +158,7 @@ struct pool_set {
 };
 
 struct part_file {
-	int is_remote;
-	/*
-	 * Pointer to the part file structure -
-	 * - not-NULL only for a local part file
-	 */
 	struct pool_set_part *part;
-	/*
-	 * Pointer to the replica structure -
-	 * - not-NULL only for a remote replica
-	 */
-	struct remote_replica *remote;
 };
 
 struct pool_attr {
@@ -364,14 +342,11 @@ int util_pool_create(struct pool_set **setp, const char *path, size_t poolsize,
 	unsigned *nlanes, int can_have_rep);
 int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	size_t poolsize, size_t minsize, size_t minpartsize,
-	const struct pool_attr *attr, unsigned *nlanes, int can_have_rep,
-	int remote);
+	const struct pool_attr *attr, unsigned *nlanes, int can_have_rep);
 
 int util_part_open(struct pool_set_part *part, size_t minsize, int create_part);
 void util_part_fdclose(struct pool_set_part *part);
 int util_replica_open(struct pool_set *set, unsigned repidx, int flags);
-int util_replica_set_attr(struct pool_replica *rep,
-		const struct rpmem_pool_attr *rattr);
 void util_pool_hdr2attr(struct pool_attr *attr, struct pool_hdr *hdr);
 void util_pool_attr2hdr(struct pool_hdr *hdr,
 		const struct pool_attr *attr);
@@ -393,45 +368,12 @@ int util_pool_open_nocheck(struct pool_set *set, unsigned flags);
 int util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 	const struct pool_attr *attr, unsigned *nlanes, void *addr,
 	unsigned flags);
-int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, struct rpmem_pool_attr *rattr);
 
 void *util_pool_extend(struct pool_set *set, size_t *size, size_t minpartsize);
 
-void util_remote_init(void);
-void util_remote_fini(void);
-
-int util_update_remote_header(struct pool_set *set, unsigned repn);
-void util_remote_init_lock(void);
-void util_remote_destroy_lock(void);
-int util_pool_close_remote(RPMEMpool *rpp);
-void util_remote_unload(void);
 void util_replica_fdclose(struct pool_replica *rep);
-int util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
-	size_t minsize, int create, void *pool_addr,
-	size_t pool_size, unsigned *nlanes);
-int util_remote_load(void);
-int util_replica_open_remote(struct pool_set *set, unsigned repidx, int flags);
-int util_poolset_remote_replica_open(struct pool_set *set, unsigned repidx,
-	size_t minsize, int create, unsigned *nlanes);
 int util_replica_close_local(struct pool_replica *rep, unsigned repn,
 		enum del_parts_mode del);
-int util_replica_close_remote(struct pool_replica *rep, unsigned repn,
-		enum del_parts_mode del);
-
-extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-						unsigned lane, unsigned flags);
-extern int (*Rpmem_deep_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-								unsigned lane);
-extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
-				size_t length, unsigned lane);
-extern int (*Rpmem_close)(RPMEMpool *rpp);
-
-extern int (*Rpmem_remove)(const char *target,
-		const char *pool_set_name, int flags);
-
-extern int (*Rpmem_set_attr)(RPMEMpool *rpp,
-		const struct rpmem_pool_attr *rattr);
 
 #ifdef __cplusplus
 }
