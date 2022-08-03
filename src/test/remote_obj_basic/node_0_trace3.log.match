@@ -1,4 +1,0 @@
-{$(nW)remote_obj_basic.c:$(N) main} remote_obj_basic/TEST3: START: remote_obj_basic
- ./remote_obj_basic$(nW) open $(nW)pool3.set
-{$(nW)remote_obj_basic.c:$(N) main} The pool set $(nW)pool3.set has been opened
-{$(nW)remote_obj_basic.c:$(N) main} remote_obj_basic/TEST3: DONE

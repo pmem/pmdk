@@ -1,4 +1,0 @@
-remote_obj_basic/TEST2: START: remote_obj_basic
- ./remote_obj_basic$(nW) create $(nW)pool2.set
-The pool set $(nW)pool2.set has been created
-remote_obj_basic/TEST2: DONE

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 #
 """Tools which allows to easily create poolset files"""
 
@@ -44,7 +44,6 @@ class _Poolset:
                         File('part1.rep1', 5*MiB).Create(
                         t.CREATE.ZEROED,  100 * MiB))
     poolset.add_replica(Dir('dirpart.rep1', 2*GiB))
-    poolset.add_remote('poolset.remote', '127.0.0.1')
     poolset.set_nohdrs()
     poolset.create()
 
@@ -55,7 +54,6 @@ class _Poolset:
         self.parts = []
         self.replicas = []
         self.options = []
-        self.remote = []
         self.ctx = ctx
 
     def set_parts(self, *parts):
@@ -76,15 +74,6 @@ class _Poolset:
         Each function call create a new replica.
         """
         self.replicas.append(parts)
-
-    def add_remote(self, path, node):
-        """
-        Adds remote poolset file. A path should be relative to
-        the rpmemd poolset-dir. For details please see the
-        rpmemd(1) manual page.Each function call create new
-        remote replica.
-        """
-        self.remote.append((path, node))
 
     def set_singlehdr(self):
         """
@@ -136,13 +125,9 @@ class _Poolset:
                     print(part, file=poolset)
                 print(file=poolset)
 
-            for remote in self.remote:
-                print("REPLICA", remote[1], remote[0], file=poolset)
-
     def _check_pools_size(self):
         """"
         Validate if pool and replicas have more than 8MiB (minimum pool size).
-        This function does not validate remote replicas sizes.
         """
         size = 0
         for part in self.parts:

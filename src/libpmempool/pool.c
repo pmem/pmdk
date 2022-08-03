@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * pool.c -- pool processing functions
@@ -264,11 +264,6 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			if (ret < 0) {
 				LOG(2, "cannot open pool set -- '%s'",
 					ppc->path);
-				return -1;
-			}
-			if (set->remote) {
-				ERR("poolsets with remote replicas are not "
-					"supported");
 				return -1;
 			}
 			if (util_pool_open_nocheck(set,

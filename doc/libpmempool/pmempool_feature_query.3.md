@@ -9,7 +9,7 @@ header: "pmempool API version 1.3"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2018, Intel Corporation)
+[comment]: <> (Copyright 2018-2022, Intel Corporation)
 
 [comment]: <> (pmempool_feature_query.3 -- man page for toggle and query pool
 set features)
@@ -93,9 +93,6 @@ and sets *errno* accordingly.
 
 On success, _UW(pmempool_feature_disable) returns 0. On error, it returns -1
 and sets *errno* accordingly.
-
-If *path* points poolset with remote replica **errno** is set to EINVAL and
-function returns -1.
 
 If non zero *flags* are provided **errno** is set to EINVAL and function
 returns -1.

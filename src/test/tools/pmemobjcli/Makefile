@@ -1,12 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 #
 # Makefile -- Makefile for pmemalloc tool
 #
 
 TOP=../../../..
-
-SCP_TO_REMOTE_NODES = y
 
 TARGET = pmemobjcli
 

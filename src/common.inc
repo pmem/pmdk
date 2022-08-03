@@ -288,8 +288,6 @@ test_memcheck=$(addprefix " -m ", $(MEMCHECK))
 test_pmemcheck=$(addprefix " -p ", $(PMEMCHECK))
 test_helgrind=$(addprefix " -e ", $(HELGRIND))
 test_drd=$(addprefix " -d ", $(DRD))
-test_providers=$(addprefix " -q ", $(TEST_PROVIDERS))
-test_pmethods=$(addprefix " -r ", $(TEST_PMETHODS))
 
 ifeq ($(CHECK_POOL),y)
 test_check_pool=" -c "
@@ -297,35 +295,13 @@ endif
 
 RUNTEST_OPTIONS := "$(test_build)$(test_type)$(test_fs)$(test_time)"
 RUNTEST_OPTIONS += "$(test_memcheck)$(test_pmemcheck)$(test_helgrind)$(test_drd)"
-RUNTEST_OPTIONS += "$(test_providers)$(test_pmethods)$(test_check_pool)"
+RUNTEST_OPTIONS += "$(test_check_pool)"
 
 export libdir := $(exec_prefix)/$(LIB_PREFIX)
 export includedir := $(prefix)/$(INC_PREFIX)
 export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
-
-LIBFABRIC_MIN_VERSION := 1.4.2
-
-# Keep in sync with requirements in src/test/unittest/unittest.sh and
-# utils/docker/images/install-libfabric.sh.
-ifeq ($(BUILD_RPMEM),)
-BUILD_RPMEM := $(call check_package, libfabric --atleast-version=$(LIBFABRIC_MIN_VERSION))
-endif
-ifneq ($(BUILD_RPMEM),y)
-export BUILD_RPMEM_INFO := libfabric (version >= $(LIBFABRIC_MIN_VERSION)) is missing -- \
-see src/librpmem/README for details
-else
-LIBFABRIC_CFLAGS := $(shell $(PKG_CONFIG) --cflags libfabric)
-LIBFABRIC_LD_LIBRARY_PATHS := $(shell $(PKG_CONFIG) --variable=libdir libfabric)
-LIBFABRIC_LIBS := $(shell $(PKG_CONFIG) --libs libfabric)
-LIBFABRIC_PATH := $(shell $(PKG_CONFIG) --variable=exec_prefix libfabric)/bin
-endif
-export BUILD_RPMEM
-export LIBFABRIC_CFLAGS
-export LIBFABRIC_LD_LIBRARY_PATHS
-export LIBFABRIC_LIBS
-export LIBFABRIC_PATH
 
 # unsafe shutdown count and badblock access without root (depends on kernel 4.20)
 NDCTL_MIN_VERSION := 63

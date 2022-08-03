@@ -12,11 +12,7 @@ LIBRARY_VERSION = 0.0
 INCS += -I$(TOP)/src/libpmemlog
 INCS += -I$(TOP)/src/libpmemblk
 INCS += -I$(TOP)/src/libpmemobj
-INCS += -I$(TOP)/src/rpmem_common
-INCS += -I$(TOP)/src/librpmem
 INCS += -I$(TOP)/src/libpmem2
-
-vpath %.c ../librpmem
 
 include ../core/pmemcore.inc
 include ../common/pmemcommon.inc
@@ -37,10 +33,6 @@ SOURCE +=\
 	pool.c\
 	replica.c\
 	feature.c\
-	$(RPMEM_COMMON)/rpmem_common.c\
-	rpmem_ssh.c\
-	rpmem_cmd.c\
-	rpmem_util.c\
 	sync.c\
 	transform.c\
 	rm.c
@@ -54,7 +46,6 @@ include ../Makefile.inc
 CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
 LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL_LIBS)
 CFLAGS += -DUSE_LIBDL
-CFLAGS += -DUSE_RPMEM
 
 pmemblk_priv_funcs.o: $(PMEMBLK_PRIV_OBJ)
 	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMBLK_PRIV_FUNCS)) \

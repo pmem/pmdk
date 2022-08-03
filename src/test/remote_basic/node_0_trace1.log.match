@@ -1,6 +1,0 @@
-{$(nW)remote_basic.c:$(nW) main} remote_basic/TEST1: START: remote_basic
- ./remote_basic$(nW) $(nW)test-file
-{$(nW)remote_basic.c:$(nW) main} File '$(nW)test-file' exists
-{$(nW)remote_basic.c:$(nW) main} An example of OUT message
-{$(nW)remote_basic.c:$(nW) main} remote_basic/TEST1: An example of ERR message
-{$(nW)remote_basic.c:$(nW) main} remote_basic/TEST1: DONE

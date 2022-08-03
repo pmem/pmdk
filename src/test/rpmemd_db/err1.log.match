@@ -1,4 +1,0 @@
-{$(nW)rpmemd_db_test.c:$(N) test_check_dir} rpmemd_db/TEST1: test_check_dir(): rpmemd_db_check_dir() failed: File exists
-{$(nW)rpmemd_db_test.c:$(N) test_create_dual} rpmemd_db/TEST1: test_create_dual(): rpmemd_db_pool_create(pool1.set) failed: Resource temporarily unavailable
-{$(nW)rpmemd_db_test.c:$(N) test_open_dual} rpmemd_db/TEST1: test_open_dual(): rpmemd_db_pool_create(pool1.set) failed: File exists
-{$(nW)rpmemd_db_test.c:$(N) test_set_attr_dual} rpmemd_db/TEST1: test_set_attr_dual(): rpmemd_db_pool_create(pool1.set) failed: File exists
