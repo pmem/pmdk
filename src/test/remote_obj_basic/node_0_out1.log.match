@@ -1,4 +1,0 @@
-remote_obj_basic/TEST1: START: remote_obj_basic
- ./remote_obj_basic$(nW) open $(nW)pool1.set
-The pool set $(nW)pool1.set has been opened
-remote_obj_basic/TEST1: DONE

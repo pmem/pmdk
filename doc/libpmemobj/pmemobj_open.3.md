@@ -9,7 +9,7 @@ header: "pmemobj API version 2.3"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2021, Intel Corporation)
+[comment]: <> (Copyright 2017-2022, Intel Corporation)
 
 [comment]: <> (pmemobj_open.3 -- man page for most commonly used functions from libpmemobj library)
 
@@ -80,8 +80,7 @@ from the size of the existing file and will verify that the file appears to be
 empty by searching for any non-zero data in the pool header at the beginning of
 the file. The minimum net pool size allowed by the library for a local
 transactional object store is defined in **\<libpmemobj.h\>** as
-**PMEMOBJ_MIN_POOL**. _WINUX(,=q=For remote replicas the minimum file size
-is defined in **\<librpmem.h\>** as **RPMEM_MIN_PART**.=e=)
+**PMEMOBJ_MIN_POOL**.
 
 Depending on the configuration of the system, the available non-volatile
 memory space may be divided into multiple memory devices.

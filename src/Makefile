@@ -10,15 +10,15 @@ include $(TOP)/src/common.inc
 # core targets
 TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools libpmem2
 # make all targets
-ALL_TARGETS = $(TARGETS) common core librpmem libpmemset deps
+ALL_TARGETS = $(TARGETS) common core libpmemset deps
 # all available targets
-POSSIBLE_TARGETS = $(TARGETS) common core deps librpmem rpmem_common test\
+POSSIBLE_TARGETS = $(TARGETS) common core deps test\
 	examples benchmarks libpmemset
 
-SCOPE_DIRS = $(TARGETS) common core deps librpmem rpmem_common
+SCOPE_DIRS = $(TARGETS) common core deps
 
 DEBUG_RELEASE_TARGETS = common core deps libpmem libpmemblk libpmemlog libpmemobj\
-	libpmempool librpmem libpmem2 libpmemset
+	libpmempool libpmem2 libpmemset
 RELEASE_TARGETS = tools
 
 ifneq ($(BUILD_EXAMPLES),n)
@@ -36,7 +36,7 @@ CLOBBER_TARGETS = $(POSSIBLE_TARGETS)
 CSTYLE_TARGETS = $(POSSIBLE_TARGETS)
 INSTALL_TARGETS = $(TARGETS)
 SPARSE_TARGETS = $(POSSIBLE_TARGETS)
-EXAMPLES_TARGETS = $(TARGETS) librpmem
+EXAMPLES_TARGETS = $(TARGETS)
 
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
 HEADERS_INSTALL = include/libpmem.h\
@@ -61,12 +61,6 @@ ifeq ($(PMEMSET_INSTALL),y)
 	PKG_CONFIG_FILES += libpmemset.pc
 	HEADERS_INSTALL += include/libpmemset.h
 	INSTALL_TARGETS += libpmemset
-endif
-
-ifeq ($(BUILD_RPMEM),y)
-	PKG_CONFIG_FILES += librpmem.pc
-	HEADERS_INSTALL += include/librpmem.h
-	INSTALL_TARGETS += librpmem
 endif
 
 rwildcard=$(strip $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2)\
@@ -169,14 +163,6 @@ test: all
 check pcheck pycheck: test df
 	$(MAKE) -C test $@
 
-require-rpmem:
-ifneq ($(BUILD_RPMEM),y)
-	$(error ERROR: cannot run remote tests because $(BUILD_RPMEM_INFO))
-endif
-
-check-remote: require-rpmem test
-	$(MAKE) -C test $@
-
 # Re-generate pkg-config files on 'make install' (not on 'make all'),
 # to handle the case when prefix is specified only for 'install'.
 # Clean up generated files when done.
@@ -225,4 +211,4 @@ clobber: clean-here
 
 .PHONY: all install uninstall clean clobber cstyle format test check pcheck\
 	cscope $(ALL_TARGETS)\
-	pkg-config check-remote clean-here pkg-cfg-common require-rpmem
+	pkg-config clean-here pkg-cfg-common

@@ -14,8 +14,6 @@ vpath %.c $(TOP)/src/examples/libpmemobj/hashmap
 
 vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/librpmem
-vpath %.c $(TOP)/src/rpmem_common
 vpath %.c $(TOP)/src/libpmempool
 
 BENCHMARK = pmembench
@@ -102,8 +100,6 @@ CXXFLAGS += -I../libpmemobj
 CXXFLAGS += -I../common
 CXXFLAGS += -I../core
 CXXFLAGS += -I../examples/libpmemobj/map
-CXXFLAGS += -I../rpmem_common
-CXXFLAGS += -I../librpmem
 CXXFLAGS += $(OS_INCS)
 CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
@@ -120,19 +116,6 @@ endif
 ifneq ($(SANITIZE),)
 CXXFLAGS += -fsanitize=$(SANITIZE)
 LDFLAGS += -fsanitize=$(SANITIZE)
-endif
-
-ifeq ($(BUILD_RPMEM),y)
-SRC += rpmem.cpp
-LIBS += -lrpmem $(LIBFABRIC_LIBS)
-CONFIGS += pmembench_rpmem
-CXXFLAGS += -DRPMEM_AVAILABLE
-# Librpmem is deprecated.
-# This flag allows to build tests, examples and benchmarks
-# using rpmem despite the deprecated state.
-CXXFLAGS += -Wno-deprecated-declarations
-else
-$(info NOTE: Skipping librpmem benchmark because $(BUILD_RPMEM_INFO))
 endif
 
 ifeq ($(GLIB),y)

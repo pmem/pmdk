@@ -9,7 +9,7 @@ header: "pmem Tools version 1.4"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2018, Intel Corporation)
+[comment]: <> (Copyright 2018-2022, Intel Corporation)
 
 [comment]: <> (pmempool-feature.1 -- man page for pmempool-feature)
 
@@ -64,8 +64,7 @@ addresses) of NVDIMM devices which only root can read by default:
 /sys/bus/nd/devices/ndbus*/region*/namespace*/resource
 ```
 
-It is possible to use poolset as *file* argument. But poolsets with remote
-replicas are not supported.
+It is possible to use poolset as *file* argument.
 
 ##### Available options: #####
 

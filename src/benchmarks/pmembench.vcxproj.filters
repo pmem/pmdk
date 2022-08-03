@@ -76,9 +76,6 @@
     <ClCompile Include="pmemobj_tx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="rpmem_persist.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="scenario.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

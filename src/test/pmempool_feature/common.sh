@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 #
 # src/test/pmempool_feature/common.sh -- common part of pmempool_feature tests
@@ -13,7 +13,6 @@ PART_SIZE=$(convert_to_bytes 10M)
 POOLSET=$DIR/testset
 
 TEST_SET_LOCAL=testset_local
-TEST_SET_REMOTE=testset_remote
 
 LOG=grep${UNITTEST_NUM}.log
 
@@ -73,25 +72,6 @@ function pmempool_feature_create_poolset() {
 		create_poolset $POOLSET \
 			AUTO:$DEVICE_DAX_PATH
 			;;
-	"remote")
-		create_poolset $DIR/$TEST_SET_LOCAL \
-			$PART_SIZE:${NODE_DIR[1]}/testfile_local11:x \
-			$PART_SIZE:${NODE_DIR[1]}/testfile_local12:x \
-			m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
-		create_poolset $DIR/$TEST_SET_REMOTE \
-			$PART_SIZE:${NODE_DIR[0]}/testfile_remote21:x \
-			$PART_SIZE:${NODE_DIR[0]}/testfile_remote22:x
-
-		copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$TEST_SET_REMOTE
-		copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL
-
-		rm_files_from_node 1 \
-			${NODE_DIR[1]}testfile_local11 ${NODE_DIR[1]}testfile_local12
-		rm_files_from_node 0 \
-			${NODE_DIR[0]}testfile_remote21 ${NODE_DIR[0]}testfile_remote22
-
-		POOLSET="${NODE_DIR[1]}/$TEST_SET_LOCAL"
-		;;
 	esac
 
 	expect_normal_exit $pmempool_exe rm -f $POOLSET
@@ -157,29 +137,4 @@ function pmempool_feature_test_CHECK_BAD_BLOCKS() {
 
 	pmempool_feature_enable "CHECK_BAD_BLOCKS"
 	pmempool_feature_disable "CHECK_BAD_BLOCKS"
-}
-
-# pmempool_feature_remote_init -- initialization remote replics
-function pmempool_feature_remote_init() {
-	require_nodes 2
-
-	require_node_libfabric 0 $RPMEM_PROVIDER
-	require_node_libfabric 1 $RPMEM_PROVIDER
-
-	init_rpmem_on_node 1 0
-
-	pmempool_exe="run_on_node 1 ../pmempool"
-}
-
-# pmempool_feature_test_remote -- run remote tests
-function pmempool_feature_test_remote() {
-	# create pool
-	expect_normal_exit $pmempool_exe rm -f $POOLSET
-	expect_normal_exit $pmempool_exe create obj $POOLSET
-
-	# poolset with remote replicas are not supported
-	exit_func=expect_abnormal_exit
-	pmempool_feature_enable $1 no-query
-	pmempool_feature_disable $1 no-query
-	pmempool_feature_query $1 abnormal
 }

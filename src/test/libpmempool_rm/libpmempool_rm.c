@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * libpmempool_rm -- a unittest for pmempool_rm.
@@ -13,7 +13,7 @@
 #include <getopt.h>
 #include "unittest.h"
 
-#define FATAL_USAGE(n) UT_FATAL("usage: %s [-f -l -r -o] path..", (n))
+#define FATAL_USAGE(n) UT_FATAL("usage: %s [-f -l -o] path..", (n))
 
 static PMEMobjpool *Pop;
 
@@ -26,16 +26,13 @@ main(int argc, char *argv[])
 
 	unsigned flags = 0;
 
-	char *optstr = "flro";
+	char *optstr = "flo";
 	int do_open = 0;
 	int opt;
 	while ((opt = getopt(argc, argv, optstr)) != -1) {
 		switch (opt) {
 		case 'f':
 			flags |= PMEMPOOL_RM_FORCE;
-			break;
-		case 'r':
-			flags |= PMEMPOOL_RM_POOLSET_REMOTE;
 			break;
 		case 'l':
 			flags |= PMEMPOOL_RM_POOLSET_LOCAL;

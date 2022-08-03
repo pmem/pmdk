@@ -1,4 +1,0 @@
-PMEMPOOLSET
-100G w:\mountpoint1\part0
-REPLICA foo bar
-100G w:\mountpoint2\part0
