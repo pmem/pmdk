@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
-# src/test/obj_heap_interrupt/Makefile.inc -- build obj_heap_interrupt and
-#       obj_rpmem_heap_interrupt unit tests
+# src/test/obj_heap_interrupt/Makefile.inc -- build obj_heap_interrupt unit tests
 #
 
 ../obj_heap_interrupt/obj_heap_interrupt:

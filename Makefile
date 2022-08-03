@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2021, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 
 #
 # Makefile -- top-level Makefile for PMDK
@@ -8,12 +8,9 @@
 #
 # Use "make doc" to build documentation.
 #
-# Use "make test" to build unit tests. Add "SKIP_SYNC_REMOTES=y" to skip
-# or "FORCE_SYNC_REMOTES=y" to force syncing remote nodes if any is defined.
+# Use "make test" to build unit tests.
 #
 # Use "make check" to run unit tests.
-#
-# Use "make check-remote" to run only remote unit tests.
 #
 # Use "make clean" to delete all intermediate files (*.o, etc).
 #
@@ -45,7 +42,6 @@ RPM_BUILDDIR=rpmbuild
 DPKG_BUILDDIR=dpkgbuild
 EXPERIMENTAL ?= n
 BUILD_PACKAGE_CHECK ?= y
-BUILD_RPMEM ?= y
 TEST_CONFIG_FILE ?= "$(CURDIR)"/src/test/testconfig.sh
 PMEMSET_INSTALL ?= n
 DOC ?= y
@@ -78,14 +74,6 @@ endif
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 	$(RM) -f $(GIT_VERSION)
 
-require-rpmem:
-ifneq ($(BUILD_RPMEM),y)
-	$(error ERROR: cannot run remote tests because $(BUILD_RPMEM_INFO))
-endif
-
-check-remote: require-rpmem all
-	$(MAKE) -C src $@
-
 test check pcheck pycheck: all
 	$(MAKE) -C src $@
 
@@ -108,7 +96,7 @@ check-license:
 	@echo Done.
 
 check-doc: doc
-	BUILD_RPMEM="$(BUILD_RPMEM)" utils/check-manpages
+	./utils/check-manpages
 
 sparse:
 	$(MAKE) -C src sparse
@@ -126,7 +114,7 @@ pkg-clean:
 rpm dpkg: pkg-clean
 	$(MAKE) source DESTDIR="$(DESTDIR)"
 	+utils/build-$@.sh -t $(SRCVERSION) -s "$(DESTDIR)"/pmdk -w "$(DESTDIR)" -o $(CURDIR)/$@\
-			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK) -r $(BUILD_RPMEM)\
+			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK)\
 			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE) -l $(PMEMSET_INSTALL)
 
 install: all
@@ -138,5 +126,5 @@ ifeq ($(DOC),y)
 endif
 
 .PHONY: all clean clobber test check cstyle check-license install uninstall\
-	source rpm dpkg pkg-clean pcheck check-remote format doc require-rpmem\
+	source rpm dpkg pkg-clean pcheck format doc\
 	$(SUBDIRS)

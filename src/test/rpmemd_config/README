@@ -1,6 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/rpmemd_config/README.
-
-This directory contains a unit test for rpmemd command line and config file
-parsing.

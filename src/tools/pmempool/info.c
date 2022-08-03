@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * info.c -- pmempool info command main source file
@@ -637,17 +637,8 @@ static int
 pmempool_info_replica(struct pmem_info *pip, unsigned repn, int v)
 {
 	struct pool_replica *rep = pip->pfile->poolset->replica[repn];
-	outv(v, "Replica %u%s - %s", repn,
-		repn == 0 ? " (master)" : "",
-		rep->remote == NULL ? "local" : "remote");
-
-	if (rep->remote) {
-		outv(v, ":\n");
-		outv_field(v, "node", "%s", rep->remote->node_addr);
-		outv_field(v, "pool set", "%s", rep->remote->pool_desc);
-
-		return 0;
-	}
+	outv(v, "Replica %u%s - local", repn,
+		repn == 0 ? " (master)" : "");
 
 	outv(v, ", %u part(s):\n", rep->nparts);
 	for (unsigned p = 0; p < rep->nparts; ++p) {
@@ -863,8 +854,7 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		if (pip->type != PMEM_POOL_TYPE_BTT) {
 			struct pool_set *ps = pip->pfile->poolset;
 			for (unsigned r = 0; r < ps->nreplicas; ++r) {
-				if (ps->replica[r]->remote == NULL &&
-					mprotect(ps->replica[r]->part[0].addr,
+				if (mprotect(ps->replica[r]->part[0].addr,
 					ps->replica[r]->repsize,
 					PROT_READ) < 0) {
 					outv_err(

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * pmembench.cpp -- main source file for benchmark framework
@@ -34,11 +34,6 @@
 #include "scenario.hpp"
 #include "set.h"
 #include "util.h"
-#ifndef _WIN32
-#include "rpmem_common.h"
-#include "rpmem_ssh.h"
-#include "rpmem_util.h"
-#endif
 
 /* average time required to get a current time from the system */
 unsigned long long Get_time_avg;

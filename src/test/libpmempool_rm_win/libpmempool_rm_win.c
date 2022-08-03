@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2022, Intel Corporation */
 
 /*
  * libpmempool_rm_win -- a unittest for pmempool_rm.
@@ -31,8 +31,6 @@ wmain(int argc, wchar_t *argv[])
 		wchar_t *optarg = argv[i + 1];
 		if (wcscmp(L"-f", argv[i]) == 0)
 			flags |= PMEMPOOL_RM_FORCE;
-		else if (wcscmp(L"-r", argv[i]) == 0)
-			flags |= PMEMPOOL_RM_POOLSET_REMOTE;
 		else if (wcscmp(L"-l", argv[i]) == 0)
 			flags |= PMEMPOOL_RM_POOLSET_LOCAL;
 		else if (wcscmp(L"-o", argv[i]) == 0)

@@ -1,14 +1,9 @@
 #
-# src/test/testconfig.ps1 -- configuration for local and remote unit tests
+# src/test/testconfig.ps1 -- configuration for unit tests
 #
 
 #
-# 1) *** LOCAL CONFIGURATION ***
-#
-# The first part of the file tells the script unittest/unittest.ps1
-# which file system locations are to be used for local testing.
-#
-
+# 1) *** TEST CONFIGURATION ***
 #
 # Appended to PMEM_FS_DIR and NON_PMEM_FS_DIR to test PMDK with file path longer
 # than 255 characters. Due to limitation of powershell you have to use
@@ -76,13 +71,3 @@ $Env:TM = "1"
 #
 # $Env:PMDK_LIB_PATH_NONDEBUG = "C:\vcpkg\buildtrees\pmdk\src\1.4.1-0ecc9f7f1f\src\x64\Release"
 # $Env:PMDK_LIB_PATH_DEBUG = "C:\vcpkg\buildtrees\pmdk\src\1.4.1-0ecc9f7f1f\src\x64\Debug"
-
-#
-# 2) *** REMOTE CONFIGURATION ***
-#
-# The second part of the file tells the script unittest/unittest.sh
-# which remote nodes and their file system locations are to be used
-# for remote testing.
-#
-# XXX - remote capabilities not ported to Windows yet
-#

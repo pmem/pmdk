@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * palloc.c -- implementation of pmalloc POSIX-like API
@@ -1287,16 +1287,6 @@ int
 palloc_heap_check(void *heap_start, uint64_t heap_size)
 {
 	return heap_check(heap_start, heap_size);
-}
-
-/*
- * palloc_heap_check_remote -- verifies state of remote replica
- */
-int
-palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
-	struct remote_ops *ops)
-{
-	return heap_check_remote(heap_start, heap_size, ops);
 }
 
 /*

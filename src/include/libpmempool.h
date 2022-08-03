@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * libpmempool.h -- definitions of libpmempool entry points
@@ -127,7 +127,6 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 
 #define PMEMPOOL_RM_FORCE		(1U << 0) /* ignore any errors */
 #define PMEMPOOL_RM_POOLSET_LOCAL	(1U << 1) /* remove local poolsets */
-#define PMEMPOOL_RM_POOLSET_REMOTE	(1U << 2) /* remove remote poolsets */
 
 /*
  * LIBPMEMPOOL SYNC

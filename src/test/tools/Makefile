@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2015-2022, Intel Corporation
 
 #
 # src/test/tools/Makefile -- build unit test helpers
@@ -15,10 +15,8 @@ DIRS = \
        pmemalloc\
        pmemobjcli\
        pmemdetect\
-       ctrld\
        bttcreate\
        gran_detecto\
-       fip\
        ddmap\
        cmpmap\
        extents\
@@ -33,28 +31,16 @@ DIRS += \
 	cpufd
 endif
 
-REMOTE_TOOLS = \
-	ctrld\
-	extents\
-	fip\
-	obj_verify\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect
-
 all     : TARGET = all
 clean   : TARGET = clean
 clobber : TARGET = clobber
 cstyle  : TARGET = cstyle
 format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
 sparse  : TARGET = sparse
 
 all test cstyle clean clobber format sparse: $(DIRS)
 
 $(TESTCONFIG):
-
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)

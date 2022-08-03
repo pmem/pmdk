@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * util_poolset_foreach.c -- unit test for util_poolset_foreach_part()
@@ -21,17 +21,9 @@
 static int
 cb(struct part_file *pf, void *arg)
 {
-	if (pf->is_remote) {
-		/* remote replica */
-		const char *node_addr = pf->remote->node_addr;
-		const char *pool_desc = pf->remote->pool_desc;
-		char *set_name = (char *)arg;
-		UT_OUT("%s: %s %s", set_name, node_addr, pool_desc);
-	} else {
-		const char *name = pf->part->path;
-		char *set_name = (char *)arg;
-		UT_OUT("%s: %s", set_name, name);
-	}
+	const char *name = pf->part->path;
+	char *set_name = (char *)arg;
+	UT_OUT("%s: %s", set_name, name);
 
 	return 0;
 }

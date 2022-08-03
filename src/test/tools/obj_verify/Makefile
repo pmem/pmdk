@@ -1,11 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 
 #
 # src/test/tools/obj_verify -- build obj_verify tool
 #
-
-SCP_TO_REMOTE_NODES = y
 
 TOP = ../../../..
 
