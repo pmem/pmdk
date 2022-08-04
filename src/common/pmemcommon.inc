@@ -56,8 +56,3 @@ SOURCE +=\
 	$(PMEM2)/region_namespace_none.c\
 	$(PMEM2)/numa_none.c
 endif
-
-# Librpmem is deprecated.
-# This flag allows to build tests, examples and benchmarks
-# using rpmem despite the deprecated state.
-CFLAGS += -Wno-deprecated-declarations
