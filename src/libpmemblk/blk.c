@@ -794,6 +794,9 @@ pmemblk_xcreateU(const char *path, size_t bsize, size_t poolsize, mode_t mode,
 		struct vdm *vdm)
 {
 	PMEMblkpool *pbp = pmemblk_createU(path, bsize, poolsize, mode);
+	if (!pbp)
+		return pbp;
+
 	/*
 	 * XXX: Create default blk data mover to be used in case provided
 	 * vdm is NULL.
@@ -957,6 +960,9 @@ PMEMblkpool *
 pmemblk_xopenU(const char *path, size_t bsize, struct vdm *vdm)
 {
 	PMEMblkpool *pbp = pmemblk_openU(path, bsize);
+	if (!pbp)
+		return pbp;
+
 	/*
 	 * XXX: Create default blk data mover to be used in case provided
 	 * vdm is NULL.
