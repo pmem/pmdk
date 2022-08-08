@@ -53,7 +53,7 @@ export PMEM_NO_GENERIC_MEMCPY=1
 
 test
 
-export PMEM_MOVDIR64B=0
+export PMEM_MOVDIR64B=1
 
 test_all
 
