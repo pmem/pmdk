@@ -71,3 +71,20 @@ if build_machine.system()=='linux' and (get_option('doc') or get_option('web'))
 endif
 
 subdir('src')
+
+if get_option('tests')
+    subdir('testsuite')
+endif
+
+tests_python = find_program('testsuite/RUNTESTS.py')
+tests_bash = find_program('testsuite/RUNTESTS')
+
+run_target(
+    'run-tests-python',
+    command:[tests_python],
+)
+
+run_target(
+    'run-tests-bash',
+    command:[tests_bash],
+)

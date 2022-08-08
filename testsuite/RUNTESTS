@@ -413,6 +413,9 @@ runtest() {
 	cd ..
 }
 
+# Set working directory properly
+cd "$MESON_SOURCE_ROOT/testsuite"
+
 [ -f testconfig.sh ] || {
 	cat >&2 <<EOF
 RUNTESTS: stopping because no testconfig.sh is found.
@@ -512,9 +515,9 @@ fi
 #
 # command-line argument processing...
 #
-args=`getopt k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: $*`
+args=`getopt -o k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: : -- $*`
 [ $? != 0 ] && usage
-set -- $args
+eval set -- "$args"
 for arg
 do
 	receivetype=auto
@@ -773,7 +776,7 @@ if [ "$1" ]; then
 	done
 else
 	# no arguments means run them all
-	for testfile0 in */TEST0
+	for testfile0 in "$MESON_BUILD_ROOT/*/TEST0"
 	do
 		testdir=`dirname $testfile0`
 		if [[ "$skip_dir" =~ "$testdir" ]]; then

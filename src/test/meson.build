@@ -377,49 +377,49 @@ tests = {
 }
 
 unittest_sources = files(
-    'unittest/ut_alloc.c',
-    'unittest/ut_backtrace.c',
-    'unittest/ut_fh.c',
-    'unittest/ut_file.c',
-    'unittest/ut_pthread.c',
-    'unittest/ut_signal.c',
-    'unittest/ut.c',
+    '../../testsuite/unittest/ut_alloc.c',
+    '../../testsuite/unittest/ut_backtrace.c',
+    '../../testsuite/unittest/ut_fh.c',
+    '../../testsuite/unittest/ut_file.c',
+    '../../testsuite/unittest/ut_pthread.c',
+    '../../testsuite/unittest/ut_signal.c',
+    '../../testsuite/unittest/ut.c',
 )
 
 unittest_dep = declare_dependency(
     sources: unittest_sources,
     dependencies: pmemcore_dep,
     include_directories: [
-        include_directories('./unittest'),
+        include_directories('../../testsuite/unittest'),
         core_include,
         root_include,
     ]
 )
 
 unittest_pmem2_sources = files(
-    'unittest/ut_pmem2_config.c',
-    'unittest/ut_pmem2_map.c',
-    'unittest/ut_pmem2_setup_integration.c',
-    'unittest/ut_pmem2_setup.c',
-    'unittest/ut_pmem2_source.c',
-    'unittest/ut_pmem2_utils.c',
+    '../../testsuite/unittest/ut_pmem2_config.c',
+    '../../testsuite/unittest/ut_pmem2_map.c',
+    '../../testsuite/unittest/ut_pmem2_setup_integration.c',
+    '../../testsuite/unittest/ut_pmem2_setup.c',
+    '../../testsuite/unittest/ut_pmem2_source.c',
+    '../../testsuite/unittest/ut_pmem2_utils.c',
 )
 
 unittest_pmem2_dep = declare_dependency(
     sources: unittest_pmem2_sources,
     include_directories: [
-        include_directories('./unittest'),
+        include_directories('../../testsuite/unittest'),
     ]
 )
 
 unittest_pmemset_sources = files(
-    'unittest/ut_pmemset_utils.c',
+    '../../testsuite/unittest/ut_pmemset_utils.c',
 )
 
 unittest_pmemset_dep = declare_dependency(
     sources: unittest_pmemset_sources,
     include_directories: [
-        include_directories('./unittest'),
+        include_directories('../../testsuite/unittest'),
     ]
 )
 
@@ -496,6 +496,3 @@ foreach t, attrs : filtered_tests
 
     subdir(t)
 endforeach
-
-# add test tools subdirectory
-subdir('tools')

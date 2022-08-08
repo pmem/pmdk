@@ -151,9 +151,9 @@ class TestRunner:
                        .format(tc, futils.Color.GREEN, futils.Color.END, tm))
 
 
-def _import_testfiles(dir):
+def _import_testfiles():
     """
-    Traverse through "config.dir" directory, find all "TESTS.py" files and
+    Traverse through "MESON_BUILD_ROOT/src/test" directory, find all "TESTS.py" files and
     import them as modules. Set imported module name to
     file directory path.
 
@@ -165,7 +165,8 @@ def _import_testfiles(dir):
           therefore available through basetest.get_testfiles() function
 
     """
-    for root, _, files in os.walk(path.join(os.path.dirname(__file__), dir)):
+    print(os.getenv('MESON_BUILD_ROOT'))
+    for root, _, files in os.walk(path.join(os.getenv('MESON_BUILD_ROOT'), 'src/test')):
         for name in files:
             if name == 'TESTS.py':
                 testfile = path.join(root, name)
@@ -178,7 +179,7 @@ def _import_testfiles(dir):
 
 def main():
     config = Configurator().config
-    _import_testfiles(path.abspath(config.dir))
+    _import_testfiles()
     testcases = get_testcases()
 
     if config.group:
