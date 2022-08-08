@@ -351,7 +351,14 @@ nswrite_async_impl(struct future_context *ctx,
 			goto set_output;
 		}
 
-		/* XXX: use pmem2_mem* operation instead of vdm_operation */
+		/*
+		 * XXX: use pmem2_mem* operation instead of vdm_operation.
+		 *
+		 * An attempt was made to facilitate pmem2 async operations
+		 * in pmemblk: https://github.com/pmem/pmdk/pull/5487.
+		 * Unfortunately, the PR was closed as it required breaking
+		 * the abstraction to be finished.
+		 */
 		int eADR = pmem_has_auto_flush();
 		int durable = vdm_is_supported(vdm, VDM_F_MEM_DURABLE);
 
