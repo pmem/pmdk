@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(LIBRPMEM, 7)
-collection: librpmem
-header: PMDK
-date: rpmem API version 1.3
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["librpmem.7.html"]
+title: "librpmem | PMDK"
+header: "rpmem API version 1.3"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2016-2022, Intel Corporation)

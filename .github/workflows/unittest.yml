@@ -5,10 +5,11 @@ on: [push, pull_request]
 jobs:
   linux:
     name: PMDK_runners
+    if: github.repository == 'pmem/pmdk'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [[self-hosted, rhel], [self-hosted, sles]]
+        os: [[self-hosted, rhel]]
     env:
       WORKDIR: utils/gha-runners
 

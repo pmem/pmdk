@@ -10,7 +10,7 @@ dependencies = [
 
 c_args = []
 include_directories = [
-    include_directories('../pmem2_movnt_align') # testcase needs movnt_align_common.h
+    include_directories('../pmem2_movnt_align'),
 ]
 
 executable(

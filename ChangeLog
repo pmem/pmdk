@@ -1,12 +1,13 @@
-Wed May 18 2022 Łukasz Plewa <lukasz.plewa@intel.com>
+Tue May 24 2022 Łukasz Plewa <lukasz.plewa@intel.com>
 
-	* Version 1.12.0-rc1
+	* Version 1.12.0
 
 	This release:
 	- Deprecates librpmem library and rpmemd tool.
 	Using the librpmem library API will result in warnings
 	and is no longer recommended. Those interested in a remote
-	persistent memory support should use the new rpma library.
+	persistent memory support should use the new
+	rpma (https://github.com/pmem/rpma) library.
 	- Introduces a new set of APIs in libpmem2 to perform asynchronous data
 	movement operations. To use this feature, software needs to include an
 	optional miniasync(7) dependency.

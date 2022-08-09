@@ -6,11 +6,12 @@ sources = files(
 dependencies = [
     libpmem_dep,
     unittest_dep,
+    pmemcommon_dep,
 ]
 
 c_args = []
 include_directories = [
-    include_directories('../pmem2_memcpy') # testcase needs memcpy_common.h
+    include_directories('../pmem2_memcpy'),
 ]
 
 executable(

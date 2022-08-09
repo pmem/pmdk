@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(POOLSET, 5)
-collection: poolset
-header: PMDK
-date: poolset API version 1.0
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["poolset.5.html"]
+title: "poolset | PMDK"
+header: "poolset API version 1.0"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2017-2018, Intel Corporation)

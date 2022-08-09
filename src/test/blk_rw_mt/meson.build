@@ -3,7 +3,9 @@ sources = files(
 )
 
 dependencies = [
+    libpmem_dep,
     libpmemblk_dep,
+    pmemcommon_dep,
     unittest_dep,
 ]
 

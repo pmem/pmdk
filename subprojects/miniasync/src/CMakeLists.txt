@@ -46,7 +46,8 @@ set(CORE_DEPS ${CORE_DEPS}
 add_library(cores STATIC ${CORE_DEPS})
 add_library(miniasync SHARED ${SOURCES} miniasync.def)
 set_property(TARGET cores PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(miniasync PRIVATE cores)
+target_link_libraries(miniasync PRIVATE
+	-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/miniasync.map cores)
 
 target_include_directories(miniasync PRIVATE . include)
 target_include_directories(cores PRIVATE . include)
@@ -58,8 +59,9 @@ if(WIN32)
 	target_include_directories(cores PRIVATE ${MINIASYNC_INCLUDE_DIR_WIN})
 endif()
 
+# SOVERSION is an ABI version
 set_target_properties(miniasync PROPERTIES
-	SOVERSION 0.1.0-rc1
+	SOVERSION 0
 	PUBLIC_HEADER ${MINIASYNC_INCLUDE_DIR}/libminiasync.h
 )
 

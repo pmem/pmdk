@@ -15,7 +15,8 @@ dependencies = [
 
 c_args = []
 include_directories = [
-    root_include,
+    core_include,
+    common_include,
 ]
 
 executable(

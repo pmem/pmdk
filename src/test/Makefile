@@ -251,7 +251,8 @@ PMEMPOOL_TESTS = \
 	pmempool_info\
 	pmempool_rm\
 	pmempool_sync\
-	pmempool_transform
+	pmempool_transform\
+	pmempool_inval
 
 RPMEM_TESTS = \
 	rpmem_addr\

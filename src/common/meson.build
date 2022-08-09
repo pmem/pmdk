@@ -23,6 +23,8 @@ sources = files(
     '../libpmem2/badblocks.c',
     '../libpmem2/source.c',
     '../libpmem2/source_posix.c',
+    '../libpmem2/memops_generic.c',
+    '../libpmem/pmem.c',
 )
 
 if host_machine.system() == 'linux'
@@ -30,7 +32,8 @@ if host_machine.system() == 'linux'
         '../libpmem2/auto_flush_linux.c',
         '../libpmem2/deep_flush_linux.c',
         '../libpmem2/extent_linux.c',
-        '../libpmem2/pmem2_utils_linux.c'
+        '../libpmem2/pmem2_utils_linux.c',
+	'../libpmem/pmem_posix.c',
     )
 
     if libndctl_dep.found()
@@ -48,10 +51,14 @@ else
         '../libpmem2/deep_flush_other.c',
         '../libpmem2/extent_other.c',
         '../libpmem2/pmem2_utils_other.c',
+	'../libpmem/pmem_windows.c',
     )
 endif
 
-dependencies = []
+dependencies = [
+    pmemcore_dep,
+    pmem2arch_dep,
+]
 
 if libndctl_dep.found()
     sources += files(
@@ -74,12 +81,23 @@ else
     )
 endif
 
-pmemcommon_dep = declare_dependency(
-    sources: sources,
+libpmemcommon = static_library(
+    'pmemcommon',
+    sources,
     dependencies: dependencies,
     include_directories: [
         include_directories('.'),
+	include_directories('../libpmem'),
         include_directories('../libpmem2'),
-        miniasync_include, # TODO: I do not like it but including libpmem2 headers forces us to do it
-    ]
+	root_include,
+	miniasync_include,
+    ],
+    install: false,
+)
+
+pmemcommon_dep = declare_dependency(
+    link_with: libpmemcommon,
+    include_directories: [
+        include_directories('.'),
+    ],
 )

@@ -1,14 +1,16 @@
 sources = files(
     'rpmem_addr.c',
+    '../../rpmem_common/rpmem_common.c',
 )
 
 dependencies = [
-    librpmem_dep,
     unittest_dep,
 ]
 
 c_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../rpmem_common'),
+]
 
 executable(
     t,

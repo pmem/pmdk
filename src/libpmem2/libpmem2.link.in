@@ -20,6 +20,7 @@ LIBPMEM2_1.0 {
 		pmem2_config_set_vdm;
 		pmem2_config_set_vm_reservation;
 		pmem2_deep_flush;
+		pmem2_err_to_errno;
 		pmem2_errormsg;
 		pmem2_get_drain_fn;
 		pmem2_get_flush_fn;

@@ -1,11 +1,12 @@
 ---
-layout: manual
-Content-Style: 'text/css'
-title: _MP(POBJ_LAYOUT_BEGIN, 3)
-collection: libpmemobj
-header: PMDK
-date: pmemobj API version 2.3
-...
+draft: false
+slider_enable: true
+description: ""
+disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
+aliases: ["pobj_layout_begin.3.html"]
+title: "libpmemobj | PMDK"
+header: "pmemobj API version 2.3"
+---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2017-2018, Intel Corporation)

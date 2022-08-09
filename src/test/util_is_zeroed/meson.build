@@ -4,6 +4,7 @@ sources = files(
 
 dependencies = [
     unittest_dep,
+    pmemcommon_dep,
 ]
 
 c_args = []
