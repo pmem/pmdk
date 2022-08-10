@@ -43,9 +43,13 @@ a persistent memory checking tool.
 
 Pmreorder performs the store reordering between persistent
 memory barriers - a sequence of flush-fence operations.
-It uses a consistency checking routine provided in the
-command line options to check whether files are in a
-consistent state.
+It also sets an environmental variable -PMREORDER_MARKERS - which is
+to be further used in defining consistency.
+Said variable is passed as char array contains of
+successive markers separated by vertical bar (‘|’).
+Pmreorder tool uses a consistency checking routine
+provided in the command line options to check
+whether files are in a consistent state.
 
 Considering that logging, replaying and reordering of operations
 are very time consuming, it is recommended to use as few stores as
