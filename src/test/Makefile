@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2021, Intel Corporation
+# Copyright 2014-2022, Intel Corporation
 #
 
 #
@@ -69,6 +69,7 @@ OBJ_TESTS = \
 	obj_fragmentation2\
 	obj_heap\
 	obj_heap_interrupt\
+	obj_heap_reopen\
 	obj_heap_state\
 	obj_include\
 	obj_lane\

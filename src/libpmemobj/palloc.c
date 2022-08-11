@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2022, Intel Corporation */
 
 /*
  * palloc.c -- implementation of pmalloc POSIX-like API
@@ -263,7 +263,8 @@ palloc_heap_action_exec(struct palloc_heap *heap,
 	struct operation_context *ctx)
 {
 #ifdef DEBUG
-	if (act->m.m_ops->get_state(&act->m) == act->new_state) {
+	enum memblock_state s = act->m.m_ops->get_state(&act->m);
+	if (s == act->new_state || s == MEMBLOCK_STATE_UNKNOWN) {
 		ERR("invalid operation or heap corruption");
 		ASSERT(0);
 	}
@@ -612,6 +613,8 @@ palloc_defer_free_create(struct palloc_heap *heap, uint64_t off,
 	out->type = POBJ_ACTION_TYPE_HEAP;
 	out->offset = off;
 	out->m = memblock_from_offset(heap, off);
+
+	heap_ensure_zone_reclaimed(heap, out->m.zone_id);
 
 	/*
 	 * For the duration of free we may need to protect surrounding
