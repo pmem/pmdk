@@ -465,7 +465,12 @@ verbose_tests=
 [ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
 [ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
 
-PMEMDETECT="$MESON_BUILD_ROOT/testsuite/tools/pmemdetect/pmemdetect.static-nondebug"
+#
+# Set UNITTEST_SH variable, so tests can include it
+#
+export UNITTEST_SH="$MESON_SOURCE_ROOT/testsuite/unittest/unittest.sh"
+
+PMEMDETECT="$MESON_BUILD_ROOT/testsuite/tools/pmemdetect/pmemdetect"
 pmemdetect() {
 	LD_LIBRARY_PATH=$LIBNDCTL_LD_LIBRARY_PATHS:$LD_LIBRARY_PATH $PMEMDETECT "$@"
 }
@@ -515,7 +520,7 @@ fi
 #
 # command-line argument processing...
 #
-args=`getopt -o k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: : -- $*`
+args=`getopt -o k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: -- $*`
 [ $? != 0 ] && usage
 eval set -- "$args"
 for arg
@@ -776,7 +781,7 @@ if [ "$1" ]; then
 	done
 else
 	# no arguments means run them all
-	for testfile0 in "$MESON_BUILD_ROOT/*/TEST0"
+	for testfile0 in "$MESON_BUILD_ROOT/src/test/*/TEST0"
 	do
 		testdir=`dirname $testfile0`
 		if [[ "$skip_dir" =~ "$testdir" ]]; then

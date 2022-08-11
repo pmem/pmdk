@@ -41,3 +41,5 @@ option('tests-tracer', type : 'string',
         with provided tracer command. With this option 
         stdout and stderr are not redirected, enabling 
         interactive sessions.''')
+option('tests-bash-args', type : 'array',
+    description: 'Additional arguments passes to bash RUNTESTS script')

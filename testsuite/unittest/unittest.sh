@@ -34,17 +34,19 @@
 #
 set -e
 
+# Set base directory of unittest framework
+UNITTEST_DIR=$MESON_SOURCE_ROOT/testsuite/unittest
 # make sure we have a well defined locale for string operations here
 export LC_ALL="C"
 #export LC_ALL="en_US.UTF-8"
 
-if ! [ -f ../envconfig.sh ]; then
+if ! [ -f UNITTEST_DIR/../envconfig.sh ]; then
 	echo >&2 "envconfig.sh is missing -- is the tree built?"
 	exit 1
 fi
 
-. ../testconfig.sh
-. ../envconfig.sh
+. UNITTEST_DIR/../testconfig.sh
+. UNITTEST_DIR/../envconfig.sh
 
 if [ -t 1 ]; then
 	IS_TERMINAL_STDOUT=YES
@@ -163,7 +165,7 @@ SCP_OPTS="-o BatchMode=yes -r -p"
 NDCTL_MIN_VERSION="63"
 
 # list of common files to be copied to all remote nodes
-DIR_SRC="../.."
+DIR_SRC="UNITTEST_DIR/../.."
 FILES_COMMON_DIR="\
 $DIR_SRC/test/*.supp \
 $DIR_SRC/tools/rpmemd/rpmemd \
