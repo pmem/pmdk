@@ -62,14 +62,14 @@ if sys.platform != 'win32':
         """Set this context for a static_debug build"""
 
         def __init__(self):
-            self.exesuffix = '.static-debug'
+            #self.exesuffix = '.static-debug'
             self.libdir = c.DEBUG_LIBDIR
 
     class Static_Release(Build):
         """Set this context for a static_release build"""
 
         def __init__(self):
-            self.exesuffix = '.static-nondebug'
+            #self.exesuffix = '.static-nondebug'
             self.libdir = c.RELEASE_LIBDIR
 
 

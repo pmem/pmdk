@@ -165,7 +165,6 @@ def _import_testfiles():
           therefore available through basetest.get_testfiles() function
 
     """
-    print(os.getenv('MESON_BUILD_ROOT'))
     for root, _, files in os.walk(path.join(os.getenv('MESON_BUILD_ROOT'), 'src/test')):
         for name in files:
             if name == 'TESTS.py':

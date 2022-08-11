@@ -4,6 +4,7 @@
 """Test framework constants."""
 
 from os.path import join, abspath, dirname
+from os import getenv
 import sys
 
 # List of libraries for logging PMDK debug output
@@ -24,7 +25,7 @@ if sys.platform == 'win32':
     MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
                                'build', 'out', 'Release'))
 else:
-    DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
+    DEBUG_LIBDIR = ':'.join([join(getenv('MESON_BUILD_ROOT'), 'src','lib'+libname) for libname in LIBS_LIST])
     RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
     MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
                                'build', 'out'))
