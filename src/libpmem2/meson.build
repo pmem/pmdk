@@ -22,7 +22,7 @@ elif host_machine.cpu_family() == 'x86_64'
         'x86_64/memset/memset_t_sse2.c',
     )
 
-    if cc.compiles(
+    test_avx512f = cc.run(
         '''
         #include <immintrin.h>
         #include <stdint.h>
@@ -37,6 +37,8 @@ elif host_machine.cpu_family() == 'x86_64'
         args: ['-mavx512f'],
         name: 'avx512f support'
     )
+    if test_avx512f.compiled() and test_avx512f.returncode() == 0
+        message('Running avx512f')
         sources += files(
             'x86_64/memcpy/memcpy_nt_avx512f.c',
             'x86_64/memcpy/memcpy_t_avx512f.c',
@@ -48,11 +50,13 @@ elif host_machine.cpu_family() == 'x86_64'
             '-DAVX512F_AVAILABLE=1',
             '-mavx512f',
         ]
+        pmem2_use_avx512f = 1
     else
         compile_args += '-DAVX512F_AVAILABLE=0'
+        pmem2_use_avx512f = 0
     endif
 
-    if cc.compiles(
+    test_movdir64b = cc.run(
         '''
         #include <immintrin.h>
         #include <stdint.h>
@@ -66,7 +70,8 @@ elif host_machine.cpu_family() == 'x86_64'
         args: ['-mmovdir64b'],
         name: 'movdir64b support'
     )
-        message('Compiled movdir64b')
+    if test_movdir64b.compiled() and test_movdir64b.returncode() == 0
+        message('Running movdir64b')
         sources += files(
             'x86_64/memcpy/memcpy_nt_movdir64b.c',
             'x86_64/memset/memset_nt_movdir64b.c',
@@ -76,8 +81,10 @@ elif host_machine.cpu_family() == 'x86_64'
             '-DMOVDIR64B_AVAILABLE=1',
             '-mmovdir64b',
         ]
+        pmem2_use_movdir64b = 1
     else
         compile_args += '-DMOVDIR64B_AVAILABLE=0'
+        pmem2_use_movdir64b = 0
     endif
 
     includes += include_directories('x86_64/memcpy', 'x86_64/memset')

@@ -1,0 +1,3 @@
+[wrap-git]
+url = https://github.com/pmem/miniasync.git
+revision = master

@@ -12,6 +12,7 @@
 *~
 *.swp
 *.o
+logs
 make.out
 a.out
 nbproject/

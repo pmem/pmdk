@@ -11,12 +11,6 @@ config = {
     #
 
     #
-    # Set tests directory relative to the RUNTESTS.py script
-    #
-
-    'dir': '../../build/src/test',
-
-    #
     # Set logging level. Possible values:
     # 0 - silent (only error messages)
     # 1 - normal (above + SETUP + START + DONE + PASS + SKIP messages)

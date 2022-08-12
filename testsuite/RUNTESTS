@@ -465,7 +465,7 @@ verbose_tests=
 [ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
 [ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
 
-PMEMDETECT="tools/pmemdetect/pmemdetect.static-nondebug"
+PMEMDETECT="$MESON_BUILD_ROOT/testsuite/tools/pmemdetect/pmemdetect.static-nondebug"
 pmemdetect() {
 	LD_LIBRARY_PATH=$LIBNDCTL_LD_LIBRARY_PATHS:$LD_LIBRARY_PATH $PMEMDETECT "$@"
 }

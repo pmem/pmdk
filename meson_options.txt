@@ -1,12 +1,43 @@
+# Global Options
 option('ndctl', type: 'feature', value: 'auto',
     description: 'ndctl support')
 option('rpmem', type: 'boolean', value: true,
     description: 'RPMEM support')
 option('tools', type: 'boolean', value: true,
     description: 'Build tools')
-option('tests', type: 'boolean', value: true,
-    description: 'Build tests')
 option('doc', type: 'boolean', value: false,
     description: 'Build manuals')
 option('web', type: 'boolean', value: false,
     description: 'Build manuals for web')
+
+# Test Options
+option('tests', type: 'boolean', value: true,
+    description: 'Build tests')
+option('tests-case', type: 'string',
+    description: 'Run single test case')
+option('tests-fs-dir-force-pmem', type: 'boolean', value: false,
+    description: 'Set PMEM_IS_PMEM_FORCE=1 for tests run on pmem fs')
+option('tests-suite-log-level', type: 'integer', value: 1,
+    description: 'Set log level. 0 - silent, 1 - normal, 2 - verbose')
+option('tests-keep-going', type: 'boolean', value: false,
+    description: 'Continue execution despite test fails')
+option('tests-granularity', type : 'combo', choices : ['any', 'page', 'cacheline', 'byte', 'non'],
+    description: 'run tests on a filesystem with specified granularity types.')
+option('tests-type', type : 'combo', choices : ['check', 'short', 'medium', 'long', 'all'],
+    description: 'Run only specified test type where check = short + medium')
+option('tests-timeout', type: 'string',
+    description: '''Set timeout for test execution timeout: 
+        integer with an optional suffix: `s` for seconds, 
+        `m` for minutes, `h` for hours or `d` for days.''')
+option('tests-sequence', type: 'string', 
+    description: '''Run only tests from specified test sequence 
+        e.g.: 0-2,5 will execute TEST0, TEST1, TEST2 and TEST5''')
+option('tests-list-cases', type: 'boolean', value: false,
+    description: 'List testcases only')
+option('tests-fail-on-skip', type: 'boolean', value: false,
+    description: 'Skipping tests also fail')
+option('tests-tracer', type : 'string',
+    description: '''Run C binary 
+        with provided tracer command. With this option 
+        stdout and stderr are not redirected, enabling 
+        interactive sessions.''')
