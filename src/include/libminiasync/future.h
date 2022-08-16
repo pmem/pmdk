@@ -115,6 +115,10 @@ struct future_notifier {
 	uint32_t padding;
 };
 
+enum future_property {
+	FUTURE_PROPERTY_ASYNC,
+};
+
 static inline void *
 future_context_get_data(struct future_context *context)
 {
@@ -138,9 +142,12 @@ future_context_get_size(struct future_context *context)
 
 typedef enum future_state (*future_task_fn)(struct future_context *context,
 			struct future_notifier *notifier);
+typedef int (*future_has_property_fn)(void *future,
+			enum future_property property);
 
 struct future {
 	future_task_fn task;
+	future_has_property_fn has_property;
 	struct future_context context;
 };
 
@@ -151,9 +158,10 @@ struct future {
 		_output_type output;\
 	}
 
-#define FUTURE_INIT(_futurep, _taskfn)\
+#define FUTURE_INIT_EXT(_futurep, _taskfn, _propertyfn)\
 do {\
 	(_futurep)->base.task = (_taskfn);\
+	(_futurep)->base.has_property = (_propertyfn);\
 	(_futurep)->base.context.state = (FUTURE_STATE_IDLE);\
 	(_futurep)->base.context.data_size = sizeof((_futurep)->data);\
 	(_futurep)->base.context.output_size =\
@@ -161,9 +169,13 @@ do {\
 	(_futurep)->base.context.padding = 0;\
 } while (0)
 
+#define FUTURE_INIT(_futurep, _taskfn)\
+FUTURE_INIT_EXT((_futurep), (_taskfn), future_has_property_default)
+
 #define FUTURE_INIT_COMPLETE(_futurep)\
 do {\
 	(_futurep)->base.task = NULL;\
+	(_futurep)->base.has_property = NULL;\
 	(_futurep)->base.context.state = (FUTURE_STATE_COMPLETE);\
 	(_futurep)->base.context.data_size = sizeof((_futurep)->data);\
 	(_futurep)->base.context.output_size =\
@@ -253,6 +265,9 @@ FUTURE_CHAIN_ENTRY_HAS_FLAG(_entry, FUTURE_CHAIN_FLAG_ENTRY_LAST)
 #define FUTURE_CHAIN_ENTRY_IS_PROCESSED(_entry)\
 FUTURE_CHAIN_ENTRY_HAS_FLAG(_entry, FUTURE_CHAIN_FLAG_ENTRY_PROCESSED)
 
+#define FUTURE_CHAIN_ENTRY_IS_INITIALIZED(_entry)\
+((_entry)->init == NULL)
+
 /*
  * TODO: Notifiers have to be copied into the state of the future, so we might
  * consider just passing it by copy here... Needs to be evaluated for
@@ -268,17 +283,57 @@ future_poll(struct future *fut, struct future_notifier *notifier)
 	return fut->context.state;
 }
 
+/*
+ * future_has_property -- returns 1 if a property is set and 0 otherwise.
+ * It's an abstract implementation, which works for both regular and
+ * chained futures.
+ */
+static inline int
+future_has_property(struct future *fut, enum future_property property)
+{
+	return fut->has_property(fut, property);
+}
+
 #define FUTURE_BUSY_POLL(_futurep)\
 while (future_poll(FUTURE_AS_RUNNABLE((_futurep)), NULL) !=\
 	FUTURE_STATE_COMPLETE) { __FUTURE_WAIT(); }
 
-static inline enum future_state
-async_chain_impl(struct future_context *ctx, struct future_notifier *notifier)
+static inline struct future_chain_entry *
+get_next_future_chain_entry(struct future_context *ctx,
+		struct future_chain_entry *entry, uint8_t *data,
+		size_t *used_data)
 {
 #define _MINIASYNC_PTRSIZE sizeof(void *)
 #define _MINIASYNC_ALIGN_UP(size)\
 	(((size) + _MINIASYNC_PTRSIZE - 1) & ~(_MINIASYNC_PTRSIZE - 1))
 
+	if (entry->init) {
+		entry->init(&entry->future, ctx, entry->init_arg);
+		entry->init = NULL;
+	}
+	/*
+	 * `struct future` starts with a pointer, so the structure will
+	 * be pointer-size aligned. We need to account for that when
+	 * calculating where is the next future in a chained struct.
+	 */
+	*used_data += _MINIASYNC_ALIGN_UP(
+			sizeof(struct future_chain_entry) +
+			future_context_get_size(&entry->future.context));
+	struct future_chain_entry *next = NULL;
+	if (!FUTURE_CHAIN_ENTRY_IS_LAST(entry) &&
+		*used_data != ctx->data_size) {
+		next = (struct future_chain_entry *)(data + *used_data);
+	}
+
+#undef _MINIASYNC_PTRSIZE
+#undef _MINIASYNC_ALIGN_UP
+
+	return next;
+}
+
+static inline enum future_state
+async_chain_impl(struct future_context *ctx, struct future_notifier *notifier)
+{
 	uint8_t *data = (uint8_t *)future_context_get_data(ctx);
 
 	struct future_chain_entry *entry = (struct future_chain_entry *)(data);
@@ -290,23 +345,9 @@ async_chain_impl(struct future_context *ctx, struct future_notifier *notifier)
 	 * Futures must be laid out sequentially in memory for this to work.
 	 */
 	while (entry != NULL) {
-		if (entry->init) {
-			entry->init(&entry->future, ctx, entry->init_arg);
-			entry->init = NULL;
-		}
-		/*
-		 * `struct future` starts with a pointer, so the structure will
-		 * be pointer-size aligned. We need to account for that when
-		 * calculating where is the next future in a chained struct.
-		 */
-		used_data += _MINIASYNC_ALIGN_UP(
-			sizeof(struct future_chain_entry) +
-			future_context_get_size(&entry->future.context));
-		struct future_chain_entry *next = NULL;
-		if (!FUTURE_CHAIN_ENTRY_IS_LAST(entry) &&
-		    used_data != ctx->data_size) {
-			next = (struct future_chain_entry *)(data + used_data);
-		}
+		struct future_chain_entry *next =
+			get_next_future_chain_entry(ctx, entry,
+						data, &used_data);
 		if (!FUTURE_CHAIN_ENTRY_IS_PROCESSED(entry)) {
 			if (future_poll(&entry->future, notifier) ==
 			    FUTURE_STATE_COMPLETE) {
@@ -330,14 +371,48 @@ async_chain_impl(struct future_context *ctx, struct future_notifier *notifier)
 		}
 		entry = next;
 	}
-#undef _MINIASYNC_PTRSIZE
-#undef _MINIASYNC_ALIGN_UP
 
 	return FUTURE_STATE_COMPLETE;
 }
 
+static inline int
+future_has_property_default(void *future, enum future_property property)
+{
+	/* suppres unused parameters */
+	(void) (future);
+	(void) (property);
+	/* by default every property is set to false */
+	return 0;
+}
+
+static inline int
+future_chain_has_property(void *future, enum future_property property)
+{
+	struct future *fut = future;
+	struct future_context *ctx = &fut->context;
+	uint8_t *data = (uint8_t *)future_context_get_data(ctx);
+	struct future_chain_entry *entry = (struct future_chain_entry *)(data);
+
+	size_t used_data = 0;
+
+	while (entry != NULL) {
+		struct future_chain_entry *next =
+			get_next_future_chain_entry(ctx, entry,
+						data, &used_data);
+		if (!FUTURE_CHAIN_ENTRY_IS_PROCESSED(entry)) {
+			if ((entry->future.has_property(&entry->future,
+						property)))
+				return 1;
+			return 0;
+		}
+		entry = next;
+	}
+
+	return -1;
+}
+
 #define FUTURE_CHAIN_INIT(_futurep)\
-FUTURE_INIT((_futurep), async_chain_impl)
+FUTURE_INIT_EXT((_futurep), async_chain_impl, future_chain_has_property)
 
 #ifdef __cplusplus
 }

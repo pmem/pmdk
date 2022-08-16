@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2021, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
-# Used to check whether all the commit messages in a pull request
-# follow the GIT/RPMA guidelines.
+# Used to check whether all commit messages in a pull request
+# follow the GIT and/or project's guidelines.
 #
 # usage: ./check-commit.sh commit
 #
