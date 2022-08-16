@@ -510,9 +510,8 @@ endforeach
 
 # script for copying files from the source dir to the meson build dir
 copy = find_program('../../utils/copy.py')
-
-test_files_prefixes = [ 'TEST' ] # e.g. TESTS.py, TEST0, TEST0.PS1
-test_files_suffixes = [ '.match' ] # eg. out0.log.match, err0.log.match
+list_files = find_program('../../utils/list-files.py')
+test_files_regex = '(.*TEST[0-9]+([.]PS1)?$)|(.*TESTS.py$)|(.*[.]match$)'
 
 foreach t, attrs : filtered_tests
     test_deps = attrs.get('test_deps', [])
@@ -528,20 +527,19 @@ foreach t, attrs : filtered_tests
         continue # skip test cases with dependencies on test executables that were filtered out
     endif
 
-    # copy test files to the meson build dir
-    ret = run_command(
-        copy,
-        t, # dir name in the source test directory
-        t, # dir name in the build test directory
-        test_files_prefixes,
-        test_files_suffixes,
-        check: true,
-    )
-
     properties = attrs.get('properties', [])
     if properties.contains('no_sources')
         continue # do not subdir test cases with no source files
     endif
+
+    # Get list of files needed by the test
+    list_files_result = run_command(
+        list_files,
+        '--regex='+test_files_regex,
+        '--dir=./'+t,
+        check: true,
+    )
+    test_files = list_files_result.stdout().strip().split('\n')
 
     subdir(t)
 endforeach
