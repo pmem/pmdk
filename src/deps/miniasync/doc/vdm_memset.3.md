@@ -27,12 +27,6 @@ secondary_title: miniasync
 ```c
 #include <libminiasync.h>
 
-enum vdm_operation_type {
-	VDM_OPERATION_MEMCPY,
-	VDM_OPERATION_MEMMOVE,
-	VDM_OPERATION_MEMSET,
-};
-
 struct vdm_operation_output_memset {
 	void *str;
 };
@@ -50,8 +44,10 @@ For general description of virtual data mover API, see **miniasync_vdm**(7).
 
 **vdm_memset**() initializes and returns a new memset future based on the virtual data mover
 implementation instance *vdm*. The parameters: *str*, *c*, *n* are standard memset parameters.
-The *flags* represents data mover specific flags. TODO: provide an example of the flags usage after
-implementing memset future for dml.
+The *flags* represents data mover specific flags. For example, **miniasync_vdm_dml**(7) flag
+**VDM_F_MEM_DURABLE** specifies that the write destination is identified as a write to
+durable memory. This flag is meant to be used only with the **miniasync_vdm_dml**(7) data mover
+implementation, providing it to any other data mover will result in undefined behavior.
 
 Memset future obtained using **vdm_memset**() will attempt to copy the character *c* to the
 first, *n* bytes of the memory area *str* when its polled.
@@ -62,5 +58,5 @@ The **vdm_memset**() function returns an initialized *struct vdm_operation_futur
 
 # SEE ALSO #
 
-**vdm_memcpy**(3), **vdm_memmove**(3), **miniasync**(7), **miniasync_vdm**(7),
+**vdm_flush**(3), **vdm_memcpy**(3), **vdm_memmove**(3), **miniasync**(7), **miniasync_vdm**(7),
 **miniasync_vdm_dml**(7) and **<https://pmem.io>**

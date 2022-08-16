@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2022, Intel Corporation
 
 #
 # src2mans -- extract man pages from source files
@@ -61,7 +61,7 @@ do
 	MANUALS="$(mktemp)"
 	ERRORS="$(mktemp)"
 
-	src2man -r RPMA -v "RPMA Programmer's Manual" $MAN > $MANUALS 2> $ERRORS
+	src2man -r MINIASYNC -v "MINIASYNC Programmer's Manual" $MAN > $MANUALS 2> $ERRORS
 	# gawk 5.0.1 does not recognize expressions \;|\,|\o  as regex operator
 	sed -i -r "/warning: regexp escape sequence \`[\][;,o]' is not a known regexp operator/d" $ERRORS
 	# remove empty lines

@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2022, Intel Corporation
 
-# test case for the memmove operation with the DML data mover
-
 include(${SRC_DIR}/cmake/test_helpers.cmake)
 
 setup()
@@ -10,13 +8,13 @@ setup()
 # check for MOVDIR64B instruction
 check_movdir64b()
 
-# inform that some test cases involving 'movdir64b' instruction will be skipped
+# inform that some test cases involving 'mvodir64b' instruction will be skipped
 if (MOVDIR64B EQUAL 0)
 	message(STATUS "movdir64b instruction not available, some test cases will be skipped!")
 endif()
 
-execute(0 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/data_mover_dml_memmove)
+execute(0 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/runtime_test)
 
-execute_assert_pass(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/data_mover_dml_memmove)
+execute_assert_pass(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${BUILD}/runtime_test)
 
 cleanup()
