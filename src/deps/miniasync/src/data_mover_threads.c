@@ -118,6 +118,10 @@ data_mover_threads_do_operation(struct data_mover_threads_data *data,
 			op_memset(mdata->str,
 				mdata->c, mdata->n, (unsigned)mdata->flags);
 		} break;
+		case VDM_OPERATION_FLUSH:
+			printf("flush operation not implemented "
+					"for threads data mover");
+			exit(1);
 		default:
 			ASSERT(0); /* unreachable */
 			break;
@@ -268,12 +272,21 @@ data_mover_threads_operation_start(void *data,
 	return 0;
 }
 
+int
+has_property_dmt(void *fut, enum future_property property)
+{
+	if (property == FUTURE_PROPERTY_ASYNC)
+		return 1;
+	return 0;
+}
+
 static struct vdm data_mover_threads_vdm = {
 	.op_new = data_mover_threads_operation_new,
 	.op_delete = data_mover_threads_operation_delete,
 	.op_check = data_mover_threads_operation_check,
 	.op_start = data_mover_threads_operation_start,
 	.capabilities = SUPPORTED_FLAGS,
+	.has_property = has_property_dmt,
 };
 
 /*

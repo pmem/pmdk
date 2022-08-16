@@ -58,7 +58,7 @@ The **data_mover_threads_default**() function allocates and initialzied a new th
 data mover structure with default parameters. It spanws *12* threads and creates a
 ringbuffer with size of *128* bytes.
 
-Currently, thread data mover supports following notifer types:
+Currently, thread data mover supports following notifier types:
 
 * **FUTURE_NOTIFIER_NONE**
 

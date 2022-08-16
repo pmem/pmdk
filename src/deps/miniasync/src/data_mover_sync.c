@@ -121,6 +121,10 @@ sync_operation_start(void *data, const struct vdm_operation *operation,
 				operation->data.memset.c,
 				operation->data.memset.n);
 			break;
+		case VDM_OPERATION_FLUSH:
+			printf("flush operation not implemented "
+						"for sync data mover");
+			exit(1);
 		default:
 			ASSERT(0);
 	}
@@ -137,6 +141,7 @@ static struct vdm data_mover_sync_vdm = {
 	.op_check = sync_operation_check,
 	.op_start = sync_operation_start,
 	.capabilities = SUPPORTED_FLAGS,
+	.has_property = NULL,
 };
 
 /*

@@ -34,6 +34,7 @@ enum vdm_operation_type {
 	VDM_OPERATION_MEMCPY,
 	VDM_OPERATION_MEMMOVE,
 	VDM_OPERATION_MEMSET,
+	VDM_OPERATION_FLUSH,
 };
 
 enum vdm_operation_result {
@@ -63,6 +64,12 @@ struct vdm_operation_data_memset {
 	uint64_t flags;
 };
 
+struct vdm_operation_data_flush {
+	void *dest;
+	size_t n;
+	uint64_t flags;
+};
+
 /* sized so that sizeof(vdm_operation_data) is 64 */
 #define VDM_OPERATION_DATA_MAX_SIZE (40)
 
@@ -71,6 +78,7 @@ struct vdm_operation {
 		struct vdm_operation_data_memcpy memcpy;
 		struct vdm_operation_data_memmove memmove;
 		struct vdm_operation_data_memset memset;
+		struct vdm_operation_data_flush flush;
 		uint8_t data[VDM_OPERATION_DATA_MAX_SIZE];
 	} data;
 	enum vdm_operation_type type;
@@ -95,6 +103,10 @@ struct vdm_operation_output_memset {
 	void *str;
 };
 
+struct vdm_operation_output_flush {
+	uint64_t unused;
+};
+
 struct vdm_operation_output {
 	enum vdm_operation_type type;
 	enum vdm_operation_result result;
@@ -102,6 +114,7 @@ struct vdm_operation_output {
 		struct vdm_operation_output_memcpy memcpy;
 		struct vdm_operation_output_memmove memmove;
 		struct vdm_operation_output_memset memset;
+		struct vdm_operation_output_flush flush;
 	} output;
 };
 
@@ -125,6 +138,7 @@ struct vdm {
 	vdm_operation_start op_start;
 	vdm_operation_check op_check;
 	unsigned capabilities;
+	future_has_property_fn has_property;
 };
 
 struct vdm *vdm_synchronous_new(void);
@@ -177,6 +191,18 @@ vdm_is_supported(struct vdm *vdm, unsigned capability)
 }
 
 /*
+ * vdm_set_has_property_fn -- set a custom has_property function for
+ * a concrete future
+ */
+static inline void
+vdm_set_has_property_fn(struct vdm_operation_future *future,
+		int(*has_property)(void *future, enum future_property property))
+{
+	if (has_property != NULL)
+		future->base.has_property = has_property;
+}
+
+/*
  * vdm_generic_operation -- creates a new vdm future for a given generic
  * operation
  */
@@ -192,6 +218,12 @@ vdm_generic_operation(struct vdm *vdm, struct vdm_operation_future *future)
 	} else {
 		FUTURE_INIT(future, vdm_operation_impl);
 	}
+
+	/*
+	 * set has_property function for the concrete future based
+	 * on the implementation provided by the concrete data mover
+	 */
+	vdm_set_has_property_fn(future, vdm->has_property);
 }
 
 /*
@@ -255,6 +287,26 @@ vdm_memset(struct vdm *vdm, void *str, int c, size_t n, uint64_t flags)
 	future.output.type = VDM_OPERATION_MEMSET;
 	future.output.result = VDM_SUCCESS;
 	future.output.output.memset.str = NULL;
+
+	vdm_generic_operation(vdm, &future);
+	return future;
+}
+
+/*
+ * vdm_flush -- instantiates a new flush vdm operation and returns a new
+ * future to represent that operation
+ */
+static inline struct vdm_operation_future
+vdm_flush(struct vdm *vdm, void *dest, size_t n, uint64_t flags)
+{
+	struct vdm_operation_future future;
+	future.data.operation.type = VDM_OPERATION_FLUSH;
+	future.data.operation.data.flush.dest = dest;
+	future.data.operation.data.flush.flags = flags;
+	future.data.operation.data.flush.n = n;
+	future.data.operation.padding = 0;
+	future.output.type = VDM_OPERATION_FLUSH;
+	future.output.result = VDM_SUCCESS;
 
 	vdm_generic_operation(vdm, &future);
 	return future;

@@ -42,12 +42,14 @@ struct vdm {
 	vdm_operation_delete op_delete;
 	vdm_operation_start op_start;
 	vdm_operation_check op_check;
+	unsigned capabilities;
 };
 
 enum vdm_operation_type {
 	VDM_OPERATION_MEMCPY,
 	VDM_OPERATION_MEMMOVE,
 	VDM_OPERATION_MEMSET,
+	VDM_OPERATION_FLUSH,
 };
 
 enum vdm_operation_result {
@@ -57,8 +59,9 @@ enum vdm_operation_result {
 };
 
 struct vdm_operation_data {
-	void *op;
+	void *data;
 	struct vdm *vdm;
+	struct vdm_operation operation;
 };
 
 struct vdm_operation_output {
@@ -67,6 +70,8 @@ struct vdm_operation_output {
 	union {
 		struct vdm_operation_output_memcpy memcpy;
 		struct vdm_operation_output_memmove memmove;
+		struct vdm_operation_output_memset memset;
+		struct vdm_operation_output_flush flush;
 	} output;
 };
 ```
@@ -95,6 +100,7 @@ Currently, virtual data mover API supports following operation types:
 * **VDM_OPERATION_MEMCPY** - a memory copy operation
 * **VDM_OPERATION_MEMMOVE** - a memory move operation
 * **VDM_OPERATION_MEMSET** - a memory set operation
+* **VDM_OPERATION_FLUSH** - a cache flush operation
 
 For more information about concrete data mover implementations, see **miniasync_vdm_threads**(7),
 **miniasync_vdm_synchronous**(7) and **miniasync_vdm_dml**(7).
@@ -122,7 +128,7 @@ The *result* field can be set to one of the following values:
 
 # SEE ALSO #
 
-**vdm_memcpy**(3), **vdm_memmove**(3), **vdm_memset**(3),
+**vdm_flush**(3), **vdm_memcpy**(3), **vdm_memmove**(3), **vdm_memset**(3),
 **miniasync**(7), **miniasync_future**(7),
 **miniasync_vdm_dml**(7), **miniasync_vdm_synchronous**(7),
 **miniasync_vdm_threads**(7) and **<https://pmem.io>**

@@ -225,8 +225,9 @@ ringbuf_dequeue_atomic(struct ringbuf *rbuf)
 
 	VALGRIND_ANNOTATE_HAPPENS_AFTER(&rbuf->data[r]);
 	do {
-		while ((data = rbuf->data[r]) == NULL)
-			__sync_synchronize();
+		do {
+			util_atomic_load64(&rbuf->data[r], &data);
+		} while (data == NULL);
 	} while (!util_bool_compare_and_swap64(&rbuf->data[r], data, NULL));
 
 	return data;

@@ -11,6 +11,12 @@
 #include "libminiasync-vdm-dml.h"
 
 #define SUPPORTED_FLAGS VDM_F_MEM_DURABLE | VDM_F_NO_CACHE_HINT
+/*
+ * XXX: This flag should be defined in DML header but for some reason isn't
+ * this flag is needed to guarantee that writes to persistent memory
+ * are persistent at the time DSA operation is completed
+ */
+#define DSA_F_DESTINATION_READBACK (1 < 14)
 
 struct data_mover_dml {
 	struct vdm base; /* must be first */
@@ -38,9 +44,11 @@ data_mover_dml_translate_flags(uint64_t flags, uint64_t *dml_flags)
 			 */
 			case VDM_F_MEM_DURABLE:
 				*dml_flags |= DML_FLAG_DST1_DURABLE;
+				*dml_flags |= DSA_F_DESTINATION_READBACK;
 				break;
 			case VDM_F_NO_CACHE_HINT:
 				*dml_flags &= ~DML_FLAG_PREFETCH_CACHE;
+				break;
 			default: /* shouldn't be possible */
 				ASSERT(0);
 		}
@@ -120,6 +128,24 @@ data_mover_dml_memset_job_init(dml_job_t *dml_job,
 }
 
 /*
+ * data_mover_dml_flush_job_init -- initializes new flush dml job
+ */
+static dml_job_t *
+data_mover_dml_flush_job_init(dml_job_t *dml_job,
+	void *dest, size_t n, uint64_t flags)
+{
+	uint64_t dml_flags = 0;
+	data_mover_dml_translate_flags(flags, &dml_flags);
+
+	dml_job->operation = DML_OP_CACHE_FLUSH;
+	dml_job->destination_first_ptr = (uint8_t *)dest;
+	dml_job->destination_length = n;
+	dml_job->flags = dml_flags;
+
+	return dml_job;
+}
+
+/*
  * data_mover_dml_job_delete -- delete job struct
  */
 static void
@@ -157,6 +183,7 @@ data_mover_dml_operation_new(struct vdm *vdm,
 		case VDM_OPERATION_MEMCPY:
 		case VDM_OPERATION_MEMMOVE:
 		case VDM_OPERATION_MEMSET:
+		case VDM_OPERATION_FLUSH:
 			break;
 		default:
 			ASSERT(0); /* unreachable */
@@ -218,6 +245,9 @@ data_mover_dml_operation_delete(void *data,
 		case DML_OP_FILL:
 			output->type = VDM_OPERATION_MEMSET;
 			output->output.memset.str = job->destination_first_ptr;
+			break;
+		case DML_OP_CACHE_FLUSH:
+			output->type = VDM_OPERATION_FLUSH;
 			break;
 		default:
 			ASSERT(0);
@@ -289,10 +319,25 @@ data_mover_dml_operation_start(void *data,
 					operation->data.memset.flags);
 				data_mover_dml_memory_op_job_submit(job);
 			break;
+		case VDM_OPERATION_FLUSH:
+				data_mover_dml_flush_job_init(job,
+					operation->data.flush.dest,
+					operation->data.flush.n,
+					operation->data.flush.flags);
+				data_mover_dml_memory_op_job_submit(job);
+			break;
 		default:
 			ASSERT(0);
 	}
 
+	return 0;
+}
+
+int
+has_property_dmd(void *fut, enum future_property property)
+{
+	if (property == FUTURE_PROPERTY_ASYNC)
+		return 1;
 	return 0;
 }
 
@@ -305,6 +350,7 @@ static struct vdm data_mover_dml_vdm = {
 	.op_check = data_mover_dml_operation_check,
 	.op_start = data_mover_dml_operation_start,
 	.capabilities = SUPPORTED_FLAGS,
+	.has_property = has_property_dmd,
 };
 
 /*

@@ -55,7 +55,7 @@ Thread data mover supports following operations:
 * **vdm_memmove**(3) - memory move operation
 * **vdm_memset**(3) - memory set operation
 
-Thread data mover supports following notifer types:
+Thread data mover supports following notifier types:
 
 * **FUTURE_NOTIFIER_NONE** - no notifier
 * **FUTURE_NOTIFIER_WAKER** - waker

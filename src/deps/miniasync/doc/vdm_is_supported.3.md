@@ -37,7 +37,7 @@ static inline int vdm_is_supported(struct vdm *vdm, unsigned capability);
 Currently vdm defines the following capabilities:
 - **VDM_F_NO_CACHE_HINT** - If supported, user can pass this flag to the **vdm_memcpy**(), **vdm_memset**(), **vdm_memmove**()
 functions, to hint vdm to bypass CPU cache, and write the data directly to the memory. If not supported vdm will ignore this flag.
-- **VDM_F_MEM_DURABLE** -- If supported, user can pass this flag **vdm_memcpy**(), **vdm_memset**(), **vdm_memmove**() functions
+- **VDM_F_MEM_DURABLE** -- If supported, user can pass this flag to the **vdm_memcpy**(), **vdm_memset**(), **vdm_memmove**() functions
 to ensure that the data written has become persistent, when a future completes.
 
 ## RETURN VALUE ##
@@ -46,5 +46,5 @@ The **vdm_is_supported**() function returns nonzero if the given capability is s
 
 # SEE ALSO #
 
-**vdm_memmove**(3), **vdm_memset**(3), **miniasync**(7), **miniasync_vdm**(7),
+**vdm_flush**(3), **vdm_memcpy**(3), **vdm_memmove**(3), **vdm_memset**(3), **miniasync**(7), **miniasync_vdm**(7),
 **miniasync_vdm_dml**(7) and **<https://pmem.io>**
