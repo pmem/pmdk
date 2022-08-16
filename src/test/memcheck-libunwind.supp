@@ -1,0 +1,23 @@
+{
+   generic libunwind suppression
+   Memcheck:Param
+   msync(start)
+   ...
+   obj:*libunwind*
+   ...
+}
+{
+   generic libunwind suppression
+   Memcheck:Param
+   rt_sigprocmask(set)
+   ...
+   obj:*libunwind*
+   ...
+}
+{
+   generic libunwind suppression
+   Memcheck:Addr8
+   ...
+   obj:*libunwind*
+   ...
+}

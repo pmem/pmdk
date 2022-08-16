@@ -1,0 +1,11 @@
+{
+   <rdma-core-v13_fixed_by_linux-rdma/rdma-core#51_copy_uninitialized_data>
+   Memcheck:Param
+   write(buf)
+   ...
+   fun:ibv_cmd_modify_qp
+   fun:modify_rc_qp
+   fun:c4iw_modify_qp
+   fun:ibv_modify_qp@@IBVERBS_1.1
+   ...
+}
