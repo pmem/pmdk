@@ -1,25 +1,20 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import os, sys, shutil
+import argparse
 
-copy_prefixes = sys.argv[3]
-copy_suffixes = sys.argv[4]
+parser = argparse.ArgumentParser(description='Copy files')
+parser.add_argument('-i','--input', nargs='+', 
+                    help='<Required> Input files', required=True)
 
-# get absolute input and output paths
-input_path = os.path.join(
-    os.getenv('MESON_SOURCE_ROOT'),
-    os.getenv('MESON_SUBDIR'),
-    sys.argv[1])
+parser.add_argument('-o','--output', nargs='+', 
+                    help='<Required> Output files', required=True)
 
-output_path = os.path.join(
-    os.getenv('MESON_BUILD_ROOT'),
-    os.getenv('MESON_SUBDIR'),
-    sys.argv[2])
+args = parser.parse_args()
 
-# make sure destination directory exists
-os.makedirs(output_path, exist_ok=True)
+if len(args.input) != len(args.output):
+    print("Count of input and output files must be equal!")
+    exit(1)
 
-# copy files with matching prefixes or suffixes
-for file in os.listdir(input_path):
-    if file.startswith(copy_prefixes) or file.endswith(copy_suffixes):
-        shutil.copy(os.path.join(input_path, file), os.path.join(output_path, file))
+for i in range(len(args.input)):
+    shutil.copy(args.input[i], args.output[i])
