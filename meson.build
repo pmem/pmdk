@@ -44,7 +44,6 @@ add_project_arguments(cc.get_supported_arguments(flags), language: 'c')
 
 fs = import('fs')
 
-rt_dep = cc.find_library('rt')
 libdl_dep = cc.find_library('dl')
 libm_dep = cc.find_library('m')
 
