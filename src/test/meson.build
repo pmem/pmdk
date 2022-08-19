@@ -21,18 +21,30 @@ tests = {
     'daxio': {
         'properties': [ 'no_sources' ],
     },
-#     'ex_libpmem': {},
-#     'ex_libpmem2': {},
-#     'ex_libpmemblk': {},
-#     'ex_libpmemlog': {},
-#     'ex_libpmemobj': {},
-#     'ex_libpmemset': {},
-#     'ex_librpmem_basic': {},
-#     'ex_librpmem_fibonacci': {},
-#     'ex_librpmem_hello': {},
-#     'ex_librpmem_manpage': {},
-#     'ex_linkedlist': {},
-#     'ex_pmreorder': {},
+    'ex_libpmem': {
+          'properties': [ 'no_sources' ],
+    },
+    'ex_libpmem2': {
+        'properties': [ 'no_sources' ],
+    },
+    'ex_libpmemblk': {
+          'properties': [ 'no_sources' ],
+    },
+    'ex_libpmemlog': {
+          'properties': [ 'no_sources' ],
+    },
+    'ex_libpmemobj': {
+          'properties': [ 'no_sources' ],
+    },
+    'ex_libpmemset': {
+        'properties': [ 'no_sources' ],
+    },
+    'ex_linkedlist': {
+          'properties': [ 'no_sources' ],
+    },
+    'ex_pmreorder': {
+          'properties': [ 'no_sources' ],
+    },
     'getopt': {},
     'libpmempool_api': {},
     'libpmempool_api_win': {
@@ -111,28 +123,33 @@ tests = {
     'obj_fragmentation': {},
     'obj_fragmentation2': {},
     'obj_heap': {},
-#     'obj_heap_interrupt': {},
+    'obj_heap_interrupt': {},
     'obj_heap_state': {},
     'obj_include': {},
     'obj_lane': {},
     'obj_layout': {},
-#     'obj_list': {},
-#     'obj_list_insert': {
-#         'test_deps': [ 'obj_list' ],
-#     },
+    'obj_list': {},
+    'obj_list_insert': {
+        'test_deps': [ 'obj_list' ],
+        'properties': [ 'no_sources' ],
+    },
     'obj_list_macro': {},
-#     'obj_list_move': {
-#         'test_deps': [ 'obj_list' ],
-#     },
-#     'obj_list_recovery': {
-#         'test_deps': [ 'obj_list' ],
-#     },
-#     'obj_list_remove': {
-#         'test_deps': [ 'obj_list' ],
-#     },
-#     'obj_list_valgrind': {
-#         'test_deps': [ 'obj_list' ],
-#     },
+    'obj_list_move': {
+        'test_deps': [ 'obj_list' ],
+        'properties': [ 'no_sources' ],
+    },
+    'obj_list_recovery': {
+        'test_deps': [ 'obj_list' ],
+        'properties': [ 'no_sources' ],
+    },
+    'obj_list_remove': {
+        'test_deps': [ 'obj_list' ],
+        'properties': [ 'no_sources' ],
+    },
+    'obj_list_valgrind': {
+        'test_deps': [ 'obj_list' ],
+        'properties': [ 'no_sources' ],
+    },
     'obj_locks': {},
     'obj_many_size_allocs': {},
     'obj_mem': {},
@@ -142,7 +159,7 @@ tests = {
     'obj_memops': {},
     'obj_oid_thread': {},
     'obj_out_of_memory': {},
-#     'obj_persist_count': {},
+    'obj_persist_count': {},
     'obj_pmalloc_basic': {},
     'obj_pmalloc_mt': {},
     'obj_pmalloc_oom_mt': {},
@@ -151,7 +168,7 @@ tests = {
     'obj_pool': {},
     'obj_pool_lock': {},
     'obj_pool_lookup': {},
-#     'obj_pool_open_mt': {},
+    'obj_pool_open_mt': {},
     'obj_pool_win': {
         'properties': [ 'windows_only' ],
     },
@@ -174,7 +191,7 @@ tests = {
     },
     'obj_sds': {},
     'obj_strdup': {},
-#     'obj_sync': {},
+    'obj_sync': {},
     'obj_toid': {},
     'obj_tx_add_range': {},
     'obj_tx_add_range_direct': {},
@@ -200,20 +217,23 @@ tests = {
     'out_err_win': {
         'properties': [ 'windows_only' ],
     },
-#     'pmem_deep_persist': {},
+    'pmem_deep_persist': {},
     'pmem_eADR_functions': {},
-#     'pmem_has_auto_flush': {},
-#     'pmem_has_auto_flush_win': {},
+    'pmem_has_auto_flush': {},
+    'pmem_has_auto_flush_win': {
+        'properties': [ 'windows_only' ],
+    },
     'pmem_include': {},
     'pmem_is_pmem': {},
     'pmem_is_pmem_posix': {},
     'pmem_is_pmem_windows': {
         'properties': [ 'windows_only' ],
-
     },
-#     'pmem_map_file': {},
+    'pmem_map_file': {},
     'pmem_map_file_trunc': {},
-#     'pmem_map_file_win': {},
+    'pmem_map_file_win': {
+        'properties': [ 'windows_only' ],
+    },
     'pmem_memcpy': {},
     'pmem_memmove': {},
     'pmem_memset': {},
@@ -223,12 +243,12 @@ tests = {
     'pmem_valgr_simple': {},
     'pmem2_api': {},
     'pmem2_badblock': {},
-#     'pmem2_badblock_mocks': {},
+    'pmem2_badblock_mocks': {},
     'pmem2_compat': {},
     'pmem2_config': {},
-#     'pmem2_deep_flush': {},
-#     'pmem2_future': {},
-#     'pmem2_granularity': {},
+    'pmem2_deep_flush': {},
+    'pmem2_future': {},
+    'pmem2_granularity': {},
     'pmem2_granularity_detection': {
         'properties': [ 'no_sources' ],
     },
@@ -241,7 +261,7 @@ tests = {
     'pmem2_memcpy': {},
     'pmem2_memmove': {},
     'pmem2_memset': {},
-#     'pmem2_mover': {},
+    'pmem2_mover': {},
     'pmem2_movnt': {},
     'pmem2_movnt_align': {},
     'pmem2_perror': {},
@@ -249,7 +269,7 @@ tests = {
     'pmem2_persist_valgrind': {},
     'pmem2_source': {},
     'pmem2_source_alignment': {},
-#     'pmem2_source_numa': {},
+    'pmem2_source_numa': {},
     'pmem2_source_size': {},
     'pmem2_usc': {},
     'pmem2_vm_reservation': {},
@@ -300,7 +320,7 @@ tests = {
     },
     'pmemset_badblock': {},
     'pmemset_config': {},
-#     'pmemset_deep_flush': {},
+    'pmemset_deep_flush': {},
     'pmemset_event': {},
     'pmemset_file': {},
     'pmemset_include': {},
@@ -331,17 +351,17 @@ tests = {
     'rpmem_proto': {},
     'rpmemd_config': {},
     'rpmemd_db': {},
-#     'rpmemd_dbg': {},
+    'rpmemd_dbg': {},
     'rpmemd_log': {},
     'rpmemd_obc': {},
     'rpmemd_util': {},
     'scope': {
-        'properties': [ 'no_sources', 'windows_only' ],
+        'properties': [ 'no_sources' ],
     },
     'set_funcs': {},
-#     'signal_handle': {},
-#     'sync-remotes': {},
-#     'tools': {},
+    'signal_handle': {
+        'properties': [ 'windows_only' ],
+    },
     'traces': {},
     'traces_custom_function': {},
     'traces_pmem': {},
@@ -363,7 +383,7 @@ tests = {
     'util_map_proc': {},
     'util_parse_size': {},
     'util_pool_hdr': {},
-#     'util_poolset': {},
+    'util_poolset': {},
     'util_poolset_foreach': {},
     'util_poolset_parse': {},
     'util_poolset_size': {},
@@ -372,11 +392,21 @@ tests = {
     'util_uuid_generate': {},
     'util_vec': {},
     'util_vecq': {},
-#     'win_common': {},
-#     'win_lists': {},
-#     'win_mmap_dtor': {},
-#     'win_poolset_unmap': {},
-#     'win_signal': {},
+    'win_common': {
+        'properties': [ 'windows_only' ],
+    },
+    'win_lists': {
+        'properties': [ 'windows_only' ],
+    },
+    'win_mmap_dtor': {
+        'properties': [ 'windows_only' ],
+    },
+    'win_poolset_unmap': {
+        'properties': [ 'windows_only' ],
+    },
+    'win_signal': {
+        'properties': [ 'windows_only' ],
+    },
 }
 
 unittest_sources = files(
@@ -393,12 +423,12 @@ unittest_lib = library(
     'unittest',
     unittest_sources,
     dependencies: [
-	pmemcore_dep,
+        pmemcore_dep,
     ],
     include_directories: [
-	include_directories('../../testsuite/unittest'),
-	root_include,
-	core_include,
+        include_directories('../../testsuite/unittest'),
+        root_include,
+        core_include,
     ],
     install: false,
 )
@@ -448,16 +478,16 @@ unittest_pmem2_lib = library(
         '-DPMEM2_USE_MINIASYNC',
     ],
     dependencies: [
-	libndctl_dep,
+        libndctl_dep,
         libdaxctl_dep,
-	pmem2arch_dep,
-	pmemcore_dep,
-	pmemcommon_dep,
+        pmem2arch_dep,
+        pmemcore_dep,
+        pmemcommon_dep,
         unittest_dep,
     ],
     include_directories: [
         include_directories('../../testsuite/unittest'),
-	include_directories('../libpmem2'),
+        include_directories('../libpmem2'),
         miniasync_include,
         root_include,
     ],
@@ -510,6 +540,10 @@ endforeach
 
 # script for copying files from the source dir to the meson build dir
 copy = find_program('../../utils/copy-file.py')
+
+# script for getting the mocked functions out of C files
+get_mocks = find_program('../../utils/get-mocks.py')
+
 # list of copy targets responsible for copying files of each test
 copy_targets = []
 list_files = find_program('../../utils/list-files.py')

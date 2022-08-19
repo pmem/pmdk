@@ -1,17 +1,27 @@
 sources = files(
-    'pmemset_deep_flush.c',
+    'pmem_deep_persist.c',
+    '../../libpmem/pmem.c',
+    '../../libpmem2/memops_generic.c',
 )
 
+if host_machine.system() != 'windows'
+    sources += files('../../libpmem/pmem_posix.c')
+    sources += files('mocks_posix.c')
+endif
+
 dependencies = [
-    libpmemset_internal_dep,
-    libpmem2_internal_dep,
-    unittest_pmemset_dep,
+    libpmemobj_internal_dep,
+    pmem2arch_dep,
     unittest_dep,
 ]
 
 c_args = []
 link_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../libpmem'),
+    include_directories('../../libpmem2'),
+    include_directories('../../libpmemobj'),
+]
 
 # scan test source files for mock functions
 ret = run_command(
@@ -36,12 +46,4 @@ executable(
     link_args: link_args,
     include_directories: include_directories,
     dependencies: dependencies,
-)
-
-copy_target = custom_target(t+'(test-files)',
-    input : test_files,
-    output :  test_files,
-    command : [copy, '-i', '@INPUT@', '-o', '@OUTPUT@'],
-    install : false,
-    build_by_default : true
 )

@@ -1,17 +1,29 @@
 sources = files(
-    'pmemset_deep_flush.c',
+    'pmem2_deep_flush.c',
+    '../../libpmem2/deep_flush.c',
+    '../../libpmem2/memops_generic.c',
+    '../../libpmem2/persist.c',
+    '../../libpmem2/errormsg.c',
 )
 
+if host_machine.system() == 'linux'
+    sources += files(
+        '../../libpmem2/deep_flush_linux.c',
+    )
+endif
+
 dependencies = [
-    libpmemset_internal_dep,
-    libpmem2_internal_dep,
-    unittest_pmemset_dep,
+    pmemcore_dep,
+    unittest_pmem2_dep,
     unittest_dep,
 ]
 
 c_args = []
 link_args = []
-include_directories = []
+include_directories = [
+    include_directories('../../libpmem2'),
+    miniasync_include,
+]
 
 # scan test source files for mock functions
 ret = run_command(
@@ -36,12 +48,4 @@ executable(
     link_args: link_args,
     include_directories: include_directories,
     dependencies: dependencies,
-)
-
-copy_target = custom_target(t+'(test-files)',
-    input : test_files,
-    output :  test_files,
-    command : [copy, '-i', '@INPUT@', '-o', '@OUTPUT@'],
-    install : false,
-    build_by_default : true
 )

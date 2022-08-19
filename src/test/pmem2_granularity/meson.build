@@ -1,11 +1,20 @@
 sources = files(
-    'pmemset_deep_flush.c',
+    'pmem2_granularity.c',
 )
 
+if host_machine.system() == 'windows'
+    sources += files(
+        'mocks_dax_windows.c',
+    )
+else
+    sources += files(
+        'mocks_posix.c',
+    )
+endif
+
 dependencies = [
-    libpmemset_internal_dep,
     libpmem2_internal_dep,
-    unittest_pmemset_dep,
+    unittest_pmem2_dep,
     unittest_dep,
 ]
 
@@ -36,12 +45,4 @@ executable(
     link_args: link_args,
     include_directories: include_directories,
     dependencies: dependencies,
-)
-
-copy_target = custom_target(t+'(test-files)',
-    input : test_files,
-    output :  test_files,
-    command : [copy, '-i', '@INPUT@', '-o', '@OUTPUT@'],
-    install : false,
-    build_by_default : true
 )

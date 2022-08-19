@@ -1,11 +1,13 @@
 sources = files(
-    'pmemset_deep_flush.c',
+    'pmem2_badblock_mocks.c',
+    'mocks_ndctl.c',
+    'mocks_other.c',
+    'mocks_pmem2.c',
 )
 
 dependencies = [
-    libpmemset_internal_dep,
     libpmem2_internal_dep,
-    unittest_pmemset_dep,
+    unittest_pmem2_dep,
     unittest_dep,
 ]
 
@@ -36,12 +38,4 @@ executable(
     link_args: link_args,
     include_directories: include_directories,
     dependencies: dependencies,
-)
-
-copy_target = custom_target(t+'(test-files)',
-    input : test_files,
-    output :  test_files,
-    command : [copy, '-i', '@INPUT@', '-o', '@OUTPUT@'],
-    install : false,
-    build_by_default : true
 )

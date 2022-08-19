@@ -1,11 +1,12 @@
 sources = files(
-    'pmemset_deep_flush.c',
+    'obj_list_mocks_palloc.c',
+    'obj_list_mocks.c',
+    'obj_list.c',
 )
 
 dependencies = [
-    libpmemset_internal_dep,
-    libpmem2_internal_dep,
-    unittest_pmemset_dep,
+    libpmem_dep,
+    libpmemobj_internal_dep,
     unittest_dep,
 ]
 
@@ -36,12 +37,4 @@ executable(
     link_args: link_args,
     include_directories: include_directories,
     dependencies: dependencies,
-)
-
-copy_target = custom_target(t+'(test-files)',
-    input : test_files,
-    output :  test_files,
-    command : [copy, '-i', '@INPUT@', '-o', '@OUTPUT@'],
-    install : false,
-    build_by_default : true
 )
