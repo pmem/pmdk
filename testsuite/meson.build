@@ -193,6 +193,7 @@ run_tests_python_target = run_target(
     'run-tests-python',
     command:[run_tests_python]+run_tests_python_args,
     env:run_tests_env+run_tests_python_env,
+    depends:copy_targets,
 )
 
 debug('run-tests-bash args:')
@@ -203,6 +204,7 @@ run_tests_bash_target = run_target(
     'run-tests-bash',
     command:[run_tests_bash]+run_tests_bash_args,
     env:run_tests_env+run_tests_bash_env,
+    depends:copy_targets,
 )
 
 debug('run-tests-powershell args:')
@@ -213,6 +215,7 @@ run_tests_powershell_target = run_target(
     'run-tests-powershell',
     command:[run_tests_powershell]+run_tests_powershell_args,
     env:run_tests_env+run_tests_powershell_env,
+    depends:copy_targets,
 )
 
 # If test case was specified we run only one framework
