@@ -65,7 +65,7 @@ if libndctl_dep.found()
     )
 endif
 
-if build_machine.system()=='linux' and (get_option('doc') or get_option('web'))
+if host_machine.system()=='linux' and (get_option('doc') or get_option('web'))
     subdir('doc')
 endif
 
