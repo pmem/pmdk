@@ -4,6 +4,7 @@ sources = files(
 
 dependencies = [
     libpmemobj_dep,
+    pmemcore_dep,
     unittest_dep,
 ]
 
