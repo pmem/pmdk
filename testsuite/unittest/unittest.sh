@@ -40,13 +40,13 @@ UNITTEST_DIR=$MESON_SOURCE_ROOT/testsuite/unittest
 export LC_ALL="C"
 #export LC_ALL="en_US.UTF-8"
 
-if ! [ -f UNITTEST_DIR/../envconfig.sh ]; then
+if ! [ -f $UNITTEST_DIR/../envconfig.sh ]; then
 	echo >&2 "envconfig.sh is missing -- is the tree built?"
 	exit 1
 fi
 
-. UNITTEST_DIR/../testconfig.sh
-. UNITTEST_DIR/../envconfig.sh
+. $UNITTEST_DIR/../testconfig.sh
+. $UNITTEST_DIR/../envconfig.sh
 
 if [ -t 1 ]; then
 	IS_TERMINAL_STDOUT=YES
@@ -165,9 +165,10 @@ SCP_OPTS="-o BatchMode=yes -r -p"
 NDCTL_MIN_VERSION="63"
 
 # list of common files to be copied to all remote nodes
-DIR_SRC="UNITTEST_DIR/../.."
+DIR_SRC="$MESON_BUILD_ROOT/src"
+SUPPRESIONS_DIR="$MESON_SOURCE_ROOT/testsuite/supressions"
 FILES_COMMON_DIR="\
-$DIR_SRC/test/*.supp \
+$SUPPRESIONS_DIR/*.supp \
 $DIR_SRC/tools/rpmemd/rpmemd \
 $DIR_SRC/tools/pmempool/pmempool \
 $DIR_SRC/test/tools/extents/extents \
@@ -176,9 +177,9 @@ $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
 # Portability
-VALGRIND_SUPP="--suppressions=../ld.supp \
-	--suppressions=../memcheck-libunwind.supp \
-	--suppressions=../memcheck-ndctl.supp"
+VALGRIND_SUPP="--suppressions=$SUPPRESIONS_DIR/ld.supp \
+	--suppressions=$SUPPRESIONS_DIR/memcheck-libunwind.supp \
+	--suppressions=$SUPPRESIONS_DIR/memcheck-ndctl.supp"
 if [ "$(uname -s)" = "FreeBSD" ]; then
 	DATE="gdate"
 	DD="gdd"
@@ -189,7 +190,7 @@ if [ "$(uname -s)" = "FreeBSD" ]; then
 	STAT_PERM="-f%Sp"
 	STAT_SIZE="-f%z"
 	STRACE="truss"
-	VALGRIND_SUPP="$VALGRIND_SUPP --suppressions=../freebsd.supp"
+	VALGRIND_SUPP="$VALGRIND_SUPP --suppressions=$SUPPRESIONS_DIR/freebsd.supp"
 else
 	DATE="date"
 	DD="dd"
@@ -205,12 +206,13 @@ fi
 # array of lists of PID files to be cleaned in case of an error
 NODE_PID_FILES[0]=""
 
+# TODO: Check if it is all correct!
 case "$BUILD"
 in
 debug|static-debug)
 	if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
-		PMDK_LIB_PATH=../../debug
-		REMOTE_PMDK_LIB_PATH=../debug
+		PMDK_LIB_PATH="$DIR_SRC/src/libpmem:$DIR_SRC/src/libpmem2:$DIR_SRC/src/libpmemblk:$DIR_SRC/src/libpmemlog:$DIR_SRC/src/libpmemobj:$DIR_SRC/src/libpmempool:$DIR_SRC/src/librpmem"
+		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH
 	else
 		PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
 		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
@@ -218,8 +220,8 @@ debug|static-debug)
 	;;
 nondebug|static-nondebug)
 	if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
-		PMDK_LIB_PATH=../../nondebug
-		REMOTE_PMDK_LIB_PATH=../nondebug
+		PMDK_LIB_PATH=$PMDK_LIB_PATH
+		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH
 	else
 		PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
 		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
@@ -2788,7 +2790,7 @@ function check_local() {
 
 	FILES=$(get_files "[^0-9w]*${UNITTEST_NUM}\.log\.match")
 	if [ -n "$FILES" ]; then
-		../match $option $FILES
+		$UNITTEST_DIR/../match $option $FILES
 	fi
 }
 

@@ -776,12 +776,12 @@ fi
 if [ "$1" ]; then
 	for test in $*
 	do
-		[ -d "$test" ] || echo "RUNTESTS: Test does not exist: $test"
-		[ -f "$test/TEST0" ] && runtest $test
+		[ -d "$MESON_BUILD_ROOT/src/test/$test" ] || echo "RUNTESTS: Test does not exist: $test"
+		[ -f "$MESON_BUILD_ROOT/src/test/$test/TEST0" ] && runtest $MESON_BUILD_ROOT/src/test/$test
 	done
 else
 	# no arguments means run them all
-	for testfile0 in "$MESON_BUILD_ROOT/src/test/*/TEST0"
+	for testfile0 in $MESON_BUILD_ROOT/src/test/*/TEST0
 	do
 		testdir=`dirname $testfile0`
 		if [[ "$skip_dir" =~ "$testdir" ]]; then
