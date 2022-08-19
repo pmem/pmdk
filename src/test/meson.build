@@ -509,7 +509,7 @@ foreach t, attrs : tests
 endforeach
 
 # script for copying files from the source dir to the meson build dir
-copy = find_program('../../utils/copy.py')
+copy = find_program('../../utils/copy-file.py')
 # list of copy targets responsible for copying files of each test
 copy_targets = []
 list_files = find_program('../../utils/list-files.py')
