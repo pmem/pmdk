@@ -1,6 +1,6 @@
 executable(
-    'redo',
-    'redo.c',
-    dependencies: [libpmem2_dep],
+    'queue',
+    'queue.c',
+    dependencies: [libpmemobj_dep],
     include_directories: include_directories('.'),
 )

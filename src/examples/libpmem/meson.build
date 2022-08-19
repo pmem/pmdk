@@ -1,9 +1,20 @@
-executable('full_copy', 'full_copy.c',
+executable(
+    'full_copy',
+    'full_copy.c',
     dependencies: [threads_dep, libpmem_dep],
-    include_directories: root_include)
-executable('manpage', 'manpage.c',
+    include_directories: include_directories('.'),
+)
+
+executable(
+    'manpage',
+    'manpage.c',
     dependencies: [threads_dep, libpmem_dep],
-    include_directories: root_include)
-executable('simple_copy', 'simple_copy.c',
+    include_directories: include_directories('.'),
+)
+
+executable(
+    'simple_copy',
+    'simple_copy.c',
     dependencies: [threads_dep, libpmem_dep],
-    include_directories: root_include)
+    include_directories: include_directories('.'),
+)

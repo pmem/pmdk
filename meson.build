@@ -52,6 +52,9 @@ threads_dep = dependency('threads')
 libndctl_dep = dependency('libndctl', version: '>= 63', required: get_option('ndctl'))
 libdaxctl_dep = dependency('libdaxctl', version: '>= 63', required: get_option('ndctl'))
 libfabric_dep = dependency('libfabric', version: '>= 1.4.2') # TODO: is it necessary?
+libncurses_dep = dependency('ncurses', required: false)
+libuv_dep = dependency('libuv', required: false)
+libfuse_dep = dependency('fuse', version: '>= 2.9.1', required: false)
 
 miniasync_proj = cmake.subproject('miniasync')
 miniasync_dep = miniasync_proj.dependency('miniasync')

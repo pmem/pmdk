@@ -1,3 +1,6 @@
-executable('log', 'log.c',
+executable(
+    'log',
+    'log.c',
     dependencies: [libpmem2_dep],
-    include_directories: [root_include, examples_include])
+    include_directories: [root_include, examples_include]
+)
