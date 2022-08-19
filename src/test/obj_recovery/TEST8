@@ -38,7 +38,7 @@
 # src/test/obj_recovery/TEST8 -- unit test for pool recovery
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type long
 require_no_asan

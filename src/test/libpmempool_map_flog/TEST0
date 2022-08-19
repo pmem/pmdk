@@ -6,7 +6,7 @@
 # libpmempool_map_flog/TEST0 -- test for checking map and flog
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

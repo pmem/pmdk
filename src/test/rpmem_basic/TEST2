@@ -6,7 +6,7 @@
 # src/test/rpmem_basic/TEST2 -- unit test for rpmem_read
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

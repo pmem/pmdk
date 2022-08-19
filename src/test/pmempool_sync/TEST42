@@ -9,7 +9,7 @@
 #                           replica #1: blocks: offset: 126 length: 1
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type non-pmem

@@ -7,7 +7,7 @@
 # engines stack functionality
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_fs_type pmem non-pmem
 require_build_type debug

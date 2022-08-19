@@ -8,7 +8,7 @@
 # Remove pool and local pool set, do not remove remote pool set.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

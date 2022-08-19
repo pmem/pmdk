@@ -6,7 +6,7 @@
 # src/test/arch_flags/TEST0 -- unit test for util_get_arch_flags function
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

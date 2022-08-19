@@ -6,7 +6,7 @@
 # pmempool_rm/TEST4 -- test for pmempool rm
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_dax_devices 1

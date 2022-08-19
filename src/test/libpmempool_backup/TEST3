@@ -6,7 +6,7 @@
 # libpmempool_backup/TEST3 -- test backup poolset with replica (invalid)
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

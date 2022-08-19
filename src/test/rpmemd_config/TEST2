@@ -6,7 +6,7 @@
 # rpmemd_config/TEST2 -- test for rpmemd invalid config file
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_build_type debug

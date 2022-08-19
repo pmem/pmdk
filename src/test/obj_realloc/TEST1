@@ -7,7 +7,7 @@
 # pmemobj_zrealloc
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type long
 

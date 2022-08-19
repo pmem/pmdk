@@ -6,7 +6,7 @@
 # pmempool_check/TEST16 -- test for checking and fixing pool files crtime
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

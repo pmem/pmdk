@@ -9,7 +9,7 @@
 #                                - offset of bad block in all 2 parts: 1000
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type non-pmem

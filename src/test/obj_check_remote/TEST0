@@ -9,7 +9,7 @@
 # for all replicas but it have never worked for remote ones)
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_command md5sum

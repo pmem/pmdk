@@ -6,7 +6,7 @@
 # src/test/obj_tx_callbacks/TEST0 -- unit test for transaction stage callbacks
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -6,7 +6,7 @@
 # src/test/rpmem_basic/TEST5 -- unit test for rpmemd --remove
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

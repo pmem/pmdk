@@ -7,7 +7,7 @@
 # on Device DAX when copy_on_write.at_open=1 fails
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_dax_devices 1

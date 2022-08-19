@@ -12,7 +12,7 @@
 # 1 remote replica with 2 device daxes, mixed alignments
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type	medium
 require_fs_type		any

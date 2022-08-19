@@ -6,7 +6,7 @@
 # pmempool_check/TEST19 -- test for checking and fixing pool files arch_flags
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

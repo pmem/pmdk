@@ -7,7 +7,7 @@
 # (rpmem_flush, rpmem_drain and rpmem_persist)
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

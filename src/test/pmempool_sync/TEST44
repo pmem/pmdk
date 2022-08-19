@@ -12,7 +12,7 @@
 #                                               offset: 1016 length: 1
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 . setup.sh
 

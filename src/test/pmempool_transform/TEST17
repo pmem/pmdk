@@ -10,7 +10,7 @@
 # revert transformation hdrs->nohdrs (TEST13)
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

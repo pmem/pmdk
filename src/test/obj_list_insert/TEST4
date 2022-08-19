@@ -8,7 +8,7 @@
 # Adding item to before/after element in the middle
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_build_type debug

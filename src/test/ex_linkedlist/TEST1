@@ -11,7 +11,7 @@
 # in multiply stores to the same field. This is not en error considering
 # the transactional nature of the test.
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

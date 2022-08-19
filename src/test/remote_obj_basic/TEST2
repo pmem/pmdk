@@ -9,7 +9,7 @@
 # timeout value for this test in seconds
 TIMEOUT=5
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

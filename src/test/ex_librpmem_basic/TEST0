@@ -6,7 +6,7 @@
 # src/test/ex_librpmem_basic/TEST0 -- basic example unittest
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 

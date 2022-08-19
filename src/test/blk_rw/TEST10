@@ -8,7 +8,7 @@
 # Same as TEST0, but run on a single Device DAX device.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

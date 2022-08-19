@@ -6,7 +6,7 @@
 # src/test/obj_ctl_arenas/TEST5 -- unit test for heap.narenas.max CTL
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 require_fs_type any

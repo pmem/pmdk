@@ -9,7 +9,7 @@
 # test case for rpmem_persist with relaxed flag is in TEST18
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

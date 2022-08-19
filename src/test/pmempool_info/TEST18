@@ -6,7 +6,7 @@
 # pmempool_info/TEST18 -- test for info command with device dax
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

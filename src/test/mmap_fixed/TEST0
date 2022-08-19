@@ -6,7 +6,7 @@
 # src/test/mmap_fixed/TEST0 -- unit test for memory mapping routines
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

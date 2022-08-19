@@ -6,7 +6,7 @@
 # src/test/blk_rw/TEST4 -- unit test for pmemblk_read/write/set_zero/set_error
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 exclude_ppc64
 
 require_test_type medium

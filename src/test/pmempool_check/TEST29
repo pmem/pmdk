@@ -5,7 +5,7 @@
 #
 # pmempool_check/TEST29 -- test for checking pools
 #
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

@@ -6,7 +6,7 @@
 # src/test/blk_nblock/TEST1 -- unit test for pmemblk_nblock
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

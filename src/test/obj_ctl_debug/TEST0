@@ -7,7 +7,7 @@
 #       and pmemcheck for ctl_debug
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 require_fs_type any

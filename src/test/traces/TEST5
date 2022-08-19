@@ -6,7 +6,7 @@
 # src/test/traces/TEST5 -- unit test for traces
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

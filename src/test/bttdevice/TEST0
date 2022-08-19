@@ -6,7 +6,7 @@
 # bttdevice/TEST0 -- test for checking bttcreate tool
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

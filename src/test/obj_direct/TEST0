@@ -6,7 +6,7 @@
 # src/test/obj_direct/TEST0 -- unit test for direct
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -6,7 +6,7 @@
 # src/test/obj_direct_volatile/TEST1 -- unit test for direct_volatile
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

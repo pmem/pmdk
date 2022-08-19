@@ -8,7 +8,7 @@
 #                           blocks: offset: 1000 length: 8
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_build_type debug nondebug

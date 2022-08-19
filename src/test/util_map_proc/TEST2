@@ -6,7 +6,7 @@
 # src/test/util_map_proc/TEST2 -- unit test for util_map /proc parsing
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

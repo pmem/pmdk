@@ -6,7 +6,7 @@
 # pmempool_info/TEST22 -- test for info command with directory poolsets
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

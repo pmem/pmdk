@@ -8,7 +8,7 @@
 #                        with device dax
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_dax_devices 1

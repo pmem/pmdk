@@ -6,7 +6,7 @@
 # src/test/rpmem_basic/TEST12 -- unit test for handling rpmemd termination
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

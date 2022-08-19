@@ -7,7 +7,7 @@
 # src/test/obj_tx_strdup/TEST0 -- unit test for pmemobj_tx_strdup
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 configure_valgrind pmemcheck force-disable

@@ -6,7 +6,7 @@
 # src/test/util_poolset_parse/TEST1 -- unit test for parsing a pool set file
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

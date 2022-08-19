@@ -8,7 +8,7 @@
 # tests regions which are not sym links
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type pmem non-pmem

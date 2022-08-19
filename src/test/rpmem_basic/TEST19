@@ -6,7 +6,7 @@
 # src/test/rpmem_basic/TEST19 -- unit test for rpmem create with failing rpmemd
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

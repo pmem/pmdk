@@ -6,7 +6,7 @@
 # src/test/pmem_deep_persist/TEST9 -- unit test for pmem_deep_persist
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 # Test can take a while on huge dax devices
 require_test_type long

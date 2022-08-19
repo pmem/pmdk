@@ -7,7 +7,7 @@
 #	(long helgrind version)
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_valgrind 3.10
 require_fs_type pmem non-pmem

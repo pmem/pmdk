@@ -41,7 +41,7 @@
 # This test is equivalent of TEST2 for ppc64le platform.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem

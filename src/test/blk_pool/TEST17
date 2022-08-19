@@ -6,7 +6,7 @@
 # src/test/blk_pool/TEST17 -- unit test for pmemblk_create with unicode
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 exclude_ppc64

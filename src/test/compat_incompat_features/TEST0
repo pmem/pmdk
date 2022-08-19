@@ -8,7 +8,7 @@
 # check if pool opens when compat flags are equal and nonzero
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type	medium
 require_fs_type		any

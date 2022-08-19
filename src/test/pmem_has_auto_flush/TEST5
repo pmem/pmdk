@@ -8,7 +8,7 @@
 # tests regions with mixed - empty persistence_domain file
 # and persistence_domain with other type
 #
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type pmem non-pmem

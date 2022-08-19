@@ -6,7 +6,7 @@
 # src/test/blk_pool/TEST15 -- unit test for pmemblk_create
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 exclude_ppc64

@@ -38,7 +38,7 @@
 # src/test/obj_heap_interrupt/TEST0 -- unit test for pool heap interruption
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_no_asan

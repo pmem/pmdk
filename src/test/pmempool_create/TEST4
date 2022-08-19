@@ -6,7 +6,7 @@
 # pmempool_create/TEST0 -- test for creating pool with specified permissions
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

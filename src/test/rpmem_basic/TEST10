@@ -6,7 +6,7 @@
 # src/test/rpmem_basic/TEST10 -- test rpmemd persistency policy for APM
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -6,7 +6,7 @@
 # src/test/getopt/TEST0 -- unit test for windows getopt implementation
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type none

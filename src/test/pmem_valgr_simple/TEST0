@@ -6,7 +6,7 @@
 # src/test/pmem_valgr_simple/TEST0 -- unit test for pmem_valgr_simple
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

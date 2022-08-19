@@ -7,7 +7,7 @@
 # src/test/out_err_mt/TEST0 -- unit test for error messages
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

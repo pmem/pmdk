@@ -6,7 +6,7 @@
 # pmempool_check/TEST9 -- test for checking pmemobj pool
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

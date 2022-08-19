@@ -7,7 +7,7 @@
 #                             pmem/issues#274
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

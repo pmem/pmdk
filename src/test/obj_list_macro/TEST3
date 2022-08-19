@@ -6,7 +6,7 @@
 # src/test/obj_list_macro/TEST3 -- unit test for list API
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

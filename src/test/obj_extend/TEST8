@@ -6,7 +6,7 @@
 # src/test/obj_extend/TEST8 -- negative unit test for reducing reservation size
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

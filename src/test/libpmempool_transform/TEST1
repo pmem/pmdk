@@ -6,7 +6,7 @@
 # libpmempool_transform/TEST1 -- test for checking replica transform
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

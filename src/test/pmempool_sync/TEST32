@@ -10,7 +10,7 @@
 #                         in the 1st part
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type non-pmem

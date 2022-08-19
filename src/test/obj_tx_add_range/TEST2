@@ -6,7 +6,7 @@
 # src/test/obj_tx_add_range/TEST2 -- unit test for pmemobj_tx_add_range
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

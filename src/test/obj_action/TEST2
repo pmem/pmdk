@@ -6,7 +6,7 @@
 # src/test/obj_action/TEST2 -- unit test (pmemcheck) for obj_action
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

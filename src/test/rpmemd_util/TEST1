@@ -6,7 +6,7 @@
 # rpmemd_util/TEST1 -- test rpmemd_apply_pm_policy function - invalid case
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

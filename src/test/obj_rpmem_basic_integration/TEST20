@@ -6,7 +6,7 @@
 # obj_rpmem_basic_integration/TEST20 -- pool part smaller than minimal
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

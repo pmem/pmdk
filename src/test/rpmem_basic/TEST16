@@ -9,7 +9,7 @@
 # case: invalid offset provided to rpmem_persist()
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

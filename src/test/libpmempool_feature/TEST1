@@ -6,7 +6,7 @@
 # libpmempool_feature/TEST1 -- unit test for PMEMPOOL_FEAT_CHCKSUM_2K
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

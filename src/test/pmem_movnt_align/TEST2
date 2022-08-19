@@ -6,7 +6,7 @@
 # src/test/pmem_movnt_align/TEST0 -- unit test for pmem_memcpy_persist
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

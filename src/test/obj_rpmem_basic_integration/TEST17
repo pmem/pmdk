@@ -11,7 +11,7 @@
 
 EXE=obj_basic_integration
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

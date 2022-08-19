@@ -6,7 +6,7 @@
 # src/test/pmem_memmove/TEST0 -- unit test for pmem_memmove
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

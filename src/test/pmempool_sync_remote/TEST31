@@ -9,7 +9,7 @@
 #                                - bad block in all parts: offset: 8000*512 length: 8*512
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

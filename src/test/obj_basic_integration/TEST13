@@ -10,7 +10,7 @@
 # if SINGLEHDR option is not specified.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_dax_device_alignments 2097152 2097152 # 2MiB

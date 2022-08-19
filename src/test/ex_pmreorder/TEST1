@@ -6,7 +6,7 @@
 # src/test/ex_pmreorder/TEST1 -- test for pmreorder list example
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 LIBPMEM_SO=${PMDK_LIB_PATH}/libpmem.so.1
 

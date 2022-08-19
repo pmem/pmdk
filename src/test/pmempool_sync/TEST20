@@ -9,7 +9,7 @@
 # Alignment variant: replica 0: 4KB, 2MB; replica 1: 2MB, 4KB
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

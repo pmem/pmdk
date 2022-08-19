@@ -6,7 +6,7 @@
 # src/test/blk_rw_mt/TEST1 -- unit test for MT I/O on blk pool
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

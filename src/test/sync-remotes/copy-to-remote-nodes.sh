@@ -21,7 +21,7 @@ UNITTEST_NUM=0
 # PMEM_FS_DIR/NON_PMEM_FS_DIR are set.
 FS=none
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 COPY_TYPE=$1
 shift

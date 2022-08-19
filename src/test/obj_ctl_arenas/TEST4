@@ -6,7 +6,7 @@
 # src/test/obj_ctl_arenas/TEST4 -- unit test for POBJ_ARENA_ID flag
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 require_fs_type any

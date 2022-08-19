@@ -7,7 +7,7 @@
 #                         a case with incorrect part's uuid and correct checksum
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

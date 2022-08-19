@@ -5,7 +5,7 @@
 export UNITTEST_NAME=obj_ctl_config/TEST1
 export UNITTEST_NUM=100 # TEST0 poses as different test numbers
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 

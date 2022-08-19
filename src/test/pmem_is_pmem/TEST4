@@ -38,7 +38,7 @@
 # src/test/pmem_is_pmem/TEST4 -- unit test for pmem_is_pmem
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

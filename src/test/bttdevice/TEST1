@@ -6,7 +6,7 @@
 # bttdevice/TEST1 -- test for checking pmempool info for spoiled btt device
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

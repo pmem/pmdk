@@ -7,7 +7,7 @@
 # or almost all parts already exist
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 EXE=../libpmempool_api/libpmempool_test$EXESUFFIX
 

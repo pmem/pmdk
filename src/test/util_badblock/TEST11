@@ -6,7 +6,7 @@
 # src/test/util_badblock/TEST11 -- unit test for inject error malloc
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type non-pmem

@@ -5,7 +5,7 @@
 #
 # obj_badblock/TEST0 -- test for inserting bad blocks into an obj pool
 #
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 require_test_type medium
 require_badblock_tests_enabled block_device
 
