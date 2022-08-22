@@ -124,25 +124,25 @@ fi
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
 TOOLS="$MESON_BUILD_ROOT/testsuite/tools"
-LIB_TOOLS="$MESON_BUILD_ROOT/tools"
+LIB_TOOLS="$MESON_BUILD_ROOT/src/tools"
 # Paths to some useful tools
-[ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool/pmempool
-[ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio/daxio
-[ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
-[ "$BTTCREATE" ] || BTTCREATE=$TOOLS/bttcreate/bttcreate.static-nondebug
+[ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool
+[ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio
+[ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil
+[ "$BTTCREATE" ] || BTTCREATE=$TOOLS/bttcreate/bttcreate
 [ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
 [ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
-[ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+[ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect
 [ "$PMREORDER" ] || PMREORDER=$LIB_TOOLS/pmreorder/pmreorder.py
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
 [ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
-[ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static-nondebug
+[ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect
 [ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
-[ "$USC_PERMISSION" ] || USC_PERMISSION=$TOOLS/usc_permission_check/usc_permission_check.static-nondebug
-[ "$ANONYMOUS_MMAP" ] || ANONYMOUS_MMAP=$TOOLS/anonymous_mmap/anonymous_mmap.static-nondebug
+[ "$USC_PERMISSION" ] || USC_PERMISSION=$TOOLS/usc_permission_check/usc_permission_check
+[ "$ANONYMOUS_MMAP" ] || ANONYMOUS_MMAP=$TOOLS/anonymous_mmap/anonymous_mmap
 
 # force globs to fail if they don't match
 shopt -s failglob
