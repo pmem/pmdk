@@ -19,6 +19,7 @@ executable(
     dependencies: dependencies,
 )
 
+test_files += ['file1','file2','file3','file4','file5']
 copy_target = custom_target(t+'(test-files)',
     input : test_files,
     output :  test_files,

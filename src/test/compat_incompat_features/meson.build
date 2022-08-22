@@ -13,7 +13,7 @@ c_args = []
 include_directories = []
 
 executable(
-    t,
+    'pool_open',
     sources,
     c_args: c_args,
     include_directories: include_directories,
