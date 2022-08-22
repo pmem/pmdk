@@ -87,7 +87,7 @@ libpmemcommon = static_library(
     dependencies: dependencies,
     include_directories: [
         include_directories('.'),
-	include_directories('../libpmem'),
+	    include_directories('../libpmem'),
         include_directories('../libpmem2'),
 	root_include,
 	miniasync_include,
