@@ -6,7 +6,7 @@
 # src/test/obj_sync/TEST2 -- unit test for PMEM-resident locks
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

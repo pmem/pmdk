@@ -6,7 +6,7 @@
 # pmemspoil/TEST0 -- test for pmemspoil
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -38,7 +38,7 @@
 # src/test/blk_pool/TEST21 -- unit test for pmemblk_open
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

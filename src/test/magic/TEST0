@@ -6,7 +6,7 @@
 # magic/TEST0 -- test for magic file script
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

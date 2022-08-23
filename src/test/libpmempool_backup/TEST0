@@ -6,7 +6,7 @@
 # libpmempool_backup/TEST0 -- test simple backup scenario
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

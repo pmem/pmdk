@@ -7,7 +7,7 @@
 # print function
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

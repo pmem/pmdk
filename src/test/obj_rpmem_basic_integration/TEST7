@@ -8,7 +8,7 @@
 #    part and one consists of two parts)
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

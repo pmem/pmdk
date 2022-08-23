@@ -6,7 +6,7 @@
 # src/test/blk_recovery/TEST0 -- unit test for pmemblk recovery
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

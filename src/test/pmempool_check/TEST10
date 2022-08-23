@@ -6,7 +6,7 @@
 # pmempool_check/TEST10 -- test for checking pools with multiple replicas
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

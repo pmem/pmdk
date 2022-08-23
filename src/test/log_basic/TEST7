@@ -18,7 +18,7 @@
 # Same as TEST1, but run on a single Device DAX device.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_dax_devices 1

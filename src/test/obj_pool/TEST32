@@ -7,7 +7,7 @@
 #                             with a bad block recovery file
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

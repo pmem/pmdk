@@ -11,7 +11,7 @@
 # in the first 8kB of the pool (in the pool header) located in a regular file.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_build_type debug nondebug

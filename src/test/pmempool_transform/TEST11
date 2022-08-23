@@ -9,7 +9,7 @@
 # case: single replica with two 4KB-aligned device daxes
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

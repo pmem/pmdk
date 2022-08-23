@@ -6,7 +6,7 @@
 # obj_rpmem_basic_integration/TEST19 -- minimal pool parts size
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

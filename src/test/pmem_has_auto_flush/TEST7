@@ -7,7 +7,7 @@
 #
 # tests regions with improper values in all persistence_domain files
 #
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type pmem non-pmem

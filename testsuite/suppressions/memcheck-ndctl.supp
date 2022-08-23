@@ -1,0 +1,37 @@
+{
+   ndctl suppression
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   ...
+   fun:ndctl_pfn_get_first
+   fun:ndctl_namespace_get_pfn
+   ...
+}
+{
+   ndctl suppression
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   ...
+   fun:ndctl_dax_get_first
+   ...
+}
+{
+   memory leak in ndctl 63
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:ndctl_namespace_get_first_badblock
+   ...
+}
+{
+   cond jump in libkmod
+   Memcheck:Cond
+   ...
+   fun:kmod_module_new_from_lookup
+   ...
+   fun:ndctl_region_get_first
+   ...
+}

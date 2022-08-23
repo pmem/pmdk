@@ -9,7 +9,7 @@
 # multi-threaded in TEST7
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

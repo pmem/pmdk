@@ -6,7 +6,7 @@
 # src/test/traces_pmem/TEST0 -- unit test traces for libraries pmem
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -38,7 +38,7 @@
 # src/test/log_pool/TEST23 -- unit test for pmemlog_open
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -6,7 +6,7 @@
 # src/test/log_pool/TEST5 -- unit test for pmemlog_create
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

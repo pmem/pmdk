@@ -6,7 +6,7 @@
 # pmempool_info_remote/TEST0 -- test for info command with remote replica
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

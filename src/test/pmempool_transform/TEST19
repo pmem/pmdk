@@ -9,7 +9,7 @@
 # case: two replicas larger than the pool size, able to embrace new headers
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

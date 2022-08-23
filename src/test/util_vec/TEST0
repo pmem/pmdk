@@ -6,7 +6,7 @@
 # src/test/util_vec/TEST0 -- unit test for vec implementation
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 

@@ -6,7 +6,7 @@
 # src/test/obj_pool/TEST28 -- unit test for pmemobj_open
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -6,7 +6,7 @@
 # src/test/pmem_unmap/TEST0 -- unit test for pmem_unmap
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

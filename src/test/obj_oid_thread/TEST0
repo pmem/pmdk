@@ -6,7 +6,7 @@
 # src/test/obj_oid_thread/TEST0 -- unit test for pmemobj_oid
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_fs_type any
 require_test_type medium

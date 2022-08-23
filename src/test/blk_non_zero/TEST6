@@ -7,7 +7,7 @@
 # pmemblk_read/write/set_zero/set_error
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

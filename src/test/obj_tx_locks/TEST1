@@ -6,7 +6,7 @@
 # src/test/obj_tx_locks/TEST1 -- unit test for transaction locks
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

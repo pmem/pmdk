@@ -8,7 +8,7 @@
 #                                   on regular file with bad blocks
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

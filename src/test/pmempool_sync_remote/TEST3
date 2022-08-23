@@ -6,7 +6,7 @@
 # pmempool_sync_remote/TEST3 -- pmempool sync with remote replication
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

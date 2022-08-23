@@ -6,7 +6,7 @@
 # src/test/util_is_zeroed/TEST1 -- unit test for util_is_zeroed
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

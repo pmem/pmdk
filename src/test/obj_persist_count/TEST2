@@ -7,7 +7,7 @@
 # src/test/obj_persist_count/TEST2 -- unit test for persist count
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

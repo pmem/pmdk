@@ -6,7 +6,7 @@
 # pmempool_create/TEST8 -- test for pmempool create command with poolset
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

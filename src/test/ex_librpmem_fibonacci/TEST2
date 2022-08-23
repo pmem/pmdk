@@ -6,7 +6,7 @@
 # src/test/ex_librpmem_fibonacci/TEST2 -- fibonacci example unittest
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type long
 

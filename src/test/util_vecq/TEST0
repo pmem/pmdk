@@ -6,7 +6,7 @@
 # src/test/util_vecq/TEST0 -- unit test for vecq implementation
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 

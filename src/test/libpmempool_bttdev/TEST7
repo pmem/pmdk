@@ -6,7 +6,7 @@
 # libpmempool_bttdev/TEST7 -- test for checking btt
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

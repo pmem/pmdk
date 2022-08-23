@@ -8,7 +8,7 @@
 # check if pool fails to open when incompat flags differ between parts
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type	medium
 require_fs_type		any

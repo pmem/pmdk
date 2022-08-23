@@ -6,7 +6,7 @@
 # pmempool_create/TEST3 -- test for inheriting pools
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

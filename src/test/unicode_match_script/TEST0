@@ -6,7 +6,7 @@
 # src/test/unicode_match_script/TEST0 -- unicode encoding unit test for match
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

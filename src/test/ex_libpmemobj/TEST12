@@ -8,7 +8,7 @@
 
 EX_PATH=../../examples/libpmemobj/pmemlog
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 # This test allocates 90M object. Flushing 90M under pmemcheck
 # makes this test run forever...

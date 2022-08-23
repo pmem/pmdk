@@ -10,7 +10,7 @@
 # Similar to: TEST0 + SINGLEHDR
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

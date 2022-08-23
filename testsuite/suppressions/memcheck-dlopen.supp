@@ -1,0 +1,21 @@
+{
+   dlopen suppression
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   ...
+   fun:call_init
+   fun:_dl_init
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+   fun:_dl_open
+   ...
+}
+{
+   <dlopen suppression, pmem/issues#1098>
+   Memcheck:Leak
+   ...
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC*
+   ...
+}

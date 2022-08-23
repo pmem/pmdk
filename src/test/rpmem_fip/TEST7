@@ -9,7 +9,7 @@
 # single-threaded in TEST6
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

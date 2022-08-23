@@ -38,7 +38,7 @@
 # obj_constructor/TEST0 -- test for obj_constructor
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

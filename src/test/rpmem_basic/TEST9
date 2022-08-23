@@ -6,7 +6,7 @@
 # src/test/rpmem_basic/TEST9 -- unit test for rpmem set attributes request
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

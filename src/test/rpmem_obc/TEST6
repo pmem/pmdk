@@ -6,7 +6,7 @@
 # src/test/rpmem_obc/TEST6 -- unit test for rpmem_obc_set_attr function
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

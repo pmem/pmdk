@@ -6,7 +6,7 @@
 # src/test/set_funcs/TEST0 -- unit test for pmem*_set_funcs
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

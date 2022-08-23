@@ -6,7 +6,7 @@
 # pmempool_dump/TEST0 -- test for dump command
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

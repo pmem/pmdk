@@ -6,7 +6,7 @@
 # src/test/unicode_api/TEST0 -- unicode C API check
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_command bc

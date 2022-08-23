@@ -6,7 +6,7 @@
 # src/test/obj_pmalloc_rand_mt/TEST1 -- multithreaded allocator test
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_fs_type pmem
 require_test_type medium

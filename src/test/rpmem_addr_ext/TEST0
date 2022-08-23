@@ -6,7 +6,7 @@
 # src/test/rpmem_addr_ext/TEST0 -- advanced unittest for invalid target formats
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 

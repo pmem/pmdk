@@ -9,7 +9,7 @@
 # case: a single replica with two 2MB-aligned device daxes - should fail
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

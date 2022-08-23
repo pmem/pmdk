@@ -7,7 +7,7 @@
 # src/test/util_ravl/TEST0 -- unit test for util_ravl interface
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_fs_type none
 require_test_type medium

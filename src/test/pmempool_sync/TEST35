@@ -10,7 +10,7 @@
 #                         in the 2nd part
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 . setup.sh
 

@@ -8,7 +8,7 @@
 # Remove pool when it is opened
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -6,7 +6,7 @@
 # src/test/obj_action/TEST0 -- unit test (short) for obj_action
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 require_fs_type any

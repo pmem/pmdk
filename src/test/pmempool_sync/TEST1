@@ -6,7 +6,7 @@
 # pmempool_sync/TEST1 -- test for checking pmempool sync
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

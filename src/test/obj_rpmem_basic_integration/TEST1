@@ -38,7 +38,7 @@
 #       replica with initially zeroed pool files
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

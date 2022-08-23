@@ -10,7 +10,7 @@
 # during attempt to open daisy chained poolset files.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

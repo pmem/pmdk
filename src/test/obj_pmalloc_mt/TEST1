@@ -7,7 +7,7 @@
 #	(medium non-helgrind/drd version)
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_fs_type any
 require_test_type medium

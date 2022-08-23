@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2016-2019, Intel Corporation
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_command $STRACE

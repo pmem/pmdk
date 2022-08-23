@@ -8,7 +8,7 @@
 # Copy of TEST0 for ppc64le
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

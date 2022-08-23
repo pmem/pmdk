@@ -6,7 +6,7 @@
 # src/test/rpmemd_dbg/TEST1 -- unit test for rpmemd_log module
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_build_type debug

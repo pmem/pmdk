@@ -8,7 +8,7 @@
 #                             another dax device as the second replica
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_dax_devices 2

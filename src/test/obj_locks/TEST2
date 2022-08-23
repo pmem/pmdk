@@ -6,7 +6,7 @@
 # src/test/obj_locks/TEST2 -- unit test for pmemobj_mutex and pmemobj_rwlock
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

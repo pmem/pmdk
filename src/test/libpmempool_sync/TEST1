@@ -6,7 +6,7 @@
 # libpmempool_sync/TEST1 -- test for checking replica sync
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

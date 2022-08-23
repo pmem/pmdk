@@ -6,7 +6,7 @@
 # src/test/blk_pool/TEST12 -- unit test for pmemblk_create
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -38,7 +38,7 @@
 # src/test/obj_tx_realloc/TEST1 -- unit test for pmemobj_tx_realloc
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

@@ -6,7 +6,7 @@
 # src/test/obj_ctl_arenas/TEST7 -- test for global arena type assignment
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type short
 require_fs_type any

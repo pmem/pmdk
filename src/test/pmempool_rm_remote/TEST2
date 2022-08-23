@@ -6,7 +6,7 @@
 # pmempool_rm_remotie/TEST2 -- test for cli rm command with remote replica
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

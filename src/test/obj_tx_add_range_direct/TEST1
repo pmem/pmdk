@@ -7,7 +7,7 @@
 # pmemobj_tx_add_range_direct with valgrind pmemcheck tool
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

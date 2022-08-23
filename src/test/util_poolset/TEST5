@@ -6,7 +6,7 @@
 # src/test/util_poolset/TEST5 -- unit test for util_pool_open()
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

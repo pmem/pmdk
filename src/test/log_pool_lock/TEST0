@@ -6,7 +6,7 @@
 # src/test/log_pool_lock/TEST0 -- unit test for pmemlog_open
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_no_superuser

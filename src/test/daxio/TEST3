@@ -7,7 +7,7 @@
 #                but using various size units (KB, KiB, K, B, ...)
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

@@ -7,7 +7,7 @@
 #                               in 2-to-1 configuration
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

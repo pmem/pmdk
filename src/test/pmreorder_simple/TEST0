@@ -11,7 +11,7 @@
 # but defined by user in the config file.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 # it doesn't make sense to run in local directory
 require_fs_type pmem non-pmem

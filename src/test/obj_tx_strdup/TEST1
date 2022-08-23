@@ -7,7 +7,7 @@
 # src/test/obj_tx_strdup/TEST1 -- unit test for pmemobj_tx_strdup
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_build_type debug

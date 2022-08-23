@@ -7,7 +7,7 @@
 #                                    adding a second remote replica
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type	medium
 require_fs_type		any

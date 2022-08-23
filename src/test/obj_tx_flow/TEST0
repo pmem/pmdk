@@ -6,7 +6,7 @@
 # src/test/obj_tx_flow/TEST0 -- unit test for transaction flow
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 # this test verifies the correctness of the tx management functions only
 configure_valgrind pmemcheck force-disable

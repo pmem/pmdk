@@ -6,7 +6,7 @@
 # src/test/rpmemd_obc/TEST2 -- unit test for rpmemd_obc_process
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

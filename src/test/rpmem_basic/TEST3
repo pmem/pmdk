@@ -6,7 +6,7 @@
 # src/test/rpmem_basic/TEST3 -- unit test for rpmem_persist
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

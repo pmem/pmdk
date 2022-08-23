@@ -5,7 +5,7 @@
 #
 # daxio/TEST2 -- test for daxio utility; move data between two devices
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

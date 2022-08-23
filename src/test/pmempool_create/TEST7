@@ -6,7 +6,7 @@
 # pmempool_create/TEST7 -- test for pmempool create command with default pool size
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

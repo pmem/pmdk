@@ -38,7 +38,7 @@
 # src/test/blk_non_zero/TEST10 -- unit test for error injection
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

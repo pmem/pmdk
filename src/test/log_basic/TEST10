@@ -19,7 +19,7 @@
 # with 2M alignment. Expected success, as pool is created with SINGLEHDR option.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

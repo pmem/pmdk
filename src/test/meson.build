@@ -510,8 +510,10 @@ endforeach
 
 # script for copying files from the source dir to the meson build dir
 copy = find_program('../../utils/copy.py')
+# list of copy targets responsible for copying files of each test
+copy_targets = []
 list_files = find_program('../../utils/list-files.py')
-test_files_regex = '(.*TEST[0-9]+([.]PS1)?$)|(.*TESTS.py$)|(.*[.]match$)'
+test_files_regex = '(.*TEST[0-9]+([.]PS1)?$)|(.*TESTS.py$)|(.*[.]match$)|(common.sh)'
 
 foreach t, attrs : filtered_tests
     test_deps = attrs.get('test_deps', [])
@@ -542,4 +544,6 @@ foreach t, attrs : filtered_tests
     test_files = list_files_result.stdout().strip().split('\n')
 
     subdir(t)
+
+    copy_targets += copy_target
 endforeach

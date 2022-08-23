@@ -6,7 +6,7 @@
 # pmemobjcli/TEST1 -- test for pmemobjcli with transactions
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

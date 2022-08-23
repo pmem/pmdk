@@ -6,7 +6,7 @@
 # pmempool_create/TEST5 -- test for pmempool create for checking bsize argument
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

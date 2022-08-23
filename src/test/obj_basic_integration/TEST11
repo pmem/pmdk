@@ -9,7 +9,7 @@
 # with 4K alignment.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_dax_device_alignments 4096 4096

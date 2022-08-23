@@ -1,22 +1,25 @@
-tools = {
-    'daxio': {
-        'sources': files('daxio/daxio.c'),
-        'include_directories': [
+executable(
+    'daxio',
+    sources: files('daxio/daxio.c'),
+    include_directories: [
             core_include,
             common_include,
             root_include,
         ],
-        'dependencies': [
+    dependencies: [
             libpmem_dep,
             libndctl_dep,
             libdaxctl_dep,
             pmemcore_dep,
             pmemcommon_dep,
         ],
-    },
-    'pmempool': {
-        'c_args': ['-DUSE_RPMEM'],
-        'sources': files(
+    install: true,
+)
+
+pmempool = executable(
+    'pmempool',
+    c_args: ['-DUSE_RPMEM'],
+    sources: files(
             'pmempool/check.c',
             'pmempool/common.c',
             'pmempool/convert.c',
@@ -37,11 +40,11 @@ tools = {
             '../librpmem/rpmem_util.c',
             '../rpmem_common/rpmem_common.c',
         ),
-        'objects': [
+    objects: [
             libpmemblk.extract_objects('btt.c'),
             libpmemobj.extract_objects('alloc_class.c', 'bucket.c', 'container_ravl.c', 'container_seglists.c', 'critnib.c', 'heap.c', 'memblock.c', 'memops.c', 'recycler.c', 'ulog.c'),
         ],
-        'include_directories': [
+    include_directories: [
             root_include,
             include_directories('../libpmemblk'),
             include_directories('../libpmemlog'),
@@ -49,7 +52,7 @@ tools = {
             include_directories('../librpmem'),
             include_directories('../rpmem_common'),
         ],
-        'dependencies': [
+    dependencies: [
             libndctl_dep,
             libdaxctl_dep,
             libpmem_dep,
@@ -61,53 +64,41 @@ tools = {
             pmemcommon_dep,
             threads_dep,
         ],
-    },
-    'rpmemd': {
-        'enabled': get_option('rpmem'),
-        'c_args': ['-DRPMEMC_LOG_RPMEMD'],
-        'sources': files(
-            'rpmemd/rpmemd.c',
-            'rpmemd/rpmemd_log.c',
-            'rpmemd/rpmemd_config.c',
-            '../rpmem_common/rpmem_common.c',
-            'rpmemd/rpmemd_obc.c',
-            'rpmemd/rpmemd_db.c',
-            'rpmemd/rpmemd_fip.c',
-            '../rpmem_common/rpmem_fip_common.c',
-            'rpmemd/rpmemd_util.c'
-        ),
-        'dependencies': [
-            libfabric_dep,
-            libpmem_dep,
-            pmemcore_dep,
-            pmemcommon_dep,
-            threads_dep,
-        ],
-        'include_directories': [
-            include_directories('rpmemd'),
-            core_include,
-            common_include,
-            root_include,
-            include_directories('../rpmem_common'),
-        ],
-    },
-}
+    install: true
+)
 
-foreach t, params : tools
-    if not params.get('enabled', true)
-        continue
-    endif
-
-    executable(
-        t,
-        params.get('sources'),
-        objects: params.get('objects', []),
-        c_args: params.get('c_args', []),
-        dependencies: params.get('dependencies', []),
-        include_directories: params.get('include_directories', []),
+if get_option('rpmem')
+    rpmemd = executable(
+        'rpmemd',
+        c_args: ['-DRPMEMC_LOG_RPMEMD'],
+        sources: files(
+                'rpmemd/rpmemd.c',
+                'rpmemd/rpmemd_log.c',
+                'rpmemd/rpmemd_config.c',
+                '../rpmem_common/rpmem_common.c',
+                'rpmemd/rpmemd_obc.c',
+                'rpmemd/rpmemd_db.c',
+                'rpmemd/rpmemd_fip.c',
+                '../rpmem_common/rpmem_fip_common.c',
+                'rpmemd/rpmemd_util.c'
+            ),
+        dependencies: [
+                libfabric_dep,
+                libpmem_dep,
+                pmemcore_dep,
+                pmemcommon_dep,
+                threads_dep,
+            ],
+        include_directories: [
+                include_directories('rpmemd'),
+                core_include,
+                common_include,
+                root_include,
+                include_directories('../rpmem_common'),
+            ],
         install: true
     )
-endforeach
+endif
 
 rpmemd_dep = declare_dependency(
     sources: files(

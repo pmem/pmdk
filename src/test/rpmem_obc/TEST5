@@ -6,7 +6,7 @@
 # src/test/rpmem_obc/TEST5 -- unit test for rpmem_obc_open function
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

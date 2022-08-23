@@ -6,7 +6,7 @@
 # pmempool_feature/TEST15 -- unit test for SHUTDOWN_STATE + ctl
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 require_fs_type any

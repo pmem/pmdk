@@ -11,7 +11,7 @@
 # This test is equivalent of TEST6 for ppc64le platform.
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 

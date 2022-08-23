@@ -6,7 +6,7 @@
 # pmempool_info/TEST3 -- test for info command with BTT Info backup
 #
 
-. ../unittest/unittest.sh
+. $UNITTEST_SH
 
 require_test_type medium
 
