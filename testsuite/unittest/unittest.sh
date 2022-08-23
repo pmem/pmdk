@@ -985,7 +985,7 @@ function check_pool() {
 		then
 			echo "$UNITTEST_NAME: checking consistency of pool ${1}"
 		fi
-		${PMEMPOOL}.static-nondebug check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
+		${PMEMPOOL} check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
 	fi
 }
 
@@ -1320,7 +1320,7 @@ get_node_devdax_path() {
 dax_device_zero() {
 	for path in ${DEVICE_DAX_PATH[@]}
 	do
-		${PMEMPOOL}.static-debug rm -f $path
+		${PMEMPOOL} rm -f $path
 	done
 }
 
@@ -3053,7 +3053,7 @@ check_arena()
 #
 function dump_pool_info() {
 	# ignore selected header fields that differ by definition
-	${PMEMPOOL}.static-nondebug info $* | sed -e "/^UUID/,/^Checksum/d"
+	${PMEMPOOL} info $* | sed -e "/^UUID/,/^Checksum/d"
 }
 
 #
