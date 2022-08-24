@@ -8,6 +8,7 @@ jobs:
     if: github.repository == 'pmem/pmdk'
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [[self-hosted, rhel]]
     env:
@@ -25,3 +26,11 @@ jobs:
         - name: Build
           run: |
             ./$WORKDIR/build-pmdk.sh
+
+        - name: Create testconfig files
+          run: |
+            ./$WORKDIR/create-testconfig.sh
+
+        - name: Run tests
+          run: |
+            make check
