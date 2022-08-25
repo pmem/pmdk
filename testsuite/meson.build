@@ -231,7 +231,7 @@ if tests_case != ''
         # Selected case is using powershell
         run_tests_targets += run_tests_powershell_target
     else
-        error('No such a test case!')
+        error(f'No such test case: @tests_case@')
     endif
 else
     # Else, we run all available on the host machine
