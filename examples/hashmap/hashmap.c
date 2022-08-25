@@ -119,7 +119,7 @@ hashmap_new(size_t capacity)
 		return NULL;
 	}
 
-	struct hashmap *hm = malloc(sizeof(struct hashmap) * capacity);
+	struct hashmap *hm = malloc(sizeof(struct hashmap));
 	if (hm == NULL) {
 		return NULL;
 	}
@@ -1149,13 +1149,26 @@ main(void)
 	char other_val[] = "Coffee";
 
 	struct hashmap *hm = hashmap_new(4);
+	if (hm == NULL) {
+		printf("failed to allocate a new hashmap.\n");
+		return 1;
+	}
 
 	/* Create a runtime instance for efficient future polling */
 	struct runtime *r = runtime_new();
+	if (r == NULL) {
+		hashmap_delete(hm);
+
+		printf("failed to allocate a new runtime.\n");
+		return 1;
+	}
 
 	/* Create a thread mover to be used for data move operations */
 	struct data_mover_threads *dmt = data_mover_threads_default();
 	if (dmt == NULL) {
+		runtime_delete(r);
+		hashmap_delete(hm);
+
 		printf("failed to allocate data mover.\n");
 		return 1;
 	}
@@ -1249,6 +1262,7 @@ main(void)
 	/* Entry with '4' key should store value 'Buzz' */
 	struct hashmap_get_copy_output *get_copy_output =
 			FUTURE_OUTPUT(&get_futs[0]);
+	assert(strcmp(buf, val_4) == 0);
 	assert(get_copy_output->value == buf);
 	assert(get_copy_output->size == strlen(val_4) + 1);
 	/* 'hashmap_get_copy_fut' will not copy more data than buffer can fit */
