@@ -388,7 +388,7 @@ future_has_property_default(void *future, enum future_property property)
 static inline int
 future_chain_has_property(void *future, enum future_property property)
 {
-	struct future *fut = future;
+	struct future *fut = (struct future *)future;
 	struct future_context *ctx = &fut->context;
 	uint8_t *data = (uint8_t *)future_context_get_data(ctx);
 	struct future_chain_entry *entry = (struct future_chain_entry *)(data);
