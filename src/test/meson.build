@@ -11,40 +11,20 @@ tests = {
     'blk_recovery': {},
     'blk_rw': {},
     'blk_rw_mt': {},
-    'bttdevice': {
-        'properties': [ 'no_sources', ],
-    },
+    'bttdevice': {},
     'checksum': {},
     'compat_incompat_features': {},
     'ctl_cow': {},
     'ctl_prefault': {},
-    'daxio': {
-        'properties': [ 'no_sources' ],
-    },
-    'ex_libpmem': {
-          'properties': [ 'no_sources' ],
-    },
-    'ex_libpmem2': {
-        'properties': [ 'no_sources' ],
-    },
-    'ex_libpmemblk': {
-          'properties': [ 'no_sources' ],
-    },
-    'ex_libpmemlog': {
-          'properties': [ 'no_sources' ],
-    },
-    'ex_libpmemobj': {
-          'properties': [ 'no_sources' ],
-    },
-    'ex_libpmemset': {
-        'properties': [ 'no_sources' ],
-    },
-    'ex_linkedlist': {
-          'properties': [ 'no_sources' ],
-    },
-    'ex_pmreorder': {
-          'properties': [ 'no_sources' ],
-    },
+    'daxio': {},
+    'ex_libpmem': {},
+    'ex_libpmem2': {},
+    'ex_libpmemblk': {},
+    'ex_libpmemlog': {},
+    'ex_libpmemobj': {},
+    'ex_libpmemset': {},
+    'ex_linkedlist': {},
+    'ex_pmreorder': {},
     'getopt': {},
     'libpmempool_api': {},
     'libpmempool_api_win': {
@@ -52,23 +32,19 @@ tests = {
     },
     'libpmempool_backup': {
         'test_deps': [ 'libpmempool_api' ],
-        'properties': [ 'no_sources' ],
     },
     'libpmempool_bttdev': {
         'test_deps': [ 'libpmempool_api' ],
-        'properties': [ 'no_sources' ],
     },
     'libpmempool_check_version': {},
     'libpmempool_feature': {},
     'libpmempool_include': {},
     'libpmempool_map_flog': {
         'test_deps': [ 'libpmempool_api' ],
-        'properties': [ 'no_sources' ],
     },
     'libpmempool_rm': {},
     'libpmempool_rm_remote': {
         'test_deps': [ 'libpmempool_rm' ],
-        'properties': [ 'no_sources' ],
     },
     'libpmempool_rm_win': {
         'properties': [ 'windows_only' ],
@@ -90,9 +66,7 @@ tests = {
     },
     'log_recovery': {},
     'log_walker': {},
-    'magic': {
-        'properties': [ 'no_sources' ],
-    },
+    'magic': {},
     'mmap': {},
     'mmap_fixed': {},
     'obj_action': {},
@@ -131,24 +105,19 @@ tests = {
     'obj_list': {},
     'obj_list_insert': {
         'test_deps': [ 'obj_list' ],
-        'properties': [ 'no_sources' ],
     },
     'obj_list_macro': {},
     'obj_list_move': {
         'test_deps': [ 'obj_list' ],
-        'properties': [ 'no_sources' ],
     },
     'obj_list_recovery': {
         'test_deps': [ 'obj_list' ],
-        'properties': [ 'no_sources' ],
     },
     'obj_list_remove': {
         'test_deps': [ 'obj_list' ],
-        'properties': [ 'no_sources' ],
     },
     'obj_list_valgrind': {
         'test_deps': [ 'obj_list' ],
-        'properties': [ 'no_sources' ],
     },
     'obj_locks': {},
     'obj_many_size_allocs': {},
@@ -179,15 +148,12 @@ tests = {
     'obj_root': {},
     'obj_rpmem_basic_integration': {
         'test_deps': [ 'obj_basic_integration' ],
-        'properties': [ 'no_sources' ],
     },
     'obj_rpmem_heap_interrupt': {
         'test_deps': [ 'obj_heap_interrupt' ],
-        'properties': [ 'no_sources' ],
     },
     'obj_rpmem_heap_state': {
         'test_deps': [ 'obj_heap_state' ],
-        'properties': [ 'no_sources' ],
     },
     'obj_sds': {},
     'obj_strdup': {},
@@ -249,9 +215,7 @@ tests = {
     'pmem2_deep_flush': {},
     'pmem2_future': {},
     'pmem2_granularity': {},
-    'pmem2_granularity_detection': {
-        'properties': [ 'no_sources' ],
-    },
+    'pmem2_granularity_detection': {},
     'pmem2_include': {},
     'pmem2_integration': {},
     'pmem2_map': {},
@@ -273,51 +237,21 @@ tests = {
     'pmem2_source_size': {},
     'pmem2_usc': {},
     'pmem2_vm_reservation': {},
-    'pmemobjcli': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_check': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_create': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_dump': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_feature': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_feature_remote': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_help': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_info': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_info_remote': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_rm': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_rm_remote': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_sync': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_sync_remote': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_transform': {
-        'properties': [ 'no_sources' ],
-    },
-    'pmempool_transform_remote': {
-        'properties': [ 'no_sources' ],
-    },
+    'pmemobjcli': {},
+    'pmempool_check': {},
+    'pmempool_create': {},
+    'pmempool_dump': {},
+    'pmempool_feature': {},
+    'pmempool_feature_remote': {},
+    'pmempool_help': {},
+    'pmempool_info': {},
+    'pmempool_info_remote': {},
+    'pmempool_rm': {},
+    'pmempool_rm_remote': {},
+    'pmempool_sync': {},
+    'pmempool_sync_remote': {},
+    'pmempool_transform': {},
+    'pmempool_transform_remote': {},
     'pmemset_badblock': {},
     'pmemset_config': {},
     'pmemset_deep_flush': {},
@@ -334,9 +268,7 @@ tests = {
     'pmemset_persist': {},
     'pmemset_sds': {},
     'pmemset_source': {},
-    'pmemspoil': {
-        'properties': [ 'no_sources' ],
-    },
+    'pmemspoil': {},
     'pmreorder_flushes': {},
     'pmreorder_simple': {},
     'pmreorder_stack': {},
@@ -355,9 +287,7 @@ tests = {
     'rpmemd_log': {},
     'rpmemd_obc': {},
     'rpmemd_util': {},
-    'scope': {
-        'properties': [ 'no_sources' ],
-    },
+    'scope': {},
     'set_funcs': {},
     'signal_handle': {
         'properties': [ 'windows_only' ],
@@ -365,12 +295,8 @@ tests = {
     'traces': {},
     'traces_custom_function': {},
     'traces_pmem': {},
-    'unicode_api': {
-        'properties': [ 'no_sources' ],
-    },
-    'unicode_match_script': {
-        'properties': [ 'no_sources' ],
-    },
+    'unicode_api': {},
+    'unicode_match_script': {},
     'util_badblock': {},
     'util_cpuid': {},
     'util_ctl': {},
@@ -561,11 +487,6 @@ foreach t, attrs : filtered_tests
 
     if not test_deps_fulfilled
         continue # skip test cases with dependencies on test executables that were filtered out
-    endif
-
-    properties = attrs.get('properties', [])
-    if properties.contains('no_sources')
-        continue # do not subdir test cases with no source files
     endif
 
     # Get list of files needed by the test
