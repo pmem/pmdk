@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [[self-hosted, rhel]]
+        os: [[self-hosted, rhel],[self-hosted, opensuse]]
     env:
       WORKDIR: utils/gha-runners
 
