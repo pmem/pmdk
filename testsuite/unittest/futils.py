@@ -13,13 +13,7 @@ import configurator
 
 
 def get_tool_path(ctx, name):
-    if sys.platform == 'win32':
-        if str(ctx.build) == 'debug':
-            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'libs', name))
-        else:
-            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'libs', name))
-    else:
-        return abspath(join(c.ROOTDIR, '..', 'tools', name, name))
+    return abspath(join(os.getenv('MESON_BUILD_ROOT'), 'src', 'tools', name))
 
 
 def get_test_tool_path(build, name):
@@ -35,26 +29,10 @@ def get_lib_dir(ctx):
 
 
 def get_example_path(ctx, libname, name, dirname=None):
-    """
-    Get the path to the example binary.
-    Paths to examples differ on Windows and Unix systems. On Windows,
-    the example binaries have a specific name: ex_libname_name.
-    On Unix systems, the example binaries are located in the catalog
-    "lib + libname/name" and have the same name as .c file.
-    If that is not the case, dirname optional argument can be used to
-    specify different catalog for the example binary- "lib + libname/dirname".
-    """
-    if sys.platform == 'win32':
-        binname = '_'.join(['ex', libname, name])
-        if str(ctx.build) == 'debug':
-            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'examples', binname))
-        else:
-            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'examples', binname))
-    else:
-        if dirname is None:
-            dirname = name
-        return abspath(join(c.ROOTDIR, '..', 'examples', 'lib' + libname,
-                            dirname, name))
+    if dirname is None:
+        dirname = name
+    return abspath(join(os.getenv('MESON_BUILD_ROOT'), 'src', 'examples',
+                        'lib' + libname, dirname, name))
 
 
 def tail(file, n):
