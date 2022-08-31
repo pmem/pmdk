@@ -276,10 +276,7 @@ main(int argc, char **argv)
 {
 	START(argc, argv, "pmemset_map_config");
 
-	util_init();
-	out_init("pmemset_map_config", "TEST_LOG_LEVEL", "TEST_LOG_FILE", 0, 0);
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
-	out_fini();
 
 	DONE(NULL);
 }
