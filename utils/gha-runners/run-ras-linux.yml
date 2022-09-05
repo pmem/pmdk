@@ -1,0 +1,280 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
+# Ansible playbook which is executing PMDK RAS test: Unsafe Shutdown Local on Linux.
+
+# Requirements:
+# 1. Two bare metal platforms with pmem memory installed. First machine is a controller, the second one is a runner.
+# 2. The runner platform requires a specific HW setup: at least 4 functional DIMMs have to be present in the system.
+#    This is due to the tests using multiple regions with namespaces to store data,
+#    whose health is later compared and verified after an error injection and an unsafe shutdown of the system.
+# 3. ErrorInjectionEnabled option must be enabled in the systems BIOS (the runner only).
+# 4. Ssh keys exchanged between machines (optional but highly recommended).
+# 5. List of required packages:
+#   - ansible ( minimum 2.10 ) - controller platform only.
+#   - ipmitool
+#   - ipmctl
+#   - ndctl
+#   - make
+#   - cmake
+#   - lxml
+
+# To launch the playbook, use ansible specific command on the controller machine:
+# ansible-playbook -i /path/to/inventory /path/to/playbook.yml -e "host=some_host_or_group ansible_user=some_user"
+# Where:
+# - -i inventory - file which defines the hosts and groups of hosts upon which commands, modules, and tasks in a playbook operate.
+#   If no inventory file is present, the user may simply use an IP address of the host; ansible-playbook -i <IP address>
+# - run-ras-linux.yml - name of this script.
+#   Adding path to the script file is optional if the playbook is launched from the same directory.
+# - '-e' or --extra-vars - is a section where the user may add several variables used by ansible or override the existing ones on the host platform.
+# - host - Name of the runner platform as specified in an inventory file or an IP address.
+# - ansible_user - specify which user ansible will use to connect to the runner and run tasks.
+
+# Warning! If the user won't exchange ssh keys between platforms, an additional variable will be needed to successfully
+# run the playbook: 'ansible_password' with the password of the ansible_user.
+
+# Examples:
+# 1. ansible-playbook -i /home/test_user/hosts.yml run-ras-linux.yml -e "host=all ansible_user=test-user"
+# 2. ansible-playbook -i 192.168.0.1, /home/test_user/run-ras-linux.yml -e "host=192.168.0.1 ansible_user=test-user"
+
+# Note, that the comma is needed only if no inventory file is used, as shown in the example no.2
+
+# More information about ansible playbook command and its options can be found here:
+# https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#ansible-playbook
+
+# More information about tests can be found here:
+# https://github.com/pmem/pmdk-tests/blob/master/README.md
+
+# More information about the config file can be found here:
+# https://github.com/pmem/pmdk-tests/blob/master/etc/config/README.md
+
+# The general workflow of the test is as follows:
+#  1. Create `AppDirectNotInterleaved` region.
+#  2. Create fsdaxes with filesystem for test.
+#  3. Clone and build `pmdk` and `pmdk-tests` repositories.
+#  4. Mount fsdaxes by UUID to proper directories.
+#  5. Create config file for RAS USL.
+#  6. Run phase I of the test.
+#  7. Perform power cycle by `ipmitool power cycle`.
+#  8. Mount fsdaxes after server goes up.
+#  9. Run phase II of the test.
+#  10. Check if phase I and phase II were successful.
+#
+#  Cleanup stage contains:
+#  1. Remove temporary files.
+#
+#  The test execution should result in two XML log files having been created on the DUT platform.
+#  Those XMLs will be located in the /var/tmp/raslogs directory.
+#
+
+- hosts: '{{ host }}'
+
+  vars:
+    bash_path: /bin/bash
+    working_dir_path: "/var/tmp/rasUnsafeShutdown"
+    logs_dir_path: "/var/tmp/raslogs"
+    test_dir_path: "{{ working_dir_path }}/testDir"
+    pmdk_install_dir_path: "{{ working_dir_path }}/pmdkInstallTarget"
+    pmdk_tests_build_dir_path: "{{ working_dir_path }}/pmdkTestsBuild"
+
+    workspace_dirs:
+      - "{{ working_dir_path }}"
+      - "{{ test_dir_path }}"
+      - "{{ pmdk_install_dir_path }}"
+      - "{{ pmdk_tests_build_dir_path }}"
+      - "{{ logs_dir_path }}"
+
+    repo:
+      pmdk:
+        url: https://github.com/pmem/pmdk.git
+        branch: master
+        target_dir: "{{ working_dir_path }}/pmdk"
+      pmdk_tests:
+        url: https://github.com/pmem/pmdk-tests
+        branch: master
+        target_dir: "{{ working_dir_path }}/pmdk-tests"
+
+  tasks:
+
+    - name: "Namespace and pmem configuration"
+      block:
+        - name: "Unmount all pmems"
+          shell: umount /dev/pmem* || true
+
+        - name: "Destroy current namespaces"
+          shell: |
+            ndctl disable-namespace all
+            ndctl destroy-namespace all
+
+        # Create AppDirectNotInterleaved regions on all available capacity.
+        # Force option is necessary to avoid needing user confirmation.
+        - name: "Create goal in AppDirectNotInterleaved mode"
+          shell: ipmctl create -f -goal PersistentMemoryType=AppDirectNotInterleaved
+
+        - name: "Reboot machine in order to apply new AppDirectNotInterleaved goal"
+          reboot:
+
+        # Create namespaces with options:
+        # -m (mode): fsdax.
+        # -f (force): force to create namespaces if previous steps would fail for any reason.
+        # -c (continue): allows to create multiple namespaces, one for each region.
+        - name: "Create namespaces: one for each existing region"
+          shell: ndctl create-namespace -m fsdax -f -c
+
+        - name: "Store list of current namespaces"
+          shell: ndctl list
+          register: namespaces_list
+
+        # Create variables: pmem_devices & uuids.
+        # pmem_devices - list of pmems as seen in /dev directory or lsblk command. Example: pmem0, pmem1.
+        # uuids - list of namespace's uuid string chains. Example: cbf59e18-ae10-499d-b681-53275c1c3706.
+        # These lists will be later used to create filesystems, directories and mounting pmems.
+        - name: "Use namespaces list to get pmem devices names and uuids"
+          set_fact:
+            pmem_devices="{{ namespaces_list.stdout | regex_findall('(pmem\d)') }}"
+            uuids="{{ namespaces_list.stdout | regex_findall('([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})') }}"
+
+        - name: "Create fs on namespaces"
+          filesystem:
+            fstype: ext4
+            dev: "/dev/{{ item }}"
+            force: yes
+          with_items: "{{ pmem_devices }}"
+
+        - name: "Create directories for namespaces based on their uuid numbers"
+          file:
+            path: "/mnt/{{ item }}"
+            state: directory
+          with_items: "{{ uuids }}"
+
+        - name: "Mount namespaces to previously added directories"
+          mount:
+            path: '/mnt/{{ item.0 }}'
+            src: '/dev/{{ item.1 }}'
+            fstype: ext4
+            state: mounted
+            fstab: /tmp/tmp.fstab
+          with_together:
+            - "{{ uuids }}"
+            - "{{ pmem_devices }}"
+
+    - name: "Workspace configuration and test running"
+      block:
+        - name: "Create workspace directories"
+          file:
+            path: "{{ item }}"
+            state: directory
+          with_items: "{{ workspace_dirs }}"
+
+        # The 'Main' branch is used for both repositories.
+        - name: "Clone repositories"
+          git:
+            repo: "{{ item.value.url }}"
+            dest: "{{ item.value.target_dir }}"
+            version: "{{ item.value.branch }}"
+          with_dict: "{{ repo }}"
+
+        - name: "Build PMDK"
+          shell:
+            cmd: "make -j install prefix={{ pmdk_install_dir_path }}"
+            chdir: "{{ repo.pmdk.target_dir }}"
+            executable: "{{ bash_path }}"
+
+        - name: "Configure & build pmdk-tests"
+          shell:
+            cmd: "{{ item }}"
+            chdir: "{{ pmdk_tests_build_dir_path }}"
+            executable: "{{ bash_path }}"
+          environment:
+            PKG_CONFIG_PATH: "{{ pmdk_install_dir_path }}/lib/pkgconfig/"
+          with_items:
+            - "cmake '{{ repo.pmdk_tests.target_dir }}'"
+            - "make -j"
+
+        - name: "Create template for config.xml file"
+          lineinfile:
+            path: '{{ pmdk_tests_build_dir_path }}/config.xml'
+            state: present
+            create: yes
+            line: |
+              <configuration>
+                  <localConfiguration>
+                      <testDir>{{ test_dir_path }}</testDir>
+                      <dimmConfiguration>
+                      </dimmConfiguration>
+                  </localConfiguration>
+              </configuration>
+
+        - name: "Add the namespace mount points to the config file"
+          xml:
+            path: '{{ pmdk_tests_build_dir_path }}/config.xml'
+            xpath: /configuration/localConfiguration/dimmConfiguration
+            pretty_print: yes
+            add_children:
+              - mountPoint: /mnt/{{item}}
+          with_items: "{{ uuids }}"
+
+        - name: "Run the first phase of tests"
+          shell:
+            cmd: PATH=$PATH:{{ pmdk_install_dir_path }}/bin ./UNSAFE_SHUTDOWN_LOCAL 1 inject all --gtest_output=xml:{{ logs_dir_path }}/phase1.xml
+            chdir: "{{ pmdk_tests_build_dir_path }}"
+            executable: "{{ bash_path }}"
+          environment:
+            LD_LIBRARY_PATH: "{{ pmdk_install_dir_path }}/lib/"
+          register: phase_1
+          ignore_errors: true
+
+        - name: "Print phase I output"
+          debug: var=phase_1
+
+        - name: "Flush filesystems before power cycle"
+          shell: "sync"
+
+        # Combination of "async:1, poll:0 and ignore_errors: true" means more or less "fire and forget";
+        # "fire and forget" (and later waiting for connection) approach is required here because Ansible
+        # was not handling gracefully when SSH connection was broken while restarting the platform.
+        - name: "Perform power cycle"
+          shell: "ipmitool power cycle"
+          async: 1
+          poll: 0
+          ignore_errors: true
+
+        # 30 seconds delay before start checking;
+        # This is required because SSH connection is not always broken immediately which leads to false-positives while checking availability.
+        - name: "Wait for server to come back"
+          wait_for_connection:
+            delay: 30
+
+        - name: "Remount namespaces after reboot"
+          mount:
+            path: '/mnt/{{ item.0 }}'
+            src: '/dev/{{ item.1 }}'
+            fstype: ext4
+            state: mounted
+            fstab: /tmp/tmp.fstab
+          with_together:
+            - "{{ uuids }}"
+            - "{{ pmem_devices }}"
+
+        - name: "Run the second phase of tests"
+          shell:
+            cmd: PATH=$PATH:{{ pmdk_install_dir_path }}/bin ./UNSAFE_SHUTDOWN_LOCAL 2 cleanup all --gtest_output=xml:{{ logs_dir_path }}/phase2.xml
+            chdir: "{{ pmdk_tests_build_dir_path }}"
+            executable: "{{ bash_path }}"
+          environment:
+            LD_LIBRARY_PATH: "{{ pmdk_install_dir_path }}/lib/"
+          register: phase_2
+          ignore_errors: true
+
+        - name: "Print phase II output"
+          debug: var=phase_2
+
+      # 'always' section makes sure that the temporary files are deleted regardless of the results.
+      always:
+        - name: "Delete temporary files after the job"
+          file:
+            path: "{{ item }}"
+            state: absent
+          with_items:
+            - "/tmp/tmp.fstab"
+            - "{{ working_dir_path }}"
