@@ -58,6 +58,7 @@ endif
 dependencies = [
     pmemcore_dep,
     pmem2arch_dep,
+    libdl_dep,
 ]
 
 if libndctl_dep.found()
@@ -84,10 +85,14 @@ endif
 libpmemcommon = static_library(
     'pmemcommon',
     sources,
+    c_args: [
+        '-DUSE_LIBDL',
+        '-DPMEM2_USE_MINIASYNC=1',
+    ],
     dependencies: dependencies,
     include_directories: [
         include_directories('.'),
-	    include_directories('../libpmem'),
+	include_directories('../libpmem'),
         include_directories('../libpmem2'),
 	root_include,
 	miniasync_include,
