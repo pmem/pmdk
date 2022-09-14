@@ -1,3 +1,25 @@
+sources = files(
+    'ex_linkedlist.c',
+)
+
+dependencies = [
+    libpmemobj_dep,
+    unittest_dep,
+]
+
+c_args = []
+include_directories = [
+    include_directories('../../examples/libpmemobj/linkedlist'),
+]
+
+executable(
+    t,
+    sources,
+    c_args: c_args,
+    include_directories: include_directories,
+    dependencies: dependencies,
+)
+
 copy_target = custom_target(t+'(test-files)',
     input : test_files,
     output :  test_files,
