@@ -9,8 +9,19 @@ error: cannot parse 'rm' as block size
 error: invalid option specified for obj pool type -- block size
 Usage: pmempool create [<args>] <blk|log|obj> [<bsize>] <file>
 file: No such file or directory
+create: invalid option -- '1'
+Usage: pmempool create [<args>] <blk|log|obj> [<bsize>] <file>
+error: cannot parse '0x100' as block size
+error: cannot parse '0xffffffff' as block size
+error: cannot parse '0xfffffffe' as block size
+error: cannot parse '0x80000000' as block size
+error: cannot parse '0x1000000' as block size
 Poolset creation
 error: $(*) [incorrect format of size:2]
 error: creating pool file failed
 error: $(*) [invalid token found in the current line:3]
+error: creating pool file failed
+error: $(*) [incorrect format of size:2]
+error: creating pool file failed
+error: $(*) [incorrect format of size:2]
 error: creating pool file failed
