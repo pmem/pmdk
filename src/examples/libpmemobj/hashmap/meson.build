@@ -1,4 +1,4 @@
-libhashmap_atomic = library(
+libhashmap_atomic = static_library(
     'hashmap_atomic',
     'hashmap_atomic.c',
     dependencies: [libpmemobj_dep],
@@ -11,7 +11,7 @@ libhashmap_atomic_dep = declare_dependency(
     include_directories: include_directories('.'),
 )
 
-libhashmap_tx = library(
+libhashmap_tx = static_library(
     'hashmap_tx',
     'hashmap_tx.c',
     dependencies: [libpmemobj_dep],
@@ -24,7 +24,7 @@ libhashmap_tx_dep = declare_dependency(
     include_directories: include_directories('.'),
 )
 
-libhashmap_rp = library(
+libhashmap_rp = static_library(
     'hashmap_rp',
     'hashmap_rp.c',
     dependencies: [libpmemobj_dep],
