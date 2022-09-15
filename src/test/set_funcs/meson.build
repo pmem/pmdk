@@ -3,11 +3,11 @@ sources = files(
 )
 
 dependencies = [
+    libpmem_dep,
     libpmemblk_dep,
     libpmemlog_dep,
     libpmemobj_dep,
     unittest_dep,
-    libpmem_dep,
 ]
 
 c_args = []

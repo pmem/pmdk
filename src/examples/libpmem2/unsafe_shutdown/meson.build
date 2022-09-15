@@ -1,3 +1,6 @@
-executable('unsafe_shutdown', 'unsafe_shutdown.c',
+executable(
+    'unsafe_shutdown',
+    'unsafe_shutdown.c',
     dependencies: [libpmem2_dep],
-    include_directories: root_include)
+    include_directories: include_directories('.'),
+)

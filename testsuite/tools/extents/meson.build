@@ -18,7 +18,7 @@ else
     objects += libpmem2.extract_objects('region_namespace_none.c')
 endif
 
-if build_machine.system() == 'linux'
+if host_machine.system() == 'linux'
     objects += libpmem2.extract_objects('extent_linux.c')
 else
     objects += libpmem2.extract_objects('extent_none.c')

@@ -53,7 +53,7 @@ class TEST4(PMEMSET_PERSIST):
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         ctx.exec('pmemset_persist', self.test_case, filepath)
-        pmemecheck_log = os.path.join(configurator.Configurator().config.dir,
+        pmemecheck_log = os.path.join(os.getcwd(), 'src', 'test',
                                       'pmemset_persist', 'pmemcheck4.log')
         futils.tail(pmemecheck_log, 2)
 
@@ -73,6 +73,6 @@ class TEST6(PMEMSET_PERSIST):
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         ctx.exec('pmemset_persist', self.test_case, filepath)
-        pmemecheck_log = os.path.join(configurator.Configurator().config.dir,
+        pmemecheck_log = os.path.join(os.getcwd(), 'src', 'test',
                                       'pmemset_persist', 'pmemcheck6.log')
         futils.tail(pmemecheck_log, 2)

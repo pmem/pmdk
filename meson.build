@@ -44,7 +44,6 @@ add_project_arguments(cc.get_supported_arguments(flags), language: 'c')
 
 fs = import('fs')
 
-rt_dep = cc.find_library('rt')
 libdl_dep = cc.find_library('dl')
 libm_dep = cc.find_library('m')
 
@@ -53,6 +52,9 @@ threads_dep = dependency('threads')
 libndctl_dep = dependency('libndctl', version: '>= 63', required: get_option('ndctl'))
 libdaxctl_dep = dependency('libdaxctl', version: '>= 63', required: get_option('ndctl'))
 libfabric_dep = dependency('libfabric', version: '>= 1.4.2') # TODO: is it necessary?
+libncurses_dep = dependency('ncurses', required: false)
+libuv_dep = dependency('libuv', required: false)
+libfuse_dep = dependency('fuse', version: '>= 2.9.1', required: false)
 
 miniasync_proj = cmake.subproject('miniasync')
 miniasync_dep = miniasync_proj.dependency('miniasync')
@@ -66,7 +68,7 @@ if libndctl_dep.found()
     )
 endif
 
-if build_machine.system()=='linux' and (get_option('doc') or get_option('web'))
+if host_machine.system()=='linux' and (get_option('doc') or get_option('web'))
     subdir('doc')
 endif
 
