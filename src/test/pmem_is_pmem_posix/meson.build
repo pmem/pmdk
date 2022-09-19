@@ -3,13 +3,22 @@ sources = files(
 )
 
 dependencies = [
-    libpmem_dep,
-    libpmem2_dep,
+    libpmem_internal_dep,
+    pmem2arch_dep,
     unittest_dep,
     pmemcommon_dep,
 ]
 
-c_args = []
+# Those arguments were present in the Makefile buildsystem,
+# but they cause redefinition warnings
+c_args = [
+    # '-DSRCVERSION=""',
+    # '-DDEBUG',
+    # '-DMOVDIR64B_AVAILABLE=0',
+    # '-DAVX512F_AVAILABLE=0',
+    # '-DAVX_AVAILABLE=0',
+    # '-DSSE2_AVAILABLE=0',
+]
 include_directories = [
     include_directories('../../libpmem'),
     include_directories('../../libpmem2'),
