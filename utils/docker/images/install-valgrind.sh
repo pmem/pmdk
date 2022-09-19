@@ -34,8 +34,9 @@ install_upstream_3_16_1() {
 install_custom-pmem_from_source() {
   git clone https://github.com/pmem/valgrind.git
   cd valgrind
-  # valgrind v3.19 with pmemcheck
-  git checkout 541e1c3d22b34769ad29fa75ab29cce2a65bfa91
+  # valgrind v3.19 with pmemcheck and
+  # patches for unhandled dwarf2 abbrev
+  git checkout ec9fc04049b034c51adec3239de360e9ff47025b
   ./autogen.sh
   ./configure
   make -j$(nproc)
