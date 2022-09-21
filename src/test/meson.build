@@ -473,7 +473,7 @@ get_mocks = find_program('../../utils/get-mocks.py')
 # list of copy targets responsible for copying files of each test
 copy_targets = []
 list_files = find_program('../../utils/list-files.py')
-test_files_regex = '(.*TEST[0-9]+([.]PS1)?$)|(.*TESTS.py$)|(.*[.]match$)|(common.sh)|(asset_list.txt)|(alloc_class_config)|(pool.set)'
+test_files_regex = '(.*TEST[0-9]+([.]PS1)?$)|(.*TESTS.py$)|(.*[.]match$)|(common.sh)|(asset_list.txt)|(alloc_class_config)|(pool.set)|(setup.sh)'
 
 foreach t, attrs : filtered_tests
     test_deps = attrs.get('test_deps', [])
