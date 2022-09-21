@@ -13,11 +13,12 @@ require_test_type medium
 setup
 
 POOL=$DIR/testfile
-SCRIPT=_example_tx.posc
+PMEMOBJCLI_SRC_DIR=${MESON_SOURCE_ROOT}/testsuite/tools/pmemobjcli
+TX_SCRIPT=${PMEMOBJCLI_SRC_DIR}/pmemobjcli_example_tx.posc
 LOG=out${UNITTEST_NUM}.log
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL -s 16M
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $PMEMOBJCLI$SCRIPT $POOL > $LOG
+expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $TX_SCRIPT $POOL > $LOG
 
 check
 
