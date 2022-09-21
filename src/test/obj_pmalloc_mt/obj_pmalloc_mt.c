@@ -12,7 +12,7 @@
 #include "sys_util.h"
 #include "unittest.h"
 
-#define MAX_THREADS 32
+#define MAX_THREADS 64
 #define MAX_OPS_PER_THREAD 1000
 #define ALLOC_SIZE 104
 #define REALLOC_SIZE (ALLOC_SIZE * 3)
