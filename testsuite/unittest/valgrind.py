@@ -229,7 +229,7 @@ class Valgrind:
         relative to tests root directory (pmdk/src/test)
         """
         self.opts.append('--suppressions={}'
-                         .format(path.join(ROOTDIR, f)))
+                         .format(path.join(ROOTDIR, 'suppressions' , f)))
 
     def validate_log(self):
         """

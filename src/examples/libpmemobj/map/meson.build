@@ -11,7 +11,7 @@ libmap_ctree_dep = declare_dependency(
     include_directories: include_directories('.'),
 )
 
-libmap = library(
+libmap = static_library(
     'map',
     files(
 	'map.c',
@@ -26,7 +26,6 @@ libmap = library(
     ),
     dependencies: [
         libpmemobj_dep,
-	threads_dep,
 	libctree_map_dep,
         libbtree_map_dep,
         librtree_map_dep,

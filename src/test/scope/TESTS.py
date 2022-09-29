@@ -83,7 +83,10 @@ class Common(t.Test):
             static = True
             lib = '{}.a'.format(self.checked_lib)
 
-        libpath = os.path.join(ft.get_lib_dir(ctx), lib)
+        libdirs = ft.get_lib_dir(ctx).split(':')
+        libdir = list(filter(lambda l: self.checked_lib == l.split('/')[-1],
+                             libdirs))[0]
+        libpath = os.path.join(libdir, lib)
 
         log = 'out{}.log'.format(self.testnum)
         out = parse_lib(ctx, libpath, static)

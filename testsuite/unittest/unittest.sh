@@ -166,7 +166,7 @@ NDCTL_MIN_VERSION="63"
 
 # list of common files to be copied to all remote nodes
 DIR_SRC="$MESON_BUILD_ROOT/src"
-SUPPRESIONS_DIR="$MESON_SOURCE_ROOT/testsuite/supressions"
+SUPPRESIONS_DIR="$MESON_SOURCE_ROOT/testsuite/suppressions"
 FILES_COMMON_DIR="\
 $SUPPRESIONS_DIR/*.supp \
 $DIR_SRC/tools/rpmemd/rpmemd \
@@ -766,14 +766,14 @@ function get_trace() {
 
 		case "$check_type" in
 		memcheck)
-			opts="$opts --suppressions=../memcheck-libibverbs.supp"
+			opts="$opts --suppressions=$SUPPRESIONS_DIR/memcheck-libibverbs.supp"
 			;;
 		helgrind)
-			opts="$opts --suppressions=../helgrind-cxgb4.supp"
-			opts="$opts --suppressions=../helgrind-libfabric.supp"
+			opts="$opts --suppressions=$SUPPRESIONS_DIR/helgrind-cxgb4.supp"
+			opts="$opts --suppressions=$SUPPRESIONS_DIR/helgrind-libfabric.supp"
 			;;
 		drd)
-			opts="$opts --suppressions=../drd-libfabric.supp"
+			opts="$opts --suppressions=$SUPPRESIONS_DIR/drd-libfabric.supp"
 			;;
 		esac
 	fi
@@ -842,11 +842,11 @@ function expect_normal_exit() {
 	fi
 
 	if [ "$CHECK_TYPE" = "helgrind" ]; then
-		export VALGRIND_OPTS="--suppressions=../helgrind-log.supp"
+		export VALGRIND_OPTS="--suppressions=$SUPPRESIONS_DIR/helgrind-log.supp"
 	fi
 
 	if [ "$CHECK_TYPE" = "memcheck" ]; then
-		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../memcheck-dlopen.supp"
+		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=$SUPPRESIONS_DIR/memcheck-dlopen.supp"
 	fi
 
 	local REMOTE_VALGRIND_LOG=0
@@ -871,7 +871,7 @@ function expect_normal_exit() {
 	fi
 
 	if [ "$CHECK_TYPE" = "drd" ]; then
-		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../drd-log.supp"
+		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=$SUPPRESIONS_DIR/drd-log.supp"
 	fi
 
 	disable_exit_on_error
@@ -956,7 +956,7 @@ function expect_abnormal_exit() {
 	fi
 
 	if [ "$CHECK_TYPE" = "drd" ]; then
-		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../drd-log.supp"
+		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=$SUPPRESIONS_DIR/drd-log.supp"
 	fi
 
 	disable_exit_on_error

@@ -1,4 +1,4 @@
-libskiplist_map = library(
+libskiplist_map = static_library(
     'skiplist_map',
     'skiplist_map.c',
     dependencies: [libpmemobj_dep],

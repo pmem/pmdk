@@ -8,7 +8,8 @@ from os import getenv
 import sys
 
 # List of libraries for logging PMDK debug output
-LIBS_LIST = ('pmem', 'pmem2', 'pmemobj', 'pmemblk', 'pmemlog', 'pmempool')
+LIBS_LIST = ('pmem', 'pmem2', 'pmemobj', 'pmemblk', 'pmemlog', 'pmempool',
+             'pmemset')
 
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
@@ -25,7 +26,7 @@ if sys.platform == 'win32':
     MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
                                'build', 'out', 'Release'))
 else:
-    DEBUG_LIBDIR = ':'.join([join(getenv('MESON_BUILD_ROOT'), 'src','lib'+libname) for libname in LIBS_LIST])
+    DEBUG_LIBDIR = ':'.join([join(getenv('MESON_BUILD_ROOT'), 'src', 'lib' + libname) for libname in LIBS_LIST])
     RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
     MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
                                'build', 'out'))

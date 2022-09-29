@@ -65,6 +65,7 @@ struct hashmap_rp {
 };
 
 int *swaps_array = NULL;
+size_t swaps_array_size = 0;
 
 #ifdef DEBUG
 static inline int
@@ -183,6 +184,7 @@ hashmap_create(PMEMobjpool *pop, TOID(struct hashmap_rp) *hashmap_p,
 
 #ifdef DEBUG
 	swaps_array = (int *)calloc(INIT_ENTRIES_NUM_RP, sizeof(int));
+	swaps_array_size = INIT_ENTRIES_NUM_RP;
 	if (!swaps_array)
 		abort();
 #endif
@@ -223,8 +225,7 @@ entry_update(PMEMobjpool *pop, struct hashmap_rp *hashmap,
 			&entry_p->hash, args->data.hash);
 	}
 #ifdef DEBUG
-	assert(sizeof(swaps_array) / sizeof(swaps_array[0])
-		> args->pos);
+	assert(swaps_array_size > args->pos);
 	swaps_array[args->pos] = args->swaps;
 #endif
 }
@@ -446,6 +447,7 @@ hm_rp_rebuild(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap,
 #ifdef DEBUG
 	free(swaps_array);
 	swaps_array = (int *)calloc(capacity_new, sizeof(int));
+	swaps_array_size = capacity_new;
 	if (!swaps_array)
 		goto rebuild_err;
 #endif

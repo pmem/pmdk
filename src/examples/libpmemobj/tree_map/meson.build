@@ -1,4 +1,4 @@
-libctree_map = library(
+libctree_map = static_library(
     'ctree_map',
     'ctree_map.c',
     dependencies: [libpmemobj_dep],
@@ -11,7 +11,7 @@ libctree_map_dep = declare_dependency(
     include_directories: include_directories('.'),
 )
 
-libbtree_map = library(
+libbtree_map = static_library(
     'btree_map',
     'btree_map.c',
     dependencies: [libpmemobj_dep],
@@ -24,7 +24,7 @@ libbtree_map_dep = declare_dependency(
     include_directories: include_directories('.'),
 )
 
-librtree_map = library(
+librtree_map = static_library(
     'rtree_map',
     'rtree_map.c',
     dependencies: [libpmemobj_dep],
@@ -37,7 +37,7 @@ librtree_map_dep = declare_dependency(
     include_directories: include_directories('.'),
 )
 
-librbtree_map = library(
+librbtree_map = static_library(
     'rbtree_map',
     'rbtree_map.c',
     dependencies: [libpmemobj_dep],
