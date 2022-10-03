@@ -161,7 +161,7 @@ endif
 # Setup run_tests framework build types based on meson options
 build_type = get_option('buildtype')
 default_library = get_option('default_library')
-if build_type == 'debug' or build_type == 'debugoptimized'
+if build_type == 'debug'
     if default_library == 'shared'
         run_tests_python_args += '-b=debug'
         run_tests_bash_args += '-b'
@@ -180,6 +180,15 @@ elif build_type == 'release'
         run_tests_bash_args += '-b=static-nondebug'
     endif
     run_tests_powershell_args += '-b=nondebug'
+elif build_type == 'debugoptimized'
+    if default_library == 'shared'
+        run_tests_python_args += '-b=debugoptimized'
+        run_tests_bash_args += '-b=debugoptimized'
+    else
+        run_tests_python_args += '-b=static_debugoptimized'
+        run_tests_bash_args += '-b=static-debugoptimized'
+    endif
+    run_tests_powershell_args += '-b=debugoptimized'
 else
     error(f'Tests framework does not support @build_type@ build type.')
 endif

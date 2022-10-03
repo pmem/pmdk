@@ -544,7 +544,7 @@ do
 		buildtype="$buildtype $2"
 		case "$2"
 		in
-		debug|nondebug|static-debug|static-nondebug|all)
+		debug|nondebug|debugoptimized|static-debug|static-nondebug|all)
 			;;
 		*)
 			usage "bad build-type: $buildtype"
