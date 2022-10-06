@@ -168,13 +168,13 @@ if build_type == 'debug'
         run_tests_bash_args += 'debug'
     else
         run_tests_python_args += '-b=static_debug'
-        run_tests_bash_args += '-b=static-debug'
+        run_tests_bash_args += '-bstatic-debug'
     endif
     run_tests_powershell_args += '-b=debug'
 elif build_type == 'release'
     if default_library == 'shared'
         run_tests_python_args += '-b=release'
-        run_tests_bash_args += '-b=nondebug'
+        run_tests_bash_args += '-bnondebug'
     else
         run_tests_python_args += '-b=static_release'
         run_tests_bash_args += '-b=static-nondebug'
@@ -183,10 +183,10 @@ elif build_type == 'release'
 elif build_type == 'debugoptimized'
     if default_library == 'shared'
         run_tests_python_args += '-b=debugoptimized'
-        run_tests_bash_args += '-b=debugoptimized'
+        run_tests_bash_args += '-bdebugoptimized'
     else
         run_tests_python_args += '-b=static_debugoptimized'
-        run_tests_bash_args += '-b=static-debugoptimized'
+        run_tests_bash_args += '-bstatic-debugoptimized'
     endif
     run_tests_powershell_args += '-b=debugoptimized'
 else
