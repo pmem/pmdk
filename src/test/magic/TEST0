@@ -22,7 +22,7 @@ setup
 
 POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
-MAGIC=../../../utils/pmdk.magic
+MAGIC=${MESON_SOURCE_ROOT}/utils/pmdk.magic
 rm -f $LOG && touch $LOG
 
 rm -f $POOL
