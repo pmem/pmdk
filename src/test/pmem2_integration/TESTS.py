@@ -58,12 +58,14 @@ class TEST1(PMEM2_INTEGRATION):
         ctx.exec('pmem2_integration', self.test_case, filepath1, filepath2)
 
 
+@t.require_build('debug')
 @t.require_valgrind_enabled('pmemcheck')
 class TEST2(PMEM2_INTEGRATION):
     """check if Valgrind registers data writing on pmem"""
     test_case = "test_register_pmem"
 
 
+@t.require_build('debug')
 @t.require_valgrind_enabled('pmemcheck')
 @t.windows_exclude
 class TEST3(PMEM2_INTEGRATION_DEV_DAXES):

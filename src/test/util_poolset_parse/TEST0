@@ -12,6 +12,8 @@ require_test_type medium
 
 require_fs_type none
 
+require_build_type debug
+
 setup
 
 export PARSER_LOG_LEVEL=4

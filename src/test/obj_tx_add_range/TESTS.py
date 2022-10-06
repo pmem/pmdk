@@ -18,6 +18,7 @@ class TEST0(t.Test):
         ctx.exec('obj_tx_add_range', testfile, '0')
 
 
+@t.require_build('debug')
 @t.require_valgrind_enabled('pmemcheck')
 class TEST1(t.Test):
     test_type = t.Medium
