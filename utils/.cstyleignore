@@ -1,0 +1,7 @@
+src/common/queue.h
+src/include/pmemcompat.h
+src/windows/include/srcversion.h
+src/libpmem2/ppc64/init.c
+src/windows/getopt/.+
+src/core/valgrind/.+
+subprojects/.+
