@@ -77,7 +77,7 @@ class Common(t.Test):
         static = False
         if sys.platform == 'win32':
             lib = '{}.dll'.format(self.checked_lib)
-        elif str(self.ctx.build) in ['debug', 'release']:
+        elif str(self.ctx.build) in ['debug', 'release', 'debugoptimized']:
             lib = '{}.so.1'.format(self.checked_lib)
         else:
             static = True
