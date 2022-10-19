@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2022, Intel Corporation */
 
 /*
  * badblocks_none.c -- fake bad blocks functions
@@ -17,6 +17,7 @@ int
 pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
 	const struct pmem2_source *src)
 {
+	SUPPRESS_UNUSED(bbctx);
 	return PMEM2_E_NOSUPP;
 }
 
@@ -27,6 +28,7 @@ void
 pmem2_badblock_context_delete(
 	struct pmem2_badblock_context **bbctx)
 {
+	SUPPRESS_UNUSED(bbctx);
 }
 
 /*
@@ -46,5 +48,6 @@ int
 pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 			const struct pmem2_badblock *bb)
 {
+	SUPPRESS_UNUSED(bbctx, bb);
 	return PMEM2_E_NOSUPP;
 }
