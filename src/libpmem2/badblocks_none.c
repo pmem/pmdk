@@ -38,6 +38,8 @@ int
 pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	struct pmem2_badblock *bb)
 {
+	SUPPRESS_UNUSED(bbctx, bb);
+
 	return PMEM2_E_NOSUPP;
 }
 
