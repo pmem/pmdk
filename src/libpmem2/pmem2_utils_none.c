@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2022, Intel Corporation */
 
 #include <errno.h>
 
@@ -15,6 +15,8 @@
 int
 pmem2_device_dax_alignment(const struct pmem2_source *src, size_t *alignment)
 {
+	SUPPRESS_UNUSED(src, alignment);
+
 	ERR("Cannot read Device Dax alignment - ndctl is not available");
 
 	return PMEM2_E_NOSUPP;
@@ -27,6 +29,8 @@ pmem2_device_dax_alignment(const struct pmem2_source *src, size_t *alignment)
 int
 pmem2_device_dax_size(const struct pmem2_source *src, size_t *size)
 {
+	SUPPRESS_UNUSED(src, size);
+
 	ERR("Cannot read Device Dax size - ndctl is not available");
 
 	return PMEM2_E_NOSUPP;
