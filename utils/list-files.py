@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+#
+
 import os
 import re
 import sys

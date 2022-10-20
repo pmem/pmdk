@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 sources = files(
     'pmem_map_file_win.c',
     'mocks_windows.c',

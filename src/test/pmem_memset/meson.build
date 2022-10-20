@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 sources = files(
     'pmem_memset.c',
     '../pmem2_memset/memset_common.c',

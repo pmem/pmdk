@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2022, Intel Corporation
 #
+
 """
 Script parsing the 'FUNC_MOCK_RET_ALWAYS_VOID', 'FUNC_MOCK_RET_ALWAYS' and
 'FUNC_MOCK' macros from input source code files.

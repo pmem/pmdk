@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 root_include = include_directories('include')
 common_include = include_directories('common')
 core_include = include_directories('core')

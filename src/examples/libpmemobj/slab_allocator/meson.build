@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 libslab_allocator = library(
     'slab_allocator',
     'slab_allocator.c',

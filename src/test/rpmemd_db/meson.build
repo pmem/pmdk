@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 sources = files(
     'rpmemd_db_test.c',
     '../../rpmem_common/rpmem_common.c',
