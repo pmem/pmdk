@@ -77,3 +77,11 @@ subdir('src')
 if get_option('tests') or get_option('tests-case')!=''
     subdir('testsuite')
 endif
+
+# obtain files to be checked by cstyle using a python script
+cstyle_files = run_command('utils/get-cstyle-files.py', meson.project_source_root(),
+                            meson.project_build_root()).stdout().strip().split('\n')
+
+# add cstyle utility- to compile use meson compile cstyle_pmdk (move this info to README later)
+run_target('cstyle_pmdk',
+            command : ['utils/cstyle', cstyle_files])
