@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 sources = files(
     'pmem2_deep_flush.c',
     '../../libpmem2/deep_flush.c',

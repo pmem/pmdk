@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 FUSE_REQ_VER = '2.9.1'
 
 if libfuse_dep.found()

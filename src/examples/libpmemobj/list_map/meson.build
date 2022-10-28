@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 libskiplist_map = static_library(
     'skiplist_map',
     'skiplist_map.c',

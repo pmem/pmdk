@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 libctree_map = static_library(
     'ctree_map',
     'ctree_map.c',

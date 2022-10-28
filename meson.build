@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 project(
     'pmdk',
     ['c'],
@@ -81,6 +84,10 @@ endif
 cstyle_files = run_command('utils/get-cstyle-files.py', meson.project_source_root(),
                             meson.project_build_root()).stdout().strip().split('\n')
 
-# add cstyle utility- to compile use meson compile cstyle_pmdk (move this info to README later)
-run_target('cstyle_pmdk',
+# add cstyle utility- to compile use meson compile cstyle-pmdk (move this info to README later)
+run_target('cstyle-pmdk',
             command : ['utils/cstyle', cstyle_files])
+
+# add check-license utility- to compile use meson compile check-license (move this info to README later)
+run_target('check-license',
+            command : ['utils/check_license/check-headers.sh', meson.project_source_root(), 'BSD-3-Clause'])

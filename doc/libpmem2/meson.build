@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 manpages_7_md += files(
     'libpmem2.7.md',
     'libpmem2_unsafe_shutdown.7.md',

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2022, Intel Corporation
+
 libhashmap_atomic = static_library(
     'hashmap_atomic',
     'hashmap_atomic.c',
