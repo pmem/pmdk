@@ -74,7 +74,7 @@ void pmem2_arch_init(struct pmem2_arch_info *info);
 /*
  * flush_empty_nolog -- (internal) do not flush the CPU cache
  */
-static force_inline void
+static __attribute__((optimize("O0"))) void
 flush_empty_nolog(const void *addr, size_t len)
 {
 	/* NOP, but tell pmemcheck about it */

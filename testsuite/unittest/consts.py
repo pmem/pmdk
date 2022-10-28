@@ -27,7 +27,7 @@ if sys.platform == 'win32':
                                'build', 'out', 'Release'))
 else:
     DEBUG_LIBDIR = ':'.join([join(getenv('MESON_BUILD_ROOT'), 'src', 'lib' + libname) for libname in LIBS_LIST])
-    RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
+    RELEASE_LIBDIR = ':'.join([join(getenv('MESON_BUILD_ROOT'), 'src', 'lib' + libname) for libname in LIBS_LIST])
     MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
                                'build', 'out'))
 

@@ -108,7 +108,7 @@ flush_clwb_nolog(const void *addr, size_t len)
 /*
  * flush64b_empty -- (internal) do not flush the CPU cache
  */
-static force_inline void
+static __attribute__((optimize("O0"))) void
 flush64b_empty(const void *addr)
 {
 	/* NOP, but tell pmemcheck about it */

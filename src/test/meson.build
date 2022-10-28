@@ -146,15 +146,6 @@ tests = {
     'obj_recreate': {},
     'obj_reorder_basic': {},
     'obj_root': {},
-    'obj_rpmem_basic_integration': {
-        'test_deps': [ 'obj_basic_integration' ],
-    },
-    'obj_rpmem_heap_interrupt': {
-        'test_deps': [ 'obj_heap_interrupt' ],
-    },
-    'obj_rpmem_heap_state': {
-        'test_deps': [ 'obj_heap_state' ],
-    },
     'obj_sds': {},
     'obj_strdup': {},
     'obj_sync': {},
@@ -274,19 +265,6 @@ tests = {
     'pmreorder_stack': {},
     'remote_basic': {},
     'remote_obj_basic': {},
-    'rpmem_addr': {},
-    'rpmem_addr_ext': {},
-    'rpmem_basic': {},
-    'rpmem_fip': {},
-    'rpmem_obc': {},
-    'rpmem_obc_int': {},
-    'rpmem_proto': {},
-    'rpmemd_config': {},
-    'rpmemd_db': {},
-    'rpmemd_dbg': {},
-    'rpmemd_log': {},
-    'rpmemd_obc': {},
-    'rpmemd_util': {},
     'scope': {},
     'set_funcs': {},
     'signal_handle': {
@@ -473,7 +451,7 @@ get_mocks = find_program('../../utils/get-mocks.py')
 # list of copy targets responsible for copying files of each test
 copy_targets = []
 list_files = find_program('../../utils/list-files.py')
-test_files_regex = '(.*TEST[0-9]+([.]PS1)?$)|(.*TESTS.py$)|(.*[.]match$)|(common.sh)|(asset_list.txt)|(alloc_class_config)|(pool.set)'
+test_files_regex = '(.*TEST[0-9]+([.]PS1)?$)|(.*TESTS.py$)|(.*[.]match$)|(common.sh)|(asset_list.txt)|(alloc_class_config)|(.*[.]set$)|(setup.sh)|(unicodetest✭✮)|(maps_.*_(linux|freebsd))'
 
 foreach t, attrs : filtered_tests
     test_deps = attrs.get('test_deps', [])

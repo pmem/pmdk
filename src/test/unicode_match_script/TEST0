@@ -16,6 +16,6 @@ require_build_type debug
 
 setup
 
-../match -a
+$MESON_SOURCE_ROOT/testsuite/match -a
 
 pass

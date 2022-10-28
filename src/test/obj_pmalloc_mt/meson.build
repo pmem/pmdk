@@ -3,12 +3,13 @@ sources = files(
 )
 
 dependencies = [
-    libpmem_dep,
     libpmemobj_internal_dep,
     unittest_dep,
 ]
 
-c_args = []
+c_args = [
+    '-DSUPPRESS_FPUTS_DRD_ERROR',
+]
 include_directories = []
 
 executable(

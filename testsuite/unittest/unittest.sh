@@ -1968,16 +1968,16 @@ function require_no_asan() {
 	case "$BUILD"
 	in
 	debug)
-		require_no_asan_for ../../debug/libpmem.so
+		require_no_asan_for $MESON_BUILD_ROOT/src/libpmem/libpmem.so
 		;;
 	nondebug)
-		require_no_asan_for ../../nondebug/libpmem.so
+		require_no_asan_for $MESON_BUILD_ROOT/src/libpmem/libpmem.so
 		;;
 	static-debug)
-		require_no_asan_for ../../debug/libpmem.a
+		require_no_asan_for $MESON_BUILD_ROOT/src/libpmem/libpmem.a
 		;;
 	static-nondebug)
-		require_no_asan_for ../../nondebug/libpmem.a
+		require_no_asan_for $MESON_BUILD_ROOT/src/libpmem/libpmem.a
 		;;
 	esac
 }
@@ -3213,7 +3213,7 @@ function init_valgrind_on_node() {
 	# When librpmem is preloaded libfabric does not close all opened files
 	# before list of opened files is checked.
 	local UNITTEST_DO_NOT_CHECK_OPEN_FILES=1
-	local LD_PRELOAD=../$BUILD/librpmem.so
+	local LD_PRELOAD=$MESON_BUILD_ROOT/src/librpmem/librpmem.so
 	CHECK_NODES=""
 
 	for node in "$@"

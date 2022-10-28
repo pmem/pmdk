@@ -56,6 +56,17 @@ class Release(Build):
         self.set_env_common()
 
 
+class Debugoptimized(Build):
+    """Set this context for a debug optimized build"""
+    is_preferred = True
+
+    def __init__(self):
+        if sys.platform == 'win32':
+            self.exedir = c.WIN_DEBUG_EXEDIR
+        self.libdir = c.DEBUG_LIBDIR
+        self.set_env_common()
+
+
 # Build types not available on Windows
 if sys.platform != 'win32':
     class Static_Debug(Build):

@@ -12,11 +12,14 @@ require_test_type medium
 
 setup
 
+PMEMOBJCLI_SRC_DIR=${MESON_SOURCE_ROOT}/testsuite/tools/pmemobjcli
+SCRIPT=${PMEMOBJCLI_SRC_DIR}/pmemobjcli_example.posc
+TX_SCRIPT=${PMEMOBJCLI_SRC_DIR}/pmemobjcli_example_tx.posc
 LOG=out${UNITTEST_NUM}.log
 
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s ${PMEMOBJCLI}_example.posc -p > $LOG
+expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $SCRIPT -p > $LOG
 echo "---" >> $LOG
-expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s ${PMEMOBJCLI}_example_tx.posc -p >> $LOG
+expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $TX_SCRIPT -p >> $LOG
 
 check
 
