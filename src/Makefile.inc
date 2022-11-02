@@ -152,7 +152,7 @@ ifneq ($(TESTBUILD), 1)
 $(error "$(TESTCMD)" failed)
 endif
 
-ifeq ($(filter $(ARCH), x86_64 aarch64 ppc64 riscv64),)
+ifeq ($(filter $(ARCH), x86_64 aarch64 ppc64 riscv64 loongarch64),)
 $(error unsupported architecture: $(ARCH))
 endif
 

@@ -23,7 +23,7 @@
 #include <libpmem2.h>
 
 #if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || \
-	defined(__riscv)
+	defined(__riscv) || defined(__loongarch64)
 #define CACHELINE 64ULL
 #elif defined(__PPC64__)
 #define CACHELINE 128ULL
