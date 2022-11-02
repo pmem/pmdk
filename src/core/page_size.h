@@ -14,6 +14,10 @@
 
 #define PMEM_PAGESIZE 65536
 
+#elif defined(__loongarch64)
+
+#define PMEM_PAGESIZE 16384
+
 #else
 
 #error unable to recognize ISA at compile time

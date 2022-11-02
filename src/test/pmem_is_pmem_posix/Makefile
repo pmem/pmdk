@@ -30,6 +30,9 @@ ifeq ($(ARCH), ppc64)
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
 OBJS += $(LIBPMEM2_ARCH_SOURCE:%.c=%.o)
 endif
+ifeq ($(ARCH), loongarch64)
+OBJS += init.o
+endif
 
 LIBPMEMCOMMON=y
 
