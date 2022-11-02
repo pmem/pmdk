@@ -8,7 +8,7 @@
 #ifndef PMDK_VALGRIND_INTERNAL_H
 #define PMDK_VALGRIND_INTERNAL_H 1
 
-#if !defined(_WIN32) && !defined(__FreeBSD__) && !defined(__riscv)
+#if !defined(_WIN32) && !defined(__FreeBSD__) && !defined(__riscv) && !defined(__loongarch64)
 #ifndef VALGRIND_ENABLED
 #define VALGRIND_ENABLED 1
 #endif
