@@ -1,3 +1,18 @@
+Tue Aug 25 2022 Łukasz Plewa <lukasz.plewa@intel.com>
+
+	* Version 1.12.1
+
+	This release allows usings the movdir64b instruction by setting an
+	environment variable, and fixes a number of smaller bugs.
+
+	Detailed list of bug fixes:
+ 	- obj: always perform cleanup of logs with leftover state
+ 	- pmem2: actually skip msync with noflush on non-pmem
+ 	- pmem2: make sure async functions use proper vdm flags
+ 	- common: fix default cflags in makefiles
+ 	- obj: ensure zones are reclaimed prior to free
+ 	- pmem2: enable movdir64b compilation but disable it in the runtime
+
 Tue May 24 2022 Łukasz Plewa <lukasz.plewa@intel.com>
 
 	* Version 1.12.0

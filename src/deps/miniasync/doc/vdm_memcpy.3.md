@@ -27,12 +27,6 @@ secondary_title: miniasync
 ```c
 #include <libminiasync.h>
 
-enum vdm_operation_type {
-	VDM_OPERATION_MEMCPY,
-	VDM_OPERATION_MEMMOVE,
-	VDM_OPERATION_MEMSET,
-};
-
 struct vdm_operation_output_memcpy {
 	void *dest;
 };
@@ -51,7 +45,7 @@ For general description of virtual data mover API, see **miniasync_vdm**(7).
 **vdm_memcpy**() initializes and returns a new memcpy future based on the virtual data mover
 implementation instance *vdm*. The parameters: *dest*, *src*, *n* are standard memcpy parameters.
 The *flags* represents data mover specific flags. For example, **miniasync_vdm_dml**(7) flag
-**MINIASYNC_DML_F_MEM_DURABLE** specifies that the write destination is identified as a write
+**VDM_F_MEM_DURABLE** specifies that the write destination is identified as a write
 to durable memory. This flag is meant to be used only with the **miniasync_vdm_dml**(7) data mover
 implementation, providing it to any other data mover will result in undefined behavior.
 
@@ -64,5 +58,5 @@ The **vdm_memcpy**() function returns an initialized *struct vdm_operation_futur
 
 # SEE ALSO #
 
-**vdm_memmove**(3), **vdm_memset**(3), **miniasync**(7), **miniasync_vdm**(7),
+**vdm_flush**(3), **vdm_memmove**(3), **vdm_memset**(3), **miniasync**(7), **miniasync_vdm**(7),
 **miniasync_vdm_dml**(7) and **<https://pmem.io>**
