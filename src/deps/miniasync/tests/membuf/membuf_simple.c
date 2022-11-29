@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "core/membuf.h"
+#include "os_thread.h"
 #include "test_helpers.h"
 
 #define TEST_USER_DATA (void *)(0xC0FFEE)
@@ -15,8 +16,34 @@ struct test_entry {
 	char padding[TEST_ENTRY_PADDING];
 };
 
-int
-main(int argc, char *argv[])
+void *
+membuf_alloc_thread(void *arg)
+{
+	struct membuf *mbuf = arg;
+	return membuf_alloc(mbuf, 1);
+}
+
+void
+membuf_test_mt_reuse()
+{
+	struct membuf *mbuf = membuf_new(NULL);
+
+	os_thread_t th1;
+	os_thread_create(&th1, NULL, membuf_alloc_thread, mbuf);
+	void *ptr1;
+	os_thread_join(&th1, &ptr1);
+	os_thread_t th2;
+	os_thread_create(&th2, NULL, membuf_alloc_thread, mbuf);
+	void *ptr2;
+	os_thread_join(&th2, &ptr2);
+
+	UT_ASSERTne(ptr1, ptr2);
+
+	membuf_delete(mbuf);
+}
+
+void
+membuf_test_st_reuse()
 {
 	struct membuf *mbuf = membuf_new(TEST_USER_DATA);
 	UT_ASSERTne(mbuf, NULL);
@@ -74,6 +101,13 @@ main(int argc, char *argv[])
 
 	membuf_delete(mbuf);
 	free(entries);
+}
+
+int
+main(int argc, char *argv[])
+{
+	membuf_test_st_reuse();
+	membuf_test_mt_reuse();
 
 	return 0;
 }

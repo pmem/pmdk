@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2022, Intel Corporation */
 
-#ifndef PMEM2_MEMSET_AVX512F_H
-#define PMEM2_MEMSET_AVX512F_H
+#ifndef PMEM2_MEMSET_MOVDIR64B_H
+#define PMEM2_MEMSET_MOVDIR64B_H
 
 #include <stddef.h>
 

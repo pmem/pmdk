@@ -128,6 +128,45 @@ membuf_entry_is_allocated(void *real_ptr)
 }
 
 /*
+ * membuf_threadbuf_prune -- reclaims available buffer space
+ */
+static void
+membuf_threadbuf_prune(struct membuf *membuf,
+	struct threadbuf *tbuf)
+{
+	while (tbuf->available != tbuf->size) {
+		/* reuse leftovers after a wraparound */
+		if (tbuf->leftovers != 0 &&
+			(tbuf->size - (tbuf->offset + tbuf->available))
+				== tbuf->leftovers) {
+			tbuf->available += tbuf->leftovers;
+			tbuf->leftovers = 0;
+
+			continue;
+		}
+
+		/* check the next object after the available memory */
+		size_t next_loc = (tbuf->offset + tbuf->available) % tbuf->size;
+		void *next = &tbuf->buf[next_loc];
+		if (membuf_entry_is_allocated(next))
+			return;
+
+		tbuf->available += membuf_entry_get_size(next);
+	}
+}
+
+/*
+ * tbuf_check_safe_for_reuse -- verifies if the thread buffer doesn't contain
+ * any live allocations that would prevent it from being reused.
+ */
+static int
+tbuf_check_safe_for_reuse(struct threadbuf *tbuf)
+{
+	membuf_threadbuf_prune(tbuf->membuf, tbuf);
+	return tbuf->available == tbuf->size;
+}
+
+/*
  * membuf_get_threadbuf -- returns thread-local buffer for allocations
  */
 static struct threadbuf *
@@ -139,8 +178,8 @@ membuf_get_threadbuf(struct membuf *membuf)
 
 	os_mutex_lock(&membuf->lists_lock);
 
-	if (membuf->tbuf_unused_first != NULL) {
-		tbuf = membuf->tbuf_unused_first;
+	tbuf = membuf->tbuf_unused_first;
+	if (tbuf != NULL && tbuf_check_safe_for_reuse(tbuf)) {
 		membuf->tbuf_unused_first = tbuf->unused_next;
 	} else {
 		/*
@@ -169,34 +208,6 @@ membuf_get_threadbuf(struct membuf *membuf)
 	os_mutex_unlock(&membuf->lists_lock);
 
 	return tbuf;
-}
-
-/*
- * membuf_threadbuf_prune -- reclaims available buffer space
- */
-static void
-membuf_threadbuf_prune(struct membuf *membuf,
-	struct threadbuf *tbuf)
-{
-	while (tbuf->available != tbuf->size) {
-		/* reuse leftovers after a wraparound */
-		if (tbuf->leftovers != 0 &&
-			(tbuf->size - (tbuf->offset + tbuf->available))
-				== tbuf->leftovers) {
-			tbuf->available += tbuf->leftovers;
-			tbuf->leftovers = 0;
-
-			continue;
-		}
-
-		/* check the next object after the available memory */
-		size_t next_loc = (tbuf->offset + tbuf->available) % tbuf->size;
-		void *next = &tbuf->buf[next_loc];
-		if (membuf_entry_is_allocated(next))
-			return;
-
-		tbuf->available += membuf_entry_get_size(next);
-	}
 }
 
 /*

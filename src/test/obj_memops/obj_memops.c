@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2022, Intel Corporation */
 
 /*
  * obj_memops.c -- basic memory operations tests
@@ -62,6 +62,7 @@ pmalloc_redo_extend(void *base, uint64_t *redo, uint64_t gen_num)
 static void
 test_free_entry(void *base, uint64_t *next)
 {
+	*next = 0;
 	/* noop for fake ulog entries */
 }
 
@@ -537,6 +538,84 @@ test_undo_log_reuse()
  * test_undo_log_reuse -- test for correct reuse of log space
  */
 static void
+test_undo_log_resume()
+{
+#define ULOG_SIZE 1024
+	struct pmem_ops ops = {
+		.persist = persist_empty,
+		.flush = flush_empty,
+		.drain = drain_empty,
+		.memcpy = memcpy_libc,
+		.memmove = NULL,
+		.memset = memset_libc,
+		.base = NULL,
+	};
+	struct ULOG(ULOG_SIZE) *first = util_aligned_malloc(CACHELINE_SIZE,
+		SIZEOF_ULOG(ULOG_SIZE));
+	struct ULOG(ULOG_SIZE) *second = util_aligned_malloc(CACHELINE_SIZE,
+		SIZEOF_ULOG(ULOG_SIZE));
+	ulog_construct((uint64_t)(first), ULOG_SIZE, 0, 0, 0, &ops);
+	ulog_construct((uint64_t)(second), ULOG_SIZE, 0, 0, 0, &ops);
+
+	first->next = (uint64_t)(second);
+
+	struct operation_context *ctx = operation_new(
+		(struct ulog *)first, ULOG_SIZE,
+		NULL, test_free_entry,
+		&ops, LOG_TYPE_UNDO);
+
+	/* first, let's populate the log with some valid entries */
+	size_t entry_size = (ULOG_SIZE / 2) - sizeof(struct ulog_entry_buf);
+	size_t total_entries = ((ULOG_SIZE * 2) / entry_size);
+	char *data = MALLOC(entry_size);
+	memset(data, 0xc, entry_size); /* fill it with something */
+
+	size_t nentries = 0;
+	for (size_t i = 0; i < total_entries; ++i) {
+		operation_add_buffer(ctx, (void *)0x123, data,
+			entry_size,
+			ULOG_OPERATION_BUF_CPY);
+
+		nentries = 0;
+		ulog_foreach_entry((struct ulog *)first,
+			test_undo_foreach, &nentries, &ops);
+		UT_ASSERTeq(nentries, i + 1);
+	}
+	/* break the log so that it can't be processed */
+	first->gen_num = 1;
+
+	/* resume and process the operation */
+	operation_resume(ctx);
+	operation_process(ctx);
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM |
+			ULOG_FREE_AFTER_FIRST);
+
+	/*
+	 * The resumed log should continue to be functional, but with only
+	 * the first log.
+	 */
+	for (size_t i = 0; i < total_entries / 2; ++i) {
+		operation_add_buffer(ctx, (void *)0x123, data,
+			entry_size,
+			ULOG_OPERATION_BUF_CPY);
+
+		nentries = 0;
+		ulog_foreach_entry((struct ulog *)first,
+			test_undo_foreach, &nentries, &ops);
+		UT_ASSERTeq(nentries, i + 1);
+	}
+
+	FREE(data);
+	operation_delete(ctx);
+	util_aligned_free(first);
+	util_aligned_free(second);
+#undef ULOG_SIZE
+}
+
+/*
+ * test_undo_log_reuse -- test for correct reuse of log space
+ */
+static void
 test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
 {
 #define ULOG_SIZE 1024
@@ -638,6 +717,7 @@ main(int argc, char *argv[])
 	test_undo(pop, object);
 	test_redo_cleanup_same_size(pop, object);
 	test_undo_log_reuse();
+	test_undo_log_resume();
 
 	pmemobj_close(pop);
 
