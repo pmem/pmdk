@@ -36,24 +36,14 @@ class TEST0(Pmem2Movnt):
     pass
 
 
-@t.require_architectures('x86_64')
-class TEST1(Pmem2Movnt):
-    envs0 = ("PMEM_AVX512F",)
-
-
-@t.require_architectures('x86_64')
-class TEST2(Pmem2Movnt):
-    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
-
-
-class TEST3(Pmem2MovntCommon):
+class TEST1(Pmem2MovntCommon):
     def run(self, ctx):
         super().create_file(ctx)
         ctx.env['PMEM_NO_MOVNT'] = '1'
         ctx.exec('pmem2_movnt', self.filepath)
 
 
-class TEST4(Pmem2MovntCommon):
+class TEST2(Pmem2MovntCommon):
     def run(self, ctx):
         super().create_file(ctx)
         ctx.env['PMEM_NO_MOVNT'] = '1'
@@ -62,15 +52,15 @@ class TEST4(Pmem2MovntCommon):
 
 
 @t.require_architectures('x86_64')
+class TEST3(Pmem2Movnt):
+    envs0 = ("PMEM_AVX512F",)
+
+
+@t.require_architectures('x86_64')
+class TEST4(Pmem2Movnt):
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
+
+
+@t.require_architectures('x86_64')
 class TEST5(Pmem2Movnt):
-    envs0 = ("PMEM_MOVDIR64B",)
-
-
-@t.require_architectures('x86_64')
-class TEST6(Pmem2Movnt):
-    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F",)
-
-
-@t.require_architectures('x86_64')
-class TEST7(Pmem2Movnt):
-    envs0 = ("PMEM_MOVDIR64B", "PMEM_AVX512F", "PMEM_AVX",)
+    envs1 = ("PMEM_MOVDIR64B",)

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2021, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * memops.c -- aggregated memory operations helper implementation
@@ -18,6 +18,7 @@
 #include "obj.h"
 #include "out.h"
 #include "ravl.h"
+#include "ulog.h"
 #include "valgrind_internal.h"
 #include "vecq.h"
 #include "sys_util.h"
@@ -744,6 +745,13 @@ operation_resume(struct operation_context *ctx)
 {
 	operation_start(ctx);
 	ctx->total_logged = ulog_base_nbytes(ctx->ulog);
+	/*
+	 * Even if the log appears empty, it needs to be cleaned up
+	 * if it contains any leftover state (links to connected ulogs).
+	 */
+	if (ulog_next(ctx->ulog, ctx->p_ops) != NULL) {
+		ctx->state = OPERATION_CLEANUP;
+	}
 }
 
 /*

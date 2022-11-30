@@ -42,6 +42,10 @@ set(SOURCES_DATA_MOVER_DML_TEST_MEMSET
 	data_mover_dml_memset/data_mover_dml_memset.c
 	${SOURCES_UTIL_DML})
 
+set(SOURCES_DATA_MOVER_DML_TEST_FLUSH
+	data_mover_dml_flush/data_mover_dml_flush.c
+	${MINIASYNC_DML_SOURCE_DIR}/utils/util_dml.c)
+
 set(SOURCES_MEMBUF_TEST
 	membuf/membuf_simple.c)
 
@@ -63,6 +67,12 @@ set(SOURCES_MEMMOVE_THREADS_TEST
 
 set(SOURCES_MEMSET_THREADS_TEST
 	memset_threads/memset_threads.c)
+
+set(SOURCES_RUNTIME_TEST
+	runtime_test/runtime_test.c)
+
+set(SOURCES_FUTURE_PROPERTIES_TEST
+	future_properties/future_property_async.c)
 
 add_custom_target(tests)
 
@@ -124,6 +134,10 @@ add_link_executable(memset_threads
 		"${SOURCES_MEMSET_THREADS_TEST}"
 		"${LIBS_BASIC}")
 
+add_link_executable(future_property_async
+		"${SOURCES_FUTURE_PROPERTIES_TEST}"
+		"${LIBS_BASIC}")
+
 # add test using test function defined in the ctest_helpers.cmake file
 test("dummy" "dummy" test_dummy none)
 test("dummy_drd" "dummy" test_dummy drd)
@@ -139,11 +153,13 @@ test("vdm" "vdm" test_vdm none)
 test("memset_sync" "memset_sync" test_memset_sync none)
 test("memmove_threads" "memmove_threads" test_memmove_threads none)
 test("memset_threads" "memset_threads" test_memset_threads none)
+test("future_properties" "future_properties" test_future_properties none)
 
 # add tests running examples only if they are built
 if(BUILD_EXAMPLES)
 	test("ex_basic" "ex_basic" test_ex_basic none)
 	test("ex_basic_async" "ex_basic_async" test_ex_basic_async none)
+	test("ex_hashmap" "ex_hashmap" test_ex_hashmap none)
 endif()
 
 # add miniasync-vdm-dml test only if the sources in extras/dml were compiled
@@ -164,8 +180,18 @@ if (COMPILE_DML)
 			"${SOURCES_VDM_OPERATION_FUTURE_POLL}"
 			"${LIBS_DML}")
 
+	add_link_executable(data_mover_dml_flush
+			"${SOURCES_DATA_MOVER_DML_TEST_FLUSH}"
+			"${LIBS_DML}")
+
+	add_link_executable(runtime_test
+			"${SOURCES_RUNTIME_TEST}"
+			"${LIBS_DML}")
+
 	test("data_mover_dml_memcpy" "data_mover_dml_memcpy" test_data_mover_dml_memcpy none)
 	test("data_mover_dml_memmove" "data_mover_dml_memmove" test_data_mover_dml_memmove none)
 	test("data_mover_dml_memset" "data_mover_dml_memset" test_data_mover_dml_memset none)
+	test("data_mover_dml_flush" "data_mover_dml_flush" test_data_mover_dml_flush none)
 	test("vdm_operation_future_poll" "vdm_operation_future_poll" test_vdm_operation_future_poll none)
+	test("runtime_test" "runtime_test" test_runtime none)
 endif()

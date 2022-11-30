@@ -81,24 +81,24 @@ test_thread_memset_multiple(size_t str_len)
 	if (futures == NULL)
 		UT_FATAL("futures out of memory");
 
-	struct vdm_operation_future memmove_fut_symbol_f_to_a =
+	struct vdm_operation_future memset_fut_symbol_f_to_a =
 		vdm_memset(vdm, buf_a, symbol_first, str_len / 2, 0);
 
-	struct vdm_operation_future memmove_fut_symbol_s_to_a =
+	struct vdm_operation_future memset_fut_symbol_s_to_a =
 		vdm_memset(vdm, buf_a + str_len / 2, symbol_second,
 			str_len / 2, 0);
 
-	struct vdm_operation_future memmove_fut_symbol_s_to_b =
+	struct vdm_operation_future memset_fut_symbol_s_to_b =
 		vdm_memset(vdm, buf_b, symbol_second, str_len / 2, 0);
 
-	struct vdm_operation_future memmove_fut_symbol_f_to_b =
+	struct vdm_operation_future memset_fut_symbol_f_to_b =
 		vdm_memset(vdm, buf_b + str_len / 2, symbol_first,
 			str_len / 2, 0);
 
-	futures[0] = FUTURE_AS_RUNNABLE(&memmove_fut_symbol_f_to_a);
-	futures[1] = FUTURE_AS_RUNNABLE(&memmove_fut_symbol_s_to_a);
-	futures[2] = FUTURE_AS_RUNNABLE(&memmove_fut_symbol_s_to_b);
-	futures[3] = FUTURE_AS_RUNNABLE(&memmove_fut_symbol_f_to_b);
+	futures[0] = FUTURE_AS_RUNNABLE(&memset_fut_symbol_f_to_a);
+	futures[1] = FUTURE_AS_RUNNABLE(&memset_fut_symbol_s_to_a);
+	futures[2] = FUTURE_AS_RUNNABLE(&memset_fut_symbol_s_to_b);
+	futures[3] = FUTURE_AS_RUNNABLE(&memset_fut_symbol_f_to_b);
 
 	runtime_wait_multiple(r, futures, 4);
 

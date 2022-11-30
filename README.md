@@ -182,7 +182,7 @@ To build from source, clone this tree:
 
 For a stable version, checkout a [release tag](https://github.com/pmem/pmdk/releases) as follows. Otherwise skip this step to build the latest development release.
 ```
-	$ git checkout tags/1.12.0
+	$ git checkout tags/1.12.1
 ```
 
 Once the build system is setup, the Persistent Memory Development Kit is built using the `make` command at the top level:
@@ -395,8 +395,8 @@ and pass all tests.
 The on-media pool layout is tightly attached to the page size
 of 64KiB used by default on ppc64le, so it is not interchangeable with
 different page sizes, includes those on other architectures. For more
-information on this port, contact Tulio Magno Quites Machado Filho
-(tuliom@linux.ibm.com) or Lucas Magalhães (lucmaga@gmail.com).
+information on this port, contact Rajalakshmi Srinivasaraghavan
+(rajis@linux.ibm.com) or Lucas Magalhães (lucmaga@gmail.com).
 
 ## Contact Us
 

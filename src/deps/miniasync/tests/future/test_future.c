@@ -4,6 +4,7 @@
 #include "libminiasync/future.h"
 #include "test_helpers.h"
 #include "core/util.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -177,6 +178,10 @@ async_up_down(int count)
 		down_to_result_map, FAKE_MAP_ARG);
 	FUTURE_CHAIN_INIT(&fut);
 
+	/* regular chain entry init: all entries are initialized right away */
+	UT_ASSERTeq(FUTURE_CHAIN_ENTRY_IS_INITIALIZED(&fut.data.up), true);
+	UT_ASSERTeq(FUTURE_CHAIN_ENTRY_IS_INITIALIZED(&fut.data.down), true);
+
 	return fut;
 }
 
@@ -290,8 +295,17 @@ void
 test_lazy_init()
 {
 	struct multiply_up_down_fut fut = async_multiply_up_down(5, 5);
+	UT_ASSERTeq(FUTURE_CHAIN_ENTRY_IS_INITIALIZED(&fut.data.mul), false);
+	UT_ASSERTeq(FUTURE_CHAIN_ENTRY_IS_INITIALIZED(&fut.data.up_down),
+		false);
+
 	while (future_poll(FUTURE_AS_RUNNABLE(&fut), FAKE_NOTIFIER) !=
 		FUTURE_STATE_COMPLETE) { WAIT(); }
+
+	/* we can assume, after polling, that all entries are initialized */
+	UT_ASSERTeq(FUTURE_CHAIN_ENTRY_IS_INITIALIZED(&fut.data.mul), true);
+	UT_ASSERTeq(FUTURE_CHAIN_ENTRY_IS_INITIALIZED(&fut.data.up_down), true);
+
 	struct multiply_up_down_output *mud_output = FUTURE_OUTPUT(&fut);
 	UT_ASSERTeq(mud_output->result_sum, 2);
 	struct multiply_up_down_data *mud_data = FUTURE_DATA(&fut);

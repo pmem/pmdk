@@ -67,6 +67,22 @@ runtime_sleep(struct runtime *runtime)
 	os_mutex_unlock(&runtime->lock);
 }
 
+int
+future_compare_async(const void *first_fut, const void *second_fut)
+{
+	enum future_property property = FUTURE_PROPERTY_ASYNC;
+	struct future *fut1 = *(struct future **)first_fut;
+	struct future *fut2 = *(struct future **)second_fut;
+
+	if (future_has_property(fut1, property) ==
+			future_has_property(fut2, property))
+				return 0;
+	if (future_has_property(fut1, property) >
+			future_has_property(fut2, property))
+				return -1;
+	return 1;
+}
+
 void
 runtime_wait_multiple(struct runtime *runtime, struct future *futs[],
 						size_t nfuts)
@@ -79,8 +95,11 @@ runtime_wait_multiple(struct runtime *runtime, struct future *futs[],
 	notifier.waker = (struct future_waker){&waker_data, runtime_waker_wake};
 	notifier.poller.ptr_to_monitor = NULL;
 	size_t ndone = 0;
+
 	for (;;) {
 		for (uint64_t i = 0; i < runtime->spins_before_sleep; ++i) {
+			qsort(futs, nfuts, sizeof(struct future *),
+					future_compare_async);
 			for (uint64_t f = 0; f < nfuts; ++f) {
 				struct future *fut = futs[f];
 				if (fut->context.state == FUTURE_STATE_COMPLETE)
@@ -104,6 +123,7 @@ runtime_wait_multiple(struct runtime *runtime, struct future *futs[],
 					break;
 				};
 			}
+
 			if (ndone == nfuts)
 				return;
 
