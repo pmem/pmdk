@@ -59,7 +59,7 @@ jobs:
           libdaxctl-dev \
           libndctl-dev \
           pkg-config"
-        RUN apt-get update && apt-get dist-upgrade -y \
+        apt-get update && apt-get dist-upgrade -y \
           && apt-get install -y --no-install-recommends \
           $FABRIC_DEPS \
           $VALGRIND_DEPS \
