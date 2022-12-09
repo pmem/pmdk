@@ -1,23 +1,18 @@
-name: "CodeQL"
+name: CodeQL
 
 on:
   push:
-    branches: [ 'master', 'stable-1.2', 'stable-1.3', 'stable-1.4', 'stable-1.5', 'stable-1.6', 'stable-1.7', 'stable-1.8', 'stable-1.9', 'stable-1.10', 'stable-1.11', 'stable-1.12' ]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ 'master' ]
   schedule:
-    - cron: '57 15 * * 2'
+    # run this job at 00:00 UTC every Saturday
+    - cron: '0 0 * * 6'
 
 env:
-  GITHUB_REPO: pmem/pmdk
+  GITHUB_REPO:    pmem/pmdk
   HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
   WORKDIR:        utils/gha-runners
   PMDK_CC:        gcc
   PMDK_CXX:       g++
-  MAKE_PKG:       0
-  REMOTE_TESTS:   1
-  VALGRIND:       1
   
 jobs:
   analyze:
@@ -39,42 +34,32 @@ jobs:
 
     - name: Setup
       run: |
-        # libfabric (optional if libfabric-dev >= 1.4.2 is installed)
-        export FABRIC_DEPS="autoconf \
-          automake \
-          build-essential \
-          libtool \
-          unzip \
-          wget"
-
         export VALGRIND_DEPS="autoconf \
           automake \
           build-essential \
           git"
 
-        # pmdk base
         export BASE_DEPS="build-essential \
           cmake \
           git \
           libdaxctl-dev \
           libndctl-dev \
+          pandoc \
           pkg-config"
-        apt-get update && apt-get dist-upgrade -y \
-          && apt-get install -y --no-install-recommends \
-          $FABRIC_DEPS \
-          $VALGRIND_DEPS \
-          $BASE_DEPS \
-          && ./utils/docker/install-valgrind.sh ubuntu \
-          && ./utils/docker/install-libfabric.sh \
-          && ./utils/docker/download-scripts.sh \
-          && rm -rf /var/lib/apt/lists/*
+
+        sudo apt-get update && sudo apt-get dist-upgrade -y \
+          && sudo apt-get install -y --no-install-recommends \
+          ${VALGRIND_DEPS} \
+          ${BASE_DEPS} \
+          && sudo ./utils/docker/images/install-valgrind.sh
+
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
 
     - name: Run the build
-      run: cd $WORKDIR && ./build-pmdk.sh
+      run: cd ${WORKDIR} && ./build-pmdk.sh
         
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
