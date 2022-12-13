@@ -1,6 +1,7 @@
 error: 'xxx' -- unknown command
 error: 'xxx' -- unknown command
 error: 'text.txt;ls' -- unknown command
+rm: invalid option -- 'r'
 Usage: pmempool rm [<args>] <files>
 rm: No such file or directory
 .: Is a directory

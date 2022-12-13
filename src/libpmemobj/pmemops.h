@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 #ifndef LIBPMEMOBJ_PMEMOPS_H
 #define LIBPMEMOBJ_PMEMOPS_H 1
@@ -23,9 +23,6 @@ typedef void *(*memmove_fn)(void *base, void *dest, const void *src, size_t len,
 typedef void *(*memset_fn)(void *base, void *dest, int c, size_t len,
 		unsigned flags);
 
-typedef int (*remote_read_fn)(void *ctx, uintptr_t base, void *dest, void *addr,
-		size_t length);
-
 struct pmem_ops {
 	/* for 'master' replica: with or without data replication */
 	persist_fn persist;	/* persist function */
@@ -35,13 +32,6 @@ struct pmem_ops {
 	memmove_fn memmove; /* persistent memmove function */
 	memset_fn memset; /* persistent memset function */
 	void *base;
-
-	struct remote_ops {
-		remote_read_fn read;
-
-		void *ctx;
-		uintptr_t base;
-	} remote;
 };
 
 static force_inline int

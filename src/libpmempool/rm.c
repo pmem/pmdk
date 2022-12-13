@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2022, Intel Corporation */
 
 /*
  * rm.c -- implementation of pmempool_rm() function
@@ -16,8 +16,7 @@
 
 #define PMEMPOOL_RM_ALL_FLAGS (\
 	PMEMPOOL_RM_FORCE |\
-	PMEMPOOL_RM_POOLSET_LOCAL |\
-	PMEMPOOL_RM_POOLSET_REMOTE)
+	PMEMPOOL_RM_POOLSET_LOCAL)
 
 #define ERR_F(f, ...) do {\
 	if (CHECK_FLAG((f), FORCE))\
@@ -73,37 +72,6 @@ rm_local(const char *path, unsigned flags, int is_part_file)
 }
 
 /*
- * rm_remote -- (internal) remove remote replica
- */
-static int
-rm_remote(const char *node, const char *path, unsigned flags)
-{
-	if (!Rpmem_remove) {
-		ERR_F(flags, "cannot remove remote replica"
-			" -- missing librpmem");
-		return -1;
-	}
-
-	int rpmem_flags = 0;
-	if (CHECK_FLAG(flags, FORCE))
-		rpmem_flags |= RPMEM_REMOVE_FORCE;
-
-	if (CHECK_FLAG(flags, POOLSET_REMOTE))
-		rpmem_flags |= RPMEM_REMOVE_POOL_SET;
-
-	int ret = Rpmem_remove(node, path, rpmem_flags);
-	if (ret) {
-		ERR_F(flags, "%s/%s removing failed", node, path);
-		if (CHECK_FLAG(flags, FORCE))
-			ret = 0;
-	} else {
-		LOG(3, "%s/%s: removed", node, path);
-	}
-
-	return ret;
-}
-
-/*
  * rm_cb -- (internal) foreach part callback
  */
 static int
@@ -111,12 +79,7 @@ rm_cb(struct part_file *pf, void *arg)
 {
 	struct cb_args *args = (struct cb_args *)arg;
 	int ret;
-	if (pf->is_remote) {
-		ret = rm_remote(pf->remote->node_addr, pf->remote->pool_desc,
-				args->flags);
-	} else {
-		ret = rm_local(pf->part->path, args->flags, 1);
-	}
+	ret = rm_local(pf->part->path, args->flags, 1);
 
 	if (ret)
 		args->error = ret;
@@ -179,11 +142,6 @@ pmempool_rmU(const char *path, unsigned flags)
 		return -1;
 	}
 	os_close(fd);
-
-	if (set->remote) {
-		/* ignore error - it will be handled in rm_remote() */
-		(void) util_remote_load();
-	}
 
 	util_poolset_free(set);
 

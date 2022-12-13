@@ -1,4 +1,0 @@
-rpmem_basic/TEST19: START: rpmem_basic
- ./rpmem_basic$(nW) $(*)
-pool0.set: Invalid argument
-rpmem_basic/TEST19: DONE

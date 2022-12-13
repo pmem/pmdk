@@ -1,5 +1,0 @@
-remote_basic/TEST1: START: remote_basic
- ./remote_basic$(nW) $(nW)test-file
-File '$(nW)test-file' exists
-An example of OUT message
-remote_basic/TEST1: DONE

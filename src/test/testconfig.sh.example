@@ -1,14 +1,9 @@
 #
-# src/test/testconfig.sh -- configuration for local and remote unit tests
+# src/test/testconfig.sh -- configuration for unit tests
 #
 
 #
-# 1) *** LOCAL CONFIGURATION ***
-#
-# The first part of the file tells the script unittest/unittest.sh
-# which file system locations are to be used for local testing.
-#
-
+# 1) *** TEST CONFIGURATION ***
 #
 # Appended to PMEM_FS_DIR and NON_PMEM_FS_DIR to test PMDK with
 # file path longer than 255 characters.
@@ -161,87 +156,3 @@ TM=1
 # of badblock-related unit tests to fail.
 #
 # BADBLOCK_TEST_TYPE=none
-
-#
-# 2) *** REMOTE CONFIGURATION ***
-#
-# The second part of the file tells the script unittest/unittest.sh
-# which remote nodes and their file system locations are to be used
-# for remote testing.
-#
-
-#
-# Addresses of nodes should be defined as an array:
-#
-#    NODE[index]=[<user>@]<host-name-or-IP>
-#
-# The remote account must be set up for automated ssh authentication.
-# The remote user's login shell must be bash.
-#
-#NODE[0]=127.0.0.1
-#NODE[1]=user1@host1
-#NODE[2]=user2@host2
-
-#
-# Addresses of interfaces which the remote nodes
-# shall communicate on should be defined as an array:
-#
-#    NODE_ADDR[index]=[<user>@]<host-name-or-IP>
-#
-#NODE_ADDR[0]=192.168.0.1
-#NODE_ADDR[1]=192.168.0.2
-#NODE_ADDR[2]=192.168.0.3
-
-#
-# Working directories on remote nodes (they will be created)
-#
-#NODE_WORKING_DIR[0]=/remote/dir0
-#NODE_WORKING_DIR[1]=/remote/dir1
-#NODE_WORKING_DIR[2]=/remote/dir2
-
-#
-# NODE_LD_LIBRARY_PATH variable for each remote node
-#
-#NODE_LD_LIBRARY_PATH[0]=/usr/local/lib
-#NODE_LD_LIBRARY_PATH[1]=/usr/local/lib
-#NODE_LD_LIBRARY_PATH[2]=/usr/local/lib
-#
-
-#
-# NODE_DEVICE_DAX_PATH variable for each remote node which
-# can be used to specify path to multiple device daxes on remote node.
-#
-# All remote tests assume the master replica is present on a node of index 1.
-# So the size of device dax on the node of index 1 should not be bigger than
-# a size of device dax devices on other nodes.
-#
-#NODE_DEVICE_DAX_PATH[0]="/dev/dax0.0 /dev/dax1.0"
-#NODE_DEVICE_DAX_PATH[1]="/dev/dax0.0 /dev/dax1.0"
-#NODE_DEVICE_DAX_PATH[2]="/dev/dax0.0"
-#NODE_DEVICE_DAX_PATH[3]="/dev/dax0.0"
-
-#
-# NODE_ENV variable for setting environment variables on specified nodes
-#
-#NODE_ENV[0]="VAR=1"
-#NODE_ENV[1]="VAR=\$VAR:1"
-#NODE_ENV[2]=""
-
-#
-# RPMEM_VALGRIND_ENABLED variable enables valgrind rpmem tests
-# Valgrind rpmem tests require libibverbs and librdmacm compiled with valgrind
-# support.
-#
-#RPMEM_VALGRIND_ENABLED=y
-
-#
-# Overwrite available providers:
-# verbs, sockets, all (default)
-#
-#TEST_PROVIDERS=all
-
-#
-# Overwrite available persistency methods:
-# GPSPM, APM, all (default)
-#
-#TEST_PMETHODS=all

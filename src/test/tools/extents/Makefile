@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2022, Intel Corporation
 #
 # Makefile -- Makefile for extents tool
 #
-
-SCP_TO_REMOTE_NODES = y
 
 TOP = ../../../..
 

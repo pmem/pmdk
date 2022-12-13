@@ -1293,16 +1293,6 @@ palloc_heap_check(void *heap_start, uint64_t heap_size)
 }
 
 /*
- * palloc_heap_check_remote -- verifies state of remote replica
- */
-int
-palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
-	struct remote_ops *ops)
-{
-	return heap_check_remote(heap_start, heap_size, ops);
-}
-
-/*
  * palloc_heap_cleanup -- cleanups the volatile heap state
  */
 void

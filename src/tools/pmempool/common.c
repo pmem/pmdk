@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2022, Intel Corporation */
 
 /*
  * common.c -- definitions of common functions
@@ -492,8 +492,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	}
 
 	/*
-	 * Just use one thread - there is no need for multi-threaded access
-	 * to remote pool.
+	 * Just use one thread.
 	 */
 	unsigned nlanes = 1;
 
@@ -1304,11 +1303,6 @@ pool_set_file_set_replica(struct pool_set_file *file, size_t replica)
 
 	if (replica >= file->poolset->nreplicas)
 		return -1;
-
-	if (file->poolset->replica[replica]->remote) {
-		outv_err("reading from remote replica not supported");
-		return -1;
-	}
 
 	file->replica = replica;
 	file->addr = file->poolset->replica[replica]->part[0].addr;

@@ -1,10 +1,10 @@
 #
-# src/test/testconfig.py -- configuration for local and remote unit tests
+# src/test/testconfig.py -- configuration for unit tests
 #
 
 config = {
     #
-    # 1) *** LOCAL CONFIGURATION ***
+    # 1) *** TEST CONFIGURATION ***
     #
     # The first part of the file tells the test framework
     # which file system locations are to be used for local testing.

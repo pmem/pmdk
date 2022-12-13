@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 
 #
-# src/test/obj_basic_integration/Makefile.inc -- build obj_basic_integration,
-#    obj_rpmem_basic_integration and obj_rpmem_basic_integration_multiple
-#    unit tests
+# src/test/obj_basic_integration/Makefile.inc -- build obj_basic_integration
+# unit tests
 #
 
 include ../Makefile.inc

@@ -1,9 +1,0 @@
-Tests in this directory rely on an ability to spawn ctrld daemon on
-remote node(s) over ssh and close the ssh connection. On systems with
-systemd version >= 230 all user processes started in one session are
-killed on logout, even when they were detached using daemon(3).
-To workaround this issue, change "KillUserProcesses" back to "no" in
-logind.conf and restart systemd-logind service (systemctl reload
-systemd-logind.service).
-
-https://github.com/systemd/systemd/blob/3a74d4fc90cb322a4784a3515bef7118c8f8c5ba/NEWS#L29.

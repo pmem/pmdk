@@ -1,13 +1,12 @@
 
 # rpmbuild options:
-#   --with | --without fabric
 #   --with | --without ndctl
 #   --define _testconfig <path to custom testconfig.sh>
 #   --define _skip_check 1
 #   --define _pmemset_install 1
 
 # do not terminate build if files in the $RPM_BUILD_ROOT
-# directory are not found in the %files (without rpmem case)
+# directory are not found in the %files
 %define _unpackaged_files_terminate_build 0
 
 # disable 'make check' on suse
@@ -16,18 +15,8 @@
 	%define dist .suse%{suse_version}
 %endif
 
-# libfabric v1.4.2 is available on:
-#   openSUSE Tumbleweed, Leap 15.0, Leap 42.3; SLE 12 SP3, 15
-#   Fedora >=27; RHEL >=7.5
-%if (0%{?suse_version} > 1315) || (0%{?fedora} >= 27) || (0%{?rhel} >= 7)
-%bcond_without fabric
-%else
-%bcond_with fabric
-%endif
-
 %bcond_without ndctl
 
-%define min_libfabric_ver __LIBFABRIC_MIN_VER__
 %define min_ndctl_ver __NDCTL_MIN_VER__
 
 Name:		pmdk
@@ -62,10 +51,6 @@ BuildRequires:	libndctl-devel >= %{min_ndctl_ver}
 BuildRequires:	ndctl-devel >= %{min_ndctl_ver}
 BuildRequires:	daxctl-devel >= %{min_ndctl_ver}
 %endif
-%endif
-
-%if %{with fabric}
-BuildRequires:	libfabric-devel >= %{min_libfabric_ver}
 %endif
 
 
@@ -549,91 +534,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
-
-%if %{with fabric}
-
-%package -n librpmem__PKG_NAME_SUFFIX__
-Summary: Remote Access to Persistent Memory library
-Group: __GROUP_SYS_LIBS__
-Requires: libfabric >= %{min_libfabric_ver}
-%if %{defined suse_version}
-Requires: openssh
-%else
-Requires: openssh-clients
-%endif
-%description -n librpmem__PKG_NAME_SUFFIX__
-The librpmem library provides low-level support for remote access
-to persistent memory utilizing RDMA-capable NICs. It can be used
-to replicate persistent memory regions over RDMA protocol.
-
-%files -n librpmem__PKG_NAME_SUFFIX__
-%defattr(-,root,root,-)
-%{_libdir}/librpmem.so.*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n librpmem-devel
-Summary: Development files for the Remote Access to Persistent Memory library
-Group: __GROUP_DEV_LIBS__
-Requires: librpmem__PKG_NAME_SUFFIX__ = %{version}-%{release}
-%description -n librpmem-devel
-The librpmem library provides low-level support for remote access
-to persistent memory utilizing RDMA-capable NICs. It can be used
-to replicate persistent memory regions over RDMA protocol.
-
-This sub-package contains libraries and header files for developing
-applications that want to specifically make use of librpmem.
-
-%files -n librpmem-devel
-%defattr(-,root,root,-)
-%{_libdir}/librpmem.so
-%{_libdir}/pkgconfig/librpmem.pc
-%{_includedir}/librpmem.h
-%{_mandir}/man7/librpmem.7.gz
-%{_mandir}/man3/rpmem_*.3.gz
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n librpmem-debug
-Summary: Debug variant of the Remote Access to Persistent Memory library
-Group: __GROUP_DEV_LIBS__
-Requires: librpmem__PKG_NAME_SUFFIX__ = %{version}-%{release}
-%description -n librpmem-debug
-The librpmem library provides low-level support for remote access
-to persistent memory utilizing RDMA-capable NICs. It can be used
-to replicate persistent memory regions over RDMA protocol.
-
-This sub-package contains debug variant of the library, providing
-run-time assertions and trace points. The typical way to access the
-debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/pmdk_debug.
-
-%files -n librpmem-debug
-%defattr(-,root,root,-)
-%dir %{_libdir}/pmdk_debug
-%{_libdir}/pmdk_debug/librpmem.so
-%{_libdir}/pmdk_debug/librpmem.so.*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n rpmemd
-Group: __GROUP_SYS_BASE__
-Summary: Target node process executed by librpmem
-Requires: libfabric >= %{min_libfabric_ver}
-%description -n rpmemd
-The rpmemd process is executed on a target node by librpmem library
-and facilitates access to persistent memory over RDMA.
-
-%files -n rpmemd
-%{_bindir}/rpmemd
-%{_mandir}/man1/rpmemd.1.gz
-
-# end of "if _with_fabric"
-%endif
-
 %package -n pmempool
 Summary: Utilities for Persistent Memory
 Group: __GROUP_SYS_BASE__
@@ -764,11 +664,6 @@ __MAKE_INSTALL_FDUPES__
 %postun -n libpmemobj__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %post   -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-
-%if %{with fabric}
-%post   -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-%postun -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-%endif
 
 %if 0%{?__debug_package} == 0
 %debug_package

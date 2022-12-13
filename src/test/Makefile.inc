@@ -494,13 +494,7 @@ STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
 endif
 
-ifeq ($(LIBRPMEM),y)
-DYNAMIC_LIBS += -lrpmem
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/librpmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/librpmem.a
-endif
-
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEM2)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBRPMEM),)
+ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEM2)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
 LIBS += -pthread
 endif
 
@@ -618,8 +612,6 @@ SUFFIX_STATIC_DEBUG=static-debug
 SUFFIX_STATIC_NONDEBUG=static-nondebug
 
 ifneq ($(TARGET),)
-SCP_TARGET=$(TARGET)
-SCP_SRC_DIR=.
 #
 # By default debug and non-debug static versions are built.
 # It can be changed by setting BUILD_STATIC_DEBUG, BUILD_STATIC_NONDEBUG
@@ -628,18 +620,15 @@ SCP_SRC_DIR=.
 ifneq ($(BUILD_STATIC),n)
 ifneq ($(BUILD_STATIC_DEBUG),n)
 TARGET_STATIC_DEBUG=$(TARGET).$(SUFFIX_STATIC_DEBUG)
-SCP_TARGET_STATIC_DEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).$(SUFFIX_STATIC_DEBUG)
 endif
 ifneq ($(BUILD_STATIC_NONDEBUG),n)
 ifneq ($(DEBUG),1)
 TARGET_STATIC_NONDEBUG=$(TARGET).$(SUFFIX_STATIC_NONDEBUG)
-SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).$(SUFFIX_STATIC_NONDEBUG)
 endif
 endif
 endif
 endif
 
-SCP=../sync-remotes/copy-to-remote-nodes.sh
 TESTCONFIG=../testconfig.sh
 SYNC_FILE=.synced
 
@@ -693,22 +682,6 @@ clobber: clean
 	$(RM) -r __pycache__
 
 $(TESTCONFIG):
-
-$(SYNC_FILE): $(TARGET) $(TESTCONFIG)
-ifeq ($(SCP_TO_REMOTE_NODES), y)
-ifeq ($(SCP_TARGET),)
-	$(SCP) test
-else
-ifeq ($(SCP_SRC_DIR),)
-$(error SCP_SRC_DIR is not set)
-endif
-	$(SCP) common
-	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_TARGET_STATIC_DEBUG) $(SCP_TARGET_STATIC_NONDEBUG)
-endif
-	@touch $(SYNC_FILE)
-endif
-
-sync-test: all $(SYNC_FILE) $(TESTCONFIG)
 
 TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* 2> /dev/null | grep '^TEST[0-9]\+$$' | sort -V)

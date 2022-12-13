@@ -10,9 +10,6 @@ include $(TOP)/src/common.inc
 
 INCLUDE = $(TOP)/src/include
 
-RPMEM_COMMON = $(TOP)/src/rpmem_common
-vpath %.c $(RPMEM_COMMON)
-
 COMMON = $(TOP)/src/common
 vpath %.c $(COMMON)
 
@@ -185,8 +182,7 @@ _OBJS = $(SOURCE:.c=.o)
 _OBJS_COMMON = $(patsubst $(COMMON)/%, %, $(_OBJS))
 _OBJS_CORE = $(patsubst $(CORE)/%, %, $(_OBJS_COMMON))
 _OBJS_PMEM2 = $(patsubst $(PMEM2)/%, %, $(_OBJS_CORE))
-_OBJS_RPMEM_COMMON = $(patsubst $(RPMEM_COMMON)/%, %, $(_OBJS_PMEM2))
-OBJS += $(addprefix $(objdir)/, $(_OBJS_RPMEM_COMMON))
+OBJS += $(addprefix $(objdir)/, $(_OBJS_PMEM2))
 endif
 
 ifneq ($(HEADERS),)

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2022, Intel Corporation
 #
 # CREATE-ZIP.PS1 -- script to create release zip package
 #
@@ -67,7 +67,6 @@ foreach ($app in $apps) {
 Copy-Item -Recurse ($rootdir + "src\include") ($zipdir)
 Remove-Item -Force ($zipdir + "include\.cstyleignore")
 Remove-Item -Force ($zipdir + "include\README")
-Remove-Item -Force ($zipdir + "include\librpmem.h")
 Copy-Item ($rootdir + "README.md") ($zipdir)
 Copy-Item ($rootdir + "LICENSE") ($zipdir)
 Copy-Item ($rootdir + "ChangeLog") ($zipdir)
