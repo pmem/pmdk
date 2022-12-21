@@ -5,6 +5,7 @@ from loggingfacility import LoggingBase
 from reorderexceptions import InconsistentFileException
 from sys import byteorder
 import utils
+import os
 
 
 class BinaryOutputHandler:
@@ -190,8 +191,9 @@ class BinaryFile(utils.Rangeable):
         )
 
         # write out the new value
+        pagesize = os.sysconf("SC_PAGE_SIZE")
         self._file_map[base_off:max_off] = store_op.new_value
-        self._file_map.flush(base_off & ~4095, 4096)
+        self._file_map.flush(base_off & ~(pagesize - 1), pagesize)
 
     def do_revert(self, store_op):
         """
@@ -214,8 +216,9 @@ class BinaryFile(utils.Rangeable):
             )
         )
         # write out the old value
+        pagesize = os.sysconf("SC_PAGE_SIZE")
         self._file_map[base_off:max_off] = store_op.old_value
-        self._file_map.flush(base_off & ~4095, 4096)
+        self._file_map.flush(base_off & ~(pagesize - 1), pagesize)
 
     def check_consistency(self):
         """
