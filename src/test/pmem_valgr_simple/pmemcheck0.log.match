@@ -6,6 +6,7 @@
 ==$(N)== 
 ==$(N)== 
 $(OPT)==$(N)== Number of stores not made persistent: 3
+$(OPT)==$(N)== Number of stores not made persistent: 4
 $(OPX)==$(N)== Number of stores not made persistent: 10
 ==$(N)== Stores not made persistent properly:
 ==$(N)== [0]    at 0x$(X): main (pmem_valgr_simple.c:$(N))
@@ -13,6 +14,7 @@ $(OPX)==$(N)== Number of stores not made persistent: 10
 ==$(N)== [1]    at 0x$(X): $(nW)memset$(nW) ($(*))
 ==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
+$(OPT)==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
 $(OPX)==$(N)== 	Address: 0x$(X)	size: 1	state: DIRTY
 $(OPT)==$(N)== [$(N)]    at 0x$(X): $(nW)memset$(nW) ($(*))
 $(OPT)==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
@@ -35,6 +37,12 @@ $(OPT)==$(N)== 	Address: 0x$(X)	size: 1	state: DIRTY
 $(OPT)==$(N)== [$(N)]    at 0x$(X): $(nW)memset$(nW) ($(*))
 $(OPT)==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 1	state: DIRTY
+$(OPT)==$(N)== [$(N)]    at 0x$(X): $(nW)memset$(nW) ($(*))
+$(OPT)==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
+$(OPT)==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
+$(OPT)==$(N)== [$(N)]    at 0x$(X): $(nW)memset$(nW) ($(*))
+$(OPT)==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
+$(OPT)==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
 ==$(N)== [$(N)]    at 0x$(X): main (pmem_valgr_simple.c:$(N))
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 2	state: FLUSHED
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 2	state: FENCED
@@ -46,4 +54,5 @@ $(OPT)==$(N)== [0]    at 0x$(X): $(nW)memset ($(*))
 $(OPT)==$(N)==    by 0x$(X): main (pmem_valgr_simple.c:$(N))
 $(OPT)==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
 $(OPT)==$(N)== ERROR SUMMARY: 3 errors
+$(OPT)==$(N)== ERROR SUMMARY: 4 errors
 $(OPX)==$(N)== ERROR SUMMARY: 10 errors
