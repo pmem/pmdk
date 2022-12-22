@@ -32,6 +32,10 @@
 #define PMDK_MACHINE PMDK_MACHINE_RISCV64
 #define PMDK_MACHINE_CLASS PMDK_MACHINE_CLASS_64
 
+#elif defined(__loongarch64)
+#define PMDK_MACHINE PMDK_MACHINE_LOONGARCH64
+#define PMDK_MACHINE_CLASS PMDK_MACHINE_CLASS_64
+
 #else
 /* add appropriate definitions here when porting PMDK to another ISA */
 #error unable to recognize ISA at compile time
