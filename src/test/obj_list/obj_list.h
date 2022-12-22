@@ -17,7 +17,7 @@
 /* offset to "in band" item */
 #define OOB_OFF	 (sizeof(struct oob_header))
 /* pmemobj initial heap offset */
-#define HEAP_OFFSET	8192
+#define HEAP_OFFSET	OBJ_LANES_OFFSET
 
 TOID_DECLARE(struct item, 0);
 TOID_DECLARE(struct list, 1);
