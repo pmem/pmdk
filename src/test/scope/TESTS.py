@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 #
@@ -161,15 +161,3 @@ class TEST13(Common):
 class TEST14(Common):
     """Check scope of libpmem2 library (windows)"""
     checked_lib = 'libpmem2'
-
-
-@t.windows_exclude
-class TEST15(Common):
-    """Check scope of libpmemset library (*nix)"""
-    checked_lib = 'libpmemset'
-
-
-@t.windows_only
-class TEST16(Common):
-    """Check scope of libpmemset library (windows)"""
-    checked_lib = 'libpmemset'

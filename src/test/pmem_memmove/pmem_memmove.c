@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * pmem_memmove.c -- unit test for doing a memmove
@@ -80,16 +80,13 @@ do_memmove_variants(char *dst, char *src, const char *file_name,
 	size_t dest_off, size_t src_off, size_t bytes, persist_fn p)
 {
 	do_memmove(dst, src, file_name, dest_off, src_off,
-			bytes, pmem_memmove_persist_wrapper, 0, p,
-			NULL, NULL, NULL);
+			bytes, pmem_memmove_persist_wrapper, 0, p);
 	do_memmove(dst, src, file_name, dest_off, src_off,
-			bytes, pmem_memmove_nodrain_wrapper, 0, p,
-			NULL, NULL, NULL);
+			bytes, pmem_memmove_nodrain_wrapper, 0, p);
 
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memmove(dst, src, file_name, dest_off, src_off,
-			bytes, pmem_memmove, Flags[i], p,
-			NULL, NULL, NULL);
+			bytes, pmem_memmove, Flags[i], p);
 	}
 }
 

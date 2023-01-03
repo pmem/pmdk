@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # src/Makefile -- Makefile for PMDK
@@ -10,15 +10,15 @@ include $(TOP)/src/common.inc
 # core targets
 TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools libpmem2
 # make all targets
-ALL_TARGETS = $(TARGETS) common core libpmemset deps
+ALL_TARGETS = $(TARGETS) common core deps
 # all available targets
 POSSIBLE_TARGETS = $(TARGETS) common core deps test\
-	examples benchmarks libpmemset
+	examples benchmarks
 
 SCOPE_DIRS = $(TARGETS) common core deps
 
 DEBUG_RELEASE_TARGETS = common core deps libpmem libpmemblk libpmemlog libpmemobj\
-	libpmempool libpmem2 libpmemset
+	libpmempool libpmem2
 RELEASE_TARGETS = tools
 
 ifneq ($(BUILD_EXAMPLES),n)
@@ -56,12 +56,6 @@ PMREORDER_SRC = tools/pmreorder
 PMREORDER_FILES = $(PMREORDER_SRC)/*.py
 PMREORDER_DESTDIR = $(DESTDIR)$(datarootdir)/pmreorder
 PMREORDER_ROOTDIR = $(datarootdir)/pmreorder
-
-ifeq ($(PMEMSET_INSTALL),y)
-	PKG_CONFIG_FILES += libpmemset.pc
-	HEADERS_INSTALL += include/libpmemset.h
-	INSTALL_TARGETS += libpmemset
-endif
 
 rwildcard=$(strip $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2)\
 	$(filter $(subst *,%,$2),$d)))
@@ -113,7 +107,6 @@ custom_build = $(DEBUG)$(OBJDIR)
 tools: libpmem libpmemblk libpmemlog libpmemobj libpmempool
 libpmemblk libpmemlog libpmemobj: libpmem
 libpmempool: libpmemblk
-libpmemset: libpmem2
 benchmarks test tools: common core
 
 pkg-cfg-common:

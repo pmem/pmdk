@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 
 #
@@ -250,7 +250,6 @@ EXAMPLES_TESTS = \
 	ex_libpmemblk\
 	ex_libpmemlog\
 	ex_libpmemobj\
-	ex_libpmemset\
 	ex_linkedlist\
 	ex_pmreorder
 
@@ -280,24 +279,6 @@ PMREORDER_TESTS = \
 	pmreorder_simple\
 	pmreorder_stack
 
-PMEMSET_TESTS = \
-	pmemset_badblock\
-	pmemset_config\
-	pmemset_deep_flush\
-	pmemset_event\
-	pmemset_file\
-	pmemset_include\
-	pmemset_map_config\
-	pmemset_memcpy\
-	pmemset_memmove\
-	pmemset_memset\
-	pmemset_new\
-	pmemset_part\
-	pmemset_perror\
-	pmemset_persist\
-	pmemset_sds\
-	pmemset_source
-
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
@@ -305,7 +286,6 @@ LOCAL_TESTS = \
 	$(OTHER_TESTS)\
 	$(PMEM_TESTS)\
 	$(PMEM2_TESTS)\
-	$(PMEMSET_TESTS)\
 	$(PMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_MOD_TESTS)\
@@ -429,10 +409,6 @@ pcheck-pmem: $(PMEM_TESTS)
 
 pcheck-pmem2: TARGET = pcheck
 pcheck-pmem2: $(PMEM2_TESTS)
-	@echo "No failures."
-
-pcheck-pmemset: TARGET = pcheck
-pcheck-pmemset: $(PMEMSET_TESTS)
 	@echo "No failures."
 
 pcheck-pmempool: TARGET = pcheck

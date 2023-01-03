@@ -53,7 +53,7 @@ Libraries available in this repository:
 
 - [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
-- [libpmemset](https://pmem.io/pmdk/libpmemset/):  (**still in progress**) aims to provide the core functionality any persistent application should have. (EXPERIMENTAL)
+**Libpmemset** has been removed from PMDK repository.
 
 **Librpmem** library has been removed from PMDK repository. If you are interested in a remote persistent
 memory support please look at new [librpma](https://github.com/pmem/rpma).
