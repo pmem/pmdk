@@ -1,9 +1,0 @@
-includedir=${prefix}/include
-
-Name: libpmemset
-Description: libpmemset library from PMDK project (EXPERIMENTAL)
-Version: ${version}
-URL: https://pmem.io/pmdk
-Requires.private: libpmem2${rasdeps}
-Libs: -L${libdir} -lpmemset
-Cflags: -I${includedir}

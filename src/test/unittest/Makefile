@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # src/test/unittest/Makefile -- build unittest support library
@@ -21,14 +21,10 @@ OBJS_UT = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
 TARGET_UT_PMEM2 = ut_pmem2.a
 OBJS_UT_PMEM2 = ut_pmem2_config.o ut_pmem2_utils.o
 
-TARGET_UT_PMEMSET = ut_pmemset.a
-OBJS_UT_PMEMSET = ut_pmemset_utils.o
-
 CFLAGS = -I$(TOP)/src/include
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/core
 CFLAGS += -I$(TOP)/src/libpmem2
-CFLAGS += -I$(TOP)/src/libpmemset
 CFLAGS += $(OS_INCS)
 CFLAGS += -std=gnu99
 CFLAGS += -ggdb
@@ -83,16 +79,13 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 LIBS += $(LIBUTIL)
 
-all test: $(TARGET_UT) $(TARGET_UT_PMEM2) $(TARGET_UT_PMEMSET)
+all test: $(TARGET_UT) $(TARGET_UT_PMEM2)
 
 $(TARGET_UT): $(OBJS_UT)
 	$(AR) rv $@ $(OBJS_UT)
 
 $(TARGET_UT_PMEM2): $(OBJS_UT_PMEM2)
 	$(AR) rv $@ $(OBJS_UT_PMEM2)
-
-$(TARGET_UT_PMEMSET): $(OBJS_UT_PMEMSET)
-	$(AR) rv $@ $(OBJS_UT_PMEMSET)
 
 ifneq ($(CSTYLEON),0)
 $(TARGET): unittest.htmp
@@ -113,7 +106,7 @@ clean:
 	$(RM) *.o core a.out unittest.htmp
 
 clobber: clean
-	$(RM) $(TARGET_UT) $(TARGET_UT_PMEM2) $(TARGET_UT_PMEMSET)
+	$(RM) $(TARGET_UT) $(TARGET_UT_PMEM2)
 	$(RM) -r .deps
 
 test check pcheck pycheck: all

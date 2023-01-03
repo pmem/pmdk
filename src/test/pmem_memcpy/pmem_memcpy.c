@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * pmem_memcpy.c -- unit test for doing a memcpy
@@ -79,17 +79,14 @@ do_memcpy_variants(int fd, char *dest, int dest_off, char *src, int src_off,
 		    persist_fn p)
 {
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, mapped_len,
-			file_name, pmem_memcpy_persist_wrapper, 0, p,
-			NULL, NULL, NULL);
+			file_name, pmem_memcpy_persist_wrapper, 0, p);
 
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, mapped_len,
-			file_name, pmem_memcpy_nodrain_wrapper, 0, p,
-			NULL, NULL, NULL);
+			file_name, pmem_memcpy_nodrain_wrapper, 0, p);
 
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memcpy(fd, dest, dest_off, src, src_off, bytes, mapped_len,
-			file_name, pmem_memcpy, Flags[i], p,
-			NULL, NULL, NULL);
+			file_name, pmem_memcpy, Flags[i], p);
 	}
 }
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 
 #
@@ -23,7 +23,6 @@ EX_LIBPMEM2=$(EXAMPLES_DIR)/libpmem2
 EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
 EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
 EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
-EX_LIBPMEMSET=$(EXAMPLES_DIR)/libpmemset
 EX_PMREORDER=$(EXAMPLES_DIR)/pmreorder
 
 UT = ../unittest/libut.a
@@ -121,53 +120,6 @@ OBJS +=	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/stats.o
 
 INCS += -I$(TOP)/src/libpmemobj
-endif
-
-ifeq ($(LIBPMEMSET), y)
-LIBPMEM2=y
-DYNAMIC_LIBS += -lpmemset
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemset.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemset.a
-endif
-
-ifeq ($(LIBPMEMSET), internal-debug)
-LIBPMEM2=y
-LIBPMEMCORE=internal-debug
-OBJS +=\
-	$(TOP)/src/debug/libpmemset/badblock.o\
-	$(TOP)/src/debug/libpmemset/config.o\
-	$(TOP)/src/debug/libpmemset/errormsg.o\
-	$(TOP)/src/debug/libpmemset/file.o\
-	$(TOP)/src/debug/libpmemset/file_posix.o\
-	$(TOP)/src/debug/libpmemset/libpmemset.o\
-	$(TOP)/src/debug/libpmemset/map_config.o\
-	$(TOP)/src/debug/libpmemset/part.o\
-	$(TOP)/src/debug/libpmemset/pmemset.o\
-	$(TOP)/src/debug/libpmemset/pmemset_utils.o\
-	$(TOP)/src/debug/libpmemset/sds.o\
-	$(TOP)/src/debug/libpmemset/source.o
-
-INCS += -I$(TOP)/src/libpmemset
-endif
-
-ifeq ($(LIBPMEMSET), internal-nondebug)
-LIBPMEM2=y
-LIBPMEMCORE=internal-nondebug
-OBJS +=\
-	$(TOP)/src/nondebug/libpmemset/badblock.o\
-	$(TOP)/src/nondebug/libpmemset/config.o\
-	$(TOP)/src/nondebug/libpmemset/errormsg.o\
-	$(TOP)/src/nondebug/libpmemset/file.o\
-	$(TOP)/src/nondebug/libpmemset/file_posix.o\
-	$(TOP)/src/nondebug/libpmemset/libpmemset.o\
-	$(TOP)/src/nondebug/libpmemset/map_config.o\
-	$(TOP)/src/nondebug/libpmemset/part.o\
-	$(TOP)/src/nondebug/libpmemset/pmemset.o\
-	$(TOP)/src/nondebug/libpmemset/pmemset_utils.o\
-	$(TOP)/src/nondebug/libpmemset/sds.o
-	$(TOP)/src/nondebug/libpmemset/source.o
-
-INCS += -I$(TOP)/src/libpmemset
 endif
 
 ifeq ($(LIBPMEM), internal-nondebug)

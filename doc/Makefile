@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 
 #
@@ -121,32 +121,6 @@ MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_config_set_vdm
 	libpmem2/pmem2_vm_reservation_map_find_next.3 libpmem2/pmem2_vm_reservation_map_find_prev.3 \
 	libpmem2/pmem2_source_pwrite_mcsafe.3
 
-# libpmemset
-MANPAGES_7_MD_PMEMSET = libpmemset/libpmemset.7.md
-MANPAGES_5_MD_PMEMSET =
-MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perror.3.md libpmemset/pmemset_config_new.3.md \
-			libpmemset/pmemset_source_from_pmem2.3.md libpmemset/pmemset_new.3.md \
-			libpmemset/pmemset_source_from_file.3.md libpmemset/pmemset_source_delete.3.md libpmemset/pmemset_map_config_new.3.md \
-			libpmemset/pmemset_config_set_required_store_granularity.3.md libpmemset/pmemset_map.3.md \
-			libpmemset/pmemset_first_part_map.3.md libpmemset/pmemset_descriptor_part_map.3.md libpmemset/pmemset_get_store_granularity.3.md \
-			libpmemset/pmemset_part_map_drop.3.md libpmemset/pmemset_part_map_by_address.3.md \
-			libpmemset/pmemset_persist.3.md libpmemset/pmemset_flush.3.md libpmemset/pmemset_drain.3.md \
-			libpmemset/pmemset_set_contiguous_part_coalescing.3.md libpmemset/pmemset_memmove.3.md \
-			libpmemset/pmemset_remove_part_map.3.md libpmemset/pmemset_deep_flush.3.md \
-			libpmemset/pmemset_source_from_temporary.3.md libpmemset/pmemset_remove_range.3.md \
-			libpmemset/pmemset_config_set_event_callback.3.md libpmemset/pmemset_config_set_reservation.3.md \
-			libpmemset/pmemset_map_config_set_length.3.md libpmemset/pmemset_map_config_set_offset.3.md \
-			libpmemset/pmemset_config_set_acceptable_states.3.md libpmemset/pmemset_source_set_sds.3.md \
-			libpmemset/pmemset_source_pread_mcsafe.3.md libpmemset/pmemset_source_alignment.3.md
-
-MANPAGES_1_MD_PMEMSET =
-ifeq ($(PMEMSET_INSTALL),y)
-MANPAGES_3_DUMMY += libpmemset/pmemset_config_delete.3 libpmemset/pmemset_delete.3 \
-		    libpmemset/pmemset_next_part_map.3 libpmemset/pmemset_memcpy.3 libpmemset/pmemset_memset.3 \
-		    libpmemset/pmemset_xsource_from_file.3 libpmemset/pmemset_map_config_delete.3 \
-		    libpmemset/pmemset_source_pwrite_mcsafe.3
-endif
-
 ifeq ($(NDCTL_ENABLE),y)
 MANPAGES_1_MD += daxio/daxio.1.md
 endif
@@ -166,11 +140,6 @@ MANPAGES_5_GROFF_PMEM2 = $(MANPAGES_5_MD_PMEM2:.5.md=.5)
 MANPAGES_3_GROFF_PMEM2 = $(MANPAGES_3_MD_PMEM2:.3.md=.3)
 MANPAGES_1_GROFF_PMEM2 = $(MANPAGES_1_MD_PMEM2:.1.md=.1)
 
-MANPAGES_7_GROFF_PMEMSET = $(MANPAGES_7_MD_PMEMSET:.7.md=.7)
-MANPAGES_5_GROFF_PMEMSET = $(MANPAGES_5_MD_PMEMSET:.5.md=.5)
-MANPAGES_3_GROFF_PMEMSET = $(MANPAGES_3_MD_PMEMSET:.3.md=.3)
-MANPAGES_1_GROFF_PMEMSET = $(MANPAGES_1_MD_PMEMSET:.1.md=.1)
-
 ifeq ($(EXPERIMENTAL),y)
 MANPAGES_7_GROFF += $(MANPAGES_7_GROFF_EXP)
 MANPAGES_5_GROFF += $(MANPAGES_5_GROFF_EXP)
@@ -188,22 +157,10 @@ MANPAGES_5_GROFF += $(MANPAGES_5_GROFF_PMEM2)
 MANPAGES_3_GROFF += $(MANPAGES_3_GROFF_PMEM2)
 MANPAGES_1_GROFF += $(MANPAGES_1_GROFF_PMEM2)
 
-ifeq ($(PMEMSET_INSTALL),y)
-MANPAGES_7_GROFF += $(MANPAGES_7_GROFF_PMEMSET)
-MANPAGES_5_GROFF += $(MANPAGES_5_GROFF_PMEMSET)
-MANPAGES_3_GROFF += $(MANPAGES_3_GROFF_PMEMSET)
-MANPAGES_1_GROFF += $(MANPAGES_1_GROFF_PMEMSET)
-else
-MANPAGES_7_NOINSTALL += $(MANPAGES_7_GROFF_PMEMSET)
-MANPAGES_5_NOINSTALL += $(MANPAGES_5_GROFF_PMEMSET)
-MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_PMEMSET)
-MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_PMEMSET)
-endif
-
-MANPAGES_7_MD_WEB = $(MANPAGES_7_MD_PMEM2) $(MANPAGES_7_MD_PMEMSET) $(MANPAGES_7_MD)
-MANPAGES_5_MD_WEB = $(MANPAGES_5_MD_PMEM2) $(MANPAGES_5_MD_PMEMSET) $(MANPAGES_5_MD)
-MANPAGES_3_MD_WEB = $(MANPAGES_3_MD_PMEM2) $(MANPAGES_3_MD_PMEMSET) $(MANPAGES_3_MD)
-MANPAGES_1_MD_WEB = $(MANPAGES_1_MD_PMEM2) $(MANPAGES_1_MD_PMEMSET) $(MANPAGES_1_MD)
+MANPAGES_7_MD_WEB = $(MANPAGES_7_MD_PMEM2) $(MANPAGES_7_MD)
+MANPAGES_5_MD_WEB = $(MANPAGES_5_MD_PMEM2) $(MANPAGES_5_MD)
+MANPAGES_3_MD_WEB = $(MANPAGES_3_MD_PMEM2) $(MANPAGES_3_MD)
+MANPAGES_1_MD_WEB = $(MANPAGES_1_MD_PMEM2) $(MANPAGES_1_MD)
 
 MANPAGES = $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGES_1_GROFF) \
 	   $(MANPAGES_7_NOINSTALL) $(MANPAGES_5_NOINSTALL) $(MANPAGES_3_NOINSTALL) $(MANPAGES_1_NOINSTALL)

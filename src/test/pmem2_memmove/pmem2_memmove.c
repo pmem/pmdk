@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * pmem2_memmove.c -- test for doing a memmove
@@ -21,8 +21,7 @@ do_memmove_variants(char *dst, char *src, const char *file_name,
 {
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memmove(dst, src, file_name, dest_off, src_off,
-				bytes, fn, Flags[i], p,
-				NULL, NULL, NULL);
+				bytes, fn, Flags[i], p);
 	}
 }
 
