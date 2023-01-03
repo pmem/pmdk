@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * memcpy_common.c -- common part for tests doing a persistent memcpy
@@ -13,26 +13,19 @@
  * do_persist - performs selected persist function
  */
 static void
-do_persist(struct pmemset *set, set_persist_fn sp, persist_fn p,
-		char *ptr, size_t len)
+do_persist(persist_fn p, char *ptr, size_t len)
 {
-	if (set)
-		sp(set, ptr, len);
-	else
-		p(ptr, len);
+	p(ptr, len);
 }
 
 /*
  * do_memcpy_s - performs selected memcpy function
  */
 static void *
-do_memcpy_s(struct pmemset *set, set_memcpy_fn sm, memcpy_fn m,
-		char *ptr1, char *ptr2, size_t len, unsigned flags)
+do_memcpy_s(memcpy_fn m, char *ptr1, char *ptr2,
+			size_t len, unsigned flags)
 {
-	if (set)
-		return sm(set, ptr1, ptr2, len, flags);
-	else
-		return m(ptr1, ptr2, len, flags);
+	return m(ptr1, ptr2, len, flags);
 }
 
 /*
@@ -47,35 +40,34 @@ do_memcpy_s(struct pmemset *set, set_memcpy_fn sm, memcpy_fn m,
 void
 do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
     size_t bytes, size_t mapped_len, const char *file_name, memcpy_fn fn,
-    unsigned flags, persist_fn persist, struct pmemset *set,
-    set_persist_fn sp, set_memcpy_fn sm)
+    unsigned flags, persist_fn persist)
 {
 	void *ret;
 	char *buf = MALLOC(bytes);
 
 	memset(buf, 0, bytes);
 	memset(dest, 0, bytes);
-	do_persist(set, sp, persist, dest, bytes);
+	do_persist(persist, dest, bytes);
 	memset(src, 0, bytes);
-	do_persist(set, sp, persist, src, bytes);
+	do_persist(persist, src, bytes);
 
 	memset(src, 0x5A, bytes / 4);
-	do_persist(set, sp, persist, src, bytes / 4);
+	do_persist(persist, src, bytes / 4);
 	memset(src + bytes / 4, 0x46, bytes / 4);
-	do_persist(set, sp, persist, src + bytes / 4, bytes / 4);
+	do_persist(persist, src + bytes / 4, bytes / 4);
 
 	/* dest == src */
-	ret = do_memcpy_s(set, sm, fn, dest + dest_off, dest + dest_off,
+	ret = do_memcpy_s(fn, dest + dest_off, dest + dest_off,
 		bytes / 2, flags);
 	UT_ASSERTeq(ret, dest + dest_off);
 	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
 
 	/* len == 0 */
-	ret = do_memcpy_s(set, sm, fn, dest + dest_off, src, 0, flags);
+	ret = do_memcpy_s(fn, dest + dest_off, src, 0, flags);
 	UT_ASSERTeq(ret, dest + dest_off);
 	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
 
-	ret = do_memcpy_s(set, sm, fn, dest + dest_off, src + src_off,
+	ret = do_memcpy_s(fn, dest + dest_off, src + src_off,
 		bytes / 2, flags);
 	if (flags & PMEM2_F_MEM_NOFLUSH)
 		VALGRIND_DO_PERSIST((dest + dest_off), bytes / 2);

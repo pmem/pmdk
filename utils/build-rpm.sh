@@ -25,7 +25,6 @@ usage()
 Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 	[ -d distro ] [ -e build-experimental ] [ -c run-check ]
 	[ -n with-ndctl ] [ -f testconfig-file ]
-	[ -l build-libpmemset ]
 
 -h			print this help message
 -t version-tag		source version tag
@@ -37,7 +36,6 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -c run-check		run package check
 -n with-ndctl		build with libndctl
 -f testconfig-file	custom testconfig.sh
--l build-libpmemset	build libpmemset packages
 EOF
 	exit 1
 }
@@ -45,7 +43,7 @@ EOF
 #
 # command-line argument processing...
 #
-args=`getopt he:c:n:t:d:s:w:o:f:l: $*`
+args=`getopt he:c:n:t:d:s:w:o:f: $*`
 
 [ $? != 0 ] && usage
 set -- $args
@@ -88,10 +86,6 @@ do
 		;;
 	-d)
 		DISTRO="$2"
-		shift 2
-		;;
-	-l)
-		PMEMSET_INSTALL="$2"
 		shift 2
 		;;
 	--)
@@ -211,12 +205,6 @@ fi
 if [ "${PMEM2_INSTALL}" == "y" ]
 then
 	RPMBUILD_OPTS+=(--define "_pmem2_install 1")
-fi
-
-# libpmemset
-if [ "${PMEMSET_INSTALL}" == "y" ]
-then
-	RPMBUILD_OPTS+=(--define "_pmemset_install 1")
 fi
 
 # daxio & RAS
