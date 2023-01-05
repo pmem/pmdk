@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2022, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # install-valgrind.sh - installs valgrind for persistent memory
@@ -34,9 +34,8 @@ install_upstream_3_16_1() {
 install_custom-pmem_from_source() {
   git clone https://github.com/pmem/valgrind.git
   cd valgrind
-  # valgrind v3.19 with pmemcheck and
-  # patches for unhandled dwarf2 abbrev
-  git checkout ec9fc04049b034c51adec3239de360e9ff47025b
+  # valgrind v3.20 with pmemcheck
+  git checkout b21a0ab76d2fbc4f26d2b7c7e20df63d63f0a31b
   ./autogen.sh
   ./configure
   make -j$(nproc)
