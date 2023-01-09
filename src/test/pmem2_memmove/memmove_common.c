@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * memmove_common.c -- common part for tests doing a persistent memmove
@@ -32,26 +32,19 @@ verify_contents(const char *file_name, int test,
  * do_persist - performs selected persist function
  */
 static void
-do_persist(struct pmemset *set, set_persist_fn sp, persist_fn p,
-		char *ptr, size_t len)
+do_persist(persist_fn p, char *ptr, size_t len)
 {
-	if (set)
-		sp(set, ptr, len);
-	else
-		p(ptr, len);
+	p(ptr, len);
 }
 
 /*
  * do_memmove_s - performs selected memmove function
  */
 static void *
-do_memmove_s(struct pmemset *set, set_memmove_fn sm, memmove_fn m,
-		char *ptr1, char *ptr2, size_t len, unsigned flags)
+do_memmove_s(memmove_fn m, char *ptr1, char *ptr2,
+			size_t len, unsigned flags)
 {
-	if (set)
-		return sm(set, ptr1, ptr2, len, flags);
-	else
-		return m(ptr1, ptr2, len, flags);
+	return m(ptr1, ptr2, len, flags);
 }
 
 /*
@@ -66,9 +59,7 @@ do_memmove_s(struct pmemset *set, set_memmove_fn sm, memmove_fn m,
 void
 do_memmove(char *dst, char *src, const char *file_name,
 		size_t dest_off, size_t src_off, size_t bytes,
-		memmove_fn fn, unsigned flags, persist_fn persist,
-		struct pmemset *set, set_persist_fn set_persist,
-		set_memmove_fn set_memmove)
+		memmove_fn fn, unsigned flags, persist_fn persist)
 {
 	void *ret;
 	char *srcshadow = MALLOC(dest_off + src_off + bytes);
@@ -83,15 +74,15 @@ do_memmove(char *dst, char *src, const char *file_name,
 	memset(src, 0x33, bytes / 4);
 	memset(src + bytes / 4, 0x44, bytes / 4);
 
-	do_persist(set, set_persist, persist, src, bytes);
-	do_persist(set, set_persist, persist, dst, bytes);
+	do_persist(persist, src, bytes);
+	do_persist(persist, dst, bytes);
 
 	memcpy(srcshadow, src, bytes);
 	memcpy(dstshadow, dst, bytes);
 
 	/* TEST 1, dest == src */
 	old = *(char *)(dst + dest_off);
-	ret = do_memmove_s(set, set_memmove, fn, dst + dest_off,
+	ret = do_memmove_s(fn, dst + dest_off,
 			dst + dest_off, bytes / 2, flags);
 	UT_ASSERTeq(ret, dst + dest_off);
 	UT_ASSERTeq(*(char *)(dst + dest_off), old);
@@ -103,8 +94,7 @@ do_memmove(char *dst, char *src, const char *file_name,
 
 	/* TEST 2, len == 0 */
 	old = *(char *)(dst + dest_off);
-	ret = do_memmove_s(set, set_memmove, fn,  dst + dest_off,
-			src + src_off, 0, flags);
+	ret = do_memmove_s(fn,  dst + dest_off, src + src_off, 0, flags);
 	UT_ASSERTeq(ret, dst + dest_off);
 	UT_ASSERTeq(*(char *)(dst + dest_off), old);
 
@@ -114,13 +104,11 @@ do_memmove(char *dst, char *src, const char *file_name,
 	verify_contents(file_name, 3, srcshadow, src, bytes);
 
 	/* TEST 3, len == bytes / 2 */
-	ret = do_memmove_s(set, set_memmove, fn, dst + dest_off,
-			src + src_off, bytes / 2, flags);
+	ret = do_memmove_s(fn, dst + dest_off, src + src_off, bytes / 2, flags);
 	UT_ASSERTeq(ret, dst + dest_off);
 	if (flags & PMEM_F_MEM_NOFLUSH) {
 		/* for pmemcheck */
-		do_persist(set, set_persist, persist,
-				dst + dest_off, bytes / 2);
+		do_persist(persist, dst + dest_off, bytes / 2);
 	}
 
 	/* do the same using regular memmove and verify that buffers match */

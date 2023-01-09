@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * unittest.h -- the mundane stuff shared by all unit tests
@@ -61,7 +61,6 @@
 #include <libpmemlog.h>
 #include <libpmemobj.h>
 #include <libpmempool.h>
-#include <libpmemset.h>
 
 #ifdef __cplusplus
 extern "C" {

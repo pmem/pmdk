@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2022, Intel Corporation
+# Copyright 2018-2023, Intel Corporation
 
 #
 # Finds applicable area name for specified commit id.
@@ -40,7 +40,6 @@ categorize log       -e "^src/libpmemlog/"  -e "^src/include/libpmemlog.h"
 categorize blk       -e "^src/libpmemblk/"  -e "^src/include/libpmemblk.h"
 categorize obj       -e "^src/libpmemobj/"  -e "^src/include/libpmemobj.h" -e "^src/include/libpmemobj/"
 categorize pool      -e "^src/libpmempool/" -e "^src/include/libpmempool.h" -e "^src/tools/pmempool/"
-categorize set       -e "^src/libpmemset/"  -e "^src/include/libpmemset.h"
 categorize benchmark -e "^src/benchmarks/"
 categorize examples  -e "^src/examples/"
 categorize daxio     -e "^src/tools/daxio/"

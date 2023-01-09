@@ -1,7 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/ex_libpmemset/README.
-
-This directory contains unit tests for libpmemset examples.
-
-The unit tests utilizes examples from src/examples/libpmemset directory.

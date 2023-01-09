@@ -1,4 +1,0 @@
-$(*)START: pmemset_source
-$(*)test_src_from_temporary_no_del$(*)
-open file list changed between START() and DONE()
-$(*)DONE

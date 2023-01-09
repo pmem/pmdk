@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # build-dpkg.sh - Script for building deb packages
@@ -21,7 +21,6 @@ usage()
 Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 	[ -e build-experimental ] [ -c run-check ]
 	[ -n with-ndctl ] [ -f testconfig-file ]
-	[ -l build-libpmemset ]
 
 -h			print this help message
 -t version-tag		source version tag
@@ -32,7 +31,6 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -c run-check		run package check
 -n with-ndctl		build with libndctl
 -f testconfig-file	custom testconfig.sh
--l build-libpmemset	build libpmemset packages
 EOF
 	exit 1
 }
@@ -40,7 +38,7 @@ EOF
 #
 # command-line argument processing...
 #
-args=`getopt he:c:n:t:d:s:w:o:f:l: $*`
+args=`getopt he:c:n:t:d:s:w:o:f: $*`
 
 [ $? != 0 ] && usage
 set -- $args
@@ -79,10 +77,6 @@ do
 		;;
 	-o)
 		OUT_DIR="$2"
-		shift 2
-		;;
-	-l)
-		PMEMSET_INSTALL="$2"
 		shift 2
 		;;
 	--)
@@ -195,66 +189,6 @@ Description: Development files for libpmem2
  libpmem2 provides low level persistent memory support. In particular, support
  for the persistent memory instructions for flushing changes to pmem is
  provided.
-EOF
-}
-
-function libpmemset_install_triggers_overrides() {
-cat << EOF > debian/libpmemset.install
-$LIB_DIR/libpmemset.so.*
-EOF
-
-cat << EOF > debian/libpmemset.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-libpmemset: package-name-doesnt-match-sonames
-EOF
-
-cat << EOF > debian/libpmemset-dev.install
-$LIB_DIR/pmdk_debug/libpmemset.a $LIB_DIR/pmdk_dbg/
-$LIB_DIR/pmdk_debug/libpmemset.so $LIB_DIR/pmdk_dbg/
-$LIB_DIR/pmdk_debug/libpmemset.so.* $LIB_DIR/pmdk_dbg/
-$LIB_DIR/libpmemset.so
-$LIB_DIR/pkgconfig/libpmemset.pc
-$INC_DIR/libpmemset.h
-$MAN7_DIR/libpmemset.7
-$MAN3_DIR/pmemset_*.3
-EOF
-
-cat << EOF > debian/libpmemset-dev.triggers
-interest man-db
-EOF
-
-cat << EOF > debian/libpmemset-dev.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-# The following warnings are triggered by a bug in debhelper:
-# https://bugs.debian.org/204975
-postinst-has-useless-call-to-ldconfig
-postrm-has-useless-call-to-ldconfig
-# We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
-EOF
-}
-
-function append_libpmemset_control() {
-cat << EOF >> $CONTROL_FILE
-
-Package: libpmemset
-Architecture: any
-Depends: libpmem2 (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory low level support library
- libpmemset provides  support for persistent file I/O operations,
- runtime mapping concatenation and multi-part support across poolsets.
- It relies on synchronous event streams for pool modifications. (EXPERIMENTAL)
-
-Package: libpmemset-dev
-Section: libdevel
-Architecture: any
-Depends: libpmemset (=\${binary:Version}), libpmem2-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmemset
- libpmemset provides  support for persistent file I/O operations,
- runtime mapping concatenation and multi-part support across poolsets.
- It relies on synchronous event streams for pool modifications. (EXPERIMENTAL)
 EOF
 }
 
@@ -502,10 +436,10 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_build:
-	dh_auto_build -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION PMEM2_INSTALL=${PMEM2_INSTALL} PMEMSET_INSTALL=${PMEMSET_INSTALL}
+	dh_auto_build -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION PMEM2_INSTALL=${PMEM2_INSTALL}
 
 override_dh_auto_install:
-	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION PMEM2_INSTALL=${PMEM2_INSTALL} PMEMSET_INSTALL=${PMEMSET_INSTALL}
+	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION PMEM2_INSTALL=${PMEM2_INSTALL}
 	find -path './debian/*usr/share/man/man*/*.gz' -exec gunzip {} \;
 
 override_dh_install:
@@ -758,13 +692,6 @@ if [ "${PMEM2_INSTALL}" == "y" ]
 then
 	append_libpmem2_control;
 	libpmem2_install_triggers_overrides;
-fi
-
-# libpmemset
-if [ "${PMEMSET_INSTALL}" == "y" ]
-then
-	append_libpmemset_control;
-	libpmemset_install_triggers_overrides;
 fi
 
 # daxio

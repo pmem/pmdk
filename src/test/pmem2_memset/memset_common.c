@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * memset_common.c -- common part for tests doing a persistent memset
@@ -12,26 +12,19 @@
  * do_persist - performs selected persist function
  */
 static void
-do_persist(struct pmemset *set, set_persist_fn sp, persist_fn p,
-		char *ptr, size_t len)
+do_persist(persist_fn p, char *ptr, size_t len)
 {
-	if (set)
-		sp(set, ptr, len);
-	else
-		p(ptr, len);
+	p(ptr, len);
 }
 
 /*
  * do_memset_s - performs selected memcpy function
  */
 static void *
-do_memset_s(struct pmemset *set, set_memset_fn sm, memset_fn m,
-		char *ptr, int c, size_t len, unsigned flags)
+do_memset_s(memset_fn m, char *ptr, int c,
+			size_t len, unsigned flags)
 {
-	if (set)
-		return sm(set, ptr, c, len, flags);
-	else
-		return m(ptr, c, len, flags);
+	return m(ptr, c, len, flags);
 }
 
 /*
@@ -40,15 +33,14 @@ do_memset_s(struct pmemset *set, set_memset_fn sm, memset_fn m,
 void
 do_memset(int fd, char *dest, const char *file_name, size_t dest_off,
 		size_t bytes, memset_fn fn, unsigned flags,
-		persist_fn persist, set_persist_fn sp, set_memset_fn sm,
-		struct pmemset *set)
+		persist_fn persist)
 {
 	char *buf = MALLOC(bytes);
 	char *dest1;
 	char *ret;
 
 	memset(dest, 0, bytes);
-	do_persist(set, sp, persist, dest, bytes);
+	do_persist(persist, dest, bytes);
 	dest1 = MALLOC(bytes);
 	memset(dest1, 0, bytes);
 
@@ -62,17 +54,17 @@ do_memset(int fd, char *dest, const char *file_name, size_t dest_off,
 	memset(dest1 + dest_off  + (bytes / 4), 0x46, bytes / 4);
 
 	/* Test the corner cases */
-	ret = do_memset_s(set, sm, fn, dest + dest_off, 0x5A, 0, flags);
+	ret = do_memset_s(fn, dest + dest_off, 0x5A, 0, flags);
 	UT_ASSERTeq(ret, dest + dest_off);
 	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
 
 	/*
 	 * Do the actual memset with persistence.
 	 */
-	ret = do_memset_s(set, sm, fn, dest + dest_off,
+	ret = do_memset_s(fn, dest + dest_off,
 			0x5A, bytes / 4, flags);
 	UT_ASSERTeq(ret, dest + dest_off);
-	ret = do_memset_s(set, sm, fn, dest + dest_off  + (bytes / 4),
+	ret = do_memset_s(fn, dest + dest_off  + (bytes / 4),
 			0x46, bytes / 4, flags);
 	UT_ASSERTeq(ret, dest + dest_off + (bytes / 4));
 
