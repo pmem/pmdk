@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2022, Intel Corporation */
+/* Copyright 2022-2023, Intel Corporation */
 
 #include <assert.h>
 #include <inttypes.h>
@@ -504,7 +504,7 @@ chain_entry_rerun_init(void *future,
 		fut = chain_entries_rerun(data->entriesp, 2);
 	} else {
 		/*
-		 * Either 'lookup' and 'set_state' successfuly found and locked
+		 * Either 'lookup' and 'set_state' successfully found and locked
 		 * a hashmap entry or the 'lookup' failed. 'chain_entry_rerun'
 		 * shouldn't be executed.
 		 */

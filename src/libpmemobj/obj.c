@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * obj.c -- transactional object store implementation
@@ -1147,7 +1147,7 @@ pmemobj_createU(const char *path, const char *layout,
 	os_mutex_lock(&pools_mutex);
 
 	/*
-	 * Tthe runtime number of lanes is equal to the total number of lanes
+	 * The runtime number of lanes is equal to the total number of lanes
 	 * available in the pool or the value provided with PMEMOBJ_NLANES
 	 * environment variable whichever is lower.
 	 */

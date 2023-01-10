@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2021-2022, Intel Corporation */
+/* Copyright 2021-2023, Intel Corporation */
 
 /*
  * future.h - public definitions for the future type, its associated state and
@@ -378,7 +378,7 @@ async_chain_impl(struct future_context *ctx, struct future_notifier *notifier)
 static inline int
 future_has_property_default(void *future, enum future_property property)
 {
-	/* suppres unused parameters */
+	/* suppress unused parameters */
 	(void) (future);
 	(void) (property);
 	/* by default every property is set to false */

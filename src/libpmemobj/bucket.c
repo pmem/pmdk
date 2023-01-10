@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * bucket.c -- bucket implementation
@@ -40,7 +40,7 @@ struct bucket_locked {
 };
 
 /*
- * bucket_init -- initalizes the bucket's runtime state
+ * bucket_init -- initializes the bucket's runtime state
  */
 static int
 bucket_init(struct bucket *b, struct block_container *c,

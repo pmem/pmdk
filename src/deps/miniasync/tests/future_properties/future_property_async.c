@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2022, Intel Corporation */
+/* Copyright 2022-2023, Intel Corporation */
 
 #include "libminiasync.h"
 #include "test_helpers.h"
@@ -172,7 +172,7 @@ countup_chained_async_sync(int count, uint64_t id_fut1, uint64_t id_fut2)
 
 /*
  * test_chained_futures -- tests if async/non async chained futures'
- * entires are executed in the correct order by runtime.
+ * entries are executed in the correct order by runtime.
  */
 void
 test_chained_future()

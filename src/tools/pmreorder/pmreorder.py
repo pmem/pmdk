@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2022, Intel Corporation
+# Copyright 2018-2023, Intel Corporation
 
 import argparse
 import statemachine
@@ -11,7 +11,7 @@ import sys
 import reorderengines
 import signal
 
-# Prevent printing python stacktrace on SIGINT. To achive that throw
+# Prevent printing python stacktrace on SIGINT. To achieve that throw
 # "SystemExit exception" instead of "KeyboardInterrupt exception".
 signal.signal(signal.SIGINT, lambda signum, frame: exit(signum))
 
