@@ -14,3 +14,6 @@ LIBPMEM=y
 LIBPMEMCOMMON=y
 
 include ../Makefile.inc
+ifeq ($(ARCH), ppc64)
+CFLAGS += -fsigned-char
+endif
