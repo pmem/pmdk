@@ -30,7 +30,8 @@ Pool set UUID            : $(nW)
 
 PMEM OBJ Header:
 Layout                   : OBJ_LAYOUT$(nW)
-Lanes offset             : 0x2000
+$(OPT)Lanes offset             : 0x2000
+$(OPX)Lanes offset             : 0x20000
 Number of lanes          : 1024
 Heap offset              : $(nW)
 Heap size                : $(nW)
@@ -52,7 +53,8 @@ Pool set UUID            : $(nW)
 
 PMEM OBJ Header:
 Layout                   : OBJ_LAYOUT$(nW)
-Lanes offset             : 0x2000
+$(OPT)Lanes offset             : 0x2000
+$(OPX)Lanes offset             : 0x20000
 Number of lanes          : 1024
 Heap offset              : $(nW)
 Heap size                : $(nW)
