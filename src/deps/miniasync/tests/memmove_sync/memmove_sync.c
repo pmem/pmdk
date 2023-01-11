@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2022, Intel Corporation */
+/* Copyright 2022-2023, Intel Corporation */
 
 #include <stdlib.h>
 #include <string.h>
@@ -8,7 +8,7 @@
 
 /*
  * test_basic_memmove -- tests memmove vdm operation
- * with two, seperate, not overlapping buffers.
+ * with two, separate, not overlapping buffers.
  */
 int
 test_basic_memmove()
