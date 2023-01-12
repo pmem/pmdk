@@ -2,4 +2,14 @@ Persistent Memory Development Kit
 
 This is utils/README.
 
-The scripts found here are used during library development.
+Scripts found in this directory are used during library development.
+
+Sub-directory 'docker' contains scripts for running builds, tests and checks
+inside a Docker containers, among with prepared images' recipes and instruction
+on using them.
+
+Sub-directory 'gha-runners' contains scripts used for execution specific sets of tests,
+on a self-hosted runners in GitHub Actions.
+
+Both of these sub-directories are intended to be used as development process vehicles
+and are part of continuous integration process.

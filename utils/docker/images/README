@@ -2,5 +2,18 @@ Persistent Memory Development Kit
 
 This is utils/docker/images/README.
 
-Scripts in this directory let you prepare Docker images for building
-PMDK project under specified OS (ubuntu, fedora).
+Dockerfiles and scripts placed in this directory are intended to be used as
+development process vehicles and part of continuous integration process.
+
+Images built out of those recipes may by used with Docker or podman as
+development environment.
+
+To manually build docker image using docker(1) execute, e.g.:
+
+docker build --build-arg https_proxy=http://proxy.com:port --build-arg http_proxy=http://proxy.com:port \
+    -t pmdk:debian-unstable -f ./Dockerfile.ubuntu-22.04 .
+
+To run build and tests within a (previously built) Docker container execute, e.g.:
+
+docker run --network=bridge --shm-size=4G -v /your/workspace/path/:/opt/workspace:z -w /opt/workspace/ \
+    -e PMDK_CC=gcc -it pmdk:ubuntu-22.04 /bin/bash
