@@ -18,8 +18,8 @@ set -e
 function usage {
 	echo "Usage:"
 	echo "    build-image.sh <DOCKER_REPO> <OS-VER>"
-	echo "where <OS-VER>, for example, can be 'fedora-30', provided " \
-		"a Dockerfile named 'Dockerfile.fedora-30' exists in the " \
+	echo "where <OS-VER>, for example, can be 'fedora-37', provided " \
+		"a Dockerfile named 'Dockerfile.fedora-37' exists in the " \
 		"current directory."
 }
 

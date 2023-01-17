@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM fedora:35
+FROM fedora:37
 MAINTAINER piotr.balcer@intel.com
 
 ENV VALGRIND_DEPS "\
@@ -103,6 +103,6 @@ USER $USER
 
 # Set required environment variables
 ENV OS fedora
-ENV OS_VER 35
+ENV OS_VER 37
 ENV PACKAGE_MANAGER rpm
 ENV NOTTY 1
