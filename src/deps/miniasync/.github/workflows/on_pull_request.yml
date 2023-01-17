@@ -26,7 +26,7 @@ jobs:
       matrix:
         CONFIG: ["N=1 OS=ubuntu OS_VER=21.04 TYPE=normal CC=gcc   COVERAGE=1",
                  "N=2 OS=ubuntu OS_VER=21.04 TYPE=normal CC=clang PUSH_IMAGE=1",
-                 "N=3 OS=fedora OS_VER=35    TYPE=normal CC=gcc   PUSH_IMAGE=1"]
+                 "N=3 OS=fedora OS_VER=37    TYPE=normal CC=gcc   PUSH_IMAGE=1"]
     steps:
        - name: Clone the git repo
          uses: actions/checkout@v1

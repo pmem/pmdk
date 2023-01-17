@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2021, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 
 #
@@ -24,7 +24,7 @@ source $(dirname $0)/valid-branches.sh
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
 	echo "ERROR: The variables OS and OS_VER have to be set " \
-		"(eg. OS=fedora, OS_VER=30)."
+		"(eg. OS=fedora, OS_VER=37)."
 	exit 1
 fi
 
