@@ -1,0 +1,107 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+#
+# Dockerfile - a 'recipe' for Docker to build an image of rockylinux-based
+#              environment for building the PMDK project.
+#
+
+# Pull base image
+FROM rockylinux/rockylinux:8
+MAINTAINER tomasz.gromadzki@intel.com
+
+
+ENV VALGRIND_DEPS "\
+	autoconf \
+	automake \
+	file \
+	findutils \
+	git"
+
+# pmdk base
+ENV BASE_DEPS "\
+	cmake \
+	git \
+	daxctl-devel \
+	make \
+	ndctl-devel \
+	passwd \
+	pkg-config"
+
+# benchmarks (optional)
+ENV BENCH_DEPS "\
+	glib2-devel"
+
+# examples (optional)
+ENV EXAMPLES_DEPS "\
+	fuse \
+	fuse-devel \
+	ncurses-devel \
+	libuv-devel"
+
+# documentation (optional)
+ENV DOC_DEPS "\
+	pandoc"
+
+# tests
+ENV TESTS_DEPS "\
+	bc \
+	gdb \
+	libunwind-devel \
+	ndctl \
+	openssh-server \
+	strace"
+
+# packaging
+ENV PACKAGING_DEPS "\
+	rpm-build \
+	rpm-build-libs \
+	rpmdevtools"
+
+# misc
+ENV MISC_DEPS "\
+	clang \
+	lbzip2 \
+	man \
+	python3 \
+	python3-flake8 \
+	rsync \
+	shadow-utils \
+	sudo \
+	tar \
+	which \
+	xmlto"
+
+# Copy install valgrind script
+COPY install-valgrind.sh install-valgrind.sh
+
+RUN dnf update -y && dnf install -y epel-release \
+	'dnf-command(config-manager)' \
+	&& dnf config-manager --set-enabled powertools \
+	&& dnf install -y  \
+	$VALGRIND_DEPS \
+	$BASE_DEPS \
+	$BENCH_DEPS \
+	$EXAMPLES_DEPS \
+	$DOC_DEPS \
+	$TESTS_DEPS \
+	$PACKAGING_DEPS \
+	$MISC_DEPS \
+	$TESTS_DEPS \
+	&& ./install-valgrind.sh rockylinux \
+&& dnf clean all
+
+# Add user
+ENV USER pmdkuser
+ENV USERPASS pmdkpass
+RUN useradd -m $USER
+RUN echo $USERPASS | passwd $USER --stdin
+RUN gpasswd wheel -a $USER
+RUN echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+USER $USER
+
+# Set required environment variables
+ENV OS rockylinux/rockylinux
+ENV OS_VER 8
+ENV PACKAGE_MANAGER rpm
+ENV NOTTY 1
