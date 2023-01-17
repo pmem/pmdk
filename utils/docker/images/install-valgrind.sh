@@ -12,6 +12,7 @@ OS=$1
 
 install_upstream_from_distro() {
   case "$OS" in
+    rockylinux) dnf install -y valgrind ;;
     fedora) dnf install -y valgrind ;;
     ubuntu) apt-get install -y --no-install-recommends valgrind ;;
     *) return 1 ;;
