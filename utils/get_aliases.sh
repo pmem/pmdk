@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2020, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 
 #
@@ -86,12 +86,6 @@ function list_pages {
 
 	if [ "$parent" == "libpmempool" ]; then
 		man_child=($(ls -1 ../libpmempool | grep -e ".*\.3$"))
-		echo -n "- $parent: " >> $map_file
-		echo "${man_child[@]}" >> $map_file
-	fi
-
-	if [ "$parent" == "librpmem" ]; then
-		man_child=($(ls -1 ../librpmem | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 # src/Makefile.inc -- common Makefile rules for PMDK
 #
@@ -63,11 +63,6 @@ endif
 ifeq ($(WSTRINGOP_TRUNCATION_AVAILABLE), y)
 DEFAULT_CFLAGS += -DSTRINGOP_TRUNCATION_SUPPORTED
 endif
-
-# Librpmem is deprecated.
-# This flag allows to build tests, examples and benchmarks
-# using rpmem despite the deprecated state.
-DEFAULT_CFLAGS += -Wno-deprecated-declarations
 
 ifeq ($(DEBUG),1)
 # Undefine _FORTIFY_SOURCE in case it's set in system-default or
