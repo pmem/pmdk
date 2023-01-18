@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 # Makefile -- top Makefile for pmempool
 #
@@ -18,6 +18,7 @@ LIBPMEMOBJ=y
 LIBPMEMLOG=y
 LIBPMEMPOOL=y
 TOOLS_COMMON=y
+TOOLS_PMEMPOOL_COMMON=y
 
 LIBPMEMOBJ_PRIV=memblock_from_offset alloc_class_by_id\
 	memblock_rebuild_state alloc_class_by_run\
