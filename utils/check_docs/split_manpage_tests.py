@@ -106,13 +106,6 @@ def get_functions_from_so_files(lib_path):
     return functions_from_so_files
 
 
-def get_functions_windows_only():
-    """
-    Returns list of PMDK functions that are specific to Windows OS
-    """
-    return ['pmem2_source_from_handle', 'pmem2_source_get_handle']
-
-
 def get_functions_and_macros_from_doc(pmdk_path):
     """
     Returns names of functions and macros in a list based on names of files
@@ -167,12 +160,11 @@ def check_completeness_of_extracted_functions_and_macros(pmdk_path, lib_path):
     functions_from_doc = get_functions_and_macros_from_doc(pmdk_path)
     macros = get_macros(pmdk_path)
     functions_from_so_files = get_functions_from_so_files(lib_path)
-    functions_windows_specific = get_functions_windows_only()
     pmem2_async_group_name = 'pmem2_async'
     missing_functions_and_macros_in_doc = [
         item for item in functions_from_doc
         if (item not in macros and item not in functions_from_so_files and
-            item not in functions_windows_specific and item not in pmem2_async_group_name)]
+            item not in pmem2_async_group_name)]
     return missing_functions_and_macros_in_doc
 
 

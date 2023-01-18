@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2022, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 #
 # run-doc-update.sh - is called inside a Docker container to build docs in the current repository,
@@ -52,7 +52,6 @@ echo "Build docs and copy man & web md"
 make -j$(nproc) web
 
 mv ./web_linux ${ARTIFACTS_DIR}
-mv ./web_windows ${ARTIFACTS_DIR}
 mv ./generated/libs_map.yml ${ARTIFACTS_DIR}
 popd
 
@@ -73,10 +72,6 @@ git clean -dfx
 
 echo "Copy content"
 rsync -a ${ARTIFACTS_DIR}/web_linux/ ./content/pmdk/manpages/linux/${TARGET_DOCS_DIR}/ --delete
-rsync -a ${ARTIFACTS_DIR}/web_windows/ ./content/pmdk/manpages/windows/${TARGET_DOCS_DIR}/ --delete \
-	--exclude='librpmem'	\
-	--exclude='rpmemd' --exclude='pmreorder'	\
-	--exclude='daxio'
 
 if [ ${TARGET_BRANCH} = "master" ]; then
 	cp ${ARTIFACTS_DIR}/libs_map.yml data/

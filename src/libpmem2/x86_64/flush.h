@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 #ifndef X86_64_FLUSH_H
 #define X86_64_FLUSH_H
@@ -18,19 +18,6 @@ pmem_clflush(const void *addr)
 	_mm_clflush(addr);
 }
 
-#ifdef _MSC_VER
-static force_inline void
-pmem_clflushopt(const void *addr)
-{
-	_mm_clflushopt(addr);
-}
-
-static force_inline void
-pmem_clwb(const void *addr)
-{
-	_mm_clwb(addr);
-}
-#else
 /*
  * The x86 memory instructions are new enough that the compiler
  * intrinsic functions are not always available.  The intrinsic
@@ -48,7 +35,6 @@ pmem_clwb(const void *addr)
 	asm volatile(".byte 0x66; xsaveopt %0" : "+m" \
 		(*(volatile char *)(addr)));
 }
-#endif /* _MSC_VER */
 
 typedef void flush_fn(const void *, size_t);
 

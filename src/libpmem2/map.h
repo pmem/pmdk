@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2022, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * map.h -- internal definitions for libpmem2
@@ -14,10 +14,6 @@
 #include "source.h"
 #include "libminiasync/vdm.h"
 #include "vm_reservation.h"
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 #ifndef PMEM_AVX_H
 #define PMEM_AVX_H
@@ -49,23 +49,6 @@ m256_get16b(__m256i ymm)
 	return _mm256_extractf128_si256(ymm, 0);
 }
 
-#ifdef _MSC_VER
-static force_inline uint64_t
-m256_get8b(__m256i ymm)
-{
-	return (uint64_t)_mm_extract_epi64(m256_get16b(ymm), 0);
-}
-static force_inline uint32_t
-m256_get4b(__m256i ymm)
-{
-	return (uint32_t)m256_get8b(ymm);
-}
-static force_inline uint16_t
-m256_get2b(__m256i ymm)
-{
-	return (uint16_t)m256_get8b(ymm);
-}
-#else
 static force_inline uint64_t
 m256_get8b(__m256i ymm)
 {
@@ -81,6 +64,5 @@ m256_get2b(__m256i ymm)
 {
 	return (uint16_t)_mm256_extract_epi16(ymm, 0);
 }
-#endif
 
 #endif
