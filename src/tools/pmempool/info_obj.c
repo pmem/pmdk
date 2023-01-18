@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * info_obj.c -- pmempool info command source file for obj pool
@@ -884,7 +884,6 @@ info_obj_stats(struct pmem_info *pip)
 }
 
 static struct pmem_info *Pip;
-#ifndef _WIN32
 static void
 info_obj_sa_sigaction(int signum, siginfo_t *info, void *context)
 {
@@ -897,22 +896,6 @@ static struct sigaction info_obj_sigaction = {
 	.sa_sigaction = info_obj_sa_sigaction,
 	.sa_flags = SA_SIGINFO
 };
-#else
-#define CALL_FIRST 1
-
-static LONG CALLBACK
-exception_handler(_In_ PEXCEPTION_POINTERS ExceptionInfo)
-{
-	PEXCEPTION_RECORD record = ExceptionInfo->ExceptionRecord;
-	if (record->ExceptionCode != EXCEPTION_ACCESS_VIOLATION) {
-		return EXCEPTION_CONTINUE_SEARCH;
-	}
-	uintptr_t offset = (uintptr_t)record->ExceptionInformation[1] -
-		(uintptr_t)Pip->obj.pop;
-	outv_err("Invalid offset 0x%lx\n", offset);
-	exit(EXIT_FAILURE);
-}
-#endif
 
 /*
  * info_obj -- print information about obj pool type
@@ -936,12 +919,7 @@ pmempool_info_obj(struct pmem_info *pip)
 	pip->obj.heap = heap;
 
 	Pip = pip;
-#ifndef _WIN32
 	if (sigaction(SIGSEGV, &info_obj_sigaction, NULL)) {
-#else
-	if (AddVectoredExceptionHandler(CALL_FIRST, exception_handler) ==
-		NULL) {
-#endif
 		perror("sigaction");
 		return -1;
 	}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2017, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmem.c -- pmem entry points for libpmem
@@ -45,9 +45,7 @@ libpmem_fini(void)
 /*
  * pmem_check_versionU -- see if library meets application version requirements
  */
-#ifndef _WIN32
 static inline
-#endif
 const char *
 pmem_check_versionU(unsigned major_required, unsigned minor_required)
 {
@@ -69,7 +67,6 @@ pmem_check_versionU(unsigned major_required, unsigned minor_required)
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmem_check_version -- see if library meets application version requirements
  */
@@ -78,33 +75,17 @@ pmem_check_version(unsigned major_required, unsigned minor_required)
 {
 	return pmem_check_versionU(major_required, minor_required);
 }
-#else
-/*
- * pmem_check_versionW -- see if library meets application version requirements
- */
-const wchar_t *
-pmem_check_versionW(unsigned major_required, unsigned minor_required)
-{
-	if (pmem_check_versionU(major_required, minor_required) != NULL)
-		return out_get_errormsgW();
-	else
-		return NULL;
-}
-#endif
 
 /*
  * pmem_errormsgU -- return last error message
  */
-#ifndef _WIN32
 static inline
-#endif
 const char *
 pmem_errormsgU(void)
 {
 	return out_get_errormsg();
 }
 
-#ifndef _WIN32
 /*
  * pmem_errormsg -- return last error message
  */
@@ -113,13 +94,3 @@ pmem_errormsg(void)
 {
 	return pmem_errormsgU();
 }
-#else
-/*
- * pmem_errormsgW -- return last error message as wchar_t
- */
-const wchar_t *
-pmem_errormsgW(void)
-{
-	return out_get_errormsgW();
-}
-#endif

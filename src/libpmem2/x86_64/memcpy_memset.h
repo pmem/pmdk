@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 #ifndef MEMCPY_MEMSET_H
 #define MEMCPY_MEMSET_H
@@ -70,27 +70,11 @@ no_barrier(void)
 }
 
 #ifndef MOVDIR64B_AVAILABLE
-/*
- * XXX not supported in MSVC version we currently use.
- */
-#ifdef _MSC_VER
-#define MOVDIR64B_AVAILABLE 0
-#else
 #define MOVDIR64B_AVAILABLE 1
-#endif
 #endif
 
 #ifndef AVX512F_AVAILABLE
-/*
- * XXX not supported in MSVC version we currently use.
- * Enable Windows tests pmem2_mem_ext when MSVC we
- * use will support AVX512F.
- */
-#ifdef _MSC_VER
-#define AVX512F_AVAILABLE 0
-#else
 #define AVX512F_AVAILABLE 1
-#endif
 #endif
 
 #ifndef AVX_AVAILABLE

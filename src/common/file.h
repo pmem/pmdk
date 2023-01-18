@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * file.h -- internal definitions for file module
@@ -19,10 +19,6 @@
 extern "C" {
 #endif
 
-#ifdef _WIN32
-#define NAME_MAX _MAX_FNAME
-#endif
-
 struct file_info {
 	char filename[NAME_MAX + 1];
 	int is_dir;
@@ -30,12 +26,7 @@ struct file_info {
 
 struct dir_handle {
 	const char *path;
-#ifdef _WIN32
-	HANDLE handle;
-	char *_file;
-#else
 	DIR *dirp;
-#endif
 };
 
 enum file_type {
@@ -74,40 +65,8 @@ int util_file_mkdir(const char *path, mode_t mode);
 
 int util_write_all(int fd, const char *buf, size_t count);
 
-#ifndef _WIN32
 #define util_read	read
 #define util_write	write
-#else
-static inline ssize_t
-util_read(int fd, void *buf, size_t count)
-{
-	/*
-	 * Simulate short read, because Windows' _read uses "unsigned" as
-	 * a type of the last argument and "int" as a return type.
-	 * We have to limit "count" to what _read can return as a success,
-	 * not what it can accept.
-	 */
-	if (count > INT_MAX)
-		count = INT_MAX;
-	return _read(fd, buf, (unsigned)count);
-}
-
-static inline ssize_t
-util_write(int fd, const void *buf, size_t count)
-{
-	/*
-	 * Simulate short write, because Windows' _write uses "unsigned" as
-	 * a type of the last argument and "int" as a return type.
-	 * We have to limit "count" to what _write can return as a success,
-	 * not what it can accept.
-	 */
-	if (count > INT_MAX)
-		count = INT_MAX;
-	return _write(fd, buf, (unsigned)count);
-}
-#define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
-#define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
-#endif
 #ifdef __cplusplus
 }
 #endif

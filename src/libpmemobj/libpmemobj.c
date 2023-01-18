@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2017, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmemobj.c -- pmem entry points for libpmemobj
@@ -41,9 +41,7 @@ libpmemobj_fini(void)
 /*
  * pmemobj_check_versionU -- see if lib meets application version requirements
  */
-#ifndef _WIN32
 static inline
-#endif
 const char *
 pmemobj_check_versionU(unsigned major_required, unsigned minor_required)
 {
@@ -65,7 +63,6 @@ pmemobj_check_versionU(unsigned major_required, unsigned minor_required)
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmemobj_check_version -- see if lib meets application version requirements
  */
@@ -74,19 +71,6 @@ pmemobj_check_version(unsigned major_required, unsigned minor_required)
 {
 	return pmemobj_check_versionU(major_required, minor_required);
 }
-#else
-/*
- * pmemobj_check_versionW -- see if lib meets application version requirements
- */
-const wchar_t *
-pmemobj_check_versionW(unsigned major_required, unsigned minor_required)
-{
-	if (pmemobj_check_versionU(major_required, minor_required) != NULL)
-		return out_get_errormsgW();
-	else
-		return NULL;
-}
-#endif
 
 /*
  * pmemobj_set_funcs -- allow overriding libpmemobj's call to malloc, etc.
@@ -106,16 +90,13 @@ pmemobj_set_funcs(
 /*
  * pmemobj_errormsgU -- return last error message
  */
-#ifndef _WIN32
 static inline
-#endif
 const char *
 pmemobj_errormsgU(void)
 {
 	return out_get_errormsg();
 }
 
-#ifndef _WIN32
 /*
  * pmemobj_errormsg -- return last error message
  */
@@ -124,13 +105,3 @@ pmemobj_errormsg(void)
 {
 	return pmemobj_errormsgU();
 }
-#else
-/*
- * pmemobj_errormsgW -- return last error message as wchar_t
- */
-const wchar_t *
-pmemobj_errormsgW(void)
-{
-	return out_get_errormsgW();
-}
-#endif

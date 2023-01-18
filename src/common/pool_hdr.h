@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * pool_hdr.h -- internal definitions for pool header module
@@ -209,7 +209,7 @@ static const features_t features_zero =
 #define POOL_FEAT_INCOMPAT_VALID \
 	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 
-#if defined(_WIN32) || NDCTL_ENABLED
+#if NDCTL_ENABLED
 #define POOL_FEAT_INCOMPAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 #else

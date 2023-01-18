@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * log.c -- log memory pool entry points for libpmem
@@ -147,9 +147,7 @@ log_runtime_init(PMEMlogpool *plp, int rdonly)
 /*
  * pmemlog_createU -- create a log memory pool
  */
-#ifndef _WIN32
 static inline
-#endif
 PMEMlogpool *
 pmemlog_createU(const char *path, size_t poolsize, mode_t mode)
 {
@@ -214,7 +212,6 @@ err:
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmemlog_create -- create a log memory pool
  */
@@ -223,23 +220,6 @@ pmemlog_create(const char *path, size_t poolsize, mode_t mode)
 {
 	return pmemlog_createU(path, poolsize, mode);
 }
-#else
-/*
- * pmemlog_createW -- create a log memory pool
- */
-PMEMlogpool *
-pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return NULL;
-
-	PMEMlogpool *ret = pmemlog_createU(upath, poolsize, mode);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
 
 /*
  * log_open_common -- (internal) open a log memory pool
@@ -312,9 +292,7 @@ err:
 /*
  * pmemlog_openU -- open an existing log memory pool
  */
-#ifndef _WIN32
 static inline
-#endif
 PMEMlogpool *
 pmemlog_openU(const char *path)
 {
@@ -323,7 +301,6 @@ pmemlog_openU(const char *path)
 	return log_open_common(path, COW_at_open ? POOL_OPEN_COW : 0);
 }
 
-#ifndef _WIN32
 /*
  * pmemlog_open -- open an existing log memory pool
  */
@@ -332,23 +309,6 @@ pmemlog_open(const char *path)
 {
 	return pmemlog_openU(path);
 }
-#else
-/*
- * pmemlog_openW -- open an existing log memory pool
- */
-PMEMlogpool *
-pmemlog_openW(const wchar_t *path)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return NULL;
-
-	PMEMlogpool *ret = pmemlog_openU(upath);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
 
 /*
  * pmemlog_close -- close a log memory pool
@@ -678,9 +638,7 @@ pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
  * Returns true if consistent, zero if inconsistent, -1/error if checking
  * cannot happen due to other errors.
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemlog_checkU(const char *path)
 {
@@ -730,7 +688,6 @@ pmemlog_checkU(const char *path)
 	return consistent;
 }
 
-#ifndef _WIN32
 /*
  * pmemlog_check -- log memory pool consistency check
  *
@@ -742,30 +699,11 @@ pmemlog_check(const char *path)
 {
 	return pmemlog_checkU(path);
 }
-#else
-/*
- * pmemlog_checkW -- log memory pool consistency check
- */
-int
-pmemlog_checkW(const wchar_t *path)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return -1;
-
-	int ret = pmemlog_checkU(upath);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
 
 /*
  * pmemlog_ctl_getU -- programmatically executes a read ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemlog_ctl_getU(PMEMlogpool *plp, const char *name, void *arg)
 {
@@ -777,9 +715,7 @@ pmemlog_ctl_getU(PMEMlogpool *plp, const char *name, void *arg)
 /*
  * pmemblk_ctl_setU -- programmatically executes a write ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemlog_ctl_setU(PMEMlogpool *plp, const char *name, void *arg)
 {
@@ -791,9 +727,7 @@ pmemlog_ctl_setU(PMEMlogpool *plp, const char *name, void *arg)
 /*
  * pmemlog_ctl_execU -- programmatically executes a runnable ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemlog_ctl_execU(PMEMlogpool *plp, const char *name, void *arg)
 {
@@ -802,7 +736,6 @@ pmemlog_ctl_execU(PMEMlogpool *plp, const char *name, void *arg)
 		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
 }
 
-#ifndef _WIN32
 /*
  * pmemlog_ctl_get -- programmatically executes a read ctl query
  */
@@ -829,55 +762,6 @@ pmemlog_ctl_exec(PMEMlogpool *plp, const char *name, void *arg)
 {
 	return pmemlog_ctl_execU(plp, name, arg);
 }
-#else
-/*
- * pmemlog_ctl_getW -- programmatically executes a read ctl query
- */
-int
-pmemlog_ctl_getW(PMEMlogpool *plp, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemlog_ctl_getU(plp, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-
-/*
- * pmemlog_ctl_setW -- programmatically executes a write ctl query
- */
-int
-pmemlog_ctl_setW(PMEMlogpool *plp, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemlog_ctl_setU(plp, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-
-/*
- * pmemlog_ctl_execW -- programmatically executes a runnable ctl query
- */
-int
-pmemlog_ctl_execW(PMEMlogpool *plp, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemlog_ctl_execU(plp, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-#endif
 
 #if FAULT_INJECTION
 void
