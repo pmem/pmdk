@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * blk.cpp -- pmemblk benchmarks definitions
@@ -454,9 +454,6 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 		bb->pbp = nullptr;
 
 		int flags = O_RDWR | O_CREAT | O_SYNC;
-#ifdef _WIN32
-		flags |= O_BINARY;
-#endif
 		bb->fd = os_open(args->fname, flags, args->fmode);
 		if (bb->fd < 0) {
 			perror("open");
