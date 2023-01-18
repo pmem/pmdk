@@ -21,11 +21,6 @@
 #include "valgrind_internal.h"
 #include "util.h"
 
-/* XXX - modify Linux makefiles to generate srcversion.h and remove #ifdef */
-#ifdef _WIN32
-#include "srcversion.h"
-#endif
-
 static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
@@ -40,9 +35,6 @@ static unsigned Log_alignment;
 struct errormsg
 {
 	char msg[MAXPRINT];
-#ifdef _WIN32
-	wchar_t wmsg[MAXPRINT];
-#endif
 };
 
 #ifndef NO_LIBPTHREAD
@@ -350,10 +342,6 @@ out_common(const char *file, int line, const char *func, int level,
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
 	unsigned long olast_error = 0;
-#ifdef _WIN32
-	if (fmt && fmt[0] == '!' && fmt[1] == '!')
-		olast_error = GetLastError();
-#endif
 
 	if (file) {
 		char *f = strrchr(file, OS_DIR_SEPARATOR);
@@ -401,9 +389,6 @@ out_common(const char *file, int line, const char *func, int level,
 
 end:
 	errno = oerrno;
-#ifdef _WIN32
-	SetLastError(olast_error);
-#endif
 }
 
 /*
@@ -415,9 +400,6 @@ out_error(const char *file, int line, const char *func,
 {
 	int oerrno = errno;
 	unsigned long olast_error = 0;
-#ifdef _WIN32
-	olast_error = GetLastError();
-#endif
 	unsigned cc = 0;
 	int ret;
 	const char *sep = "";
@@ -489,9 +471,6 @@ out_error(const char *file, int line, const char *func,
 
 end:
 	errno = oerrno;
-#ifdef _WIN32
-	SetLastError(olast_error);
-#endif
 }
 
 /*
@@ -584,20 +563,3 @@ out_get_errormsg(void)
 	const struct errormsg *errormsg = Last_errormsg_get();
 	return &errormsg->msg[0];
 }
-
-#ifdef _WIN32
-/*
- * out_get_errormsgW -- get the last error message in wchar_t
- */
-const wchar_t *
-out_get_errormsgW(void)
-{
-	struct errormsg *errormsg = Last_errormsg_get();
-	const char *utf8 = &errormsg->msg[0];
-	wchar_t *utf16 = &errormsg->wmsg[0];
-	if (util_toUTF16_buff(utf8, utf16, sizeof(errormsg->wmsg)) != 0)
-		FATAL("!Failed to convert string");
-
-	return (const wchar_t *)utf16;
-}
-#endif

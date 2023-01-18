@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * os.h -- os abstraction layer
@@ -18,15 +18,8 @@
 extern "C" {
 #endif
 
-#ifndef _WIN32
 #define OS_DIR_SEPARATOR '/'
 #define OS_DIR_SEP_STR "/"
-#else
-#define OS_DIR_SEPARATOR '\\'
-#define OS_DIR_SEP_STR "\\"
-#endif
-
-#ifndef _WIN32
 
 /* madvise() */
 #ifdef __FreeBSD__
@@ -50,8 +43,6 @@ extern "C" {
 #define os_minor minor
 #endif
 
-#endif /* #ifndef _WIN32 */
-
 struct iovec;
 
 /* os_flock */
@@ -60,24 +51,14 @@ struct iovec;
 #define OS_LOCK_NB 4
 #define OS_LOCK_UN 8
 
-#ifndef _WIN32
 typedef struct stat os_stat_t;
 #define os_fstat	fstat
 #define os_lseek	lseek
-#else
-typedef struct _stat64 os_stat_t;
-#define os_fstat	_fstat64
-#define os_lseek	_lseeki64
-#endif
 
 #define os_close close
 #define os_fclose fclose
 
-#ifndef _WIN32
 typedef off_t os_off_t;
-#else
-/* XXX: os_off_t defined in platform.h */
-#endif
 int os_open(const char *pathname, int flags, ...);
 int os_fsync(int fd);
 int os_fsync_dir(const char *dir_name);

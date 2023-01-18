@@ -392,9 +392,7 @@ pmem_is_pmem(const void *addr, size_t len)
 /*
  * pmem_map_fileU -- create or open the file and map it to memory
  */
-#ifndef _WIN32
 static inline
-#endif
 void *
 pmem_map_fileU(const char *path, size_t len, int flags,
 	mode_t mode, size_t *mapped_lenp, int *is_pmemp)
@@ -407,9 +405,6 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 	int open_flags = O_RDWR;
 	int delete_on_err = 0;
 	int file_type = util_file_get_type(path);
-#ifdef _WIN32
-	open_flags |= O_BINARY;
-#endif
 
 	if (file_type == OTHER_ERROR)
 		return NULL;
@@ -546,7 +541,6 @@ err:
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmem_map_file -- create or open the file and map it to memory
  */
@@ -556,24 +550,6 @@ pmem_map_file(const char *path, size_t len, int flags,
 {
 	return pmem_map_fileU(path, len, flags, mode, mapped_lenp, is_pmemp);
 }
-#else
-/*
- * pmem_map_fileW -- create or open the file and map it to memory
- */
-void *
-pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
-		size_t *mapped_lenp, int *is_pmemp) {
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return NULL;
-
-	void *ret = pmem_map_fileU(upath, len, flags, mode, mapped_lenp,
-					is_pmemp);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
 
 /*
  * pmem_unmap -- unmap the specified region
@@ -583,9 +559,7 @@ pmem_unmap(void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
-#ifndef _WIN32
 	util_range_unregister(addr, len);
-#endif
 	VALGRIND_REMOVE_PMEM_MAPPING(addr, len);
 	return util_unmap(addr, len);
 }

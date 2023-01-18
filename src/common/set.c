@@ -88,9 +88,7 @@ int COW_at_open = 0;
 /* list of pool set option names and flags */
 static const struct pool_set_option Options[] = {
 	{ "SINGLEHDR", OPTION_SINGLEHDR },
-#ifndef _WIN32
 	{ "NOHDRS", OPTION_NOHDRS },
-#endif
 	{ NULL, OPTION_UNKNOWN }
 };
 
@@ -1949,11 +1947,7 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 	 * leave this to MM, but let's have a note as per our collective minds.
 	 */
 
-#ifndef _WIN32
 	int remaining_retries = 0;
-#else
-	int remaining_retries = 10;
-#endif
 	int retry_for_contiguous_addr;
 	size_t mapsize;
 	/* header size for all headers but the first one */

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * vm_reservation.c -- implementation of virtual memory allocation API
@@ -12,10 +12,6 @@
 #include "ravl_interval.h"
 #include "sys_util.h"
 #include "vm_reservation.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 struct pmem2_vm_reservation {
 	struct ravl_interval *itree;

@@ -131,9 +131,6 @@ typedef void (*pmemobj_tx_callback)(PMEMobjpool *pop, enum pobj_tx_stage stage,
  * returns zero. Otherwise, stage changes to TX_STAGE_ONABORT and an error
  * number is returned.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...);
 
 /*
@@ -142,17 +139,11 @@ int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...);
  *  - POBJ_XLOCK_NO_ABORT - if the function does not end successfully,
  *  do not abort the transaction and return the error number.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_xlock(enum pobj_tx_param type, void *lockp, uint64_t flags);
 
 /*
  * Adds lock of given type to current transaction.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_lock(enum pobj_tx_param type, void *lockp);
 
 /*
@@ -162,9 +153,6 @@ int pmemobj_tx_lock(enum pobj_tx_param type, void *lockp);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_tx_abort(int errnum);
 
 /*
@@ -172,9 +160,6 @@ void pmemobj_tx_abort(int errnum);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_tx_commit(void);
 
 /*
@@ -190,9 +175,6 @@ void pmemobj_tx_commit(void);
  *
  * This function must *not* be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_end(void);
 
 /*
@@ -202,17 +184,11 @@ int pmemobj_tx_end(void);
  *
  * This function must be called in transaction.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_tx_process(void);
 
 /*
  * Returns last transaction error code.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_errno(void);
 
 /*
@@ -227,9 +203,6 @@ int pmemobj_tx_errno(void);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
 
 /*
@@ -244,9 +217,6 @@ int pmemobj_tx_add_range(PMEMoid oid, uint64_t off, size_t size);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
 
 /*
@@ -258,9 +228,6 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
  *  - POBJ_XADD_NO_ABORT - if the function does not end successfully,
  *  do not abort the transaction and return the error number.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size,
 		uint64_t flags);
 
@@ -273,9 +240,6 @@ int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size,
  *  - POBJ_XADD_NO_ABORT - if the function does not end successfully,
  *  do not abort the transaction and return the error number.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags);
 
 /*
@@ -286,9 +250,6 @@ int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
 
 /*
@@ -304,9 +265,6 @@ PMEMoid pmemobj_tx_alloc(size_t size, uint64_t type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags);
 
 /*
@@ -317,9 +275,6 @@ PMEMoid pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
 
 /*
@@ -330,9 +285,6 @@ PMEMoid pmemobj_tx_zalloc(size_t size, uint64_t type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
 
 /*
@@ -343,9 +295,6 @@ PMEMoid pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 
 /*
@@ -356,9 +305,6 @@ PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
 
 /*
@@ -374,9 +320,6 @@ PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_xstrdup(const char *s, uint64_t type_num, uint64_t flags);
 
 /*
@@ -388,9 +331,6 @@ PMEMoid pmemobj_tx_xstrdup(const char *s, uint64_t type_num, uint64_t flags);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num);
 
 /*
@@ -407,9 +347,6 @@ PMEMoid pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_tx_xwcsdup(const wchar_t *s, uint64_t type_num, uint64_t flags);
 
 /*
@@ -420,9 +357,6 @@ PMEMoid pmemobj_tx_xwcsdup(const wchar_t *s, uint64_t type_num, uint64_t flags);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_free(PMEMoid oid);
 
 /*
@@ -437,9 +371,6 @@ int pmemobj_tx_free(PMEMoid oid);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_xfree(PMEMoid oid, uint64_t flags);
 
 /*
@@ -450,9 +381,6 @@ int pmemobj_tx_xfree(PMEMoid oid, uint64_t flags);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_log_append_buffer(enum pobj_log_type type,
 	void *addr, size_t size);
 
@@ -467,9 +395,6 @@ int pmemobj_tx_log_append_buffer(enum pobj_log_type type,
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_xlog_append_buffer(enum pobj_log_type type,
 	void *addr, size_t size, uint64_t flags);
 
@@ -481,42 +406,27 @@ int pmemobj_tx_xlog_append_buffer(enum pobj_log_type type,
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off);
 
 /*
  * Calculates and returns size for user buffers for snapshots.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 size_t pmemobj_tx_log_snapshots_max_size(size_t *sizes, size_t nsizes);
 
 /*
  * Calculates and returns size for user buffers for intents.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 size_t pmemobj_tx_log_intents_max_size(size_t nintents);
 
 /*
  * Sets volatile pointer to the user data for the current transaction.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_tx_set_user_data(void *data);
 
 /*
  * Gets volatile pointer to the user data associated with the current
  * transaction.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void *pmemobj_tx_get_user_data(void);
 
 /*
@@ -524,9 +434,6 @@ void *pmemobj_tx_get_user_data(void);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_tx_set_failure_behavior(enum pobj_tx_failure_behavior behavior);
 
 /*
@@ -534,9 +441,6 @@ void pmemobj_tx_set_failure_behavior(enum pobj_tx_failure_behavior behavior);
  *
  * This function must be called during TX_STAGE_WORK.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 enum pobj_tx_failure_behavior pmemobj_tx_get_failure_behavior(void);
 
 #ifdef __cplusplus

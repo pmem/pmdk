@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * map.c -- pmem2_map (common)
@@ -277,10 +277,8 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 	}
 	map->custom_vdm = false;
 
-#ifndef _WIN32
 	/* fd should not be used after map */
 	map->source.value.fd = INVALID_FD;
-#endif
 	ret = pmem2_register_mapping(map);
 	if (ret) {
 		if (ret == -EEXIST) {
@@ -291,12 +289,12 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 		}
 		goto err_vdm;
 	}
-#ifndef _WIN32
+
 	if (src->type == PMEM2_SOURCE_FD) {
 		VALGRIND_REGISTER_PMEM_MAPPING(map->addr,
 			map->content_length);
 	}
-#endif
+
 	*map_ptr = map;
 	return 0;
 err_vdm:
