@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * pmembench.cpp -- main source file for benchmark framework
@@ -1620,14 +1620,3 @@ out:
 	util_mmap_fini();
 	return ret;
 }
-
-#ifdef _MSC_VER
-extern "C" {
-/*
- * Since libpmemobj is linked statically,
- * we need to invoke its ctor/dtor.
- */
-MSVC_CONSTR(libpmemobj_init)
-MSVC_DESTR(libpmemobj_fini)
-}
-#endif
