@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmemobj/types.h -- definitions of libpmemobj type-safe macros
@@ -19,7 +19,7 @@ extern "C" {
 /*
  * Type safety macros
  */
-#if !(defined _MSC_VER || defined __clang__)
+#ifndef __clang__
 
 #define TOID_ASSIGN(o, value)(\
 {\
@@ -27,35 +27,11 @@ extern "C" {
 	(o); /* to avoid "error: statement with no effect" */\
 })
 
-#else /* _MSC_VER or __clang__ */
+#else
 
 #define TOID_ASSIGN(o, value) ((o).oid = value, (o))
 
-#endif
-
-#if (defined _MSC_VER && _MSC_VER < 1912)
-/*
- * XXX - workaround for offsetof issue in VS 15.3,
- *       it has been fixed since Visual Studio 2017 Version 15.5
- *       (_MSC_VER == 1912)
- */
-#ifdef PMEMOBJ_OFFSETOF_WA
-#ifdef _CRT_USE_BUILTIN_OFFSETOF
-#undef offsetof
-#define offsetof(s, m) ((size_t)&reinterpret_cast < char const volatile& > \
-((((s *)0)->m)))
-#endif
-#else
-#ifdef _CRT_USE_BUILTIN_OFFSETOF
-#error "Invalid definition of offsetof() macro - see: \
-https://developercommunity.visualstudio.com/content/problem/96174/\
-offsetof-macro-is-broken-for-nested-objects.html \
-Please upgrade your VS, fix offsetof as described under the link or define \
-PMEMOBJ_OFFSETOF_WA to enable workaround in libpmemobj.h"
-#endif
-#endif
-
-#endif /* _MSC_VER */
+#endif /* __clang__ */
 
 #define TOID_EQUALS(lhs, rhs)\
 ((lhs).oid.off == (rhs).oid.off &&\
@@ -172,29 +148,10 @@ TOID_DECLARE_ROOT(t);
 
 #define TOID_OFFSETOF(o, field) offsetof(TOID_TYPEOF(o), field)
 
-/*
- * XXX - DIRECT_RW and DIRECT_RO are not available when compiled using VC++
- *       as C code (/TC).  Use /TP option.
- */
-#ifndef _MSC_VER
-
 #define DIRECT_RW(o) (\
 {__typeof__(o) _o; _o._type = NULL; (void)_o;\
 (__typeof__(*(o)._type) *)pmemobj_direct((o).oid); })
 #define DIRECT_RO(o) ((const __typeof__(*(o)._type) *)pmemobj_direct((o).oid))
-
-#elif defined(__cplusplus)
-
-/*
- * XXX - On Windows, these macros do not behave exactly the same as on Linux.
- */
-#define DIRECT_RW(o) \
-	(reinterpret_cast < __typeof__((o)._type) > (pmemobj_direct((o).oid)))
-#define DIRECT_RO(o) \
-	(reinterpret_cast < const __typeof__((o)._type) > \
-	(pmemobj_direct((o).oid)))
-
-#endif /* (defined(_MSC_VER) || defined(__cplusplus)) */
 
 #define D_RW	DIRECT_RW
 #define D_RO	DIRECT_RO

@@ -1,5 +1,4 @@
 ignore:
-  - '.*windows.*'
   - '.*test.*'
   - '.*valgrind.*'
   - '.*benchmarks.*'

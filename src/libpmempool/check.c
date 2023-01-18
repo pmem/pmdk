@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * check.c -- functions performing checks in proper order
@@ -108,14 +108,6 @@ error_pool_malloc:
 error_data_malloc:
 	return -1;
 }
-
-#ifdef _WIN32
-void
-convert_status_cache(PMEMpoolcheck *ppc, char *buf, size_t size)
-{
-	cache_to_utf8(ppc->data, buf, size);
-}
-#endif
 
 /*
  * status_get -- (internal) get next check_status

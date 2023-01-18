@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * blk.c -- block memory pool entry points for libpmem
@@ -378,9 +378,7 @@ err:
 /*
  * pmemblk_createU -- create a block memory pool
  */
-#ifndef _WIN32
 static inline
-#endif
 PMEMblkpool *
 pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 {
@@ -459,7 +457,6 @@ err:
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmemblk_create -- create a block memory pool
  */
@@ -468,24 +465,6 @@ pmemblk_create(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 {
 	return pmemblk_createU(path, bsize, poolsize, mode);
 }
-#else
-/*
- * pmemblk_createW -- create a block memory pool
- */
-PMEMblkpool *
-pmemblk_createW(const wchar_t *path, size_t bsize, size_t poolsize,
-	mode_t mode)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return NULL;
-
-	PMEMblkpool *ret = pmemblk_createU(upath, bsize, poolsize, mode);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
 
 /*
  * blk_open_common -- (internal) open a block memory pool
@@ -561,9 +540,7 @@ err:
 /*
  * pmemblk_openU -- open a block memory pool
  */
-#ifndef _WIN32
 static inline
-#endif
 PMEMblkpool *
 pmemblk_openU(const char *path, size_t bsize)
 {
@@ -572,7 +549,6 @@ pmemblk_openU(const char *path, size_t bsize)
 	return blk_open_common(path, bsize, COW_at_open ? POOL_OPEN_COW : 0);
 }
 
-#ifndef _WIN32
 /*
  * pmemblk_open -- open a block memory pool
  */
@@ -581,23 +557,6 @@ pmemblk_open(const char *path, size_t bsize)
 {
 	return pmemblk_openU(path, bsize);
 }
-#else
-/*
- * pmemblk_openW -- open a block memory pool
- */
-PMEMblkpool *
-pmemblk_openW(const wchar_t *path, size_t bsize)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return NULL;
-
-	PMEMblkpool *ret = pmemblk_openU(upath, bsize);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
 
 /*
  * pmemblk_close -- close a block memory pool
@@ -765,9 +724,7 @@ pmemblk_set_error(PMEMblkpool *pbp, long long blockno)
 /*
  * pmemblk_checkU -- block memory pool consistency check
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemblk_checkU(const char *path, size_t bsize)
 {
@@ -786,7 +743,6 @@ pmemblk_checkU(const char *path, size_t bsize)
 	return retval;
 }
 
-#ifndef _WIN32
 /*
  * pmemblk_check -- block memory pool consistency check
  */
@@ -795,30 +751,11 @@ pmemblk_check(const char *path, size_t bsize)
 {
 	return pmemblk_checkU(path, bsize);
 }
-#else
-/*
- * pmemblk_checkW -- block memory pool consistency check
- */
-int
-pmemblk_checkW(const wchar_t *path, size_t bsize)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return -1;
-
-	int ret = pmemblk_checkU(upath, bsize);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
 
 /*
  * pmemblk_ctl_getU -- programmatically executes a read ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemblk_ctl_getU(PMEMblkpool *pbp, const char *name, void *arg)
 {
@@ -830,9 +767,7 @@ pmemblk_ctl_getU(PMEMblkpool *pbp, const char *name, void *arg)
 /*
  * pmemblk_ctl_setU -- programmatically executes a write ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemblk_ctl_setU(PMEMblkpool *pbp, const char *name, void *arg)
 {
@@ -844,9 +779,7 @@ pmemblk_ctl_setU(PMEMblkpool *pbp, const char *name, void *arg)
 /*
  * pmemblk_ctl_execU -- programmatically executes a runnable ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemblk_ctl_execU(PMEMblkpool *pbp, const char *name, void *arg)
 {
@@ -855,7 +788,6 @@ pmemblk_ctl_execU(PMEMblkpool *pbp, const char *name, void *arg)
 		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
 }
 
-#ifndef _WIN32
 /*
  * pmemblk_ctl_get -- programmatically executes a read ctl query
  */
@@ -882,55 +814,6 @@ pmemblk_ctl_exec(PMEMblkpool *pbp, const char *name, void *arg)
 {
 	return pmemblk_ctl_execU(pbp, name, arg);
 }
-#else
-/*
- * pmemblk_ctl_getW -- programmatically executes a read ctl query
- */
-int
-pmemblk_ctl_getW(PMEMblkpool *pbp, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemblk_ctl_getU(pbp, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-
-/*
- * pmemblk_ctl_setW -- programmatically executes a write ctl query
- */
-int
-pmemblk_ctl_setW(PMEMblkpool *pbp, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemblk_ctl_setU(pbp, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-
-/*
- * pmemblk_ctl_execW -- programmatically executes a runnable ctl query
- */
-int
-pmemblk_ctl_execW(PMEMblkpool *pbp, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemblk_ctl_execU(pbp, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-#endif
 
 #if FAULT_INJECTION
 void

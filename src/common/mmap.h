@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * mmap.h -- internal definitions for mmap module
@@ -84,14 +84,6 @@ struct map_tracker {
 	uintptr_t end_addr;
 	unsigned region_id;
 	enum pmem_map_type type;
-#ifdef _WIN32
-	/* Windows-specific data */
-	HANDLE FileHandle;
-	HANDLE FileMappingHandle;
-	DWORD Access;
-	os_off_t Offset;
-	size_t FileLen;
-#endif
 };
 
 void util_mmap_init(void);

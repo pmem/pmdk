@@ -67,7 +67,7 @@ SCOPE_SRC_FILES = $(foreach d, $(SCOPE_SRC_DIRS), $(wildcard $(d)/*.c))
 SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
 SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 
-# include/lib*.h - skip include/pmemcompat.h
+# include/lib*.h
 HEADERS =\
 	$(foreach f, $(wildcard\
 		freebsd/include/*.h\
@@ -75,8 +75,6 @@ HEADERS =\
 		include/lib*.h\
 		include/libpmemobj/*.h\
 		include/libpmem2/*.h\
-		windows/include/*.h\
-		windows/include/*/*.h\
 		), $(f))
 
 ifneq ($(filter 1 2, $(CSTYLEON)),)

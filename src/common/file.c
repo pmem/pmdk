@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * file.c -- file utilities
@@ -15,7 +15,7 @@
 #include <sys/file.h>
 #include <sys/mman.h>
 
-#if !defined(_WIN32) && !defined(__FreeBSD__)
+#if !defined(__FreeBSD__)
 #include <sys/sysmacros.h>
 #endif
 
@@ -91,9 +91,6 @@ util_fd_get_type(int fd)
 {
 	LOG(3, "fd %d", fd);
 
-#ifdef _WIN32
-	return TYPE_NORMAL;
-#else
 	os_stat_t st;
 
 	if (os_fstat(fd, &st) < 0) {
@@ -102,7 +99,6 @@ util_fd_get_type(int fd)
 	}
 
 	return util_stat_get_type(&st);
-#endif
 }
 
 /*
@@ -127,9 +123,6 @@ util_file_get_type(const char *path)
 	if (!exists)
 		return NOT_EXISTS;
 
-#ifdef _WIN32
-	return TYPE_NORMAL;
-#else
 	os_stat_t st;
 
 	if (os_stat(path, &st) < 0) {
@@ -138,7 +131,6 @@ util_file_get_type(const char *path)
 	}
 
 	return util_stat_get_type(&st);
-#endif
 }
 
 /*
@@ -212,9 +204,6 @@ util_file_map_whole(const char *path)
 	int olderrno;
 	void *addr = NULL;
 	int flags = O_RDWR;
-#ifdef _WIN32
-	flags |= O_BINARY;
-#endif
 
 	if ((fd = os_open(path, flags)) < 0) {
 		ERR("!open \"%s\"", path);
@@ -253,9 +242,6 @@ util_file_zero(const char *path, os_off_t off, size_t len)
 	int olderrno;
 	int ret = 0;
 	int flags = O_RDWR;
-#ifdef _WIN32
-	flags |= O_BINARY;
-#endif
 
 	if ((fd = os_open(path, flags)) < 0) {
 		ERR("!open \"%s\"", path);
@@ -433,12 +419,7 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	int fd;
 	int mode;
 	int flags = O_RDWR | O_CREAT | O_EXCL;
-#ifndef _WIN32
 	mode = 0;
-#else
-	mode = S_IWRITE | S_IREAD;
-	flags |= O_BINARY;
-#endif
 
 	/*
 	 * Create file without any permission. It will be granted once
@@ -483,10 +464,6 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 	int oerrno;
 	int fd;
-
-#ifdef _WIN32
-	flags |= O_BINARY;
-#endif
 
 	if ((fd = os_open(path, flags)) < 0) {
 		ERR("!open \"%s\"", path);
@@ -548,13 +525,6 @@ util_unlink(const char *path)
 	if (type == TYPE_DEVDAX) {
 		return util_file_zero(path, 0, DEVICE_DAX_ZERO_LEN);
 	} else {
-#ifdef _WIN32
-		/* on Windows we can not unlink Read-Only files */
-		if (os_chmod(path, S_IREAD | S_IWRITE) == -1) {
-			ERR("!chmod \"%s\"", path);
-			return -1;
-		}
-#endif
 		return os_unlink(path);
 	}
 }
@@ -572,13 +542,6 @@ util_unlink_flock(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-#ifdef WIN32
-	/*
-	 * On Windows it is not possible to unlink the
-	 * file if it is flocked.
-	 */
-	return util_unlink(path);
-#else
 	int fd = util_file_open(path, NULL, 0, O_RDONLY);
 	if (fd < 0) {
 		LOG(2, "failed to open file \"%s\"", path);
@@ -590,7 +553,6 @@ util_unlink_flock(const char *path)
 	(void) os_close(fd);
 
 	return ret;
-#endif
 }
 
 /*

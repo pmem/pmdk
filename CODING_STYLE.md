@@ -22,7 +22,7 @@ coded in the same style as the file being modified.
 Most of the common stylistic errors can be detected by the
 [style checker program](https://github.com/pmem/pmdk/blob/master/utils/cstyle)
 included in the repo.
-Simply run `make cstyle` or `CSTYLE.ps1` to verify if your code is well-formatted.
+Simply run `make cstyle` to verify if your code is well-formatted.
 
 Here is the list of the most important rules:
 - The limit of line length is 80 characters.
@@ -64,24 +64,17 @@ CamelCase or Hungarian notation.
 - Avoid using `l` as a variable name, because it is hard to distinguish `l` from `1`
 on some displays.
 
-### Multi-OS support (Linux/FreeBSD/Windows)
+### Multi-OS support (Linux/FreeBSD)
 - Do not add `#ifdef <OS>` sections lightly. They should be treated as technical
 debt and avoided when possible.
-- Use `_WIN32` macro for conditional directives when including code using
-Windows-specific API.
 - Use `__FreeBSD__` macro for conditional directives for FreeBSD-specific code.
-- Use `_MSC_VER` macro for conditional directives when including code using VC++
-or gcc specific extensions.
 - In case of large portions of code (i.e. a whole function) that have different
 implementation for each OS, consider moving them to separate files.
-(i.e. *xxx_linux.c*, *xxx_freebsd.c* and *xxx_windows.c*)
-- Keep in mind that `long int` is always 32-bit in VC++, even when building for
-64-bit platforms. Remember to use `long long` types whenever it applies, as well
+(i.e. *xxx_linux.c* and *xxx_freebsd.c*)
+- Remember to use `long long` types whenever it applies, as well
 as proper formatting strings and type suffixes (i.. `%llu`, `ULL`).
 - Standard compliant solutions should be used in preference of compiler-specific ones.
 (i.e. static inline functions versus statement expressions)
-- Do not use formatting strings that are not supported by Windows implementations
-of printf()/scanf() family. (like `%m`)
 - It is recommended to use `PRI*` and `SCN*` macros in printf()/scanf() functions
 for width-based integral types (`uint32_t`, `int64_t`, etc.).
 

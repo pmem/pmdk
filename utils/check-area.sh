@@ -55,9 +55,7 @@ categorize common    -e "^src/common/" \
 			-e "^.mailmap\$" \
 			-e "^src/PMDK.sln\$" \
 			-e "Makefile\$" \
-			-e "^src/freebsd/" \
-			-e "^src/windows/" \
-			-e "^src/include/pmemcompat.h"
+			-e "^src/freebsd/"
 
 echo
 echo "If the above list contains more than 1 entry, please consider splitting"

@@ -143,7 +143,6 @@ OTHER_TESTS = \
 	traces\
 	traces_custom_function\
 	traces_pmem\
-	unicode_api\
 	unicode_match_script\
 	util_badblock\
 	util_ctl\

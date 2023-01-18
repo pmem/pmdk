@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 /*
  * Copyright (c) 2016-2020, Microsoft Corporation. All rights reserved.
  *
@@ -44,11 +44,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <ctype.h>
-
-#ifdef _MSC_VER
-#include <intrin.h> /* popcnt, bitscan */
-#endif
-
 #include <sys/param.h>
 
 #ifdef __cplusplus
@@ -104,17 +99,6 @@ char *util_readline(FILE *fh);
 int util_snprintf(char *str, size_t size,
 	const char *format, ...) FORMAT_PRINTF(3, 4);
 
-#ifdef _WIN32
-char *util_toUTF8(const wchar_t *wstr);
-wchar_t *util_toUTF16(const char *wstr);
-void util_free_UTF8(char *str);
-void util_free_UTF16(wchar_t *str);
-int util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size);
-int util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size);
-void util_suppress_errmsg(void);
-int util_lasterror_to_errno(unsigned long err);
-#endif
-
 #define UTIL_MAX_ERR_MSG 128
 void util_strerror(int errnum, char *buff, size_t bufflen);
 void util_strwinerror(unsigned long err, char *buff, size_t bufflen);
@@ -132,13 +116,8 @@ void util_set_alloc_funcs(
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof((x)[0]))
 #endif
 
-#ifdef _MSC_VER
-#define force_inline inline __forceinline
-#define NORETURN __declspec(noreturn)
-#else
 #define force_inline __attribute__((always_inline)) inline
 #define NORETURN __attribute__((noreturn))
-#endif
 
 /*
  * compiler_barrier -- issues a compiler barrier
@@ -146,22 +125,12 @@ void util_set_alloc_funcs(
 static force_inline void
 compiler_barrier(void)
 {
-#ifdef _MSC_VER
-	_ReadWriteBarrier();
-#else
 	asm volatile("" ::: "memory");
-#endif
 }
 
-#ifdef _MSC_VER
-typedef UNALIGNED uint64_t ua_uint64_t;
-typedef UNALIGNED uint32_t ua_uint32_t;
-typedef UNALIGNED uint16_t ua_uint16_t;
-#else
 typedef uint64_t ua_uint64_t __attribute__((aligned(1)));
 typedef uint32_t ua_uint32_t __attribute__((aligned(1)));
 typedef uint16_t ua_uint16_t __attribute__((aligned(1)));
-#endif
 
 #define util_get_not_masked_bits(x, mask) ((x) & ~(mask))
 
@@ -221,7 +190,6 @@ util_div_ceil(unsigned a, unsigned b)
  *
  */
 
-#ifndef _MSC_VER
 /*
  * ISO C11 -- 7.17.1.4
  * memory_order - an enumerated type whose enumerators identify memory ordering
@@ -289,185 +257,6 @@ typedef enum {
 #define util_mssb_index(value) ((unsigned char)(31 - __builtin_clz(value)))
 #define util_mssb_index64(value) ((unsigned char)(63 - __builtin_clzll(value)))
 
-#else
-
-/* ISO C11 -- 7.17.1.4 */
-typedef enum {
-	memory_order_relaxed,
-	memory_order_consume,
-	memory_order_acquire,
-	memory_order_release,
-	memory_order_acq_rel,
-	memory_order_seq_cst
-} memory_order;
-
-/*
- * ISO C11 -- 7.17.7.2 The atomic_load generic functions
- * Integer width specific versions as supplement for:
- *
- *
- * #include <stdatomic.h>
- * C atomic_load(volatile A *object);
- * C atomic_load_explicit(volatile A *object, memory_order order);
- *
- * The atomic_load interface doesn't return the loaded value, but instead
- * copies it to a specified address.
- * The MSVC specific implementation needs to trigger a barrier (at least
- * compiler barrier) after the load from the volatile value. The actual load
- * from the volatile value itself is expected to be atomic.
- *
- * The actual isnterface here:
- * #include "util.h"
- * void util_atomic_load32(volatile A *object, A *destination);
- * void util_atomic_load64(volatile A *object, A *destination);
- * void util_atomic_load_explicit32(volatile A *object, A *destination,
- *                                  memory_order order);
- * void util_atomic_load_explicit64(volatile A *object, A *destination,
- *                                  memory_order order);
- */
-
-#ifndef _M_X64
-#error MSVC ports of util_atomic_ only work on X86_64
-#endif
-
-#if _MSC_VER >= 2000
-#error util_atomic_ utility functions not tested with this version of VC++
-#error These utility functions are not future proof, as they are not
-#error based on publicly available documentation.
-#endif
-
-#define util_atomic_load_explicit(object, dest, order)\
-	do {\
-		COMPILE_ERROR_ON(order != memory_order_seq_cst &&\
-				order != memory_order_consume &&\
-				order != memory_order_acquire &&\
-				order != memory_order_relaxed);\
-		*dest = *object;\
-		if (order == memory_order_seq_cst ||\
-		    order == memory_order_consume ||\
-		    order == memory_order_acquire)\
-		_ReadWriteBarrier();\
-	} while (0)
-
-#define util_atomic_load_explicit32 util_atomic_load_explicit
-#define util_atomic_load_explicit64 util_atomic_load_explicit
-
-/* ISO C11 -- 7.17.7.1 The atomic_store generic functions */
-
-#define util_atomic_store_explicit64(object, desired, order)\
-	do {\
-		COMPILE_ERROR_ON(order != memory_order_seq_cst &&\
-				order != memory_order_release &&\
-				order != memory_order_relaxed);\
-		if (order == memory_order_seq_cst) {\
-			_InterlockedExchange64(\
-				    (volatile long long *)object, desired);\
-		} else {\
-			if (order == memory_order_release)\
-				_ReadWriteBarrier();\
-			*object = desired;\
-		}\
-	} while (0)
-
-#define util_atomic_store_explicit32(object, desired, order)\
-	do {\
-		COMPILE_ERROR_ON(order != memory_order_seq_cst &&\
-				order != memory_order_release &&\
-				order != memory_order_relaxed);\
-		if (order == memory_order_seq_cst) {\
-			_InterlockedExchange(\
-				    (volatile long *)object, desired);\
-		} else {\
-			if (order == memory_order_release)\
-				_ReadWriteBarrier();\
-			*object = desired;\
-		}\
-	} while (0)
-
-/*
- * https://msdn.microsoft.com/en-us/library/hh977022.aspx
- */
-
-static __inline int
-bool_compare_and_swap32_VC(volatile LONG *ptr,
-		LONG oldval, LONG newval)
-{
-	LONG old = InterlockedCompareExchange(ptr, newval, oldval);
-	return (old == oldval);
-}
-
-static __inline int
-bool_compare_and_swap64_VC(volatile LONG64 *ptr,
-		LONG64 oldval, LONG64 newval)
-{
-	LONG64 old = InterlockedCompareExchange64(ptr, newval, oldval);
-	return (old == oldval);
-}
-
-#define util_bool_compare_and_swap32(p, o, n)\
-	bool_compare_and_swap32_VC((LONG *)(p), (LONG)(o), (LONG)(n))
-#define util_bool_compare_and_swap64(p, o, n)\
-	bool_compare_and_swap64_VC((LONG64 *)(p), (LONG64)(o), (LONG64)(n))
-#define util_fetch_and_add32(ptr, value)\
-    InterlockedExchangeAdd((LONG *)(ptr), value)
-#define util_fetch_and_add64(ptr, value)\
-    InterlockedExchangeAdd64((LONG64 *)(ptr), value)
-#define util_fetch_and_sub32(ptr, value)\
-    InterlockedExchangeSubtract((LONG *)(ptr), value)
-#define util_fetch_and_sub64(ptr, value)\
-    InterlockedExchangeAdd64((LONG64 *)(ptr), -((LONG64)(value)))
-#define util_fetch_and_and32(ptr, value)\
-    InterlockedAnd((LONG *)(ptr), value)
-#define util_fetch_and_and64(ptr, value)\
-    InterlockedAnd64((LONG64 *)(ptr), value)
-#define util_fetch_and_or32(ptr, value)\
-    InterlockedOr((LONG *)(ptr), value)
-#define util_fetch_and_or64(ptr, value)\
-    InterlockedOr64((LONG64 *)(ptr), value)
-
-static __inline void
-util_synchronize(void)
-{
-	MemoryBarrier();
-}
-
-#define util_popcount(value) (unsigned char)__popcnt(value)
-#define util_popcount64(value) (unsigned char)__popcnt64(value)
-
-static __inline unsigned char
-util_lssb_index(int value)
-{
-	unsigned long ret;
-	_BitScanForward(&ret, value);
-	return (unsigned char)ret;
-}
-
-static __inline unsigned char
-util_lssb_index64(long long value)
-{
-	unsigned long ret;
-	_BitScanForward64(&ret, value);
-	return (unsigned char)ret;
-}
-
-static __inline unsigned char
-util_mssb_index(int value)
-{
-	unsigned long ret;
-	_BitScanReverse(&ret, value);
-	return (unsigned char)ret;
-}
-
-static __inline unsigned char
-util_mssb_index64(long long value)
-{
-	unsigned long ret;
-	_BitScanReverse64(&ret, value);
-	return (unsigned char)ret;
-}
-
-#endif
-
 /* ISO C11 -- 7.17.7 Operations on atomic types */
 #define util_atomic_load32(object, dest)\
 	util_atomic_load_explicit32(object, dest, memory_order_seq_cst)
@@ -503,41 +292,15 @@ char *util_concat_str(const char *s1, const char *s2);
 #if defined(__CHECKER__)
 #define COMPILE_ERROR_ON(cond)
 #define ASSERT_COMPILE_ERROR_ON(cond)
-#elif defined(_MSC_VER)
-#define COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
-/* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
-#define ASSERT_COMPILE_ERROR_ON(cond) do {} while (0)
 #else
 #define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 #define ASSERT_COMPILE_ERROR_ON(cond) COMPILE_ERROR_ON(cond)
 #endif
 
-#ifndef _MSC_VER
 #define ATTR_CONSTRUCTOR __attribute__((constructor)) static
 #define ATTR_DESTRUCTOR __attribute__((destructor)) static
-#else
-#define ATTR_CONSTRUCTOR
-#define ATTR_DESTRUCTOR
-#endif
 
-#ifndef _MSC_VER
 #define CONSTRUCTOR(fun) ATTR_CONSTRUCTOR
-#else
-#ifdef __cplusplus
-#define CONSTRUCTOR(fun)		\
-void fun();				\
-struct _##fun {			\
-	_##fun() {			\
-		fun();			\
-	}				\
-}; static  _##fun foo;			\
-static
-#else
-#define CONSTRUCTOR(fun) \
-	MSVC_CONSTR(fun) \
-	static
-#endif
-#endif
 
 #ifdef __GNUC__
 #define CHECK_FUNC_COMPATIBLE(func1, func2)\
