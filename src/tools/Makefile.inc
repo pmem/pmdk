@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 # src/tools/Makefile.inc -- Makefile include for all tools
 #
@@ -191,16 +191,18 @@ LIBS += $(LIBDL)
 endif
 
 ifeq ($(TOOLS_COMMON), y)
-vpath %.c $(TOP)/src/tools/pmempool
 
+ifeq ($(TOOLS_PMEMPOOL_COMMON), y)
+vpath %.c $(TOP)/src/tools/pmempool
+CFLAGS += -I$(TOP)/src/tools/pmempool
 OBJS += common.o output.o
+endif
 
 CFLAGS += -I$(TOP)/src/core
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/libpmemlog
 CFLAGS += -I$(TOP)/src/libpmemblk
 CFLAGS += -I$(TOP)/src/libpmemobj
-CFLAGS += -I$(TOP)/src/tools/pmempool
 CFLAGS += $(UNIX98_CFLAGS)
 
 endif
