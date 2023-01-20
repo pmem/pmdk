@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022, Intel Corporation
+# Copyright 2022-2023, Intel Corporation
 
 #
 # src/deps/makefile -- build miniasync
@@ -11,4 +11,4 @@ all clean clobber:
 ifeq ($(OS_KERNEL_NAME),Linux)
 	$(MAKE) -C miniasync $@
 endif
-cstyle check:
+cstyle check format:
