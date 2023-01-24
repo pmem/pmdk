@@ -281,7 +281,7 @@ mkdir debian
 
 # Generate compat file
 cat << EOF > debian/compat
-9
+10
 EOF
 
 # Generate control file
