@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * pmemobjfs.c -- simple filesystem based on libpmemobj tx API
@@ -213,9 +213,9 @@ struct objfs_inode {
 	uint64_t size;	/* size of file */
 	uint64_t flags;	/* file flags */
 	uint64_t dev;	/* device info */
-	uint32_t ctime;	/* time of last status change */
-	uint32_t mtime; /* time of last modification */
-	uint32_t atime; /* time of last access */
+	uint64_t ctime;	/* time of last status change */
+	uint64_t mtime; /* time of last modification */
+	uint64_t atime; /* time of last access */
 	uint32_t uid;	/* user ID */
 	uint32_t gid;	/* group ID */
 	uint32_t ref;	/* reference counter */

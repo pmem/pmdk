@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * pmreorder_list.c -- explains how to use pmreorder tool with libpmem
@@ -95,6 +95,10 @@ static void
 list_insert_consistent(struct list_root *root, node_id node, int value)
 {
 	struct list_node *new = NODE_PTR(root, node);
+	if (new == NULL) {
+		perror("cannot initialize a new node");
+		exit(1);
+	}
 
 	new->value = value;
 	new->next = root->head;
