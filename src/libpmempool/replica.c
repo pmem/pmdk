@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * replica.c -- groups all commands for replica manipulation
@@ -2190,7 +2190,7 @@ pmempool_syncU(const char *poolset, unsigned flags)
 	if (set->nreplicas == 1) {
 		ERR("no replica(s) found in the pool set");
 		errno = EINVAL;
-		goto err_close_file;
+		goto err_close_all;
 	}
 
 	/* sync all replicas */
@@ -2299,7 +2299,7 @@ pmempool_transformU(const char *poolset_src,
 	int fd_out = util_file_open(poolset_dst, NULL, 0, O_RDONLY);
 	if (fd_out < 0) {
 		ERR("cannot open destination poolset file");
-		goto err;
+		goto err_free_poolin;
 	}
 
 	enum del_parts_mode del = DO_NOT_DELETE_PARTS;
