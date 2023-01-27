@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2022, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * feature.c -- implementation of pmempool_feature_(enable|disable|query)()
@@ -213,7 +213,8 @@ err_map_hdr:
 	}
 err_open:
 	/* close the memory pool and release pool set structure */
-	util_poolset_close(set, DO_NOT_DELETE_PARTS);
+	if (set)
+		util_poolset_close(set, DO_NOT_DELETE_PARTS);
 err_poolset:
 	return NULL;
 }

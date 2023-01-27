@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2023, Intel Corporation */
 
 /*
  * ringbuf.c -- a simple lock-free single producer single consumer ring buffer
@@ -126,8 +126,11 @@ ringbuf_new(struct pmem2_source *source, uint64_t entry_size)
 		goto err_config;
 	}
 
-	pmem2_config_set_required_store_granularity(config,
-						PMEM2_GRANULARITY_PAGE);
+	if (pmem2_config_set_required_store_granularity(config,
+			PMEM2_GRANULARITY_PAGE)) {
+		pmem2_perror("pmem2_config_set_required_store_granularity");
+		goto err_config;
+	}
 
 	if (pmem2_map_new(&rbuf->map, config, source) != 0) {
 		pmem2_perror("pmem2_map_new");

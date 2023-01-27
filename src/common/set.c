@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -1193,8 +1193,8 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	enum parser_codes result;
 	char *line;
 	char *ppath;
-	char *pool_desc;
-	char *node_addr;
+	char *pool_desc = NULL;
+	char *node_addr = NULL;
 	char *cp;
 	size_t psize;
 	FILE *fs;
@@ -1382,6 +1382,10 @@ err:
 	if (set)
 		util_poolset_free(set);
 	errno = oerrno;
+	if (node_addr)
+		Free(node_addr);
+	if (pool_desc)
+		Free(pool_desc);
 	return -1;
 }
 
