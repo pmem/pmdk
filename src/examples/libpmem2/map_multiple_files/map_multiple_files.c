@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * map_multiple_files.c -- implementation of virtual address allocation example
@@ -10,11 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifndef _WIN32
 #include <unistd.h>
-#else
-#include <io.h>
-#endif
 #include <libpmem2.h>
 
 /*

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * advanced.c -- example for the libpmem2
@@ -14,12 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <libpmem2.h>
-
-#ifndef _WIN32
 #include <unistd.h>
-#else
-#include <io.h>
-#endif
 
 int
 main(int argc, char *argv[])
