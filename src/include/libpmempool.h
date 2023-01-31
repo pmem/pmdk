@@ -14,44 +14,6 @@
 #include <stddef.h>
 #include <limits.h>
 
-#ifdef _WIN32
-#include <pmemcompat.h>
-
-#ifndef PMDK_UTF8_API
-#define pmempool_check_status pmempool_check_statusW
-#define pmempool_check_args pmempool_check_argsW
-
-#define pmempool_check_init pmempool_check_initW
-#define pmempool_check pmempool_checkW
-#define pmempool_sync pmempool_syncW
-#define pmempool_transform pmempool_transformW
-#define pmempool_rm pmempool_rmW
-#define pmempool_check_version pmempool_check_versionW
-#define pmempool_errormsg pmempool_errormsgW
-#define pmempool_feature_enable pmempool_feature_enableW
-#define pmempool_feature_disable pmempool_feature_disableW
-#define pmempool_feature_query pmempool_feature_queryW
-#else
-#define pmempool_check_status pmempool_check_statusU
-#define pmempool_check_args pmempool_check_argsU
-
-#define pmempool_check_init pmempool_check_initU
-#define pmempool_check pmempool_checkU
-#define pmempool_sync pmempool_syncU
-#define pmempool_transform pmempool_transformU
-#define pmempool_rm pmempool_rmU
-#define pmempool_check_version pmempool_check_versionU
-#define pmempool_errormsg pmempool_errormsgU
-#define pmempool_feature_enable pmempool_feature_enableU
-#define pmempool_feature_disable pmempool_feature_disableU
-#define pmempool_feature_query pmempool_feature_queryU
-#endif
-
-#define WIN_DEPR_STR "Windows support is deprecated."
-#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
-
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -173,17 +135,7 @@ struct pmempool_check_statusU {
 	} str;
 };
 
-#ifndef _WIN32
 #define pmempool_check_status pmempool_check_statusU
-#else
-struct pmempool_check_statusW {
-	enum pmempool_check_msg_type type;
-	struct {
-		const wchar_t *msg;
-		const wchar_t *answer;
-	} str;
-};
-#endif
 
 /*
  * check context arguments
@@ -195,43 +147,18 @@ struct pmempool_check_argsU {
 	unsigned flags;
 };
 
-#ifndef _WIN32
 #define pmempool_check_args pmempool_check_argsU
-#else
-struct pmempool_check_argsW {
-	const wchar_t *path;
-	const wchar_t *backup_path;
-	enum pmempool_pool_type pool_type;
-	unsigned flags;
-};
-#endif
 
 /*
  * initialize a check context
  */
-#ifndef _WIN32
 PMEMpoolcheck *
 pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
-#else
-WIN_DEPR_ATTR
-PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
-	size_t args_size);
-WIN_DEPR_ATTR
-PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
-	size_t args_size);
-#endif
 
 /*
  * start / resume the check
  */
-#ifndef _WIN32
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
-#else
-WIN_DEPR_ATTR
-struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
-WIN_DEPR_ATTR
-struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
-#endif
 
 /*
  * LIBPMEMPOOL SYNC & TRANSFORM
@@ -242,31 +169,15 @@ struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
  *
  * EXPERIMENTAL
  */
-#ifndef _WIN32
 int pmempool_sync(const char *poolset_file, unsigned flags);
-#else
-WIN_DEPR_ATTR
-int pmempool_syncU(const char *poolset_file, unsigned flags);
-WIN_DEPR_ATTR
-int pmempool_syncW(const wchar_t *poolset_file, unsigned flags);
-#endif
 
 /*
  * Modify internal structure of a poolset.
  *
  * EXPERIMENTAL
  */
-#ifndef _WIN32
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst, unsigned flags);
-#else
-WIN_DEPR_ATTR
-int pmempool_transformU(const char *poolset_file_src,
-	const char *poolset_file_dst, unsigned flags);
-WIN_DEPR_ATTR
-int pmempool_transformW(const wchar_t *poolset_file_src,
-	const wchar_t *poolset_file_dst, unsigned flags);
-#endif
 
 /* PMEMPOOL feature enable, disable, query */
 
@@ -281,74 +192,24 @@ enum pmempool_feature {
 };
 
 /* PMEMPOOL FEATURE ENABLE */
-#ifndef _WIN32
 int pmempool_feature_enable(const char *path, enum pmempool_feature feature,
 	unsigned flags);
-#else
-WIN_DEPR_ATTR
-int pmempool_feature_enableU(const char *path, enum pmempool_feature feature,
-	unsigned flags);
-WIN_DEPR_ATTR
-int pmempool_feature_enableW(const wchar_t *path,
-	enum pmempool_feature feature, unsigned flags);
-#endif
 
 /* PMEMPOOL FEATURE DISABLE */
-#ifndef _WIN32
 int pmempool_feature_disable(const char *path, enum pmempool_feature feature,
 	unsigned flags);
-#else
-WIN_DEPR_ATTR
-int pmempool_feature_disableU(const char *path, enum pmempool_feature feature,
-	unsigned flags);
-WIN_DEPR_ATTR
-int pmempool_feature_disableW(const wchar_t *path,
-	enum pmempool_feature feature, unsigned flags);
-#endif
 
 /* PMEMPOOL FEATURE QUERY */
-#ifndef _WIN32
 int pmempool_feature_query(const char *path, enum pmempool_feature feature,
 	unsigned flags);
-#else
-WIN_DEPR_ATTR
-int pmempool_feature_queryU(const char *path, enum pmempool_feature feature,
-	unsigned flags);
-WIN_DEPR_ATTR
-int pmempool_feature_queryW(const wchar_t *path,
-	enum pmempool_feature feature, unsigned flags);
-#endif
 
 /* PMEMPOOL RM */
-#ifndef _WIN32
 int pmempool_rm(const char *path, unsigned flags);
-#else
-WIN_DEPR_ATTR
-int pmempool_rmU(const char *path, unsigned flags);
-WIN_DEPR_ATTR
-int pmempool_rmW(const wchar_t *path, unsigned flags);
-#endif
 
-#ifndef _WIN32
 const char *pmempool_check_version(unsigned major_required,
 	unsigned minor_required);
-#else
-WIN_DEPR_ATTR
-const char *pmempool_check_versionU(unsigned major_required,
-	unsigned minor_required);
-WIN_DEPR_ATTR
-const wchar_t *pmempool_check_versionW(unsigned major_required,
-	unsigned minor_required);
-#endif
 
-#ifndef _WIN32
 const char *pmempool_errormsg(void);
-#else
-WIN_DEPR_ATTR
-const char *pmempool_errormsgU(void);
-WIN_DEPR_ATTR
-const wchar_t *pmempool_errormsgW(void);
-#endif
 
 #ifdef __cplusplus
 }
