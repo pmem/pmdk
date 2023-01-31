@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 /*
  * Copyright (c) 2016-2020, Microsoft Corporation. All rights reserved.
  *
@@ -103,17 +103,6 @@ void util_emit_log(const char *lib, const char *func, int order);
 char *util_readline(FILE *fh);
 int util_snprintf(char *str, size_t size,
 	const char *format, ...) FORMAT_PRINTF(3, 4);
-
-#ifdef _WIN32
-char *util_toUTF8(const wchar_t *wstr);
-wchar_t *util_toUTF16(const char *wstr);
-void util_free_UTF8(char *str);
-void util_free_UTF16(wchar_t *str);
-int util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size);
-int util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size);
-void util_suppress_errmsg(void);
-int util_lasterror_to_errno(unsigned long err);
-#endif
 
 #define UTIL_MAX_ERR_MSG 128
 void util_strerror(int errnum, char *buff, size_t bufflen);
