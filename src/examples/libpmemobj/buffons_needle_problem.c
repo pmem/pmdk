@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * buffons_needle_problem.c <path> [<n>] -- example illustrating
@@ -15,9 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
-#ifdef _WIN32
-#define _USE_MATH_DEFINES
-#endif
 #include <math.h>
 #include <time.h>
 #include <libpmemobj.h>

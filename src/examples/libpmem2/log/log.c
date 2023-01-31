@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * log.c -- "Persistently-correct" implementation of a log structure.
@@ -39,9 +39,6 @@ struct log_ctx {
 	struct pmem2_map *map;
 	size_t capacity;
 
-	/*
-	 * pmem2 on non-DAX Windows volumes requires an open fd to flush buffers
-	 */
 	int fd;
 
 	pmem2_drain_fn drain_fn;
