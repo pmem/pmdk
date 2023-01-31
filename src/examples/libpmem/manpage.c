@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * manpage.c -- simple example for the libpmem man page
@@ -11,11 +11,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#ifndef _WIN32
 #include <unistd.h>
-#else
-#include <io.h>
-#endif
 #include <string.h>
 #include <libpmem.h>
 

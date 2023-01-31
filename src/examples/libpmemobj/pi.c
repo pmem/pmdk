@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * pi.c -- example usage of user lists
@@ -14,9 +14,8 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <libpmemobj.h>
-#ifndef _WIN32
 #include <pthread.h>
-#endif
+
 /*
  * Layout definition
  */
@@ -61,13 +60,9 @@ pi_task_construct(PMEMobjpool *_pop, void *ptr, void *arg)
 /*
  * calc_pi -- worker for pi calculation
  */
-#ifndef _WIN32
 static void *
 calc_pi(void *arg)
-#else
-static DWORD WINAPI
-calc_pi(LPVOID arg)
-#endif
+
 {
 	TOID(struct pi) pi = POBJ_ROOT(pop, struct pi);
 	TOID(struct pi_task) task = *((TOID(struct pi_task) *)arg);
@@ -112,7 +107,7 @@ calc_pi_mt(void)
 
 	POBJ_LIST_FOREACH(iter, &D_RO(pi)->todo, todo)
 		tasks[i++] = iter;
-#ifndef _WIN32
+
 	pthread_t workers[pending];
 	for (i = 0; i < pending; ++i)
 		if (pthread_create(&workers[i], NULL, calc_pi, &tasks[i]) != 0)
@@ -120,20 +115,6 @@ calc_pi_mt(void)
 
 	for (i = i - 1; i >= 0; --i)
 		pthread_join(workers[i], NULL);
-#else
-	HANDLE *workers = (HANDLE *) malloc(sizeof(HANDLE) * pending);
-	for (i = 0; i < pending; ++i) {
-		workers[i] = CreateThread(NULL, 0, calc_pi,
-			&tasks[i], 0, NULL);
-		if (workers[i] == NULL)
-			break;
-	}
-	WaitForMultipleObjects(i, workers, TRUE, INFINITE);
-
-	for (i = i - 1; i >= 0; --i)
-		CloseHandle(workers[i]);
-	free(workers);
-#endif
 
 	free(tasks);
 }
