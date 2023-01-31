@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmemobj/tx.h -- definitions of libpmemobj transactional macros
@@ -129,14 +129,13 @@ pmemobj_tx_xadd_range_direct(&(p)->field, sizeof((p)->field), flags)
 #define TX_XALLOC(t, size, flags)\
 ((TOID(t))pmemobj_tx_xalloc(size, TOID_TYPE_NUM(t), flags))
 
-/* XXX - not available when compiled with VC++ as C code (/TC) */
-#if !defined(_MSC_VER) || defined(__cplusplus)
+#if defined(__cplusplus)
 #define TX_REALLOC(o, size)\
 ((__typeof__(o))pmemobj_tx_realloc((o).oid, size, TOID_TYPE_NUM_OF(o)))
 
 #define TX_ZREALLOC(o, size)\
 ((__typeof__(o))pmemobj_tx_zrealloc((o).oid, size, TOID_TYPE_NUM_OF(o)))
-#endif /* !defined(_MSC_VER) || defined(__cplusplus) */
+#endif /* defined(__cplusplus) */
 
 #define TX_STRDUP(s, type_num)\
 pmemobj_tx_strdup(s, type_num)

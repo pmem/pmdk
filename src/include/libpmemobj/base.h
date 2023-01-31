@@ -15,22 +15,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#ifdef _WIN32
-#include <pmemcompat.h>
-
-#ifndef PMDK_UTF8_API
-#define pmemobj_check_version pmemobj_check_versionW
-#define pmemobj_errormsg pmemobj_errormsgW
-#else
-#define pmemobj_check_version pmemobj_check_versionU
-#define pmemobj_errormsg pmemobj_errormsgU
-#endif
-
-#define WIN_DEPR_STR "Windows support is deprecated."
-#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
-
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,16 +80,8 @@ static const PMEMoid OID_NULL = { 0, 0 };
 ((lhs).off == (rhs).off &&\
 	(lhs).pool_uuid_lo == (rhs).pool_uuid_lo)
 
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
-
-#ifndef _WIN32
 
 extern int _pobj_cache_invalidate;
 extern __thread struct _pobj_pcache {
@@ -139,16 +115,10 @@ pmemobj_direct_inline(PMEMoid oid)
 	return (void *)((uintptr_t)cache->pop + oid.off);
 }
 
-#endif /* _WIN32 */
-
 /*
  * Returns the direct pointer of an object.
  */
-#if defined(_WIN32) || defined(_PMEMOBJ_INTRNL) ||\
-	defined(PMEMOBJ_DIRECT_NON_INLINE)
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
+#if defined(_PMEMOBJ_INTRNL) || defined(PMEMOBJ_DIRECT_NON_INLINE)
 void *pmemobj_direct(PMEMoid oid);
 #else
 #define pmemobj_direct pmemobj_direct_inline
@@ -167,9 +137,6 @@ struct {\
 /*
  * Returns lazily initialized volatile variable. (EXPERIMENTAL)
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
 	void *ptr, size_t size,
 	int (*constr)(void *ptr, void *arg), void *arg);
@@ -177,9 +144,6 @@ void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
 /*
  * Returns the OID of the object pointed to by addr.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 PMEMoid pmemobj_oid(const void *addr);
 
 /*
@@ -188,17 +152,11 @@ PMEMoid pmemobj_oid(const void *addr);
  *
  * Can be used with objects allocated by any of the available methods.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 size_t pmemobj_alloc_usable_size(PMEMoid oid);
 
 /*
  * Returns the type number of the object.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 uint64_t pmemobj_type_num(PMEMoid oid);
 
 /*
@@ -213,27 +171,18 @@ uint64_t pmemobj_type_num(PMEMoid oid);
 /*
  * Pmemobj version of memcpy. Data copied is made persistent.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void *pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 	size_t len);
 
 /*
  * Pmemobj version of memset. Data range set is made persistent.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void *pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len);
 
 /*
  * Pmemobj version of memcpy. Data copied is made persistent (unless opted-out
  * using flags).
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void *pmemobj_memcpy(PMEMobjpool *pop, void *dest, const void *src, size_t len,
 		unsigned flags);
 
@@ -241,9 +190,6 @@ void *pmemobj_memcpy(PMEMobjpool *pop, void *dest, const void *src, size_t len,
  * Pmemobj version of memmove. Data copied is made persistent (unless opted-out
  * using flags).
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void *pmemobj_memmove(PMEMobjpool *pop, void *dest, const void *src, size_t len,
 		unsigned flags);
 
@@ -251,52 +197,34 @@ void *pmemobj_memmove(PMEMobjpool *pop, void *dest, const void *src, size_t len,
  * Pmemobj version of memset. Data range set is made persistent (unless
  * opted-out using flags).
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void *pmemobj_memset(PMEMobjpool *pop, void *dest, int c, size_t len,
 		unsigned flags);
 
 /*
  * Pmemobj version of pmem_persist.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len);
 
 /*
  * Pmemobj version of pmem_persist with additional flags argument.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_xpersist(PMEMobjpool *pop, const void *addr, size_t len,
 		unsigned flags);
 
 /*
  * Pmemobj version of pmem_flush.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_flush(PMEMobjpool *pop, const void *addr, size_t len);
 
 /*
  * Pmemobj version of pmem_flush with additional flags argument.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 int pmemobj_xflush(PMEMobjpool *pop, const void *addr, size_t len,
 		unsigned flags);
 
 /*
  * Pmemobj version of pmem_drain.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_drain(PMEMobjpool *pop);
 
 /*
@@ -312,53 +240,28 @@ void pmemobj_drain(PMEMobjpool *pop);
 #define PMEMOBJ_MAJOR_VERSION 2
 #define PMEMOBJ_MINOR_VERSION 4
 
-#ifndef _WIN32
 const char *pmemobj_check_version(unsigned major_required,
 	unsigned minor_required);
-#else
-WIN_DEPR_ATTR
-const char *pmemobj_check_versionU(unsigned major_required,
-	unsigned minor_required);
-WIN_DEPR_ATTR
-const wchar_t *pmemobj_check_versionW(unsigned major_required,
-	unsigned minor_required);
-#endif
 
 /*
  * Passing NULL to pmemobj_set_funcs() tells libpmemobj to continue to use the
  * default for that function.  The replacement functions must not make calls
  * back into libpmemobj.
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void pmemobj_set_funcs(
 		void *(*malloc_func)(size_t size),
 		void (*free_func)(void *ptr),
 		void *(*realloc_func)(void *ptr, size_t size),
 		char *(*strdup_func)(const char *s));
 
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 typedef int (*pmemobj_constr)(PMEMobjpool *pop, void *ptr, void *arg);
 
 /*
  * (debug helper function) logs notice message if used inside a transaction
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 void _pobj_debug_notice(const char *func_name, const char *file, int line);
 
-#ifndef _WIN32
 const char *pmemobj_errormsg(void);
-#else
-WIN_DEPR_ATTR
-const char *pmemobj_errormsgU(void);
-WIN_DEPR_ATTR
-const wchar_t *pmemobj_errormsgW(void);
-#endif
 
 #ifdef __cplusplus
 }

@@ -19,13 +19,7 @@ extern "C" {
 #endif
 
 #define ASYNC_DEPR_STR "Async support for libpmem2 is deprecated."
-#ifdef _WIN32
-#define ASYNC_DEPR_ATTR __declspec(deprecated(ASYNC_DEPR_STR))
-#define WIN_DEPR_STR "Windows support is deprecated."
-#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
-#else
 #define ASYNC_DEPR_ATTR __attribute__((deprecated(ASYNC_DEPR_STR)))
-#endif
 
 ASYNC_DEPR_ATTR
 int pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm);
@@ -56,9 +50,6 @@ FUTURE(pmem2_persist_future,
 /*
  * Implementation of persist future, called upon future_poll
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 static inline enum future_state
 pmem2_persist_future_impl(struct future_context *ctx,
 	struct future_notifier *notifier)
@@ -85,9 +76,6 @@ union pmem2_finalize_future {
 /*
  * Returns a future for persisting data
  */
-#ifdef _WIN32
-WIN_DEPR_ATTR
-#endif
 static inline union pmem2_finalize_future
 pmem2_persist_future(struct pmem2_map *map, void *ptr, size_t size)
 {
