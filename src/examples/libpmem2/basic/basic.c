@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * basic.c -- simple example for the libpmem2
@@ -9,11 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#ifndef _WIN32
 #include <unistd.h>
-#else
-#include <io.h>
-#endif
 #include <libpmem2.h>
 
 int
