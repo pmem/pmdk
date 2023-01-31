@@ -110,8 +110,6 @@
 */
 #undef PLAT_x86_darwin
 #undef PLAT_amd64_darwin
-#undef PLAT_x86_win32
-#undef PLAT_amd64_win64
 #undef PLAT_x86_linux
 #undef PLAT_amd64_linux
 #undef PLAT_ppc32_linux
@@ -130,13 +128,6 @@
 #  define PLAT_x86_darwin 1
 #elif defined(__APPLE__) && defined(__x86_64__)
 #  define PLAT_amd64_darwin 1
-#elif (defined(__MINGW32__) && !defined(__MINGW64__)) \
-      || defined(__CYGWIN32__) \
-      || (defined(_WIN32) && defined(_M_IX86))
-#  define PLAT_x86_win32 1
-#elif defined(__MINGW64__) \
-      || (defined(_WIN64) && defined(_M_X64))
-#  define PLAT_amd64_win64 1
 #elif defined(__linux__) && defined(__i386__)
 #  define PLAT_x86_linux 1
 #elif defined(__linux__) && defined(__x86_64__) && !defined(__ILP32__)
@@ -252,9 +243,7 @@
 
 /* ----------------- x86-{linux,darwin,solaris} ---------------- */
 
-#if defined(PLAT_x86_linux)  ||  defined(PLAT_x86_darwin)  \
-    ||  (defined(PLAT_x86_win32) && defined(__GNUC__)) \
-    ||  defined(PLAT_x86_solaris)
+#if defined(PLAT_x86_linux)  ||  defined(PLAT_x86_darwin)  ||  defined(PLAT_x86_solaris)
 
 typedef
    struct { 
@@ -314,87 +303,11 @@ typedef
                     );                                           \
  } while (0)
 
-#endif /* PLAT_x86_linux || PLAT_x86_darwin || (PLAT_x86_win32 && __GNUC__)
-          || PLAT_x86_solaris */
-
-/* ------------------------- x86-Win32 ------------------------- */
-
-#if defined(PLAT_x86_win32) && !defined(__GNUC__)
-
-typedef
-   struct { 
-      unsigned int nraddr; /* where's the code? */
-   }
-   OrigFn;
-
-#if defined(_MSC_VER)
-
-#define __SPECIAL_INSTRUCTION_PREAMBLE                            \
-                     __asm rol edi, 3  __asm rol edi, 13          \
-                     __asm rol edi, 29 __asm rol edi, 19
-
-#define VALGRIND_DO_CLIENT_REQUEST_EXPR(                          \
-        _zzq_default, _zzq_request,                               \
-        _zzq_arg1, _zzq_arg2, _zzq_arg3, _zzq_arg4, _zzq_arg5)    \
-    valgrind_do_client_request_expr((uintptr_t)(_zzq_default),    \
-        (uintptr_t)(_zzq_request), (uintptr_t)(_zzq_arg1),        \
-        (uintptr_t)(_zzq_arg2), (uintptr_t)(_zzq_arg3),           \
-        (uintptr_t)(_zzq_arg4), (uintptr_t)(_zzq_arg5))
-
-static __inline uintptr_t
-valgrind_do_client_request_expr(uintptr_t _zzq_default, uintptr_t _zzq_request,
-                                uintptr_t _zzq_arg1, uintptr_t _zzq_arg2,
-                                uintptr_t _zzq_arg3, uintptr_t _zzq_arg4,
-                                uintptr_t _zzq_arg5)
-{
-    volatile uintptr_t _zzq_args[6];
-    volatile unsigned int _zzq_result;
-    _zzq_args[0] = (uintptr_t)(_zzq_request);
-    _zzq_args[1] = (uintptr_t)(_zzq_arg1);
-    _zzq_args[2] = (uintptr_t)(_zzq_arg2);
-    _zzq_args[3] = (uintptr_t)(_zzq_arg3);
-    _zzq_args[4] = (uintptr_t)(_zzq_arg4);
-    _zzq_args[5] = (uintptr_t)(_zzq_arg5);
-    __asm { __asm lea eax, _zzq_args __asm mov edx, _zzq_default
-            __SPECIAL_INSTRUCTION_PREAMBLE
-            /* %EDX = client_request ( %EAX ) */
-            __asm xchg ebx,ebx
-            __asm mov _zzq_result, edx
-    }
-    return _zzq_result;
-}
-
-#define VALGRIND_GET_NR_CONTEXT(_zzq_rlval)                       \
-  { volatile OrigFn* _zzq_orig = &(_zzq_rlval);                   \
-    volatile unsigned int __addr;                                 \
-    __asm { __SPECIAL_INSTRUCTION_PREAMBLE                        \
-            /* %EAX = guest_NRADDR */                             \
-            __asm xchg ecx,ecx                                    \
-            __asm mov __addr, eax                                 \
-    }                                                             \
-    _zzq_orig->nraddr = __addr;                                   \
-  }
-
-#define VALGRIND_CALL_NOREDIR_EAX ERROR
-
-#define VALGRIND_VEX_INJECT_IR()                                 \
- do {                                                            \
-    __asm { __SPECIAL_INSTRUCTION_PREAMBLE                       \
-            __asm xchg edi,edi                                   \
-    }                                                            \
- } while (0)
-
-#else
-#error Unsupported compiler.
-#endif
-
-#endif /* PLAT_x86_win32 */
+#endif /* PLAT_x86_linux || PLAT_x86_darwin || PLAT_x86_solaris */
 
 /* ----------------- amd64-{linux,darwin,solaris} --------------- */
 
-#if defined(PLAT_amd64_linux)  ||  defined(PLAT_amd64_darwin) \
-    ||  defined(PLAT_amd64_solaris) \
-    ||  (defined(PLAT_amd64_win64) && defined(__GNUC__))
+#if defined(PLAT_amd64_linux)  ||  defined(PLAT_amd64_darwin)  ||  defined(PLAT_amd64_solaris)
 
 typedef
    struct { 
@@ -455,14 +368,6 @@ typedef
  } while (0)
 
 #endif /* PLAT_amd64_linux || PLAT_amd64_darwin || PLAT_amd64_solaris */
-
-/* ------------------------- amd64-Win64 ------------------------- */
-
-#if defined(PLAT_amd64_win64) && !defined(__GNUC__)
-
-#error Unsupported compiler.
-
-#endif /* PLAT_amd64_win64 */
 
 /* ------------------------ ppc32-linux ------------------------ */
 
@@ -6630,8 +6535,6 @@ VALGRIND_PRINTF_BACKTRACE(const char *format, ...)
 
 #undef PLAT_x86_darwin
 #undef PLAT_amd64_darwin
-#undef PLAT_x86_win32
-#undef PLAT_amd64_win64
 #undef PLAT_x86_linux
 #undef PLAT_amd64_linux
 #undef PLAT_ppc32_linux
