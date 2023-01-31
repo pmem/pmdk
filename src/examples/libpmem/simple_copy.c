@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2017, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * simple_copy.c -- show how to use pmem_memcpy_persist()
@@ -15,11 +15,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
-#ifndef _WIN32
 #include <unistd.h>
-#else
-#include <io.h>
-#endif
 #include <string.h>
 #include <libpmem.h>
 

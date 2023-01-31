@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * manpage.c -- simple example for the libpmemobj man page
@@ -9,9 +9,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdlib.h>
-#ifndef _WIN32
 #include <unistd.h>
-#endif
 #include <stdint.h>
 #include <string.h>
 #include <libpmemobj.h>
