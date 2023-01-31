@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * redo.c -- Implementation of simple persistent memory located redo log.
@@ -15,11 +15,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#ifndef _WIN32
 #include <unistd.h>
-#else
-#include <io.h>
-#endif
 #include <libpmem2.h>
 
 #if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__) || \
