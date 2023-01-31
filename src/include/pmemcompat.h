@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * pmemcompat.h -- compatibility layer for libpmem* libraries
@@ -7,7 +7,6 @@
 
 #ifndef PMEMCOMPAT_H
 #define PMEMCOMPAT_H
-#include <windows.h>
 
 /* for backward compatibility */
 #ifdef NVML_UTF8_API
