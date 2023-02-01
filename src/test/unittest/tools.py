@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2022, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 """External tools integration"""
 
 import os
 import json
-import sys
 import subprocess as sp
 
 import futils
@@ -29,21 +28,14 @@ class Tools:
         self.build = build
         global_lib_path = envconfig['GLOBAL_LIB_PATH']
 
-        if sys.platform == 'win32':
-            futils.add_env_common(self.env, {'PATH': global_lib_path})
-            if build is not None:
-                futils.add_env_common(self.env, {'PATH': build.libdir})
-        else:
+        futils.add_env_common(self.env,
+                              {'LD_LIBRARY_PATH': global_lib_path})
+        if build is not None:
             futils.add_env_common(self.env,
-                                  {'LD_LIBRARY_PATH': global_lib_path})
-            if build is not None:
-                futils.add_env_common(self.env,
-                                      {'LD_LIBRARY_PATH': build.libdir})
+                                  {'LD_LIBRARY_PATH': build.libdir})
 
     def _run_test_tool(self, name, *args):
         exe = futils.get_test_tool_path(self.build, name)
-        if sys.platform == 'win32':
-            exe += '.exe'
 
         return sp.run([exe, *args], env=self.env, stdout=sp.PIPE,
                       stderr=sp.STDOUT, universal_newlines=True)
@@ -76,8 +68,6 @@ class Ndctl:
             decoded from JSON into dictionary
     """
     def __init__(self):
-        if sys.platform == 'win32':
-            futils.fail('ndctl is not available on Windows')
 
         self.version = self._get_ndctl_version()
         self.ndctl_list_output = self._cmd_out_to_json('list', '-RBNDMv')

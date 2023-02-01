@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * obj_tx_lock.c -- unit test for pmemobj_tx_lock()
@@ -120,10 +120,6 @@ do_tx_add_locks_nested_all(struct transaction_data *data)
 static void *
 do_tx_add_taken_lock(struct transaction_data *data)
 {
-	/* wrlocks on Windows don't detect self-deadlocks */
-#ifdef _WIN32
-	(void) data;
-#else
 	UT_ASSERTeq(pmemobj_rwlock_wrlock(Pop, &data->rwlocks[0]), 0);
 
 	TX_BEGIN(Pop) {
@@ -133,7 +129,7 @@ do_tx_add_taken_lock(struct transaction_data *data)
 
 	UT_ASSERTne(pmemobj_rwlock_trywrlock(Pop, &data->rwlocks[0]), 0);
 	UT_ASSERTeq(pmemobj_rwlock_unlock(Pop, &data->rwlocks[0]), 0);
-#endif
+
 	return NULL;
 }
 
@@ -144,10 +140,6 @@ do_tx_add_taken_lock(struct transaction_data *data)
 static void *
 do_tx_lock_fail(struct transaction_data *data)
 {
-	/* wrlocks on Windows don't detect self-deadlocks */
-#ifdef _WIN32
-	(void) data;
-#else
 	UT_ASSERTeq(pmemobj_rwlock_wrlock(Pop, &data->rwlocks[0]), 0);
 	int ret = 0;
 	/* return errno and abort transaction */
@@ -192,7 +184,7 @@ do_tx_lock_fail(struct transaction_data *data)
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
-#endif
+
 	return NULL;
 }
 

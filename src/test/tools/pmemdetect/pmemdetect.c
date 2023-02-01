@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * pmemdetect.c -- detect PMEM/Device DAX device or Device DAX alignment
@@ -276,19 +276,6 @@ supports_map_sync(const char *path)
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	util_suppress_errmsg();
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	for (int i = 0; i < argc; i++) {
-		argv[i] = util_toUTF8(wargv[i]);
-		if (argv[i] == NULL) {
-			for (i--; i >= 0; i--)
-				free(argv[i]);
-			err("error during arguments conversion\n");
-			return 2;
-		}
-	}
-#endif
 	int ret;
 
 	if (parse_args(argc, argv)) {
@@ -340,9 +327,5 @@ main(int argc, char *argv[])
 
 	util_mmap_fini();
 out:
-#ifdef _WIN32
-	for (int i = argc; i > 0; i--)
-		free(argv[i - 1]);
-#endif
 	return ret;
 }

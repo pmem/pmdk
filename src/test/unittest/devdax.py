@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2022, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 """Device dax context classes and utilities"""
@@ -7,7 +7,6 @@
 import copy
 import itertools
 import os
-import sys
 
 import context as ctx
 import futils
@@ -132,10 +131,6 @@ class DevDaxes():
 
         if not dax_devices:
             return ctx.NO_CONTEXT
-        elif sys.platform == 'win32' and tc.enabled:
-            raise futils.Fail('dax device functionality required by "{}" is '
-                              'not available on Windows. Please disable the '
-                              'test for this platform'.format(tc))
 
         if not config.device_dax_path:
             raise futils.Skip('No dax devices defined in testconfig')
