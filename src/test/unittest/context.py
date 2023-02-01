@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2022, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 """
@@ -320,14 +320,11 @@ class Context(ContextBase):
         # change cmd into list for supbrocess type compliance
         cmd = [cmd, ]
 
-        if sys.platform == 'win32':
-            cmd[0] = os.path.join(self.build.exedir, cmd[0]) + '.exe'
-        else:
-            cmd[0] = os.path.join(self.cwd, cmd[0]) + \
-                self.build.exesuffix
+        cmd[0] = os.path.join(self.cwd, cmd[0]) + \
+            self.build.exesuffix
 
-            if self.valgrind:
-                cmd = self.valgrind.cmd + cmd
+        if self.valgrind:
+            cmd = self.valgrind.cmd + cmd
 
         # cast all provided args to strings (required by subprocess run())
         # so that exec() can accept args of any printable type

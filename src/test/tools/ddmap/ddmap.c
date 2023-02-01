@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * ddmap.c -- simple app for reading and writing data from/to a regular file or
@@ -469,19 +469,6 @@ do_ddmap(struct ddmap_context *ctx)
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	util_suppress_errmsg();
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	for (int i = 0; i < argc; i++) {
-		argv[i] = util_toUTF8(wargv[i]);
-		if (argv[i] == NULL) {
-			for (i--; i >= 0; i--)
-				free(argv[i]);
-			outv_err("Error during arguments conversion\n");
-			return 1;
-		}
-	}
-#endif
 	int ret = 0;
 
 	struct ddmap_context ctx = ddmap_default;
@@ -501,9 +488,5 @@ main(int argc, char *argv[])
 	}
 
 out:
-#ifdef _WIN32
-	for (int i = argc; i > 0; i--)
-		free(argv[i - 1]);
-#endif
 	return ret;
 }

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 """Parser for user provided test configuration"""
 
@@ -186,9 +186,8 @@ class Configurator():
 
             # device_dax_path may be either a single string with path
             # or a sequence of paths
-            if sys.platform != 'win32':
-                config.device_dax_path = futils.to_list(config.device_dax_path,
-                                                        str)
+            config.device_dax_path = futils.to_list(config.device_dax_path,
+                                                    str)
 
             return config
 
@@ -286,9 +285,7 @@ class Configurator():
         tracers.add_argument('--cgdb', dest='tracer', action='store_const',
                              const='cgdb --args', help='run cgdb as a tracer')
 
-        if sys.platform != 'win32':
-            fe_choices = [str(t) for t in vg.TOOLS]
-            parser.add_argument('--force-enable', choices=fe_choices,
-                                default=None)
+        fe_choices = [str(t) for t in vg.TOOLS]
+        parser.add_argument('--force-enable', choices=fe_choices, default=None)
 
         return parser

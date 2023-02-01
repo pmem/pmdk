@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * pmem_map_file.c -- unit test for mapping persistent memory for raw access
@@ -232,11 +232,3 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-/*
- * Since libpmem is linked statically, we need to invoke its ctor/dtor.
- */
-MSVC_CONSTR(libpmem_init)
-MSVC_DESTR(libpmem_fini)
-#endif

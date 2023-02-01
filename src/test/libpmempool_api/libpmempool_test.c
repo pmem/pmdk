@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * libpmempool_test -- test of libpmempool.
@@ -42,7 +42,7 @@ check_pool(struct pmempool_check_args *args, size_t args_size)
 	PMEMpoolcheck *ppc = pmempool_check_init(args, args_size);
 	if (!ppc) {
 		char buff[UT_MAX_ERR_MSG];
-		ut_strerror(errno, buff, UT_MAX_ERR_MSG);
+		strerror_r(errno, buff, UT_MAX_ERR_MSG);
 		UT_OUT("Error: %s", buff);
 		return;
 	}
