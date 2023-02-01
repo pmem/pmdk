@@ -1,4 +1,0 @@
-PMEMPOOLSET
-OPTION SINGLEHDR # same option specified twice
-OPTION SINGLEHDR
-100G w:\mountpoint1\part0

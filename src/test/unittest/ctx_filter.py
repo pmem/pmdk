@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 """
 Functionalities for acquiring (through 'filtering' execution configuration and
 test specification) set of context parameters with which the test will be run.
 """
 
-import sys
 import itertools
 
 import builds
@@ -18,10 +17,7 @@ import context as ctx
 import valgrind as vg
 import requirements as req
 
-if sys.platform != 'win32':
-    CTX_TYPES = (vg.Valgrind, granularity.Granularity, devdax.DevDaxes)
-else:
-    CTX_TYPES = (granularity.Granularity, )
+CTX_TYPES = (vg.Valgrind, granularity.Granularity, devdax.DevDaxes)
 
 
 class CtxFilter:

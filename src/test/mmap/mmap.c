@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -40,9 +40,6 @@
  * Those functions should provide the same functionality as their Linux
  * counterparts, at least with respect to the features that are used
  * in PMDK libraries.
- *
- * Known issues and differences between Linux and Windows implementation
- * are described in src/common/mmap_windows.c.
  */
 
 #include "unittest.h"
@@ -50,11 +47,7 @@
 #include <signal.h>
 #include <setjmp.h>
 
-#ifdef _WIN32
-#define MMAP_ALIGN	((uintptr_t)65536)
-#else
 #define MMAP_ALIGN	((uintptr_t)4096)
-#endif
 
 #define PAGE_SIZE	4096
 #define MMAP_SIZE	MMAP_ALIGN
@@ -236,13 +229,8 @@ test_mmap_len(int fd)
 	/* offset == PAGE_SIZE */
 	ptr = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
 			MAP_SHARED, fd, PAGE_SIZE);
-#ifndef _WIN32
 	UT_ASSERTne(ptr, MAP_FAILED);
 	check_mapping(fd, ptr, MMAP_SIZE, PROT_READ|PROT_WRITE, 0, PAGE_SIZE);
-#else
-	/* XXX - on Windows, offset must be aligned to allocation granularity */
-	UT_ASSERTeq(ptr, MAP_FAILED);
-#endif
 
 	/* offset == MMAP_ALIGN */
 	ptr = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
@@ -265,13 +253,9 @@ test_mmap_len(int fd)
 	/* offset beyond file_size */
 	ptr = mmap(NULL, MMAP_SIZE, PROT_READ, MAP_SHARED, fd,
 		FILE_SIZE + MMAP_SIZE);
-#ifndef _WIN32
 	UT_ASSERTne(ptr, MAP_FAILED);
 	check_mapping(fd, ptr, MMAP_SIZE, PROT_READ, CHECK_PRIV,
 		FILE_SIZE + MMAP_SIZE);
-#else
-	UT_ASSERTeq(ptr, MAP_FAILED);
-#endif
 }
 
 /*
@@ -453,23 +437,13 @@ test_mmap_prot(int fd, int fd_ro)
 
 	/* no access */
 	ptr1 = mmap(NULL, FILE_SIZE, PROT_NONE, MAP_SHARED, fd, 0);
-#ifndef _WIN32
 	UT_ASSERTne(ptr1, MAP_FAILED);
 	check_mapping(fd, ptr1, FILE_SIZE, PROT_NONE, 0, 0);
-#else
-	/* XXX - PROT_NONE not supported yet */
-	UT_ASSERTeq(ptr1, MAP_FAILED);
-#endif
 
 	/* no access on read-only file */
 	ptr1 = mmap(NULL, FILE_SIZE, PROT_NONE, MAP_SHARED, fd_ro, 0);
-#ifndef _WIN32
 	UT_ASSERTne(ptr1, MAP_FAILED);
 	check_mapping(fd_ro, ptr1, FILE_SIZE, PROT_NONE, CHECK_RO, 0);
-#else
-	/* XXX - PROT_NONE not supported yet */
-	UT_ASSERTeq(ptr1, MAP_FAILED);
-#endif
 }
 
 /*
@@ -493,13 +467,8 @@ test_mmap_prot_anon(void)
 
 	/* no access */
 	ptr1 = mmap(NULL, FILE_SIZE, PROT_NONE, MAP_SHARED|MAP_ANON, -1, 0);
-#ifndef _WIN32
 	UT_ASSERTne(ptr1, MAP_FAILED);
 	check_mapping(-1, ptr1, FILE_SIZE, PROT_NONE, 0, 0);
-#else
-	/* XXX - PROT_NONE not supported yet */
-	UT_ASSERTeq(ptr1, MAP_FAILED);
-#endif
 }
 
 /*
@@ -612,28 +581,18 @@ test_msync(int fd)
 
 	/* no SYNC, nor ASYNC - should fail according to POSIX... */
 	errno = 0;
-#ifndef _WIN32
 	/* ... but it is allowed on Linux */
 	UT_ASSERTeq(msync(ptr1, MMAP_SIZE, 0), 0);
 	UT_ASSERTeq(errno, 0);
-#else
-	UT_ASSERTne(msync(ptr1, MMAP_SIZE, 0), 0);
-	UT_ASSERTeq(errno, EINVAL);
-#endif
 
 	/* len == 0 - should succeed */
 	UT_ASSERTeq(msync(ptr1, 0, MS_SYNC), 0);
 
 	/* len == SIZE_MAX - should fail */
 	errno = 0;
-#ifndef _WIN32
 	/* ... but it is allowed on Linux */
 	UT_ASSERTeq(msync(ptr1, SIZE_MAX, MS_SYNC), 0);
 	UT_ASSERTeq(errno, 0);
-#else
-	UT_ASSERTne(msync(ptr1, SIZE_MAX, MS_SYNC), 0);
-	UT_ASSERTeq(errno, ENOMEM);
-#endif
 
 	/* unaligned pointer - should fail */
 	errno = 0;
@@ -721,16 +680,9 @@ test_mprotect(int fd, int fd_ro)
 	/* change protection: R/O => R/W */
 	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ, MAP_SHARED, fd, 0);
 	UT_ASSERTne(ptr1, MAP_FAILED);
-#ifndef _WIN32
 	UT_ASSERTeq(mprotect(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE), 0);
 	check_access(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE);
 	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
-#else
-	/* XXX - not supported yet */
-	UT_ASSERTne(mprotect(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE), 0);
-	check_access(ptr1, MMAP_SIZE, PROT_READ);
-	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
-#endif
 
 	/* change protection; R/W => R/O */
 	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
@@ -792,15 +744,9 @@ test_mprotect(int fd, int fd_ro)
 	errno = 0;
 	UT_ASSERTne(mprotect(ptr1, MMAP_SIZE * 4, PROT_READ), 0);
 	UT_ASSERTeq(errno, ENOMEM);
-#ifndef _WIN32
 	/* protection changed for all the pages up to the first invalid */
 	check_access(ptr1, MMAP_SIZE, PROT_READ);
 	check_access(ptr1 + MMAP_SIZE * 2, MMAP_SIZE, PROT_READ|PROT_WRITE);
-#else
-	/* XXX - protection changed for all the valid pages */
-	check_access(ptr1, MMAP_SIZE, PROT_READ);
-	check_access(ptr1 + MMAP_SIZE * 2, MMAP_SIZE, PROT_READ);
-#endif
 	UT_ASSERTeq(munmap(ptr1, FILE_SIZE), 0);
 
 	/* change protection on two adjacent mappings */
@@ -853,16 +799,9 @@ test_mprotect_anon(void)
 	/* change protection: R/O => R/W */
 	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ, MAP_PRIVATE|MAP_ANON, -1, 0);
 	UT_ASSERTne(ptr1, MAP_FAILED);
-#ifndef _WIN32
 	UT_ASSERTeq(mprotect(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE), 0);
 	check_access(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE);
 	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
-#else
-	/* XXX - not supported yet */
-	UT_ASSERTne(mprotect(ptr1, MMAP_SIZE, PROT_READ|PROT_WRITE), 0);
-	check_access(ptr1, MMAP_SIZE, PROT_READ);
-	UT_ASSERTeq(munmap(ptr1, MMAP_SIZE), 0);
-#endif
 
 	/* change protection; R/W => R/O */
 	ptr1 = mmap(NULL, MMAP_SIZE, PROT_READ|PROT_WRITE,
@@ -930,15 +869,9 @@ test_mprotect_anon(void)
 	errno = 0;
 	UT_ASSERTne(mprotect(ptr1, MMAP_SIZE * 4, PROT_READ), 0);
 	UT_ASSERTeq(errno, ENOMEM);
-#ifndef _WIN32
 	/* protection changed for all the pages up to the first invalid */
 	check_access(ptr1, MMAP_SIZE, PROT_READ);
 	check_access(ptr1 + MMAP_SIZE * 2, MMAP_SIZE, PROT_READ|PROT_WRITE);
-#else
-	/* XXX - protection changed for all the valid pages */
-	check_access(ptr1, MMAP_SIZE, PROT_READ);
-	check_access(ptr1 + MMAP_SIZE * 2, MMAP_SIZE, PROT_READ);
-#endif
 	UT_ASSERTeq(munmap(ptr1, FILE_SIZE), 0);
 
 	/* change protection on two adjacent mappings */

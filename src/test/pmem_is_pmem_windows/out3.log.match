@@ -1,4 +1,0 @@
-pmem_is_pmem_windows$(nW)TEST3: START: pmem_is_pmem_windows
- $(nW)pmem_is_pmem_windows$(nW) $(nW)testfile1 end
-0
-pmem_is_pmem_windows$(nW)TEST3: DONE

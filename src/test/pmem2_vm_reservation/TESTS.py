@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 #
 
 import os
@@ -35,7 +35,6 @@ class PMEM2_VM_RESERVATION_ASYNC(t.Test):
                  filesize, self.threads, self.ops_per_thread)
 
 
-@t.windows_exclude
 @t.require_devdax(t.DevDax('devdax1'))
 class PMEM2_VM_RESERVATION_DEVDAX(t.Test):
     test_type = t.Short
@@ -49,7 +48,6 @@ class PMEM2_VM_RESERVATION_DEVDAX(t.Test):
             ctx.exec('pmem2_vm_reservation', self.test_case, dd.path)
 
 
-@t.windows_exclude
 @t.require_devdax(t.DevDax('devdax1'))
 class PMEM2_VM_RESERVATION_ASYNC_DEVDAX(t.Test):
     test_type = t.Short

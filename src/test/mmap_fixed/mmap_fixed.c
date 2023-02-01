@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * mmap_fixed.c -- test memory mapping with MAP_FIXED for various lengths
@@ -9,9 +9,6 @@
  * Those functions should provide the same functionality as their Linux
  * counterparts, at least with respect to the features that are used
  * in PMDK libraries.
- *
- * Known issues and differences between Linux and Windows implementation
- * are described in src/common/mmap_windows.c.
  */
 
 #include "unittest.h"

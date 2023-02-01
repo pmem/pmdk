@@ -1,6 +1,0 @@
-getopt/TEST1: START: getopt
- $(nW)getopt$(nW) -Z --arg_Z -A
-unknown argument
-unknown argument
-unknown argument
-getopt$(nW)TEST1: DONE
