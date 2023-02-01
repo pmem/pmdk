@@ -1,14 +1,12 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2022, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 #
 
 import testframework as t
 from testframework import granularity as g
 from testframework import tools
 from testframework import futils
-
-import sys
 
 
 NO_FLAGS = 0
@@ -120,10 +118,6 @@ class Pmem2MemExt(t.Test):
             if available_arch < MOVDIR64B:
                 raise futils.Skip("MOVDIR64B unavailable")
 
-            # remove this when MSVC we use will support MOVDIR64B
-            if sys.platform.startswith('win32'):
-                raise futils.Skip("MOVDIR64B not supported by MSVC")
-
             is_movdir64b_enabled = tools.envconfig['PMEM2_MOVDIR64B_ENABLED']
             if is_movdir64b_enabled == "0":
                 raise futils.Skip("MOVDIR64B disabled at build time")
@@ -131,10 +125,6 @@ class Pmem2MemExt(t.Test):
         if variant == VARIANT_AVX512F:
             if available_arch < AVX512:
                 raise futils.Skip("AVX512F unavailable")
-
-            # remove this when MSVC we use will support AVX512F
-            if sys.platform.startswith('win32'):
-                raise futils.Skip("AVX512F not supported by MSVC")
 
             is_avx512f_enabled = tools.envconfig['PMEM2_AVX512F_ENABLED']
             if is_avx512f_enabled == "0":

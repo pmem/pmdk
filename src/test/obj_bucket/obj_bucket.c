@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * obj_bucket.c -- unit test for bucket
@@ -181,11 +181,3 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-/*
- * Since libpmemobj is linked statically, we need to invoke its ctor/dtor.
- */
-MSVC_CONSTR(libpmemobj_init)
-MSVC_DESTR(libpmemobj_fini)
-#endif
