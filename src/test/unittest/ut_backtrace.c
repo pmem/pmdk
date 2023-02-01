@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * ut_backtrace.c -- backtrace reporting routines
@@ -94,8 +94,6 @@ ut_dump_backtrace(void)
 
 #define SIZE 100
 
-#ifndef _WIN32
-
 #include <execinfo.h>
 
 /*
@@ -121,42 +119,6 @@ ut_dump_backtrace(void)
 
 	free(strings);
 }
-
-#else /* _WIN32 */
-
-#include <DbgHelp.h>
-
-/*
- * ut_dump_backtrace -- dump stacktrace to error log
- */
-void
-ut_dump_backtrace(void)
-{
-	void *buffer[SIZE];
-	unsigned nptrs;
-	SYMBOL_INFO *symbol;
-
-	HANDLE proc_hndl = GetCurrentProcess();
-	SymInitialize(proc_hndl, NULL, TRUE);
-
-	nptrs = CaptureStackBackTrace(0, SIZE, buffer, NULL);
-	symbol = CALLOC(sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(CHAR), 1);
-	symbol->MaxNameLen = MAX_SYM_NAME - 1;
-	symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-
-	for (unsigned i = 0; i < nptrs; i++) {
-		if (SymFromAddr(proc_hndl, (DWORD64)buffer[i], 0, symbol)) {
-			UT_ERR("%u: %s [%p]", nptrs - i - 1, symbol->Name,
-				buffer[i]);
-		} else {
-			UT_ERR("%u: [%p]", nptrs - i - 1, buffer[i]);
-		}
-	}
-
-	FREE(symbol);
-}
-
-#endif /* _WIN32 */
 
 #endif /* USE_LIBUNWIND */
 
@@ -191,8 +153,6 @@ ut_register_sighandlers(void)
 	signal(SIGILL, ut_sighandler);
 	signal(SIGFPE, ut_sighandler);
 	signal(SIGINT, ut_sighandler);
-#ifndef _WIN32
 	signal(SIGQUIT, ut_sighandler);
 	signal(SIGBUS, ut_sighandler);
-#endif
 }

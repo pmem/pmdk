@@ -19,8 +19,6 @@ from testframework import granularity as g
 def parse_lib(ctx, lib, static=False):
     if sys.platform.startswith('linux'):
         return parse_lib_linux(ctx, lib, static)
-    elif sys.platform == 'win32':
-        return parse_lib_win(ctx, lib, static)
 
 
 def parse_lib_linux(ctx, lib, static):
@@ -53,19 +51,6 @@ def parse_lib_linux(ctx, lib, static):
     return ''.join(symbols)
 
 
-def parse_lib_win(ctx, lib, static):
-    dllview = ft.get_test_tool_path(ctx.build, 'dllview') + '.exe'
-    cmd = [dllview, lib]
-    proc = sp.run(cmd, universal_newlines=True,
-                  stdout=sp.PIPE, stderr=sp.STDOUT)
-    if proc.returncode != 0:
-        raise ft.Fail('command "{}" failed: {}'
-                      .format(' '.join(cmd), proc.stdout))
-
-    out = sorted(proc.stdout.splitlines())
-    return '\n'.join(out) + '\n'
-
-
 @t.require_valgrind_disabled('drd', 'helgrind', 'memcheck', 'pmemcheck')
 @g.no_testdir()
 class Common(t.Test):
@@ -75,9 +60,7 @@ class Common(t.Test):
 
     def run(self, ctx):
         static = False
-        if sys.platform == 'win32':
-            lib = '{}.dll'.format(self.checked_lib)
-        elif str(self.ctx.build) in ['debug', 'release']:
+        if str(self.ctx.build) in ['debug', 'release']:
             lib = '{}.so.1'.format(self.checked_lib)
         else:
             static = True
@@ -91,73 +74,31 @@ class Common(t.Test):
             f.write(out)
 
 
-@t.windows_exclude
 class TEST2(Common):
     """Check scope of libpmem library (*nix)"""
     checked_lib = 'libpmem'
 
 
-@t.windows_exclude
 class TEST3(Common):
     """Check scope of libpmemlog library (*nix)"""
     checked_lib = 'libpmemlog'
 
 
-@t.windows_exclude
 class TEST4(Common):
     """Check scope of libpmemblk library (*nix)"""
     checked_lib = 'libpmemblk'
 
 
-@t.windows_exclude
 class TEST5(Common):
     """Check scope of libpmemobj library (*nix)"""
     checked_lib = 'libpmemobj'
 
 
-@t.windows_exclude
 class TEST6(Common):
     """Check scope of libpmempool library (*nix)"""
     checked_lib = 'libpmempool'
 
 
-@t.windows_only
-class TEST8(Common):
-    """Check scope of libpmem library (windows)"""
-    checked_lib = 'libpmem'
-
-
-@t.windows_only
-class TEST9(Common):
-    """Check scope of libpmemlog library (windows)"""
-    checked_lib = 'libpmemlog'
-
-
-@t.windows_only
-class TEST10(Common):
-    """Check scope of libpmemblk library (windows)"""
-    checked_lib = 'libpmemblk'
-
-
-@t.windows_only
-class TEST11(Common):
-    """Check scope of libpmemobj library (windows)"""
-    checked_lib = 'libpmemobj'
-
-
-@t.windows_only
-class TEST12(Common):
-    """Check scope of libpmempool library (windows)"""
-    checked_lib = 'libpmempool'
-
-
-@t.windows_exclude
 class TEST13(Common):
     """Check scope of libpmem2 library (*nix)"""
-    checked_lib = 'libpmem2'
-
-
-@t.windows_only
-class TEST14(Common):
-    """Check scope of libpmem2 library (windows)"""
     checked_lib = 'libpmem2'
