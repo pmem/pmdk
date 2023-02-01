@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * dllview.c -- a simple utility displaying the list of symbols exported by DLL
@@ -7,7 +7,6 @@
  * usage: dllview filename
  */
 
-#include <windows.h>
 #include <stdio.h>
 #include <winnt.h>
 #include <imagehlp.h>

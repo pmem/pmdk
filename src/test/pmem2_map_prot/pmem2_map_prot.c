@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * pmem2_map_prot.c -- pmem2_map_prot unit tests
@@ -31,11 +31,8 @@ struct res {
 static void
 res_prepare(const char *file, struct res *res, int access, unsigned proto)
 {
-#ifdef _WIN32
-	enum file_handle_type fh_type = FH_HANDLE;
-#else
 	enum file_handle_type fh_type = FH_FD;
-#endif
+
 	ut_pmem2_prepare_config(&res->cfg, &res->src, &res->fh, fh_type, file,
 				0, 0, access);
 	pmem2_config_set_protection(&res->cfg, proto);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_granularity.c -- test for graunlarity functionality
@@ -103,11 +103,7 @@ init_cfg(struct pmem2_config *cfg,
 static void
 cleanup(struct pmem2_source *src, struct test_ctx *ctx)
 {
-#ifdef _WIN32
-	CloseHandle(src->value.handle);
-#else
 	CLOSE(ctx->fd);
-#endif
 }
 
 /*

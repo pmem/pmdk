@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2022, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 """Build context classes"""
 
@@ -39,8 +39,6 @@ class Debug(Build):
     is_preferred = True
 
     def __init__(self):
-        if sys.platform == 'win32':
-            self.exedir = c.WIN_DEBUG_EXEDIR
         self.libdir = c.DEBUG_LIBDIR
         self.set_env_common()
 
@@ -50,8 +48,6 @@ class Release(Build):
     is_preferred = True
 
     def __init__(self):
-        if sys.platform == 'win32':
-            self.exedir = c.WIN_RELEASE_EXEDIR
         self.libdir = c.RELEASE_LIBDIR
         self.set_env_common()
 

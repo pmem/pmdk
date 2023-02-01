@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2022, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 
 """Test framework constants."""
 
 from os.path import join, abspath, dirname
-import sys
 
 # List of libraries for logging PMDK debug output
 LIBS_LIST = ('pmem', 'pmem2', 'pmemobj', 'pmemblk', 'pmemlog', 'pmempool')
@@ -12,22 +11,10 @@ LIBS_LIST = ('pmem', 'pmem2', 'pmemobj', 'pmemblk', 'pmemlog', 'pmempool')
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
 
-WIN_DEBUG_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Debug'))
-WIN_DEBUG_EXEDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'tests'))
-
-WIN_RELEASE_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Release'))
-WIN_RELEASE_EXEDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'tests'))
-
-if sys.platform == 'win32':
-    DEBUG_LIBDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'libs'))
-    RELEASE_LIBDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'libs'))
-    MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
-                               'build', 'out', 'Release'))
-else:
-    DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
-    RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
-    MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
-                               'build', 'out'))
+DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
+RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
+MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
+                           'build', 'out'))
 
 HEADER_SIZE = 4096
 

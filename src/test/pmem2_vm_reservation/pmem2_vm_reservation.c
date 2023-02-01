@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * pmem2_vm_reservation.c -- pmem2_vm_reservation unittests
  */
 
 #include <stdbool.h>
-#ifndef _WIN32
 #include <pthread.h>
-#endif
 
 #include "alloc.h"
 #include "config.h"
@@ -963,10 +961,6 @@ run_worker(void *(worker_func)(void *arg), struct worker_args args[],
 {
 	os_thread_t threads[MAX_THREADS];
 
-#ifdef _WIN32
-	for (size_t n = 0; n < n_threads; n++)
-		THREAD_CREATE(&threads[n], NULL, worker_func, &args[n]);
-#else
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	/* thread stack size is set to 16MB */
@@ -975,7 +969,6 @@ run_worker(void *(worker_func)(void *arg), struct worker_args args[],
 	for (size_t n = 0; n < n_threads; n++)
 		THREAD_CREATE(&threads[n], (os_thread_attr_t *)&attr,
 				worker_func, &args[n]);
-#endif
 
 	for (size_t n = 0; n < n_threads; n++)
 		THREAD_JOIN(&threads[n], NULL);
