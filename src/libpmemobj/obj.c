@@ -66,8 +66,6 @@ static struct critnib *pools_tree; /* tree used for searching by address */
 int _pobj_cache_invalidate;
 static os_mutex_t pools_mutex;
 
-#ifndef _WIN32
-
 __thread struct _pobj_pcache _pobj_cached_pool;
 
 /*
@@ -78,73 +76,6 @@ pmemobj_direct(PMEMoid oid)
 {
 	return pmemobj_direct_inline(oid);
 }
-
-#else /* _WIN32 */
-
-/*
- * XXX - this is a temporary implementation
- *
- * Seems like we could still use TLS and simply substitute "__thread" with
- * "__declspec(thread)", however it's not clear if it would work correctly
- * with Windows DLL's.
- * Need to verify that once we have the multi-threaded tests ported.
- */
-
-struct _pobj_pcache {
-	PMEMobjpool *pop;
-	uint64_t uuid_lo;
-	int invalidate;
-};
-
-static os_once_t Cached_pool_key_once = OS_ONCE_INIT;
-static os_tls_key_t Cached_pool_key;
-
-/*
- * _Cached_pool_key_alloc -- (internal) allocate pool cache pthread key
- */
-static void
-_Cached_pool_key_alloc(void)
-{
-	int pth_ret = os_tls_key_create(&Cached_pool_key, free);
-	if (pth_ret)
-		FATAL("!os_tls_key_create");
-}
-
-/*
- * pmemobj_direct -- returns the direct pointer of an object
- */
-void *
-pmemobj_direct(PMEMoid oid)
-{
-	if (oid.off == 0 || oid.pool_uuid_lo == 0)
-		return NULL;
-
-	struct _pobj_pcache *pcache = os_tls_get(Cached_pool_key);
-	if (pcache == NULL) {
-		pcache = calloc(sizeof(struct _pobj_pcache), 1);
-		if (pcache == NULL)
-			FATAL("!pcache malloc");
-		int ret = os_tls_set(Cached_pool_key, pcache);
-		if (ret)
-			FATAL("!os_tls_set");
-	}
-
-	if (_pobj_cache_invalidate != pcache->invalidate ||
-	    pcache->uuid_lo != oid.pool_uuid_lo) {
-		pcache->invalidate = _pobj_cache_invalidate;
-
-		if ((pcache->pop = pmemobj_pool_by_oid(oid)) == NULL) {
-			pcache->uuid_lo = 0;
-			return NULL;
-		}
-
-		pcache->uuid_lo = oid.pool_uuid_lo;
-	}
-
-	return (void *)((uintptr_t)pcache->pop + oid.off);
-}
-
-#endif /* _WIN32 */
 
 /*
  * obj_ctl_init_and_load -- (static) initializes CTL and loads configuration
@@ -270,10 +201,6 @@ obj_init(void)
 
 	os_mutex_init(&pools_mutex);
 
-#ifdef _WIN32
-	/* XXX - temporary implementation (see above) */
-	os_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
-#endif
 	/*
 	 * Load global config, ignore any issues. They will be caught on the
 	 * subsequent call to this function for individual pools.
@@ -304,10 +231,6 @@ obj_fini(void)
 	lane_info_destroy();
 
 	os_mutex_destroy(&pools_mutex);
-
-#ifdef _WIN32
-	(void) os_tls_key_delete(Cached_pool_key);
-#endif
 }
 
 /*
@@ -1124,9 +1047,7 @@ no_valid_env:
 /*
  * pmemobj_createU -- create a transactional memory pool (set)
  */
-#ifndef _WIN32
 static inline
-#endif
 PMEMobjpool *
 pmemobj_createU(const char *path, const char *layout,
 		size_t poolsize, mode_t mode)
@@ -1231,7 +1152,6 @@ err:
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmemobj_create -- create a transactional memory pool (set)
  */
@@ -1246,33 +1166,6 @@ pmemobj_create(const char *path, const char *layout,
 	PMEMOBJ_API_END();
 	return pop;
 }
-#else
-/*
- * pmemobj_createW -- create a transactional memory pool (set)
- */
-PMEMobjpool *
-pmemobj_createW(const wchar_t *path, const wchar_t *layout, size_t poolsize,
-	mode_t mode)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return NULL;
-	char *ulayout = NULL;
-	if (layout != NULL) {
-		ulayout = util_toUTF8(layout);
-		if (ulayout == NULL) {
-			util_free_UTF8(upath);
-			return NULL;
-		}
-	}
-	PMEMobjpool *ret = pmemobj_createU(upath, ulayout, poolsize, mode);
-
-	util_free_UTF8(upath);
-	util_free_UTF8(ulayout);
-
-	return ret;
-}
-#endif
 
 /*
  * obj_check_basic_local -- (internal) basic pool consistency check
@@ -1536,9 +1429,7 @@ replicas_init:
 /*
  * pmemobj_openU -- open a transactional memory pool
  */
-#ifndef _WIN32
 static inline
-#endif
 PMEMobjpool *
 pmemobj_openU(const char *path, const char *layout)
 {
@@ -1548,7 +1439,6 @@ pmemobj_openU(const char *path, const char *layout)
 			COW_at_open ? POOL_OPEN_COW : 0, 1);
 }
 
-#ifndef _WIN32
 /*
  * pmemobj_open -- open a transactional memory pool
  */
@@ -1562,32 +1452,6 @@ pmemobj_open(const char *path, const char *layout)
 	PMEMOBJ_API_END();
 	return pop;
 }
-#else
-/*
- * pmemobj_openW -- open a transactional memory pool
- */
-PMEMobjpool *
-pmemobj_openW(const wchar_t *path, const wchar_t *layout)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return NULL;
-
-	char *ulayout = NULL;
-	if (layout != NULL) {
-		ulayout = util_toUTF8(layout);
-		if (ulayout == NULL) {
-			util_free_UTF8(upath);
-			return NULL;
-		}
-	}
-
-	PMEMobjpool *ret = pmemobj_openU(upath, ulayout);
-	util_free_UTF8(upath);
-	util_free_UTF8(ulayout);
-	return ret;
-}
-#endif
 
 /*
  * obj_pool_lock_cleanup -- (internal) Destroy any locks or condition
@@ -1673,24 +1537,10 @@ pmemobj_close(PMEMobjpool *pop)
 	if (critnib_remove(pools_tree, (uint64_t)pop) != pop)
 		ERR("critnib_remove for pools_tree");
 
-#ifndef _WIN32
-
 	if (_pobj_cached_pool.pop == pop) {
 		_pobj_cached_pool.pop = NULL;
 		_pobj_cached_pool.uuid_lo = 0;
 	}
-
-#else /* _WIN32 */
-
-	struct _pobj_pcache *pcache = os_tls_get(Cached_pool_key);
-	if (pcache != NULL) {
-		if (pcache->pop == pop) {
-			pcache->pop = NULL;
-			pcache->uuid_lo = 0;
-		}
-	}
-
-#endif /* _WIN32 */
 
 	VALGRIND_HG_DRD_DISABLE_CHECKING(&_pobj_cache_invalidate,
 		sizeof(_pobj_cache_invalidate));
@@ -1704,9 +1554,7 @@ pmemobj_close(PMEMobjpool *pop)
 /*
  * pmemobj_checkU -- transactional memory pool consistency check
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemobj_checkU(const char *path, const char *layout)
 {
@@ -1747,7 +1595,6 @@ pmemobj_checkU(const char *path, const char *layout)
 	return consistent;
 }
 
-#ifndef _WIN32
 /*
  * pmemobj_check -- transactional memory pool consistency check
  */
@@ -1761,34 +1608,6 @@ pmemobj_check(const char *path, const char *layout)
 	PMEMOBJ_API_END();
 	return ret;
 }
-#else
-/*
- * pmemobj_checkW -- transactional memory pool consistency check
- */
-int
-pmemobj_checkW(const wchar_t *path, const wchar_t *layout)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL)
-		return -1;
-
-	char *ulayout = NULL;
-	if (layout != NULL) {
-		ulayout = util_toUTF8(layout);
-		if (ulayout == NULL) {
-			util_free_UTF8(upath);
-			return -1;
-		}
-	}
-
-	int ret = pmemobj_checkU(upath, ulayout);
-
-	util_free_UTF8(upath);
-	util_free_UTF8(ulayout);
-
-	return ret;
-}
-#endif
 
 /*
  * pmemobj_pool_by_oid -- returns the pool handle associated with the oid
@@ -3002,9 +2821,7 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 /*
  * pmemobj_ctl_getU -- programmatically executes a read ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg)
 {
@@ -3016,9 +2833,7 @@ pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg)
 /*
  * pmemobj_ctl_setU -- programmatically executes a write ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg)
 {
@@ -3030,9 +2845,7 @@ pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg)
 /*
  * pmemobj_ctl_execU -- programmatically executes a runnable ctl query
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmemobj_ctl_execU(PMEMobjpool *pop, const char *name, void *arg)
 {
@@ -3041,7 +2854,6 @@ pmemobj_ctl_execU(PMEMobjpool *pop, const char *name, void *arg)
 		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
 }
 
-#ifndef _WIN32
 /*
  * pmemobj_ctl_get -- programmatically executes a read ctl query
  */
@@ -3078,55 +2890,6 @@ pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg)
 	PMEMOBJ_API_END();
 	return ret;
 }
-#else
-/*
- * pmemobj_ctl_getW -- programmatically executes a read ctl query
- */
-int
-pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemobj_ctl_getU(pop, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-
-/*
- * pmemobj_ctl_setW -- programmatically executes a write ctl query
- */
-int
-pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemobj_ctl_setU(pop, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-
-/*
- * pmemobj_ctl_execW -- programmatically executes a runnable ctl query
- */
-int
-pmemobj_ctl_execW(PMEMobjpool *pop, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemobj_ctl_execU(pop, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-#endif
 
 /*
  * _pobj_debug_notice -- logs notice message if used inside a transaction
