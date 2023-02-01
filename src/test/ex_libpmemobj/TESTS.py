@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2023, Intel Corporation
 #
 import os
 import testframework as t
@@ -13,7 +13,6 @@ TEST_PARAMS = ['hashmap_tx', 'hashmap_atomic', 'hashmap_rp',
 
 @t.require_build('debug')
 @t.require_command('gdb')
-@t.windows_exclude
 class EX_LIBPMEMOBJ(t.Test):
     test_type = t.Medium
     input = ['i 3', 'q']

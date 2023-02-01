@@ -104,7 +104,6 @@ class TEST501(EX_LIBPMEM2_TEST5):  # to be removed when fixed
     pass
 
 
-@t.windows_exclude
 # XXX disable the test for `memcheck' and 'helgrind'
 # until https://github.com/pmem/pmdk/issues/5638 is fixed.
 # @t.require_valgrind_disabled('memcheck', 'helgrind')
