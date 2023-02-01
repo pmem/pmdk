@@ -34,8 +34,8 @@ install_upstream_3_16_1() {
 install_custom-pmem_from_source() {
   git clone https://github.com/pmem/valgrind.git
   cd valgrind
-  # valgrind v3.20 with pmemcheck
-  git checkout b21a0ab76d2fbc4f26d2b7c7e20df63d63f0a31b
+  # valgrind v3.20 + fixes for ppc64; 01.02.2023
+  git checkout c0abd814ff955c7eb2850bd3827167a6b084e975
   ./autogen.sh
   ./configure
   make -j$(nproc)
@@ -46,7 +46,6 @@ install_custom-pmem_from_source() {
 
 ARCH=$(uname -m)
 case "$ARCH" in
-  ppc64le) install_upstream_3_16_1 ;;
   aarch64) install_upstream_3_16_1 ;;
   *) install_custom-pmem_from_source ;;
 esac
