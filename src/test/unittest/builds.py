@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2022, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 """Build context classes"""
-
-import sys
 
 import context as ctx
 import futils
@@ -13,12 +11,6 @@ import consts as c
 class Build(metaclass=ctx.CtxType):
     """Base and factory class for standard build classes"""
     exesuffix = ''
-
-    def set_env_common(self):
-        if sys.platform == 'win32':
-            self.env = {'PATH': self.libdir}
-        else:
-            self.env = {'LD_LIBRARY_PATH': self.libdir}
 
     @classmethod
     def filter(cls, config, msg, tc):
@@ -39,10 +31,8 @@ class Debug(Build):
     is_preferred = True
 
     def __init__(self):
-        if sys.platform == 'win32':
-            self.exedir = c.WIN_DEBUG_EXEDIR
         self.libdir = c.DEBUG_LIBDIR
-        self.set_env_common()
+        self.env = {'LD_LIBRARY_PATH': self.libdir}
 
 
 class Release(Build):
@@ -50,27 +40,24 @@ class Release(Build):
     is_preferred = True
 
     def __init__(self):
-        if sys.platform == 'win32':
-            self.exedir = c.WIN_RELEASE_EXEDIR
         self.libdir = c.RELEASE_LIBDIR
-        self.set_env_common()
+        self.env = {'LD_LIBRARY_PATH': self.libdir}
 
 
-# Build types not available on Windows
-if sys.platform != 'win32':
-    class Static_Debug(Build):
-        """Set this context for a static_debug build"""
+class Static_Debug(Build):
+    """Set this context for a static_debug build"""
 
-        def __init__(self):
-            self.exesuffix = '.static-debug'
-            self.libdir = c.DEBUG_LIBDIR
+    def __init__(self):
+        self.exesuffix = '.static-debug'
+        self.libdir = c.DEBUG_LIBDIR
 
-    class Static_Release(Build):
-        """Set this context for a static_release build"""
 
-        def __init__(self):
-            self.exesuffix = '.static-nondebug'
-            self.libdir = c.RELEASE_LIBDIR
+class Static_Release(Build):
+    """Set this context for a static_release build"""
+
+    def __init__(self):
+        self.exesuffix = '.static-nondebug'
+        self.libdir = c.RELEASE_LIBDIR
 
 
 def require_build(build, **kwargs):

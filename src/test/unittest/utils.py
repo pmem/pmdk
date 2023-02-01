@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 """Utilities for tests. Meant to be used by test user."""
 
@@ -48,14 +48,6 @@ def _os_exclude(tc, os_name):
     return tc
 
 
-def windows_only(tc):
-    """
-    Disable test case (TEST[number] class) if NOT run on Windows.
-    Use it as a class decorator.
-    """
-    return _os_only(tc, 'win32')
-
-
 def linux_only(tc):
     """
     Disable test case (TEST[number] class) if NOT run on Linux.
@@ -70,14 +62,6 @@ def freebsd_only(tc):
     Use it as a class decorator.
     """
     return _os_only(tc, 'freebsd')
-
-
-def windows_exclude(tc):
-    """
-    Disable test case (TEST[number] class) on Windows.
-    Use it as a class decorator.
-    """
-    return _os_exclude(tc, 'win32')
 
 
 def linux_exclude(tc):

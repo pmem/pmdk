@@ -1,7 +1,7 @@
 #!../env.py
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 
 import testframework as t
 from testframework import granularity as g
@@ -24,7 +24,6 @@ class PMEM2_SOURCE_NO_DIR(t.Test):
         ctx.exec('pmem2_source', self.test_case)
 
 
-@t.windows_exclude
 @t.require_devdax(t.DevDax('devdax1'))
 class PMEM2_SOURCE_DEVDAX(t.Test):
     test_type = t.Short
@@ -64,40 +63,6 @@ class TEST5(PMEM2_SOURCE_NO_DIR):
     test_case = "test_delete_null_config"
 
 
-@t.windows_only
-class TEST6(PMEM2_SOURCE):
-    """set handle in the source"""
-    test_case = "test_set_handle"
-
-
-@t.windows_only
-class TEST7(PMEM2_SOURCE_NO_DIR):
-    """set INVALID_HANLE_VALUE in the source"""
-    test_case = "test_set_null_handle"
-
-
-@t.windows_only
-class TEST8(PMEM2_SOURCE):
-    """set invalid handle in the source"""
-    test_case = "test_set_invalid_handle"
-
-
-@t.windows_only
-class TEST9(PMEM2_SOURCE):
-    """set handle to a directory in the source"""
-    test_case = "test_set_directory_handle"
-
-    def run(self, ctx):
-        ctx.exec('pmem2_source', self.test_case, ctx.testdir)
-
-
-@t.windows_only
-class TEST10(PMEM2_SOURCE_NO_DIR):
-    """set handle to a mutex in the source"""
-    test_case = "test_set_mutex_handle"
-
-
-@t.windows_exclude
 class TEST11(PMEM2_SOURCE):
     """set directory's fd in the source"""
     test_case = "test_set_directory_fd"
@@ -106,25 +71,11 @@ class TEST11(PMEM2_SOURCE):
         ctx.exec('pmem2_source', self.test_case, ctx.testdir)
 
 
-@t.windows_only
-class TEST12(PMEM2_SOURCE):
-    """get handle from the source"""
-    test_case = "test_get_handle"
-
-
-@t.windows_exclude
 class TEST13(PMEM2_SOURCE):
     """get file descriptor from the source"""
     test_case = "test_get_fd"
 
 
-@t.windows_only
-class TEST14(PMEM2_SOURCE_NO_DIR):
-    """get handle from the invalid source type"""
-    test_case = "test_get_handle_inval_type"
-
-
-@t.windows_exclude
 class TEST15(PMEM2_SOURCE_NO_DIR):
     """get file descriptor from the invalid source type"""
     test_case = "test_get_fd_inval_type"
