@@ -4,7 +4,6 @@
 """Bad block utilities"""
 
 import abc
-import sys
 
 import futils
 import tools
@@ -51,10 +50,7 @@ class BadBlock:
                                   .format(tool))
             self.tool = tool
         else:
-            if sys.platform == 'win32':
-                raise futils.Fail('no bad block implementation on win32')
-            else:
-                self.tool = NdctlBB(util_tools)
+            self.tool = NdctlBB(util_tools)
 
     def inject(self, file, offset):
         self.tool.inject_bad_block(file, offset)

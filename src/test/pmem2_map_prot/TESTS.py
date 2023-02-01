@@ -29,22 +29,6 @@ class TEST1(PMEM2_MAP_PROT):
     test_case = "test_r_mode_rw_prot"
 
 
-@t.windows_only
-class TEST2(PMEM2_MAP_PROT):
-    """
-    READ/WRITE protection on file opened in read-only mode - should fail
-    """
-    test_case = "test_rw_modex_rwx_prot"
-
-
-@t.windows_only
-class TEST3(PMEM2_MAP_PROT):
-    """
-    READ/WRITE protection on file opened in read-only mode - should fail
-    """
-    test_case = "test_rw_modex_rx_prot"
-
-
 class TEST4(PMEM2_MAP_PROT):
     """
     READ protection on file opened in read-write mode - should succeed
@@ -62,7 +46,6 @@ class TEST5(PMEM2_MAP_PROT):
 # PMEM2_PROT_NONE flag is not supported by the CreateFileMapping function.
 # This test on purpose performs an "Invalid write"
 # which causes Memcheck to fail.
-@t.windows_exclude
 @t.require_valgrind_disabled('memcheck')
 class TEST6(PMEM2_MAP_PROT):
     """
@@ -159,7 +142,6 @@ class TEST14(PMEM2_MAP_PROT):
     test_case = "test_rwx_prot_map_priv_do_execute"
 
 
-@t.windows_exclude
 @t.require_devdax(t.DevDax('devdax1'))
 class PMEM2_MAP_DEVDAX(t.Test):
     test_type = t.Short

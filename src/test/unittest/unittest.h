@@ -98,29 +98,11 @@ int ut_get_uuid_str(char *);
 #define UT_POOL_HDR_UUID_STR_LEN 37 /* uuid string length */
 #define UT_POOL_HDR_UUID_GEN_FILE "/proc/sys/kernel/random/uuid"
 
-/* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
-void ut_strerror(int errnum, char *buff, size_t bufflen);
-
-/* XXX - eliminate duplicated definitions in unittest.h and util.h */
-#ifdef _WIN32
-static inline int ut_util_statW(const wchar_t *path,
-	os_stat_t *st_bufp) {
-	int retVal = _wstat64(path, st_bufp);
-	/* clear unused bits to avoid confusion */
-	st_bufp->st_mode &= 0600;
-	return retVal;
-}
-#endif
-
 /*
  * unit test support...
  */
 void ut_start(const char *file, int line, const char *func,
 	int argc, char * const argv[], const char *fmt, ...)
-	__attribute__((format(printf, 6, 7)));
-
-void ut_startW(const char *file, int line, const char *func,
-	int argc, wchar_t * const argv[], const char *fmt, ...)
 	__attribute__((format(printf, 6, 7)));
 
 void NORETURN ut_done(const char *file, int line, const char *func,
@@ -139,37 +121,12 @@ void ut_err(const char *file, int line, const char *func,
 	__attribute__((format(printf, 4, 5)));
 
 /* indicate the start of the test */
-#ifndef _WIN32
 #define START(argc, argv, ...)\
     ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
-#else
-#define START(argc, argv, ...)\
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);\
-	for (int i = 0; i < argc; i++) {\
-		argv[i] = ut_toUTF8(wargv[i]);\
-		if (argv[i] == NULL) {\
-			for (i--; i >= 0; i--)\
-				free(argv[i]);\
-			UT_FATAL("Error during arguments conversion\n");\
-		}\
-	}\
-	ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
-#endif
-
-/* indicate the start of the test */
-#define STARTW(argc, argv, ...)\
-    ut_startW(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
-#ifndef _WIN32
 #define DONE(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#else
-#define DONE(...)\
-	for (int i = argc; i > 0; i--)\
-		free(argv[i - 1]);\
-	ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#endif
 
 #define DONEW(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
@@ -218,10 +175,6 @@ void ut_err(const char *file, int line, const char *func,
 #if defined(__CHECKER__)
 #define UT_COMPILE_ERROR_ON(cond)
 #define UT_ASSERT_COMPILE_ERROR_ON(cond)
-#elif defined(_MSC_VER)
-#define UT_COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
-/* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
-#define UT_ASSERT_COMPILE_ERROR_ON(cond) (void)(cond)
 #else
 #define UT_COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 #ifndef __cplusplus
@@ -232,7 +185,7 @@ void ut_err(const char *file, int line, const char *func,
  */
 #define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_ASSERT_rt(!(cond))
 #endif /* __cplusplus */
-#endif /* _MSC_VER */
+#endif /* __CHECKER__ */
 
 /* assert a condition is true */
 #define UT_ASSERT(cnd)\
@@ -381,9 +334,6 @@ int ut_posix_fallocate(const char *file, int line, const char *func, int fd,
 int ut_stat(const char *file, int line, const char *func, const char *path,
     os_stat_t *st_bufp);
 
-int ut_statW(const char *file, int line, const char *func, const wchar_t *path,
-	os_stat_t *st_bufp);
-
 int ut_fstat(const char *file, int line, const char *func, int fd,
     os_stat_t *st_bufp);
 
@@ -480,9 +430,6 @@ int ut_snprintf(const char *file, int line, const char *func,
 #define STAT(path, st_bufp)\
     ut_stat(__FILE__, __LINE__, __func__, path, st_bufp)
 
-#define STATW(path, st_bufp)\
-    ut_statW(__FILE__, __LINE__, __func__, path, st_bufp)
-
 #define FTRUNCATE(fd, length)\
     ut_ftruncate(__FILE__, __LINE__, __func__, fd, length)
 
@@ -518,15 +465,10 @@ int ut_snprintf(const char *file, int line, const char *func,
 	ut_snprintf(__FILE__, __LINE__, __func__, \
 			str, size, format, __VA_ARGS__)
 
-#ifndef _WIN32
 #define ut_jmp_buf_t sigjmp_buf
 #define ut_siglongjmp(b) siglongjmp(b, 1)
 #define ut_sigsetjmp(b) sigsetjmp(b, 1)
-#else
-#define ut_jmp_buf_t jmp_buf
-#define ut_siglongjmp(b) longjmp(b, 1)
-#define ut_sigsetjmp(b) setjmp(b)
-#endif
+
 void ut_suppress_errmsg(void);
 void ut_unsuppress_errmsg(void);
 void ut_suppress_crt_assert(void);
@@ -561,46 +503,16 @@ int ut_thread_join(const char *file, int line, const char *func,
     ut_thread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
 
 /*
- * processes...
- */
-#ifdef _WIN32
-intptr_t ut_spawnv(int argc, const char **argv, ...);
-#endif
-
-/*
  * mocks...
  *
  * NOTE: On Linux, function mocking is implemented using wrapper functions.
  * See "--wrap" option of the GNU linker.
- * There is no such feature in VC++, so on Windows we do the mocking at
- * compile time, by redefining symbol names:
- * - all the references to <symbol> are replaced with <__wrap_symbol>
- *   in all the compilation units, except the one where the <symbol> is
- *   defined and the test source file
- * - the original definition of <symbol> is replaced with <__real_symbol>
- * - a wrapper function <__wrap_symbol> must be defined in the test program
- *   (it may still call the original function via <__real_symbol>)
- * Such solution seems to be sufficient for the purpose of our tests, even
- * though it has some limitations.  I.e. it does no work well with malloc/free,
- * so to wrap the system memory allocator functions, we use the built-in
- * feature of all the PMDK libraries, allowing to override default memory
- * allocator with the custom one.
  */
-#ifndef _WIN32
 #define _FUNC_REAL_DECL(name, ret_type, ...)\
 	ret_type __real_##name(__VA_ARGS__) __attribute__((unused));
-#else
-#define _FUNC_REAL_DECL(name, ret_type, ...)\
-	ret_type name(__VA_ARGS__);
-#endif
 
-#ifndef _WIN32
 #define _FUNC_REAL(name)\
 	__real_##name
-#else
-#define _FUNC_REAL(name)\
-	name
-#endif
 
 #define RCOUNTER(name)\
 	_rcounter##name
