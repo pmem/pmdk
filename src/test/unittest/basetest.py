@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 """Base tests class and its functionalities.
 
@@ -356,8 +356,7 @@ class Test(BaseTest):
                 not f[before_suffix].isdigit()
 
         match_files = filter(is_matchfile, cwd_listdir)
-        prefix = 'perl ' if sys.platform == 'win32' else ''
-        match_cmd = prefix + path.join(ROOTDIR, 'match')
+        match_cmd = path.join(ROOTDIR, 'match')
 
         for mf in match_files:
             cmd = '{} {}'.format(match_cmd, mf)

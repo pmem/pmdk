@@ -82,7 +82,6 @@ class TEST5(EX_LIBPMEM2):
         ctx.exec(example_path, "read", file_path, stdout_file='out5.log')
 
 
-@t.windows_exclude
 # This test case would require two VALGRIND_SET_CLEAN() calls
 # to be added to the "src/examples/libpmem2/ringbuf/ringbuf.c"
 # example (see https://github.com/pmem/pmdk/pull/5604)

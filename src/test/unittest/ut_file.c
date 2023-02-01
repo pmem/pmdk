@@ -28,29 +28,6 @@ ut_open(const char *file, int line, const char *func, const char *path,
 	return retval;
 }
 
-#ifdef _WIN32
-/*
- * ut_wopen -- a _wopen that cannot return < 0
- */
-int
-ut_wopen(const char *file, int line, const char *func, const wchar_t *path,
-    int flags, ...)
-{
-	va_list ap;
-	int mode;
-
-	va_start(ap, flags);
-	mode = va_arg(ap, int);
-	int retval = _wopen(path, flags, mode);
-	va_end(ap);
-
-	if (retval < 0)
-		ut_fatal(file, line, func, "!wopen: %s", ut_toUTF8(path));
-
-	return retval;
-}
-#endif
-
 /*
  * ut_close -- a close that cannot return -1
  */
@@ -134,18 +111,7 @@ size_t
 ut_write(const char *file, int line, const char *func, int fd,
     const void *buf, size_t count)
 {
-#ifndef _WIN32
 	ssize_t retval = write(fd, buf, count);
-#else
-	/*
-	 * XXX - do multiple write() calls in a loop?
-	 * Or just use native Windows API?
-	 */
-	if (count > UINT_MAX)
-		ut_fatal(file, line, func, "read: count > UINT_MAX (%zu > %u)",
-			count, UINT_MAX);
-	ssize_t retval = _write(fd, buf, (unsigned)count);
-#endif
 	if (retval < 0)
 		ut_fatal(file, line, func, "!write: %d", fd);
 
@@ -159,18 +125,7 @@ size_t
 ut_read(const char *file, int line, const char *func, int fd,
     void *buf, size_t count)
 {
-#ifndef _WIN32
 	ssize_t retval = read(fd, buf, count);
-#else
-	/*
-	 * XXX - do multiple read() calls in a loop?
-	 * Or just use native Windows API?
-	 */
-	if (count > UINT_MAX)
-		ut_fatal(file, line, func, "read: count > UINT_MAX (%zu > %u)",
-			count, UINT_MAX);
-	ssize_t retval = read(fd, buf, (unsigned)count);
-#endif
 	if (retval < 0)
 		ut_fatal(file, line, func, "!read: %d", fd);
 
@@ -204,11 +159,6 @@ ut_fstat(const char *file, int line, const char *func, int fd,
 	if (retval < 0)
 		ut_fatal(file, line, func, "!fstat: %d", fd);
 
-#ifdef _WIN32
-	/* clear unused bits to avoid confusion */
-	st_bufp->st_mode &= 0600;
-#endif
-
 	return retval;
 }
 
@@ -224,34 +174,9 @@ ut_stat(const char *file, int line, const char *func, const char *path,
 	if (retval < 0)
 		ut_fatal(file, line, func, "!stat: %s", path);
 
-#ifdef _WIN32
-	/* clear unused bits to avoid confusion */
-	st_bufp->st_mode &= 0600;
-#endif
-
 	return retval;
 }
-#ifdef _WIN32
-/*
- * ut_statW -- a stat that cannot return -1
- */
-int
-ut_statW(const char *file, int line, const char *func, const wchar_t *path,
-    os_stat_t *st_bufp)
-{
-	int retval = ut_util_statW(path, st_bufp);
 
-	if (retval < 0)
-		ut_fatal(file, line, func, "!stat: %S", path);
-
-#ifdef _WIN32
-	/* clear unused bits to avoid confusion */
-	st_bufp->st_mode &= 0600;
-#endif
-
-	return retval;
-}
-#endif
 /*
  * ut_mmap -- a mmap call that cannot return MAP_FAILED
  */
@@ -263,12 +188,6 @@ ut_mmap(const char *file, int line, const char *func, void *addr,
 
 	if (ret_addr == MAP_FAILED) {
 		const char *error = "";
-#ifdef _WIN32
-		/*
-		 * XXX: on Windows mmap is implemented and exported by libpmem
-		 */
-		error = pmem_errormsg();
-#endif
 		ut_fatal(file, line, func,
 			"!mmap: addr=0x%llx length=0x%zx prot=%d flags=%d fd=%d offset=0x%llx %s",
 			(unsigned long long)addr, length, prot,
@@ -326,43 +245,6 @@ ut_ftruncate(const char *file, int line, const char *func, int fd,
 	return retval;
 }
 
-#ifdef _WIN32
-/*
- * file_map -- map file without using pmdk api
- */
-void *
-ut_file_map(const char *file, int line, const char *func, int fd, size_t size)
-{
-	void *addr = NULL;
-	HANDLE handle = (HANDLE)_get_osfhandle(fd);
-	UT_ASSERTne(handle, INVALID_HANDLE_VALUE);
-
-	HANDLE mh = CreateFileMapping(handle,
-		NULL,
-		PAGE_READWRITE,
-		size >> 32,
-		size & 0xFFFFFFFF,
-		NULL);
-
-	if (mh == INVALID_HANDLE_VALUE)
-		ut_fatal(file, line, func, "!!CreateFileMapping");
-
-	addr = MapViewOfFileEx(mh,
-		FILE_MAP_ALL_ACCESS,
-		0,
-		0,
-		size,
-		NULL);
-
-	if (addr == NULL)
-		ut_fatal(file, line, func, "!!CreateFileMapping");
-
-	if (CloseHandle(mh) == 0)
-		ut_fatal(file, line, func, "!!CloseHandle");
-
-	return addr;
-}
-#else
 /*
  * file_map -- map file without using pmdk api
  */
@@ -372,4 +254,3 @@ ut_file_map(const char *file, int line, const char *func, int fd, size_t size)
 	return ut_mmap(file, line, func, NULL, size, PROT_READ | PROT_WRITE,
 		MAP_SHARED, fd, 0);
 }
-#endif
