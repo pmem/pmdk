@@ -1,7 +1,7 @@
 #!../env.py
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 
 import testframework as t
 from testframework import granularity as g
@@ -9,9 +9,6 @@ import futils
 import os
 
 
-# All test cases in pmem2_persist_valgrind use Valgrind, which is not available
-# on Windows systems.
-@t.windows_exclude
 @t.require_valgrind_enabled('pmemcheck')
 # XXX In the match file, there are two possible numbers of errors. It varies
 # from compiler to compiler. There should be only one number when pmemcheck

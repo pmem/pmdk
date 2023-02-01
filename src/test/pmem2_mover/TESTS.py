@@ -4,8 +4,6 @@
 #
 
 
-import sys
-
 import testframework as t
 from testframework import granularity as g
 from consts import MINIASYNC_LIBDIR
@@ -17,14 +15,9 @@ class PMEM2_MOVER(t.Test):
 
     def setup(self, ctx):
         super().setup(ctx)
-        if sys.platform == 'win32':
-            env_dir = 'PATH'
-            path = ctx.env[env_dir]
-            ctx.env[env_dir] = path + ";" + MINIASYNC_LIBDIR
-        else:
-            env_dir = 'LD_LIBRARY_PATH'
-            path = ctx.env[env_dir]
-            ctx.env[env_dir] = path + ":" + MINIASYNC_LIBDIR
+        env_dir = 'LD_LIBRARY_PATH'
+        path = ctx.env[env_dir]
+        ctx.env[env_dir] = path + ":" + MINIASYNC_LIBDIR
         self.filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
 
     def run(self, ctx):

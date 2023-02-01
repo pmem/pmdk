@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * util_poolset.c -- unit test for util_pool_create() / util_pool_open()
@@ -155,13 +155,7 @@ main(int argc, char *argv[])
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_create", fname);
 			else {
-				/*
-				 * XXX: On Windows pool files are created with
-				 * R/W permissions, so no need for chmod().
-				 */
-#ifndef _WIN32
 				util_poolset_chmod(set, S_IWUSR | S_IRUSR);
-#endif
 				poolset_info(fname, set, 0);
 				util_poolset_close(set, DO_NOT_DELETE_PARTS);
 			}

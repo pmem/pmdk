@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * cmpmap -- a tool for comparing files using mmap
@@ -243,19 +243,6 @@ out_close1:
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	util_suppress_errmsg();
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	for (int i = 0; i < argc; i++) {
-		argv[i] = util_toUTF8(wargv[i]);
-		if (argv[i] == NULL) {
-			for (i--; i >= 0; i--)
-				free(argv[i]);
-			fprintf(stderr, "Error during arguments conversion\n");
-			return 1;
-		}
-	}
-#endif
 	int ret = EXIT_FAILURE;
 
 	if (parse_args(argc, argv))
@@ -269,9 +256,5 @@ main(int argc, char *argv[])
 
 	ret = EXIT_SUCCESS;
 end:
-#ifdef _WIN32
-	for (int i = argc; i > 0; i--)
-		free(argv[i - 1]);
-#endif
 	exit(ret);
 }
