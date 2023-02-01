@@ -520,10 +520,6 @@ query_shutdown_state(const char *path)
 static int
 enable_badblocks_checking(const char *path)
 {
-#ifdef _WIN32
-	ERR("bad blocks checking is not supported on Windows");
-	return -1;
-#else
 	struct pool_set *set = poolset_open(path, RW);
 	if (!set)
 		return -1;
@@ -534,7 +530,6 @@ enable_badblocks_checking(const char *path)
 	poolset_close(set);
 
 	return 0;
-#endif
 }
 
 /*
@@ -629,9 +624,7 @@ is_feature_valid(uint32_t feature)
 /*
  * pmempool_feature_enableU -- enable pool set feature
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmempool_feature_enableU(const char *path, enum pmempool_feature feature,
 	unsigned flags)
@@ -647,9 +640,7 @@ pmempool_feature_enableU(const char *path, enum pmempool_feature feature,
 /*
  * pmempool_feature_disableU -- disable pool set feature
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmempool_feature_disableU(const char *path, enum pmempool_feature feature,
 	unsigned flags)
@@ -665,9 +656,7 @@ pmempool_feature_disableU(const char *path, enum pmempool_feature feature,
 /*
  * pmempool_feature_queryU -- query pool set feature
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmempool_feature_queryU(const char *path, enum pmempool_feature feature,
 	unsigned flags)
@@ -677,7 +666,6 @@ pmempool_feature_queryU(const char *path, enum pmempool_feature feature,
 	/*
 	 * XXX: Windows does not allow function call in a constant expressions
 	 */
-#ifndef _WIN32
 #define CHECK_INCOMPAT_MAPPING(FEAT, ENUM) \
 	COMPILE_ERROR_ON( \
 		util_feature2pmempool_feature(FEATURE_INCOMPAT(FEAT)) != ENUM)
@@ -687,7 +675,6 @@ pmempool_feature_queryU(const char *path, enum pmempool_feature feature,
 	CHECK_INCOMPAT_MAPPING(SDS, PMEMPOOL_FEAT_SHUTDOWN_STATE);
 
 #undef CHECK_INCOMPAT_MAPPING
-#endif
 
 	if (!is_feature_valid(feature))
 		return -1;
@@ -696,7 +683,6 @@ pmempool_feature_queryU(const char *path, enum pmempool_feature feature,
 	return features[feature].query(path);
 }
 
-#ifndef _WIN32
 /*
  * pmempool_feature_enable -- enable pool set feature
  */
@@ -706,28 +692,7 @@ pmempool_feature_enable(const char *path, enum pmempool_feature feature,
 {
 	return pmempool_feature_enableU(path, feature, flags);
 }
-#else
-/*
- * pmempool_feature_enableW -- enable pool set feature as widechar
- */
-int
-pmempool_feature_enableW(const wchar_t *path, enum pmempool_feature feature,
-	unsigned flags)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL) {
-		ERR("Invalid poolest/pool file path.");
-		return -1;
-	}
 
-	int ret = pmempool_feature_enableU(upath, feature, flags);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
-
-#ifndef _WIN32
 /*
  * pmempool_feature_disable -- disable pool set feature
  */
@@ -737,28 +702,7 @@ pmempool_feature_disable(const char *path, enum pmempool_feature feature,
 {
 	return pmempool_feature_disableU(path, feature, flags);
 }
-#else
-/*
- * pmempool_feature_disableW -- disable pool set feature as widechar
- */
-int
-pmempool_feature_disableW(const wchar_t *path, enum pmempool_feature feature,
-	unsigned flags)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL) {
-		ERR("Invalid poolest/pool file path.");
-		return -1;
-	}
 
-	int ret = pmempool_feature_disableU(upath, feature, flags);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
-
-#ifndef _WIN32
 /*
  * pmempool_feature_query -- query pool set feature
  */
@@ -768,23 +712,3 @@ pmempool_feature_query(const char *path, enum pmempool_feature feature,
 {
 	return pmempool_feature_queryU(path, feature, flags);
 }
-#else
-/*
- * pmempool_feature_queryW -- query pool set feature as widechar
- */
-int
-pmempool_feature_queryW(const wchar_t *path, enum pmempool_feature feature,
-	unsigned flags)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL) {
-		ERR("Invalid poolest/pool file path.");
-		return -1;
-	}
-
-	int ret = pmempool_feature_queryU(upath, feature, flags);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
