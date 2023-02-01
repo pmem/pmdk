@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * libpmempool.c -- entry points for libpmempool
@@ -15,10 +15,6 @@
 #include "pmempool.h"
 #include "pool.h"
 #include "check.h"
-
-#ifdef _WIN32
-#define ANSWER_BUFFSIZE 256
-#endif
 
 /*
  * libpmempool_init -- load-time initialization for libpmempool
@@ -52,9 +48,7 @@ libpmempool_fini(void)
  * pmempool_check_versionU -- see if library meets application version
  *	requirements
  */
-#ifndef _WIN32
 static inline
-#endif
 const char *
 pmempool_check_versionU(unsigned major_required, unsigned minor_required)
 {
@@ -76,7 +70,6 @@ pmempool_check_versionU(unsigned major_required, unsigned minor_required)
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmempool_check_version -- see if lib meets application version requirements
  */
@@ -85,34 +78,17 @@ pmempool_check_version(unsigned major_required, unsigned minor_required)
 {
 	return pmempool_check_versionU(major_required, minor_required);
 }
-#else
-/*
- * pmempool_check_versionW -- see if library meets application version
- *	requirements as widechar
- */
-const wchar_t *
-pmempool_check_versionW(unsigned major_required, unsigned minor_required)
-{
-	if (pmempool_check_versionU(major_required, minor_required) != NULL)
-		return out_get_errormsgW();
-	else
-		return NULL;
-}
-#endif
 
 /*
  * pmempool_errormsgU -- return last error message
  */
-#ifndef _WIN32
 static inline
-#endif
 const char *
 pmempool_errormsgU(void)
 {
 	return out_get_errormsg();
 }
 
-#ifndef _WIN32
 /*
  * pmempool_errormsg -- return last error message
  */
@@ -121,16 +97,6 @@ pmempool_errormsg(void)
 {
 	return pmempool_errormsgU();
 }
-#else
-/*
- * pmempool_errormsgW -- return last error message as widechar
- */
-const wchar_t *
-pmempool_errormsgW(void)
-{
-	return out_get_errormsgW();
-}
-#endif
 
 /*
  * pmempool_ppc_set_default -- (internal) set default values of check context
@@ -151,9 +117,7 @@ pmempool_ppc_set_default(PMEMpoolcheck *ppc)
 /*
  * pmempool_check_initU -- initialize check context
  */
-#ifndef _WIN32
 static inline
-#endif
 PMEMpoolcheck *
 pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 {
@@ -247,7 +211,6 @@ error_path_malloc:
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmempool_check_init -- initialize check context
  */
@@ -256,46 +219,11 @@ pmempool_check_init(struct pmempool_check_args *args, size_t args_size)
 {
 	return pmempool_check_initU(args, args_size);
 }
-#else
-/*
- * pmempool_check_initW -- initialize check context as widechar
- */
-PMEMpoolcheck *
-pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size)
-{
-	char *upath = util_toUTF8(args->path);
-	if (upath == NULL)
-		return NULL;
-	char *ubackup_path = NULL;
-	if (args->backup_path != NULL) {
-		ubackup_path = util_toUTF8(args->backup_path);
-		if (ubackup_path == NULL) {
-			util_free_UTF8(upath);
-			return NULL;
-		}
-	}
-
-	struct pmempool_check_argsU uargs = {
-		.path = upath,
-		.backup_path = ubackup_path,
-		.pool_type = args->pool_type,
-		.flags = args->flags
-	};
-
-	PMEMpoolcheck *ret = pmempool_check_initU(&uargs, args_size);
-
-	util_free_UTF8(ubackup_path);
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
 
 /*
  * pmempool_checkU -- continue check till produce status to consume for caller
  */
-#ifndef _WIN32
 static inline
-#endif
 struct pmempool_check_statusU *
 pmempool_checkU(PMEMpoolcheck *ppc)
 {
@@ -313,7 +241,6 @@ pmempool_checkU(PMEMpoolcheck *ppc)
 	return check_status_get(result);
 }
 
-#ifndef _WIN32
 /*
  * pmempool_check -- continue check till produce status to consume for caller
  */
@@ -322,41 +249,6 @@ pmempool_check(PMEMpoolcheck *ppc)
 {
 	return pmempool_checkU(ppc);
 }
-#else
-/*
- * pmempool_checkW -- continue check till produce status to consume for caller
- */
-struct pmempool_check_statusW *
-pmempool_checkW(PMEMpoolcheck *ppc)
-{
-	LOG(3, NULL);
-	ASSERTne(ppc, NULL);
-
-	/* check the cache and convert msg and answer */
-	char buf[ANSWER_BUFFSIZE];
-	memset(buf, 0, ANSWER_BUFFSIZE);
-	convert_status_cache(ppc, buf, ANSWER_BUFFSIZE);
-
-	struct check_status *uresult;
-	do {
-		uresult = check_step(ppc);
-
-		if (check_is_end(ppc->data) && uresult == NULL)
-			return NULL;
-	} while (uresult == NULL);
-
-	struct pmempool_check_statusU *uret_res = check_status_get(uresult);
-	const wchar_t *wmsg = util_toUTF16(uret_res->str.msg);
-	if (wmsg == NULL)
-		FATAL("!malloc");
-
-	struct pmempool_check_statusW *wret_res =
-		(struct pmempool_check_statusW *)uret_res;
-	/* pointer to old message is freed in next check step */
-	wret_res->str.msg = wmsg;
-	return wret_res;
-}
-#endif
 
 /*
  * pmempool_check_end -- end check and release check context
