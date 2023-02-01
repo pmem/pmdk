@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * util_pool_hdr.c -- unit test for pool_hdr layout and default values
@@ -92,7 +92,7 @@ test_layout()
 #define POOL_FEAT_SDS_FINAL		0x0004U
 
 /* incompat features effective values */
-#if defined(_WIN32) || NDCTL_ENABLED
+#if NDCTL_ENABLED
 #ifdef SDS_ENABLED
 #define POOL_E_FEAT_SDS_FINAL		POOL_FEAT_SDS_FINAL
 #else
@@ -109,11 +109,7 @@ test_layout()
 #define POOL_FEAT_INCOMPAT_DEFAULT_V1 \
 	(POOL_FEAT_CKSUM_2K_FINAL | POOL_E_FEAT_SDS_FINAL)
 
-#ifdef _WIN32
-#define SDS_AT_CREATE_EXPECTED 1
-#else
 #define SDS_AT_CREATE_EXPECTED 0
-#endif
 
 /*
  * test_default_values -- test default values

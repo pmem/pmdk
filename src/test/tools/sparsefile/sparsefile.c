@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * sparsefile.c -- a simple utility to create sparse files on Windows
@@ -11,7 +11,6 @@
  *    -f - overwrite file if already exists
  */
 
-#include <windows.h>
 #include <stdio.h>
 #include <getopt.h>
 #include "util.h"

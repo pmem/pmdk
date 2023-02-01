@@ -130,7 +130,6 @@ OTHER_TESTS = \
 	compat_incompat_features\
 	ctl_prefault\
 	ctl_cow\
-	getopt\
 	magic\
 	mmap\
 	mmap_fixed\
@@ -143,7 +142,6 @@ OTHER_TESTS = \
 	traces\
 	traces_custom_function\
 	traces_pmem\
-	unicode_api\
 	unicode_match_script\
 	util_badblock\
 	util_ctl\

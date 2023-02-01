@@ -91,73 +91,31 @@ class Common(t.Test):
             f.write(out)
 
 
-@t.windows_exclude
 class TEST2(Common):
     """Check scope of libpmem library (*nix)"""
     checked_lib = 'libpmem'
 
 
-@t.windows_exclude
 class TEST3(Common):
     """Check scope of libpmemlog library (*nix)"""
     checked_lib = 'libpmemlog'
 
 
-@t.windows_exclude
 class TEST4(Common):
     """Check scope of libpmemblk library (*nix)"""
     checked_lib = 'libpmemblk'
 
 
-@t.windows_exclude
 class TEST5(Common):
     """Check scope of libpmemobj library (*nix)"""
     checked_lib = 'libpmemobj'
 
 
-@t.windows_exclude
 class TEST6(Common):
     """Check scope of libpmempool library (*nix)"""
     checked_lib = 'libpmempool'
 
 
-@t.windows_only
-class TEST8(Common):
-    """Check scope of libpmem library (windows)"""
-    checked_lib = 'libpmem'
-
-
-@t.windows_only
-class TEST9(Common):
-    """Check scope of libpmemlog library (windows)"""
-    checked_lib = 'libpmemlog'
-
-
-@t.windows_only
-class TEST10(Common):
-    """Check scope of libpmemblk library (windows)"""
-    checked_lib = 'libpmemblk'
-
-
-@t.windows_only
-class TEST11(Common):
-    """Check scope of libpmemobj library (windows)"""
-    checked_lib = 'libpmemobj'
-
-
-@t.windows_only
-class TEST12(Common):
-    """Check scope of libpmempool library (windows)"""
-    checked_lib = 'libpmempool'
-
-
-@t.windows_exclude
 class TEST13(Common):
     """Check scope of libpmem2 library (*nix)"""
-    checked_lib = 'libpmem2'
-
-
-@t.windows_only
-class TEST14(Common):
-    """Check scope of libpmem2 library (windows)"""
     checked_lib = 'libpmem2'

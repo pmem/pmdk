@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 
@@ -60,25 +60,11 @@ class TEST0(PMEM2_GRANULARITY):
     available_granularity = Granularity.BYTE
 
 
-@t.windows_only
-class TEST1(PMEM2_GRANULARITY):
-    """pass byte granularity, available cache line granularity"""
-    test_case = "test_granularity_req_byte_avail_cl"
-    available_granularity = Granularity.CACHE_LINE
-
-
 @t.linux_only
 class TEST2(PMEM2_GRANULARITY):
     """pass byte granularity, available cache line granularity"""
     test_case = "test_granularity_req_byte_avail_cl"
     available_granularity = Granularity.CACHE_LINE
-
-
-@t.windows_only
-class TEST3(PMEM2_GRANULARITY):
-    """pass byte granularity, available page granularity"""
-    test_case = "test_granularity_req_byte_avail_page"
-    available_granularity = Granularity.PAGE
 
 
 @t.linux_only
@@ -105,13 +91,6 @@ class TEST7(PMEM2_GRANULARITY):
     """pass cache line granularity, available cache line granularity"""
     test_case = "test_granularity_req_cl_avail_cl"
     available_granularity = Granularity.CACHE_LINE
-
-
-@t.windows_only
-class TEST8(PMEM2_GRANULARITY):
-    """pass cache line granularity, available page granularity"""
-    test_case = "test_granularity_req_cl_avail_page"
-    available_granularity = Granularity.PAGE
 
 
 @t.linux_only

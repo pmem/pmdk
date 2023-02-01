@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 """Valgrind handling tools"""
 
@@ -285,11 +285,6 @@ def require_valgrind_enabled(valgrind):
     """
 
     def wrapped(tc):
-        if sys.platform == 'win32':
-            # do not run valgrind tests on windows
-            tc.enabled = False
-            return tc
-
         tool = _require_valgrind_common(valgrind)
         ctx.add_requirement(tc, 'enabled_valgrind', tool)
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * ut.c -- unit test support routines
@@ -12,7 +12,6 @@
 
 #include "unittest.h"
 
-#ifndef _WIN32
 #ifdef __FreeBSD__
 #include <uuid/uuid.h>
 int
@@ -50,152 +49,6 @@ void ut_suppress_errmsg(void) {}
 void ut_unsuppress_errmsg(void) {}
 void ut_suppress_crt_assert(void) {}
 void ut_unsuppress_crt_assert(void) {}
-#else
-#include <crtdbg.h>
-
-#pragma comment(lib, "rpcrt4.lib")
-
-static DWORD ErrMode;
-static BOOL Err_suppressed = FALSE;
-static UINT AbortBehave;
-
-void
-ut_suppress_errmsg(void)
-{
-	ErrMode = GetErrorMode();
-	SetErrorMode(ErrMode | SEM_NOGPFAULTERRORBOX |
-		SEM_FAILCRITICALERRORS);
-	AbortBehave = _set_abort_behavior(0, _WRITE_ABORT_MSG |
-		_CALL_REPORTFAULT);
-	Err_suppressed = TRUE;
-}
-
-void
-ut_unsuppress_errmsg(void)
-{
-	if (Err_suppressed) {
-		SetErrorMode(ErrMode);
-		_set_abort_behavior(AbortBehave, _WRITE_ABORT_MSG |
-			_CALL_REPORTFAULT);
-		Err_suppressed = FALSE;
-	}
-}
-
-static _invalid_parameter_handler OldHandler;
-static BOOL Crt_suppressed = FALSE;
-static int Old_crt_assert_mode;
-
-/*
- * empty_parameter_handler -- empty, non aborting invalid parameter handler
- */
-static void
-empty_parameter_handler(const wchar_t *expression, const wchar_t *function,
-	const wchar_t *file, unsigned line, uintptr_t pReserved)
-{
-}
-
-/*
- * ut_suppress_crt_assert -- suppress crt raport message box
- */
-void
-ut_suppress_crt_assert(void)
-{
-	OldHandler = _set_invalid_parameter_handler(empty_parameter_handler);
-	Old_crt_assert_mode = _CrtSetReportMode(_CRT_ASSERT, 0);
-	Crt_suppressed = TRUE;
-}
-
-/*
- * ut_suppress_crt_assert -- unsuppress crt raport message box
- */
-void
-ut_unsuppress_crt_assert(void)
-{
-	if (Crt_suppressed) {
-		_set_invalid_parameter_handler(OldHandler);
-		_CrtSetReportMode(_CRT_ASSERT, Old_crt_assert_mode);
-		Crt_suppressed = FALSE;
-	}
-}
-
-int
-ut_get_uuid_str(char *uuid_str)
-{
-	UUID uuid;
-	char *buff;
-
-	if (UuidCreate(&uuid) == 0)
-		if (UuidToStringA(&uuid, &buff) == RPC_S_OK) {
-			strcpy_s(uuid_str, UT_POOL_HDR_UUID_STR_LEN, buff);
-			return 0;
-		}
-	return -1;
-}
-/* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
-#define ENOTSUP_STR "Operation not supported"
-#define UNMAPPED_STR "Unmapped error"
-void
-ut_strerror(int errnum, char *buff, size_t bufflen)
-{
-	switch (errnum) {
-		case ENOTSUP:
-			strcpy_s(buff, bufflen, ENOTSUP_STR);
-			break;
-		default:
-			if (strerror_s(buff, bufflen, errnum))
-				strcpy_s(buff, bufflen, UNMAPPED_STR);
-	}
-}
-
-/*
- * ut_spawnv -- creates and executes new synchronous process,
- * ... are additional parameters to new process,
- * the last argument must be a NULL
- *
- * XXX: argc/argv are ignored actually, as we need to use the unmodified
- * UTF16-encoded command line args.
- */
-intptr_t
-ut_spawnv(int argc, const char **argv, ...)
-{
-	int va_count = 0;
-
-	int wargc;
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
-
-	va_list ap;
-	va_start(ap, argv);
-	while (va_arg(ap, char *)) {
-		va_count++;
-	}
-	va_end(ap);
-
-	/* 1 for terminating NULL */
-	wchar_t **wargv2 = calloc(wargc + va_count + 1, sizeof(wchar_t *));
-	if (wargv2 == NULL) {
-		UT_ERR("Cannot calloc memory for new array");
-		return -1;
-	}
-	memcpy(wargv2, wargv, wargc * sizeof(wchar_t *));
-
-	va_start(ap, argv);
-	for (int i = 0; i < va_count; i++) {
-		char *a = va_arg(ap, char *);
-		wargv2[wargc + i] = ut_toUTF16(a);
-	}
-	va_end(ap);
-
-	intptr_t ret = _wspawnv(_P_WAIT, wargv2[0], wargv2);
-
-	for (int i = 0; i < va_count; i++) {
-		free(wargv2[wargc + i]);
-	}
-
-	free(wargv2);
-
-	return ret;
-}
-#endif
 
 #define MAXLOGFILENAME 100	/* maximum expected .log file name length */
 #define MAXPRINT 8192		/* maximum expected single print length */
@@ -446,7 +299,6 @@ close_output_files(void)
 		fclose(Tracefp);
 }
 
-#ifndef _WIN32
 #ifdef __FreeBSD__
 /* XXX Note: Pathname retrieval is not really supported in FreeBSD */
 #include <libutil.h>
@@ -575,195 +427,6 @@ check_open_files(void)
 }
 #endif /* __FreeBSD__ */
 
-#else /* _WIN32 */
-
-#include <winternl.h>
-
-#define STATUS_INFO_LENGTH_MISMATCH 0xc0000004
-
-#define ObjectTypeInformation 2
-#define SystemExtendedHandleInformation 64
-
-typedef struct _SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX {
-	PVOID Object;
-	HANDLE UniqueProcessId;
-	HANDLE HandleValue;
-	ULONG GrantedAccess;
-	USHORT CreatorBackTraceIndex;
-	USHORT ObjectTypeIndex;
-	ULONG HandleAttributes;
-	ULONG Reserved;
-} SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX, *PSYSTEM_HANDLE_TABLE_ENTRY_INFO_EX;
-
-typedef struct _SYSTEM_HANDLE_INFORMATION_EX {
-	ULONG_PTR NumberOfHandles;
-	ULONG_PTR Reserved;
-	SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX Handles[1];
-} SYSTEM_HANDLE_INFORMATION_EX, *PSYSTEM_HANDLE_INFORMATION_EX;
-
-typedef enum _POOL_TYPE {
-	NonPagedPool,
-	PagedPool,
-	NonPagedPoolMustSucceed,
-	DontUseThisType,
-	NonPagedPoolCacheAligned,
-	PagedPoolCacheAligned,
-	NonPagedPoolCacheAlignedMustS
-} POOL_TYPE, *PPOOL_TYPE;
-
-typedef struct _OBJECT_TYPE_INFORMATION {
-	UNICODE_STRING Name;
-	ULONG TotalNumberOfObjects;
-	ULONG TotalNumberOfHandles;
-	ULONG TotalPagedPoolUsage;
-	ULONG TotalNonPagedPoolUsage;
-	ULONG TotalNamePoolUsage;
-	ULONG TotalHandleTableUsage;
-	ULONG HighWaterNumberOfObjects;
-	ULONG HighWaterNumberOfHandles;
-	ULONG HighWaterPagedPoolUsage;
-	ULONG HighWaterNonPagedPoolUsage;
-	ULONG HighWaterNamePoolUsage;
-	ULONG HighWaterHandleTableUsage;
-	ULONG InvalidAttributes;
-	GENERIC_MAPPING GenericMapping;
-	ULONG ValidAccess;
-	BOOLEAN SecurityRequired;
-	BOOLEAN MaintainHandleCount;
-	USHORT MaintainTypeList;
-	POOL_TYPE PoolType;
-	ULONG PagedPoolUsage;
-	ULONG NonPagedPoolUsage;
-} OBJECT_TYPE_INFORMATION, *POBJECT_TYPE_INFORMATION;
-
-/*
- * enum_handles -- (internal) record or check a list of open handles
- */
-static void
-enum_handles(int op)
-{
-	ULONG hi_size = 0x200000; /* default size */
-	ULONG req_size = 0;
-
-	PSYSTEM_HANDLE_INFORMATION_EX hndl_info =
-		(PSYSTEM_HANDLE_INFORMATION_EX)MALLOC(hi_size);
-
-	/* if it fails with the default info size, realloc and try again */
-	NTSTATUS status;
-	while ((status = NtQuerySystemInformation(
-			SystemExtendedHandleInformation,
-			hndl_info, hi_size, &req_size))
-				== STATUS_INFO_LENGTH_MISMATCH) {
-		hi_size = req_size + 4096;
-		hndl_info = (PSYSTEM_HANDLE_INFORMATION_EX)REALLOC(hndl_info,
-				hi_size);
-	}
-	UT_ASSERT(status >= 0);
-
-	DWORD pid = GetProcessId(GetCurrentProcess());
-
-	DWORD ti_size = 4096; /* initial size */
-	POBJECT_TYPE_INFORMATION type_info =
-		(POBJECT_TYPE_INFORMATION)MALLOC(ti_size);
-
-	DWORD ni_size = 4096; /* initial size */
-	PVOID name_info = MALLOC(ni_size);
-
-	for (ULONG i = 0; i < hndl_info->NumberOfHandles; i++) {
-		SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX handle
-			= hndl_info->Handles[i];
-		char name[MAX_PATH];
-
-		/* ignore handles not owned by current process */
-		if ((ULONGLONG)handle.UniqueProcessId != pid)
-			continue;
-
-		/* query the object type */
-		status = NtQueryObject(handle.HandleValue,
-			ObjectTypeInformation, type_info, ti_size, NULL);
-		if (status < 0)
-			continue; /* if handle can't be queried, ignore it */
-
-		/*
-		 * Register/verify only handles of selected types.
-		 * Do not rely on type numbers - check type name instead.
-		 */
-		if (wcscmp(type_info->Name.Buffer, L"Directory") &&
-		    wcscmp(type_info->Name.Buffer, L"Mutant") &&
-		    wcscmp(type_info->Name.Buffer, L"Semaphore") &&
-		    wcscmp(type_info->Name.Buffer, L"File")) {
-			/* does not match any of the above types */
-			continue;
-		}
-
-		/*
-		 * Skip handles with access 0x0012019f.  NtQueryObject() may
-		 * hang on querying the handles pointing to named pipes.
-		 */
-		if (handle.GrantedAccess == 0x0012019f)
-			continue;
-
-		int ret = snprintf(name, MAX_PATH, "%.*S",
-			type_info->Name.Length / 2, type_info->Name.Buffer);
-
-		if (ret < 0 || ret >= MAX_PATH)
-			UT_FATAL("snprintf: %d", ret);
-
-		int fd = (int)(ULONGLONG)handle.HandleValue;
-		if (op == 0)
-			Fd_lut = open_file_add(Fd_lut, fd, name);
-		else
-			open_file_remove(Fd_lut, fd, name);
-	}
-
-	FREE(type_info);
-	FREE(name_info);
-	FREE(hndl_info);
-}
-
-/*
- * record_open_files -- record a number of open handles (used at START() time)
- *
- * On Windows, it records not only file handles, but some other handle types
- * as well.
- * XXX: We can't register all the handles, as spawning new process in the test
- * may result in opening new handles of some types (i.e. registry keys).
- */
-static void
-record_open_files()
-{
-	/*
-	 * XXX: Dummy call to CoCreateGuid() to ignore files/handles open
-	 * by this function.  They won't be closed until process termination.
-	 */
-	GUID uuid;
-	HRESULT res = CoCreateGuid(&uuid);
-
-	enum_handles(0);
-}
-
-/*
- * check_open_files -- verify open handles match recorded open handles
- */
-static void
-check_open_files()
-{
-	enum_handles(1);
-
-	open_file_walk(Fd_lut);
-	if (Fd_errcount) {
-		if (os_getenv("UNITTEST_DO_NOT_FAIL_OPEN_FILES"))
-			UT_OUT(
-				"open file list changed between START() and DONE()");
-		else
-			UT_FATAL(
-				"open file list changed between START() and DONE()");
-	}
-	open_file_free(Fd_lut);
-}
-
-#endif /* _WIN32 */
-
 /*
  * ut_start_common -- (internal) initialize unit test framework,
  *		indicate test started
@@ -782,24 +445,12 @@ ut_start_common(const char *file, int line, const char *func,
 		abort();
 	Ut_pagesize = (unsigned long)sc;
 
-#ifdef _WIN32
-	SYSTEM_INFO si;
-	GetSystemInfo(&si);
-	Ut_mmap_align = si.dwAllocationGranularity;
-
-	if (os_getenv("PMDK_NO_ABORT_MSG") != NULL) {
-		/* disable windows error message boxes */
-		ut_suppress_errmsg();
-	}
-	os_mutex_init(&Sigactions_lock);
-#else
 	Ut_mmap_align = Ut_pagesize;
 	char *ignore_bb =
 		os_getenv("UNITTEST_CHECK_OPEN_FILES_IGNORE_BADBLOCKS");
 
 	if (ignore_bb && *ignore_bb)
 		Ignore_bb = 1;
-#endif
 	if (os_getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
 		ut_register_sighandlers();
 
@@ -853,23 +504,7 @@ ut_start_common(const char *file, int line, const char *func,
 	prefix(file, line, func, 0);
 	vout(OF_NAME, "START", fmt, ap);
 
-#ifdef _WIN32
-	/*
-	 * XXX To generate error string Windows will silently load
-	 * KernelBase.dll.mui. To prevent counting it as an opened file, it is
-	 * loaded here by force.
-	 */
-	char buff[1000];
-	util_strwinerror(1, buff, 1000);
-
-	/*
-	 * It creates KsecDD file before recording open files.
-	 * This prevents inconsistencies in the list of open
-	 * files after the test.
-	 */
-	unsigned rnd;
-	os_rand_r(&rnd);
-#elif __FreeBSD__
+#ifdef __FreeBSD__
 	/* XXX Record the fd that will be leaked by uuid_generate */
 	uuid_t u;
 	uuid_generate(u);
@@ -897,39 +532,12 @@ ut_start(const char *file, int line, const char *func,
 	va_end(ap);
 }
 
-#ifdef _WIN32
-/*
- * ut_startW -- initialize unit test framework, indicate test started
- */
-void
-ut_startW(const char *file, int line, const char *func,
-	int argc, wchar_t * const argv[], const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	ut_start_common(file, line, func, fmt, ap);
-	out(OF_NONL, 0, "     args:");
-	for (int i = 0; i < argc; i++) {
-		char *str = ut_toUTF8(argv[i]);
-		UT_ASSERTne(str, NULL);
-		out(OF_NONL, " %s", str);
-		free(str);
-	}
-	out(0, NULL);
-
-	va_end(ap);
-}
-#endif
-
 /*
  * ut_end -- indicate test is done, exit program with specified value
  */
 void
 ut_end(const char *file, int line, const char *func, int ret)
 {
-#ifdef _WIN32
-	os_mutex_destroy(&Sigactions_lock);
-#endif
 	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
 		check_open_files();
 	prefix(file, line, func, 0);
@@ -946,9 +554,6 @@ void
 ut_done(const char *file, int line, const char *func,
     const char *fmt, ...)
 {
-#ifdef _WIN32
-	os_mutex_destroy(&Sigactions_lock);
-#endif
 	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
 		check_open_files();
 
@@ -1040,59 +645,6 @@ ut_checksum(uint8_t *addr, size_t len)
 
 	return (uint16_t)((sum2 << 8) | sum1);
 }
-
-#ifdef _WIN32
-
-/*
- * ut_toUTF8 -- convert WCS to UTF-8 string
- */
-char *
-ut_toUTF8(const wchar_t *wstr)
-{
-	int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1,
-		NULL, 0, NULL, NULL);
-	if (size == 0) {
-		UT_FATAL("!ut_toUTF8");
-	}
-
-	char *str = malloc(size * sizeof(char));
-	if (str == NULL) {
-		UT_FATAL("!ut_toUTF8");
-	}
-
-	if (WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, wstr, -1, str,
-		size, NULL, NULL) == 0) {
-		UT_FATAL("!ut_toUTF8");
-	}
-
-	return str;
-}
-
-/*
- * ut_toUTF16 -- convert UTF-8 to WCS string
- */
-wchar_t *
-ut_toUTF16(const char *wstr)
-{
-	int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, wstr, -1,
-					NULL, 0);
-	if (size == 0) {
-		UT_FATAL("!ut_toUTF16");
-	}
-
-	wchar_t *str = malloc(size * sizeof(wchar_t));
-	if (str == NULL) {
-		UT_FATAL("!ut_toUTF16");
-	}
-
-	if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, wstr, -1, str,
-				size) == 0) {
-		UT_FATAL("!ut_toUTF16");
-	}
-
-	return str;
-}
-#endif
 
 /*
  * ut_strtoi -- a strtoi call that cannot return error

@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 
@@ -26,13 +26,11 @@ class PMEM2_SOURCE_ALIGNMENT_DEV_DAX(t.Test):
                  self.test_case, dd.path, dd.alignment)
 
 
-@t.windows_exclude
 @t.require_devdax(t.DevDax('devdax', alignment=2 * t.MiB))
 class TEST1(PMEM2_SOURCE_ALIGNMENT_DEV_DAX):
     pass
 
 
-@t.windows_exclude
 @t.require_devdax(t.DevDax('devdax', alignment=4 * t.KiB))
 class TEST2(PMEM2_SOURCE_ALIGNMENT_DEV_DAX):
     pass
