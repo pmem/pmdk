@@ -43,7 +43,6 @@ LIBPMEM2_1.0 {
 		pmem2_source_device_usc;
 		pmem2_source_from_anon;
 		pmem2_source_from_fd;
-		pmem2_source_from_handle;
 		pmem2_source_get_fd;
 		pmem2_source_numa_node;
 		pmem2_source_pread_mcsafe;
