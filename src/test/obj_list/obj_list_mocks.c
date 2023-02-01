@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * obj_list_mocks.c -- mocks for redo/lane/heap/obj modules
@@ -53,8 +53,7 @@ obj_msync_nofail(const void *addr, size_t size)
 
 	/*
 	 * Verify msynced range is in the last mapped file range. Useful for
-	 * catching errors which normally would be caught only on Windows by
-	 * win_mmap.c.
+	 * catching errors.
 	 */
 	if (addr_ptrt < Pool_addr || addr_ptrt >= Pool_addr + Pool_size ||
 			addr_ptrt + size >= Pool_addr + Pool_size)

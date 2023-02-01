@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * util_cpuid.c -- unit test for CPU features detection
@@ -11,19 +11,12 @@
 #include "unittest.h"
 #include "cpu.h"
 
-#ifndef _MSC_VER
-/*
- * The x86 memory instructions are new enough that the compiler
- * intrinsic functions are not always available.  The intrinsic
- * functions are defined here in terms of asm statements for now.
- */
 #define _mm_clflushopt(addr)\
 	asm volatile(".byte 0x66; clflush %0" :\
 	"+m" (*(volatile char *)(addr)));
 #define _mm_clwb(addr)\
 	asm volatile(".byte 0x66; xsaveopt %0" :\
 	"+m" (*(volatile char *)(addr)));
-#endif
 
 static char Buf[32];
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * util_sds.c -- unit test for shutdown state functions
@@ -177,8 +177,3 @@ os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 	persist(addr, len);
 	return 0;
 }
-
-#ifdef _MSC_VER
-MSVC_CONSTR(libpmem2_init)
-MSVC_DESTR(libpmem2_fini)
-#endif

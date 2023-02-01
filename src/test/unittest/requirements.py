@@ -3,11 +3,9 @@
 #
 """Various requirements"""
 
-import ctypes
 import os
 from shutil import which
 import subprocess as sp
-import sys
 
 import configurator as conf
 import context as ctx
@@ -39,18 +37,15 @@ class Requirements:
         return False
 
     def _check_is_admin(self):
-        if sys.platform == 'win32':
-            return ctypes.windll.shell32.IsUserAnAdmin() != 0
-        else:
-            cmd = "sudo -n id -u"
-            fail_msg = "checking user id failed"
+        cmd = "sudo -n id -u"
+        fail_msg = "checking user id failed"
 
-            cmd_output = futils.run_command(cmd, fail_msg)
-            cmd_output = cmd_output.strip().decode('UTF8')
-            if cmd_output != '0':
-                return False
+        cmd_output = futils.run_command(cmd, fail_msg)
+        cmd_output = cmd_output.strip().decode('UTF8')
+        if cmd_output != '0':
+            return False
 
-            return True
+        return True
 
     def check_ndctl(self):
         is_ndctl = self._check_pkgconfig('libndctl', NDCTL_MIN_VERSION)

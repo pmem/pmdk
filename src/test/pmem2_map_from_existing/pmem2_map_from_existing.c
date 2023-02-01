@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * pmem2_map_from_existing.c -- pmem2_map_from_existing unittests
@@ -182,8 +182,3 @@ main(int argc, char *argv[])
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-MSVC_CONSTR(libpmem2_init)
-MSVC_DESTR(libpmem2_fini)
-#endif

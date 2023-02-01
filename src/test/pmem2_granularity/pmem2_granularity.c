@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_granularity.c -- test for graunlarity functionality
@@ -11,15 +11,12 @@
 
 #include "config.h"
 #include "source.h"
-#include "pmem2_granularity.h"
 #include "unittest.h"
 #include "ut_pmem2_config.h"
 #include "ut_pmem2_utils.h"
 #include "out.h"
 
-size_t Is_nfit = 1;
-size_t Pc_type = 7;
-size_t Pc_capabilities;
+static size_t Pc_capabilities;
 
 /*
  * parse_args -- parse args from the input
@@ -103,11 +100,7 @@ init_cfg(struct pmem2_config *cfg,
 static void
 cleanup(struct pmem2_source *src, struct test_ctx *ctx)
 {
-#ifdef _WIN32
-	CloseHandle(src->value.handle);
-#else
 	CLOSE(ctx->fd);
-#endif
 }
 
 /*
@@ -310,8 +303,3 @@ main(int argc, char *argv[])
 	out_fini();
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-MSVC_CONSTR(libpmem2_init)
-MSVC_DESTR(libpmem2_fini)
-#endif

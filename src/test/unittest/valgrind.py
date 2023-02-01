@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 """Valgrind handling tools"""
 
@@ -77,10 +77,6 @@ class Valgrind:
     """
 
     def __init__(self, tool, cwd, testnum):
-        if sys.platform == 'win32':
-            raise NotImplementedError(
-                'Valgrind class should not be used on Windows')
-
         self.tool = NONE if tool is None else tool
         self.tool_name = self.tool.name.lower()
         self.cwd = cwd
@@ -236,9 +232,6 @@ class Valgrind:
         Check Valgrind test result based on Valgrind log file.
         Return True if passed, False otherwise
         """
-        if self.tool == NONE or sys.platform == 'win32':
-            return True
-
         no_ignored = []
         # remove ignored warnings from log file
         with open(self.log_file, 'r+') as f:
@@ -285,11 +278,6 @@ def require_valgrind_enabled(valgrind):
     """
 
     def wrapped(tc):
-        if sys.platform == 'win32':
-            # do not run valgrind tests on windows
-            tc.enabled = False
-            return tc
-
         tool = _require_valgrind_common(valgrind)
         ctx.add_requirement(tc, 'enabled_valgrind', tool)
 
