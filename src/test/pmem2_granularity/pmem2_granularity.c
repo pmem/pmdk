@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_granularity.c -- test for graunlarity functionality
@@ -11,15 +11,12 @@
 
 #include "config.h"
 #include "source.h"
-#include "pmem2_granularity.h"
 #include "unittest.h"
 #include "ut_pmem2_config.h"
 #include "ut_pmem2_utils.h"
 #include "out.h"
 
-size_t Is_nfit = 1;
-size_t Pc_type = 7;
-size_t Pc_capabilities;
+static size_t Pc_capabilities;
 
 /*
  * parse_args -- parse args from the input
@@ -103,11 +100,7 @@ init_cfg(struct pmem2_config *cfg,
 static void
 cleanup(struct pmem2_source *src, struct test_ctx *ctx)
 {
-#ifdef _WIN32
-	CloseHandle(src->value.handle);
-#else
 	CLOSE(ctx->fd);
-#endif
 }
 
 /*
@@ -129,23 +122,6 @@ map_with_available_granularity(struct pmem2_config *cfg,
 
 	/* cleanup after the test */
 	pmem2_map_delete(&map);
-}
-
-/*
- * map_with_unavailable_granularity -- map the range with invalid
- * granularity (unsuccessful)
- */
-static void
-map_with_unavailable_granularity(struct pmem2_config *cfg,
-	struct pmem2_source *src, struct test_ctx *ctx)
-{
-	cfg->requested_max_granularity = ctx->requested_granularity;
-
-	struct pmem2_map *map;
-	int ret = pmem2_map_new(&map, cfg, src);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_GRANULARITY_NOT_SUPPORTED);
-	UT_ERR("%s", pmem2_errormsg());
-	UT_ASSERTeq(map, NULL);
 }
 
 typedef void(*map_func)(struct pmem2_config *cfg,
@@ -189,30 +165,6 @@ test_granularity_req_byte_avail_byte(const struct test_case *tc, int argc,
 }
 
 /*
- * test_granularity_req_byte_avail_cl -- require byte granularity,
- * when cache line granularity is available
- */
-static int
-test_granularity_req_byte_avail_cl(const struct test_case *tc, int argc,
-					char *argv[])
-{
-	return granularity_template(tc, argc, argv,
-		map_with_unavailable_granularity, PMEM2_GRANULARITY_BYTE);
-}
-
-/*
- * test_granularity_req_byte_avail_page -- require byte granularity,
- * when page granularity is available
- */
-static int
-test_granularity_req_byte_avail_page(const struct test_case *tc, int argc,
-					char *argv[])
-{
-	return granularity_template(tc, argc, argv,
-		map_with_unavailable_granularity, PMEM2_GRANULARITY_BYTE);
-}
-
-/*
  * test_granularity_req_cl_avail_byte -- require cache line granularity,
  * when byte granularity is available
  */
@@ -237,18 +189,6 @@ test_granularity_req_cl_avail_cl(const struct test_case *tc, int argc,
 }
 
 /*
- * test_granularity_req_cl_avail_page -- require cache line granularity,
- * when page granularity is available
- */
-static int
-test_granularity_req_cl_avail_page(const struct test_case *tc, int argc,
-					char *argv[])
-{
-	return granularity_template(tc, argc, argv,
-		map_with_unavailable_granularity, PMEM2_GRANULARITY_CACHE_LINE);
-}
-
-/*
  * test_granularity_req_page_avail_byte -- require page granularity,
  * when byte granularity is available
  */
@@ -261,7 +201,7 @@ test_granularity_req_page_avail_byte(const struct test_case *tc, int argc,
 }
 
 /*
- * test_granularity_req_byte_avail_cl -- require page granularity,
+ * test_granularity_req_page_avail_cl -- require page granularity,
  * when byte cache line is available
  */
 static int
@@ -289,11 +229,8 @@ test_granularity_req_page_avail_page(const struct test_case *tc, int argc,
  */
 static struct test_case test_cases[] = {
 	TEST_CASE(test_granularity_req_byte_avail_byte),
-	TEST_CASE(test_granularity_req_byte_avail_cl),
-	TEST_CASE(test_granularity_req_byte_avail_page),
 	TEST_CASE(test_granularity_req_cl_avail_byte),
 	TEST_CASE(test_granularity_req_cl_avail_cl),
-	TEST_CASE(test_granularity_req_cl_avail_page),
 	TEST_CASE(test_granularity_req_page_avail_byte),
 	TEST_CASE(test_granularity_req_page_avail_cl),
 	TEST_CASE(test_granularity_req_page_avail_page),
@@ -310,8 +247,3 @@ main(int argc, char *argv[])
 	out_fini();
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-MSVC_CONSTR(libpmem2_init)
-MSVC_DESTR(libpmem2_fini)
-#endif

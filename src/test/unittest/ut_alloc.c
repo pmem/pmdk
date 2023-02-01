@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2017, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * ut_alloc.c -- unit test memory allocation routines
@@ -54,11 +54,7 @@ ut_free(const char *file, int line, const char *func, void *ptr)
 void
 ut_aligned_free(const char *file, int line, const char *func, void *ptr)
 {
-#ifndef _WIN32
 	free(ptr);
-#else
-	_aligned_free(ptr);
-#endif
 }
 
 /*
@@ -101,18 +97,9 @@ ut_memalign(const char *file, int line, const char *func, size_t alignment,
 {
 	void *retval;
 
-#ifndef _WIN32
 	if ((errno = posix_memalign(&retval, alignment, size)) != 0)
 		ut_fatal(file, line, func,
 		    "!memalign %zu bytes (%zu alignment)", size, alignment);
-#else
-	retval = _aligned_malloc(size, alignment);
-	if (!retval) {
-		ut_fatal(file, line, func,
-			"!memalign %zu bytes (%zu alignment)", size, alignment);
-	}
-#endif
-
 	return retval;
 }
 

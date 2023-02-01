@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * pmem2_map_prot.c -- pmem2_map_prot unit tests
@@ -31,11 +31,8 @@ struct res {
 static void
 res_prepare(const char *file, struct res *res, int access, unsigned proto)
 {
-#ifdef _WIN32
-	enum file_handle_type fh_type = FH_HANDLE;
-#else
 	enum file_handle_type fh_type = FH_FD;
-#endif
+
 	ut_pmem2_prepare_config(&res->cfg, &res->src, &res->fh, fh_type, file,
 				0, 0, access);
 	pmem2_config_set_protection(&res->cfg, proto);
@@ -129,40 +126,6 @@ test_r_mode_rw_prot(const struct test_case *tc,
 	char *file = argv[0];
 	template_mode_prot_mismatch(file, FH_READ,
 					PMEM2_PROT_WRITE | PMEM2_PROT_READ);
-
-	return 1;
-}
-
-/*
- * test_rw_mode_rwx_prot - test R/W/X protection on R/W file
- * pmem2_map_new() - should fail
- */
-static int
-test_rw_modex_rwx_prot(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_rw_modex_rwx_prot <file>");
-
-	char *file = argv[0];
-	template_mode_prot_mismatch(file, FH_RDWR,
-			PMEM2_PROT_EXEC |PMEM2_PROT_WRITE | PMEM2_PROT_READ);
-
-	return 1;
-}
-
-/*
- * test_rw_modex_rx_prot - test R/X protection on R/W file
- * pmem2_map_new() - should fail
- */
-static int
-test_rw_modex_rx_prot(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_rw_modex_rx_prot <file>");
-
-	char *file = argv[0];
-	template_mode_prot_mismatch(file, FH_RDWR,
-					PMEM2_PROT_EXEC | PMEM2_PROT_READ);
 
 	return 1;
 }
@@ -550,8 +513,6 @@ test_rwx_prot_map_priv_do_execute(const struct test_case *tc,
 static struct test_case test_cases[] = {
 	TEST_CASE(test_rw_mode_rw_prot),
 	TEST_CASE(test_r_mode_rw_prot),
-	TEST_CASE(test_rw_modex_rwx_prot),
-	TEST_CASE(test_rw_modex_rx_prot),
 	TEST_CASE(test_rw_mode_r_prot),
 	TEST_CASE(test_r_mode_r_prot),
 	TEST_CASE(test_rw_mode_none_prot),
@@ -571,8 +532,3 @@ main(int argc, char *argv[])
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-MSVC_CONSTR(libpmem2_init)
-MSVC_DESTR(libpmem2_fini)
-#endif

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 /*
  * write.c -- simple app for writing data to pool used by pmempool tests
  */
@@ -170,19 +170,6 @@ nomem:
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	util_suppress_errmsg();
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	for (int i = 0; i < argc; i++) {
-		argv[i] = util_toUTF8(wargv[i]);
-		if (argv[i] == NULL) {
-			for (i--; i >= 0; i--)
-				free(argv[i]);
-			outv_err("Error during arguments conversion\n");
-			return 1;
-		}
-	}
-#endif
 	int opt;
 	int ret = 0;
 	util_init();
@@ -231,9 +218,5 @@ main(int argc, char *argv[])
 		ret = 1;
 	}
 end:
-#ifdef _WIN32
-	for (int i = argc; i > 0; i--)
-		free(argv[i - 1]);
-#endif
 	return ret;
 }

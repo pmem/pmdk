@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2022, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_map.c -- pmem2_map unittests
@@ -21,61 +21,6 @@
 #define KILOBYTE (1 << 10)
 #define MEGABYTE (1 << 20)
 
-#ifdef _WIN32
-
-#define HIDWORD(x) ((DWORD)((x) >> 32))
-#define LODWORD(x) ((DWORD)((x) & 0xFFFFFFFF))
-
-/*
- * prepare_map -- map accordingly to the config
- *
- * XXX it is assumed pmem2_config contains exact arguments e.g.
- * length won't be altered by the file size.
- */
-static void
-prepare_map(struct pmem2_map **map_ptr,
-	struct pmem2_config *cfg, struct pmem2_source *src)
-{
-	struct pmem2_map *map = malloc(sizeof(*map));
-	UT_ASSERTne(map, NULL);
-
-	UT_ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
-
-	size_t max_size = cfg->length + cfg->offset;
-	HANDLE mh = CreateFileMapping(src->value.handle,
-		NULL,
-		PAGE_READWRITE,
-		HIDWORD(max_size),
-		LODWORD(max_size),
-		NULL);
-	UT_ASSERTne(mh, NULL);
-	UT_ASSERTne(GetLastError(), ERROR_ALREADY_EXISTS);
-
-	struct vdm *vdm;
-	mover_new(map, &vdm);
-	UT_ASSERTne(map, NULL);
-	map->custom_vdm = true;
-	map->vdm = vdm;
-
-	map->addr = MapViewOfFileEx(mh,
-		FILE_MAP_ALL_ACCESS,
-		HIDWORD(cfg->offset),
-		LODWORD(cfg->offset),
-		cfg->length,
-		NULL);
-	UT_ASSERTne(map->addr, NULL);
-
-	UT_ASSERTne(CloseHandle(mh), 0);
-
-	map->reserved_length = map->content_length = cfg->length;
-	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
-	map->reserv = NULL;
-
-	*map_ptr = map;
-
-	UT_ASSERTeq(pmem2_register_mapping(map), 0);
-}
-#else
 /*
  * prepare_map -- map accordingly to the config
  *
@@ -118,7 +63,6 @@ prepare_map(struct pmem2_map **map_ptr,
 
 	UT_ASSERTeq(pmem2_register_mapping(map), 0);
 }
-#endif
 
 /*
  * unmap_map -- unmap the mapping according to pmem2_map struct
@@ -126,11 +70,7 @@ prepare_map(struct pmem2_map **map_ptr,
 static void
 unmap_map(struct pmem2_map *map)
 {
-#ifdef _WIN32
-	UT_ASSERTne(UnmapViewOfFile(map->addr), 0);
-#else
 	UT_ASSERTeq(munmap(map->addr, map->reserved_length), 0);
-#endif
 	UT_ASSERTeq(pmem2_unregister_mapping(map), 0);
 }
 
@@ -462,12 +402,6 @@ map_spoil_set_unaligned_addr(struct pmem2_map *map)
 	map->reserved_length -= 1;
 }
 
-static void
-map_spoil_by_unmap(struct pmem2_map *map)
-{
-	unmap_map(map);
-}
-
 /*
  * test_unmap_zero_length - unmap a pmem2 mapping with an invalid length
  */
@@ -497,23 +431,6 @@ test_unmap_unaligned_addr(const struct test_case *tc, int argc, char *argv[])
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
 	unmap_invalid_common(file, size, map_spoil_set_unaligned_addr, -EINVAL);
-
-	return 2;
-}
-
-/*
- * test_unmap_unaligned_addr - double unmap a pmem2 mapping
- */
-static int
-test_unmap_unmapped(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 2)
-		UT_FATAL("usage: test_unmap_unmapped <file> <size>");
-
-	char *file = argv[0];
-	size_t size = ATOUL(argv[1]);
-	unmap_invalid_common(file, size, map_spoil_by_unmap,
-			PMEM2_E_MAPPING_NOT_FOUND);
 
 	return 2;
 }
@@ -903,7 +820,6 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_unmap_valid),
 	TEST_CASE(test_unmap_zero_length),
 	TEST_CASE(test_unmap_unaligned_addr),
-	TEST_CASE(test_unmap_unmapped),
 	TEST_CASE(test_map_get_address),
 	TEST_CASE(test_map_get_size),
 	TEST_CASE(test_get_granularity_simple),
@@ -926,8 +842,3 @@ main(int argc, char *argv[])
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-MSVC_CONSTR(libpmem2_init)
-MSVC_DESTR(libpmem2_fini)
-#endif

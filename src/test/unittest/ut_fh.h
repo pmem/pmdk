@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * ut_fh.h -- OS-independent file handle / file descriptor interface
@@ -39,11 +39,6 @@ enum file_handle_type { FH_FD, FH_HANDLE };
 #define UT_FH_GET_FD(fhandle)						\
 	ut_fh_get_fd(__FILE__, __LINE__, __func__, fhandle)
 
-#ifdef _WIN32
-#define UT_FH_GET_HANDLE(fhandle)					\
-	ut_fh_get_handle(__FILE__, __LINE__, __func__, fhandle)
-#endif
-
 #define UT_FH_CLOSE(fhandle)						\
 	ut_fh_close(__FILE__, __LINE__, __func__, fhandle)
 
@@ -60,9 +55,5 @@ enum file_handle_type ut_fh_get_handle_type(struct FHandle *fh);
 
 int ut_fh_get_fd(const char *file, int line, const char *func,
 		struct FHandle *f);
-#ifdef _WIN32
-HANDLE ut_fh_get_handle(const char *file, int line, const char *func,
-		struct FHandle *f);
-#endif
 
 #endif

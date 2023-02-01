@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 import os
@@ -29,7 +29,6 @@ class PMEM2_MAP_NO_FILE(t.Test):
         ctx.exec('pmem2_map', self.test_case)
 
 
-@t.windows_exclude
 @t.require_devdax(t.DevDax('devdax1'))
 class PMEM2_MAP_DEVDAX(t.Test):
     test_type = t.Short
@@ -123,7 +122,6 @@ class TEST14(PMEM2_MAP_DEVDAX):
 
 
 # UnmapViewOfFile does not care about the address alignment
-@t.windows_exclude
 class TEST15(PMEM2_MAP):
     """unmap a pmem2 mapping with an unaligned address"""
     test_case = "test_unmap_unaligned_addr"
@@ -132,13 +130,6 @@ class TEST15(PMEM2_MAP):
 class TEST16(PMEM2_MAP_DEVDAX):
     """DevDax unmap a pmem2 mapping with an unaligned address"""
     test_case = "test_unmap_unaligned_addr"
-
-
-# munmap does not fail if the mapping does not exist
-@t.windows_only
-class TEST17(PMEM2_MAP):
-    """double unmap a pmem2 mapping"""
-    test_case = "test_unmap_unmapped"
 
 
 class TEST18(PMEM2_MAP_NO_FILE):
