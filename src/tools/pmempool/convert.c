@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * convert.c -- pmempool convert command source file
@@ -15,13 +15,8 @@
 #include "convert.h"
 #include "os.h"
 
-#ifdef _WIN32
-static const char *delimiter = ";";
-static const char *convert_bin = "\\pmdk-convert.exe";
-#else
 static const char *delimiter = ":";
 static const char *convert_bin = "/pmdk-convert";
-#endif // _WIN32
 
 static int
 pmempool_convert_get_path(char *p, size_t max_len)
