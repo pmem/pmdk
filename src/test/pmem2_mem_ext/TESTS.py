@@ -8,8 +8,6 @@ from testframework import granularity as g
 from testframework import tools
 from testframework import futils
 
-import sys
-
 
 NO_FLAGS = 0
 PMEM_F_MEM_NONTEMPORAL = 1
@@ -117,20 +115,14 @@ class Pmem2MemExt(t.Test):
 
         # XXX all tests with VARIANT_AVX512F are disabled under Valgrind
         # until the issue https://github.com/pmem/pmdk/issues/5640 is fixed.
-        # "win32" `if`` is related to unknown `is not None` by Windows Python
-        if not sys.platform.startswith('win32') and ctx.valgrind is not None:
-            if ctx.valgrind.tool.name != "NONE":
-                if ctx.variant() == VARIANT_AVX512F:
-                    raise futils.Skip("AVX512F unavailable under Valigrind")
+        if ctx.valgrind is not None and ctx.valgrind.tool.name != "NONE":
+            if ctx.variant() == VARIANT_AVX512F:
+                raise futils.Skip("AVX512F unavailable under Valigrind")
 
     def check_arch(self, variant, available_arch):
         if variant == VARIANT_MOVDIR64B:
             if available_arch < MOVDIR64B:
                 raise futils.Skip("MOVDIR64B unavailable")
-
-            # remove this when MSVC we use will support MOVDIR64B
-            if sys.platform.startswith('win32'):
-                raise futils.Skip("MOVDIR64B not supported by MSVC")
 
             is_movdir64b_enabled = tools.envconfig['PMEM2_MOVDIR64B_ENABLED']
             if is_movdir64b_enabled == "0":
@@ -139,10 +131,6 @@ class Pmem2MemExt(t.Test):
         if variant == VARIANT_AVX512F:
             if available_arch < AVX512:
                 raise futils.Skip("AVX512F unavailable")
-
-            # remove this when MSVC we use will support AVX512F
-            if sys.platform.startswith('win32'):
-                raise futils.Skip("AVX512F not supported by MSVC")
 
             is_avx512f_enabled = tools.envconfig['PMEM2_AVX512F_ENABLED']
             if is_avx512f_enabled == "0":

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * gran_detecto.c -- detect available store/flush granularity
@@ -293,20 +293,6 @@ static const char *PMEM2_GRANULARITIES[] = {
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	util_suppress_errmsg();
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	for (int i = 0; i < argc; i++) {
-		argv[i] = util_toUTF8(wargv[i]);
-		if (argv[i] == NULL) {
-			for (i--; i >= 0; i--)
-				free(argv[i]);
-			fprintf(stderr,
-				"gran_detecto: error during arguments conversion\n");
-			return 1;
-		}
-	}
-#endif
 	struct tool_ctx ctx;
 	int ret = 0;
 	if (parse_args(argc, argv, &ctx)) {
@@ -330,10 +316,5 @@ main(int argc, char *argv[])
 	ret = ctx.expected_granularity == ctx.actual_granularity ? 0 : 1;
 
 out:
-#ifdef _WIN32
-	for (int i = argc; i > 0; i--)
-		free(argv[i - 1]);
-#endif
-
 	return ret;
 }
