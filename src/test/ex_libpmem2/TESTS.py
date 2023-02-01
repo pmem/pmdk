@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 import futils
 import testframework as t
@@ -82,7 +82,6 @@ class TEST5(EX_LIBPMEM2):
         ctx.exec(example_path, "read", file_path, stdout_file='out5.log')
 
 
-@t.windows_exclude
 class TEST6(EX_LIBPMEM2):
 
     def run(self, ctx):

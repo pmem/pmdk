@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2022, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_map.c -- pmem2_map unittests
@@ -21,61 +21,6 @@
 #define KILOBYTE (1 << 10)
 #define MEGABYTE (1 << 20)
 
-#ifdef _WIN32
-
-#define HIDWORD(x) ((DWORD)((x) >> 32))
-#define LODWORD(x) ((DWORD)((x) & 0xFFFFFFFF))
-
-/*
- * prepare_map -- map accordingly to the config
- *
- * XXX it is assumed pmem2_config contains exact arguments e.g.
- * length won't be altered by the file size.
- */
-static void
-prepare_map(struct pmem2_map **map_ptr,
-	struct pmem2_config *cfg, struct pmem2_source *src)
-{
-	struct pmem2_map *map = malloc(sizeof(*map));
-	UT_ASSERTne(map, NULL);
-
-	UT_ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
-
-	size_t max_size = cfg->length + cfg->offset;
-	HANDLE mh = CreateFileMapping(src->value.handle,
-		NULL,
-		PAGE_READWRITE,
-		HIDWORD(max_size),
-		LODWORD(max_size),
-		NULL);
-	UT_ASSERTne(mh, NULL);
-	UT_ASSERTne(GetLastError(), ERROR_ALREADY_EXISTS);
-
-	struct vdm *vdm;
-	mover_new(map, &vdm);
-	UT_ASSERTne(map, NULL);
-	map->custom_vdm = true;
-	map->vdm = vdm;
-
-	map->addr = MapViewOfFileEx(mh,
-		FILE_MAP_ALL_ACCESS,
-		HIDWORD(cfg->offset),
-		LODWORD(cfg->offset),
-		cfg->length,
-		NULL);
-	UT_ASSERTne(map->addr, NULL);
-
-	UT_ASSERTne(CloseHandle(mh), 0);
-
-	map->reserved_length = map->content_length = cfg->length;
-	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
-	map->reserv = NULL;
-
-	*map_ptr = map;
-
-	UT_ASSERTeq(pmem2_register_mapping(map), 0);
-}
-#else
 /*
  * prepare_map -- map accordingly to the config
  *
@@ -118,7 +63,6 @@ prepare_map(struct pmem2_map **map_ptr,
 
 	UT_ASSERTeq(pmem2_register_mapping(map), 0);
 }
-#endif
 
 /*
  * unmap_map -- unmap the mapping according to pmem2_map struct
@@ -126,11 +70,7 @@ prepare_map(struct pmem2_map **map_ptr,
 static void
 unmap_map(struct pmem2_map *map)
 {
-#ifdef _WIN32
-	UT_ASSERTne(UnmapViewOfFile(map->addr), 0);
-#else
 	UT_ASSERTeq(munmap(map->addr, map->reserved_length), 0);
-#endif
 	UT_ASSERTeq(pmem2_unregister_mapping(map), 0);
 }
 

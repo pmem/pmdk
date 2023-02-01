@@ -1,8 +1,0 @@
-libpmempool_transform_win$(nW)TEST2: START: libpmempool_transform_win$(nW)
- $(nW)libpmempool_transform_win$(nW) $(nW)poolset.in $(nW)poolset.out 1
-result: -1, errno: 22
-libpmempool_transform_win$(nW)TEST2: DONE
-libpmempool_transform_win$(nW)TEST2: START: libpmempool_transform_win$(nW)
- $(nW)libpmempool_transform_win$(nW) $(nW)poolset.in $(nW)poolset.out 1024
-result: -1, errno: 22
-libpmempool_transform_win$(nW)TEST2: DONE

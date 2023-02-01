@@ -1,4 +1,0 @@
-pmem_has_auto_flush_win$(nW)TEST1: START: pmem_has_auto_flush_win
- $(nW)pmem_has_auto_flush_win$(nW) n $(N) $(N)
-pmem_has_auto_flush ret: 0
-pmem_has_auto_flush_win$(nW)TEST1: DONE

@@ -101,17 +101,6 @@ int ut_get_uuid_str(char *);
 /* XXX - fix this temp hack dup'ing util_strerror when we get mock for win */
 void ut_strerror(int errnum, char *buff, size_t bufflen);
 
-/* XXX - eliminate duplicated definitions in unittest.h and util.h */
-#ifdef _WIN32
-static inline int ut_util_statW(const wchar_t *path,
-	os_stat_t *st_bufp) {
-	int retVal = _wstat64(path, st_bufp);
-	/* clear unused bits to avoid confusion */
-	st_bufp->st_mode &= 0600;
-	return retVal;
-}
-#endif
-
 /*
  * unit test support...
  */
@@ -139,37 +128,16 @@ void ut_err(const char *file, int line, const char *func,
 	__attribute__((format(printf, 4, 5)));
 
 /* indicate the start of the test */
-#ifndef _WIN32
 #define START(argc, argv, ...)\
     ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
-#else
-#define START(argc, argv, ...)\
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);\
-	for (int i = 0; i < argc; i++) {\
-		argv[i] = ut_toUTF8(wargv[i]);\
-		if (argv[i] == NULL) {\
-			for (i--; i >= 0; i--)\
-				free(argv[i]);\
-			UT_FATAL("Error during arguments conversion\n");\
-		}\
-	}\
-	ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
-#endif
 
 /* indicate the start of the test */
 #define STARTW(argc, argv, ...)\
     ut_startW(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
-#ifndef _WIN32
 #define DONE(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#else
-#define DONE(...)\
-	for (int i = argc; i > 0; i--)\
-		free(argv[i - 1]);\
-	ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#endif
 
 #define DONEW(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
@@ -518,15 +486,10 @@ int ut_snprintf(const char *file, int line, const char *func,
 	ut_snprintf(__FILE__, __LINE__, __func__, \
 			str, size, format, __VA_ARGS__)
 
-#ifndef _WIN32
 #define ut_jmp_buf_t sigjmp_buf
 #define ut_siglongjmp(b) siglongjmp(b, 1)
 #define ut_sigsetjmp(b) sigsetjmp(b, 1)
-#else
-#define ut_jmp_buf_t jmp_buf
-#define ut_siglongjmp(b) longjmp(b, 1)
-#define ut_sigsetjmp(b) setjmp(b)
-#endif
+
 void ut_suppress_errmsg(void);
 void ut_unsuppress_errmsg(void);
 void ut_suppress_crt_assert(void);
@@ -561,13 +524,6 @@ int ut_thread_join(const char *file, int line, const char *func,
     ut_thread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
 
 /*
- * processes...
- */
-#ifdef _WIN32
-intptr_t ut_spawnv(int argc, const char **argv, ...);
-#endif
-
-/*
  * mocks...
  *
  * NOTE: On Linux, function mocking is implemented using wrapper functions.
@@ -586,21 +542,11 @@ intptr_t ut_spawnv(int argc, const char **argv, ...);
  * feature of all the PMDK libraries, allowing to override default memory
  * allocator with the custom one.
  */
-#ifndef _WIN32
 #define _FUNC_REAL_DECL(name, ret_type, ...)\
 	ret_type __real_##name(__VA_ARGS__) __attribute__((unused));
-#else
-#define _FUNC_REAL_DECL(name, ret_type, ...)\
-	ret_type name(__VA_ARGS__);
-#endif
 
-#ifndef _WIN32
 #define _FUNC_REAL(name)\
 	__real_##name
-#else
-#define _FUNC_REAL(name)\
-	name
-#endif
 
 #define RCOUNTER(name)\
 	_rcounter##name

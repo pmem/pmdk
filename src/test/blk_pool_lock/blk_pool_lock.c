@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * blk_pool_lock.c -- unit test which checks whether it's possible to
@@ -34,7 +34,6 @@ test_reopen(const char *path)
 	UNLINK(path);
 }
 
-#ifndef _WIN32
 static void
 test_open_in_different_process(int argc, char **argv, unsigned sleep)
 {
@@ -80,35 +79,6 @@ test_open_in_different_process(int argc, char **argv, unsigned sleep)
 
 	UNLINK(path);
 }
-#else
-static void
-test_open_in_different_process(int argc, char **argv, unsigned sleep)
-{
-	PMEMblkpool *blk;
-
-	if (sleep > 0)
-		return;
-
-	char *path = argv[1];
-
-	/* before starting the 2nd process, create a pool */
-	blk = pmemblk_create(path, 4096, PMEMBLK_MIN_POOL,
-		S_IWUSR | S_IRUSR);
-	if (!blk)
-		UT_FATAL("!create");
-
-	/*
-	 * "X" is pass as an additional param to the new process
-	 * created by ut_spawnv to distinguish second process on Windows
-	 */
-	uintptr_t result = ut_spawnv(argc, argv, "X", NULL);
-
-	if (result != 0)
-		UT_FATAL("Create new process failed error: %d", GetLastError());
-
-	pmemblk_close(blk);
-}
-#endif
 
 int
 main(int argc, char *argv[])

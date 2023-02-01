@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 /*
  * pmemobjcli.c -- CLI interface for pmemobj API
  */
@@ -2328,19 +2328,6 @@ print_usage(const char *name)
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	util_suppress_errmsg();
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	for (int i = 0; i < argc; i++) {
-		argv[i] = util_toUTF8(wargv[i]);
-		if (argv[i] == NULL) {
-			for (i--; i >= 0; i--)
-				free(argv[i]);
-			fprintf(stderr, "Error during arguments conversion\n");
-			return 1;
-		}
-	}
-#endif
 	int opt;
 	int ret = 1;
 	const char *fname = NULL;
@@ -2386,9 +2373,5 @@ main(int argc, char *argv[])
 	fclose(input);
 
 out:
-#ifdef _WIN32
-	for (int i = argc; i > 0; i--)
-		free(argv[i - 1]);
-#endif
 	return ret;
 }
