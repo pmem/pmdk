@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_source_size.c -- pmem2_source_size unittests
@@ -56,24 +56,6 @@ test_normal_file_fd(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_normal_file_handle - tests normal file using a HANDLE
- */
-static int
-test_normal_file_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 2)
-		UT_FATAL("usage: test_normal_file_handle"
-				" <file> <expected_size>");
-
-	char *path = argv[0];
-	os_off_t expected_size = ATOLL(argv[1]);
-
-	test_normal_file(path, expected_size, FH_HANDLE);
-
-	return 2;
-}
-
-/*
  * test_tmpfile - tests temporary file
  */
 static void
@@ -114,30 +96,11 @@ test_tmpfile_fd(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_tmpfile_handle - tests temporary file using file handle interface
- */
-static int
-test_tmpfile_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 2)
-		UT_FATAL("usage: test_tmpfile_handle <file> <requested_size>");
-
-	char *dir = argv[0];
-	os_off_t requested_size = ATOLL(argv[1]);
-
-	test_tmpfile(dir, requested_size, FH_HANDLE);
-
-	return 2;
-}
-
-/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
 	TEST_CASE(test_normal_file_fd),
-	TEST_CASE(test_normal_file_handle),
 	TEST_CASE(test_tmpfile_fd),
-	TEST_CASE(test_tmpfile_handle),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

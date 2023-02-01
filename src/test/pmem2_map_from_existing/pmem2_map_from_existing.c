@@ -185,8 +185,3 @@ main(int argc, char *argv[])
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-MSVC_CONSTR(libpmem2_init)
-MSVC_DESTR(libpmem2_fini)
-#endif
