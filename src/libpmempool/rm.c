@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * rm.c -- implementation of pmempool_rm() function
@@ -90,9 +90,7 @@ rm_cb(struct part_file *pf, void *arg)
 /*
  * pmempool_rmU -- remove pool files or poolsets
  */
-#ifndef _WIN32
 static inline
-#endif
 int
 pmempool_rmU(const char *path, unsigned flags)
 {
@@ -179,7 +177,6 @@ pmempool_rmU(const char *path, unsigned flags)
 	return 0;
 }
 
-#ifndef _WIN32
 /*
  * pmempool_rm -- remove pool files or poolsets
  */
@@ -188,22 +185,3 @@ pmempool_rm(const char *path, unsigned flags)
 {
 	return pmempool_rmU(path, flags);
 }
-#else
-/*
- * pmempool_rmW -- remove pool files or poolsets in widechar
- */
-int
-pmempool_rmW(const wchar_t *path, unsigned flags)
-{
-	char *upath = util_toUTF8(path);
-	if (upath == NULL) {
-		ERR("Invalid poolest/pool file path.");
-		return -1;
-	}
-
-	int ret = pmempool_rmU(upath, flags);
-
-	util_free_UTF8(upath);
-	return ret;
-}
-#endif
