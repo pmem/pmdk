@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_source.c -- pmem2_source unittests
@@ -19,14 +19,8 @@
 static void
 verify_fd(struct pmem2_source *src, int fd)
 {
-#ifdef WIN32
-	UT_ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
-	UT_ASSERTeq(src->value.handle, fd != INVALID_FD ?
-		(HANDLE)_get_osfhandle(fd) : INVALID_HANDLE_VALUE);
-#else
 	UT_ASSERTeq(src->type, PMEM2_SOURCE_FD);
 	UT_ASSERTeq(src->value.fd, fd);
-#endif
 }
 
 /*
@@ -124,17 +118,8 @@ test_set_wronly_fd(const struct test_case *tc, int argc, char *argv[])
 	struct pmem2_source *src;
 
 	int ret = pmem2_source_from_fd(&src, fd);
-#ifdef _WIN32
-	/* windows doesn't validate open flags */
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	verify_fd(src, fd);
-	ret = pmem2_source_delete(&src);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	UT_ASSERTeq(src, NULL);
-#else
 	UT_ASSERTeq(src, NULL);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
-#endif
 	CLOSE(fd);
 
 	return 1;
@@ -396,165 +381,6 @@ test_pmem2_src_mcsafe_read_write_invalid_ftype(const struct test_case *tc,
 	return 1;
 }
 
-#ifdef WIN32
-/*
- * test_set_handle - test setting valid handle
- */
-static int
-test_set_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_handle <file>");
-
-	char *file = argv[0];
-	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
-		0, NULL, OPEN_ALWAYS, 0, NULL);
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	struct pmem2_source *src;
-
-	int ret = pmem2_source_from_handle(&src, h);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	UT_ASSERTeq(src->value.handle, h);
-
-	CloseHandle(h);
-	pmem2_source_delete(&src);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	UT_ASSERTeq(src, NULL);
-
-	return 1;
-}
-
-/*
- * test_set_null_handle - test resetting handle
- */
-static int
-test_set_null_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	struct pmem2_source *src;
-
-	int ret = pmem2_source_from_handle(&src, INVALID_HANDLE_VALUE);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
-	UT_ASSERTeq(src, NULL);
-
-	return 0;
-}
-
-/*
- * test_set_invalid_handle - test setting invalid handle
- */
-static int
-test_set_invalid_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_invalid_handle <file>");
-
-	char *file = argv[0];
-	struct pmem2_source *src;
-	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
-		0, NULL, OPEN_ALWAYS, 0, NULL);
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	CloseHandle(h);
-
-	int ret = pmem2_source_from_handle(&src, h);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
-
-	return 1;
-}
-
-/*
- * test_set_directory_handle - test setting a directory handle
- */
-static int
-test_set_directory_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_directory_handle <file>");
-
-	char *file = argv[0];
-	struct pmem2_source *src;
-
-	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
-		0, NULL, OPEN_ALWAYS, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	int ret = pmem2_source_from_handle(&src, h);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
-	UT_ASSERTeq(src, NULL);
-	CloseHandle(h);
-
-	return 1;
-}
-
-/*
- * test_set_directory_handle - test setting a mutex handle
- */
-static int
-test_set_mutex_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	struct pmem2_source *src;
-
-	HANDLE h = CreateMutex(NULL, FALSE, NULL);
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	int ret = pmem2_source_from_handle(&src, h);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
-	UT_ASSERTeq(src, NULL);
-	CloseHandle(h);
-
-	return 0;
-}
-
-/*
- * test_get_handle - test getting handle value
- */
-static int
-test_get_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_get_handle <file>");
-
-	char *file = argv[0];
-	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
-		0, NULL, OPEN_ALWAYS, 0, NULL);
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	struct pmem2_source *src;
-	int ret = pmem2_source_from_handle(&src, h);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-
-	HANDLE handle_from_pmem2;
-	ret = pmem2_source_get_handle(src, &handle_from_pmem2);
-	UT_ASSERTeq(handle_from_pmem2, h);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-
-	CloseHandle(h);
-	pmem2_source_delete(&src);
-
-	return 1;
-}
-
-/*
- * test_get_handle_inval_type - test getting handle value from invalid type
- */
-static int
-test_get_handle_inval_type(const struct test_case *tc, int argc, char *argv[])
-{
-	struct pmem2_source *src;
-	int ret = pmem2_source_from_anon(&src, 0);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-
-	HANDLE handle_from_pmem2;
-	ret = pmem2_source_get_handle(src, &handle_from_pmem2);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_HANDLE_NOT_SET);
-
-	pmem2_source_delete(&src);
-
-	return 0;
-}
-#else
 /*
  * test_set_directory_handle - test setting directory's fd
  */
@@ -623,7 +449,6 @@ test_get_fd_inval_type(const struct test_case *tc, int argc, char *argv[])
 
 	return 0;
 }
-#endif
 
 /*
  * test_cases -- available test cases
@@ -639,19 +464,9 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_pmem2_src_mcsafe_write),
 	TEST_CASE(test_pmem2_src_mcsafe_read_write_invalid_ftype),
 	TEST_CASE(test_pmem2_src_mcsafe_read_write_len_out_of_range),
-#ifdef _WIN32
-	TEST_CASE(test_set_handle),
-	TEST_CASE(test_set_null_handle),
-	TEST_CASE(test_set_invalid_handle),
-	TEST_CASE(test_set_directory_handle),
-	TEST_CASE(test_set_mutex_handle),
-	TEST_CASE(test_get_handle),
-	TEST_CASE(test_get_handle_inval_type),
-#else
 	TEST_CASE(test_set_directory_fd),
 	TEST_CASE(test_get_fd),
 	TEST_CASE(test_get_fd_inval_type),
-#endif
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
@@ -665,8 +480,3 @@ main(int argc, char **argv)
 
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-MSVC_CONSTR(libpmem2_init)
-MSVC_DESTR(libpmem2_fini)
-#endif
