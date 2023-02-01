@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * btt.c -- block translation table providing atomic block updates
@@ -1910,8 +1910,10 @@ check_arena(struct btt *bttp, struct arena *arenap)
 			mlen = (*bttp->ns_cbp->nsmap)(bttp->ns, 0,
 				(void **)&mapp, req_len, map_entry_off);
 
-			if (mlen < 0)
+			if (mlen < 0) {
+				Free(bitmap);
 				return -1;
+			}
 
 			remaining = (size_t)mlen;
 			next_index = 0;
@@ -1934,6 +1936,7 @@ check_arena(struct btt *bttp, struct arena *arenap)
 		if (entry >= arenap->internal_nlba) {
 			ERR("map[%d] entry out of bounds: %u", i, entry);
 			errno = EINVAL;
+			Free(bitmap);
 			return -1;
 		}
 
