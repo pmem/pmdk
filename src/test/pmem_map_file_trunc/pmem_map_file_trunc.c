@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
- * pmem_map_file_trunc.c -- test for mapping specially crafted files,
- * which used to confuse Windows libc to truncate it by 1 byte
- *
- * See https://github.com/pmem/pmdk/pull/3728 for full description.
+ * pmem_map_file_trunc.c -- test for mapping specially crafted files
  *
  * usage: pmem_map_file_trunc file
  */
@@ -13,10 +10,6 @@
 #include "unittest.h"
 #define EXPECTED_SIZE (4 * 1024)
 
-/*
- * so called "Ctrl-Z" or EOF character
- * https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/fopen-wfopen
- */
 #define FILL_CHAR 0x1a
 
 int

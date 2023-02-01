@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 /*
  * bttcreate.c -- tool for generating BTT layout
  */
@@ -181,19 +181,6 @@ print_result(struct bbtcreate_options *opts)
 int
 main(int argc, char *argv[])
 {
-#ifdef _WIN32
-	util_suppress_errmsg();
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	for (int i = 0; i < argc; i++) {
-		argv[i] = util_toUTF8(wargv[i]);
-		if (argv[i] == NULL) {
-			for (i--; i >= 0; i--)
-				free(argv[i]);
-			fprintf(stderr, "Error during arguments conversion\n");
-			return 1;
-		}
-	}
-#endif
 	common_init("", "", "", 0, 0);
 
 	int opt;
@@ -372,9 +359,5 @@ error_map:
 error:
 	os_close(fd);
 out:
-#ifdef _WIN32
-	for (int i = argc; i > 0; i--)
-		free(argv[i - 1]);
-#endif
 	return res;
 }

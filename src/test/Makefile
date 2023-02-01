@@ -131,8 +131,6 @@ OTHER_TESTS = \
 	ctl_prefault\
 	ctl_cow\
 	magic\
-	mmap\
-	mmap_fixed\
 	out_err\
 	out_err_mt\
 	pmemobjcli\

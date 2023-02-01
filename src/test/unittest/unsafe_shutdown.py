@@ -1,11 +1,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2023, Intel Corporation
 #
 """Unsafe shutdown utilities"""
 
 import os
-import sys
-import shlex
 import subprocess as sp
 import abc
 
@@ -13,56 +11,7 @@ import futils
 import tools
 
 
-if sys.platform == 'win32':
-    GET_DISK_NO_CMD = r'powershell (Get-Partition -DriveLetter(Get-Item {}:\)'\
-                      '.PSDrive.Name).DiskNumber'
-
-    GET_DIMMS_FROM_DISK_NO_CMD =\
-        'powershell Get-PmemDisk | Where DiskNumber '\
-        '-Eq {} | Format-Table -Property PhysicalDeviceIds -HideTableHeaders '\
-        '-Autosize'
-
-    def _get_dimms_from_disk_no(disk_no):
-        """
-        Get IDs of the device's underlying DIMMs using powershell cmdlets.
-        The device is identified with a provided disk number.
-        """
-        cmd = GET_DIMMS_FROM_DISK_NO_CMD.format(disk_no)
-        cmd = shlex.split(cmd)
-
-        proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
-                      universal_newlines=True)
-        if proc.returncode:
-            futils.Fail('The disk number {} could not be found'
-                        .format(proc.stdout))
-
-        dimms_out = proc.stdout.strip().strip(r'{}')
-        if not dimms_out:
-            raise futils.Fail('Disk number {} has no underlying DIMMs'
-                              .format(disk_no))
-
-        return [d.strip() for d in dimms_out.split(',')]
-
-
 def _get_dev_from_testdir(testdir):
-    if sys.platform == 'win32':
-        return _get_dev_from_testdir_win(testdir)
-    else:
-        return _get_dev_from_testdir_linux(testdir)
-
-
-def _get_dev_from_testdir_win(testdir):
-    volume, _ = os.path.splitdrive(testdir)
-    cmd = GET_DISK_NO_CMD.format(volume.rstrip(':'))
-    cmd = shlex.split(cmd)
-    proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
-                  universal_newlines=True)
-    if proc.returncode:
-        futils.Fail('The disk number {} could not be found'.format(volume))
-    return proc.stdout.strip()
-
-
-def _get_dev_from_testdir_linux(testdir):
     if not os.path.isdir(testdir):
         raise futils.Fail('{} is not an existing directory'
                           .format(testdir))
@@ -127,10 +76,7 @@ class UnsafeShutdown:
 
         # set default injecting tool if no tool provided
         else:
-            if sys.platform == 'win32':
-                self.tool = Ipmctl()
-            else:
-                self.tool = NdctlUSC()
+            self.tool = NdctlUSC()
 
     def read(self, testdir):
         """
@@ -153,45 +99,6 @@ class UnsafeShutdown:
         should be valid as an argument input for all methods.
         """
         return self.tool.get_dev_dimms(dev)
-
-
-class Ipmctl(USCTool):
-    """ipmctl tool class"""
-    def __init__(self):
-        if sys.platform != 'win32':
-            futils.fail('Ipmctl tool class is currently implemented only'
-                        ' for Windows - for Linux use ndctl instead')
-
-    def get_dev_dimms(self, dev):
-        # add hex prefix for compliance with read_usc and inject_usc
-        # methods
-        dimms = ['0x{}'.format(d) for d in _get_dimms_from_disk_no(dev)]
-        return dimms
-
-    def read_usc(self, *dimms):
-        usc = 0
-        raw_cmd = 'ipmctl show -sensor -dimm {}'
-        row_title = 'LatchedDirtyShutdownCount'
-        for d in dimms:
-            cmd = raw_cmd.format(d)
-            try:
-                out = sp.check_output(cmd.split(), universal_newlines=True,
-                                      stderr=sp.STDOUT)
-                usc_row = [o for o in out.splitlines() if row_title in o][0]
-
-                # considering 'usc_row' looks like:
-                # '0x0101 | LatchedDirtyShutdownCount   | 4           | Normal'
-                # 'usc' is the value in the third column:
-                usc += int(usc_row.split('|')[2].strip())
-            except sp.CalledProcessError as e:
-                raise futils.Fail('Reading unsafe shutdown count '
-                                  'with ipmctl failed:\n{}'.format(e.output))
-            except (IndexError, ValueError) as e:
-                raise futils.Fail('Could not read dirty shutdown'
-                                  'value from DIMM {}. \n{}'
-                                  .format(d, e))
-
-        return usc
 
 
 class NdctlUSC(tools.Ndctl, USCTool):
