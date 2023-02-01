@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmemblk.c -- pmem entry points for libpmemblk
@@ -105,9 +105,7 @@ libpmemblk_fini(void)
 /*
  * pmemblk_check_versionU -- see if lib meets application version requirements
  */
-#ifndef _WIN32
 static inline
-#endif
 const char *
 pmemblk_check_versionU(unsigned major_required, unsigned minor_required)
 {
@@ -129,7 +127,6 @@ pmemblk_check_versionU(unsigned major_required, unsigned minor_required)
 	return NULL;
 }
 
-#ifndef _WIN32
 /*
  * pmemblk_check_version -- see if lib meets application version requirements
  */
@@ -138,19 +135,6 @@ pmemblk_check_version(unsigned major_required, unsigned minor_required)
 {
 	return pmemblk_check_versionU(major_required, minor_required);
 }
-#else
-/*
- * pmemblk_check_versionW -- see if lib meets application version requirements
- */
-const wchar_t *
-pmemblk_check_versionW(unsigned major_required, unsigned minor_required)
-{
-	if (pmemblk_check_versionU(major_required, minor_required) != NULL)
-		return out_get_errormsgW();
-	else
-		return NULL;
-}
-#endif
 
 /*
  * pmemblk_set_funcs -- allow overriding libpmemblk's call to malloc, etc.
@@ -170,16 +154,13 @@ pmemblk_set_funcs(
 /*
  * pmemblk_errormsgU -- return last error message
  */
-#ifndef _WIN32
 static inline
-#endif
 const char *
 pmemblk_errormsgU(void)
 {
 	return out_get_errormsg();
 }
 
-#ifndef _WIN32
 /*
  * pmemblk_errormsg -- return last error message
  */
@@ -188,13 +169,3 @@ pmemblk_errormsg(void)
 {
 	return pmemblk_errormsgU();
 }
-#else
-/*
- * pmemblk_errormsgW -- return last error message as wchar_t
- */
-const wchar_t *
-pmemblk_errormsgW(void)
-{
-	return out_get_errormsgW();
-}
-#endif
