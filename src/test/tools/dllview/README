@@ -1,9 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/tools/dllview/README.
-
-This directory contains a simple command-line utility that displays the list
-of symbols exported by given DLL.
-
-Usage:
-	$ dllview <path>

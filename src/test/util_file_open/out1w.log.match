@@ -1,5 +1,0 @@
-util_file_open$(nW)TEST1w: START: util_file_open
- $(nW)util_file_open$(nW) 0x4000 $(nW)testfile1 $(nW)testfile2
-$(nW)testfile1: util_file_open: Permission denied
-$(nW)testfile2: util_file_open: Permission denied
-util_file_open$(nW)TEST1w: DONE

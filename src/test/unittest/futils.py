@@ -1,11 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 """Test framework utilities."""
 
 from os.path import join, abspath
 import os
-import sys
 import subprocess as sp
 
 import consts as c
@@ -13,23 +12,11 @@ import configurator
 
 
 def get_tool_path(ctx, name):
-    if sys.platform == 'win32':
-        if str(ctx.build) == 'debug':
-            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'libs', name))
-        else:
-            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'libs', name))
-    else:
-        return abspath(join(c.ROOTDIR, '..', 'tools', name, name))
+    return abspath(join(c.ROOTDIR, '..', 'tools', name, name))
 
 
 def get_test_tool_path(build, name):
-    if sys.platform == 'win32':
-        if str(build) == 'debug':
-            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'tests', name))
-        else:
-            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'tests', name))
-    else:
-        return abspath(join(c.ROOTDIR, 'tools', name, name))
+    return abspath(join(c.ROOTDIR, 'tools', name, name))
 
 
 def get_lib_dir(ctx):
@@ -49,17 +36,10 @@ def get_example_path(ctx, libname, name, dirname=None):
     If that is not the case, dirname optional argument can be used to
     specify different catalog for the example binary- "lib + libname/dirname".
     """
-    if sys.platform == 'win32':
-        binname = '_'.join(['ex', libname, name])
-        if str(ctx.build) == 'debug':
-            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'examples', binname))
-        else:
-            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'examples', binname))
-    else:
-        if dirname is None:
-            dirname = name
-        return abspath(join(c.ROOTDIR, '..', 'examples', 'lib' + libname,
-                            dirname, name))
+    if dirname is None:
+        dirname = name
+    return abspath(join(c.ROOTDIR, '..', 'examples', 'lib' + libname,
+                        dirname, name))
 
 
 def tail(file, n):
@@ -100,12 +80,9 @@ class Color:
     Set the font color. This functionality relies on ANSI escape sequences
     and is currently disabled for Windows.
     """
-    if sys.platform != 'win32':
-        RED = '\33[91m'
-        GREEN = '\33[92m'
-        END = '\33[0m'
-    else:
-        RED, GREEN, END = '', '', ''
+    RED = '\33[91m'
+    GREEN = '\33[92m'
+    END = '\33[0m'
 
 
 class Message:

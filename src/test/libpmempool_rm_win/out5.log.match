@@ -1,4 +1,0 @@
-libpmempool_rm_win/TEST5: START: libpmempool_rm_win$(nW)
- $(nW)libpmempool_rm_win$(nW) $(*)
-$(nW): removing file failed: Permission denied
-libpmempool_rm_win/TEST5: DONE

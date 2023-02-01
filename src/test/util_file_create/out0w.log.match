@@ -1,6 +1,0 @@
-util_file_create$(nW)TEST0w: START: util_file_create
- $(nW)util_file_create$(nW) 0x4000 0x4000:$(nW)testdir1 0x4000:$(nW)NUL 0x4000:$(nW)testfile1
-$(nW)testdir1: util_file_create: $(*)
-NUL: $(*)
-$(nW)testfile1: util_file_create: File exists
-util_file_create$(nW)TEST0w: DONE
