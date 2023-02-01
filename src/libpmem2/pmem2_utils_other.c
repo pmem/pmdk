@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 #include <errno.h>
 #include <sys/stat.h>
@@ -7,11 +7,6 @@
 #include "libpmem2.h"
 #include "out.h"
 #include "pmem2_utils.h"
-
-#ifdef _WIN32
-#define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
-#define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
-#endif
 
 int
 pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
