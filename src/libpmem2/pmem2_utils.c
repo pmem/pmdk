@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_utils.c -- libpmem2 utilities functions
@@ -77,19 +77,3 @@ pmem2_err_to_errno(int err)
 
 	return -err;
 }
-
-#ifdef _WIN32
-/*
- * converts windows error codes to pmem2 error
- */
-int
-pmem2_lasterror_to_err()
-{
-	int err = util_lasterror_to_errno(GetLastError());
-
-	if (err == -1)
-		return PMEM2_E_UNKNOWN;
-
-	return -err;
-}
-#endif
