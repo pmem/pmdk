@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * check_util.h -- internal definitions check util
@@ -175,10 +175,6 @@ const char *check_get_uuid_str(uuid_t uuid);
 const char *check_get_pool_type_str(enum pool_type type);
 
 void check_insert_arena(PMEMpoolcheck *ppc, struct arena *arenap);
-
-#ifdef _WIN32
-void cache_to_utf8(struct check_data *data, char *buf, size_t size);
-#endif
 
 #define CHECK_IS(ppc, flag)\
 	util_flag_isset((ppc)->args.flags, PMEMPOOL_CHECK_ ## flag)

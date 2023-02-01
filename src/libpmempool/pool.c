@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * pool.c -- pool processing functions
@@ -12,14 +12,12 @@
 #include <fcntl.h>
 #include <endian.h>
 
-#ifndef _WIN32
 #include <sys/ioctl.h>
 #ifdef __FreeBSD__
 #include <sys/disk.h>
 #define BLKGETSIZE64 DIOCGMEDIASIZE
 #else
 #include <linux/fs.h>
-#endif
 #endif
 
 #include "libpmem.h"
@@ -289,13 +287,11 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		params->is_pmem = set->replica[0]->is_pmem;
 	} else if (is_btt) {
 		params->size = (size_t)stat_buf.st_size;
-#ifndef _WIN32
 		if (params->mode & S_IFBLK)
 			if (ioctl(fd, BLKGETSIZE64, &params->size)) {
 				ERR("!ioctl");
 				goto out_close;
 			}
-#endif
 		addr = NULL;
 	} else {
 		enum file_type type = util_file_get_type(ppc->path);
