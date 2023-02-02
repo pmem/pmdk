@@ -90,22 +90,6 @@ no clang-format or it pointing to an older version. In such case run:
 	$ make CLANG_FORMAT=/path/to/clang-format cstyle|format
 ```
 
-#### Windows
-
-On Windows to check the code for style issues, please run:
-```
-	$ pmdk\utils\CSTYLE.ps1
-```
-
-To check or format C++ files, you may use a standalone Visual Studio plugin
-for clang-format.  The plugin installer can be downloaded from
-[LLVM Builds](https://llvm.org/builds) page.
-
-If you are actively working on an PMDK feature, please let other
-developers know by [creating an issue](https://github.com/pmem/pmdk/issues).
-Use the template `Feature` and assign it to yourself (due to the way
-GitHub permissions work, you may have to ask a team member to assign it to you).
-
 ### Bug Reports
 
 Bugs for the PMDK project are tracked in our
