@@ -8,6 +8,7 @@
  */
 
 #include "unittest.h"
+#include "util.h"
 
 int
 main(int argc, char *argv[])
@@ -17,6 +18,7 @@ main(int argc, char *argv[])
 	int is_pmem;
 
 	START(argc, argv, "pmem_valgr_simple");
+	util_init();
 
 	if (argc != 4)
 		UT_FATAL("usage: %s file offset length", argv[0]);
@@ -32,7 +34,7 @@ main(int argc, char *argv[])
 	*(int *)dest = 4;
 
 	/* this will be made persistent */
-	uint64_t *tmp64dst = (void *)((uintptr_t)dest + 4096);
+	uint64_t *tmp64dst = (void *)((uintptr_t)dest + Pagesize);
 	*tmp64dst = 50;
 
 	if (is_pmem) {

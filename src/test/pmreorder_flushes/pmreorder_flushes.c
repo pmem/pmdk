@@ -18,7 +18,12 @@
 #include "util.h"
 #include "valgrind_internal.h"
 
+#if defined(__PPC64__)
+#define STORE_SIZE 128
+#else
 #define STORE_SIZE 64
+#endif
+
 static FILE *fp;
 
 struct stores_fields {
