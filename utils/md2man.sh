@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 #
 
 #
@@ -35,12 +35,6 @@ if [ "$TESTOPTS" != "" ]; then
 	m4 $TESTOPTS macros.man $filename | sed -n -e '/# NAME #/,$p' > $outfile
 else
 	OPTS=
-
-if [ "$WIN32" == 1 ]; then
-	OPTS="$OPTS -DWIN32"
-else
-	OPTS="$OPTS -UWIN32"
-fi
 
 if [ "$(uname -s)" == "FreeBSD" ]; then
 	OPTS="$OPTS -DFREEBSD"

@@ -75,8 +75,6 @@ HEADERS =\
 		include/lib*.h\
 		include/libpmemobj/*.h\
 		include/libpmem2/*.h\
-		windows/include/*.h\
-		windows/include/*/*.h\
 		), $(f))
 
 ifneq ($(filter 1 2, $(CSTYLEON)),)
