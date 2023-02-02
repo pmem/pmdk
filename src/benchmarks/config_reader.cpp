@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 /*
  * config_reader.cpp -- config reader module definitions
  */
@@ -219,6 +219,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 			gchar *group = g_key_file_get_value(cr->key_file,
 							    SECTION_GLOBAL,
 							    KEY_GROUP, nullptr);
+			assert(group != nullptr);
 			scenario_set_group(scenario, group);
 		}
 
