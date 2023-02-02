@@ -1,9 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/windows/getopt/README.
-
-This is directory contains windows getopt implementation downloaded from:
-
-	https://github.com/kimgr/getopt_port
-
-with changes applied to compile it with "compile as c code(/TC)" option.
