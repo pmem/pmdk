@@ -64,11 +64,9 @@ CamelCase or Hungarian notation.
 - Avoid using `l` as a variable name, because it is hard to distinguish `l` from `1`
 on some displays.
 
-### Multi-OS support (Linux/FreeBSD/Windows)
+### Multi-OS support (Linux/FreeBSD)
 - Do not add `#ifdef <OS>` sections lightly. They should be treated as technical
 debt and avoided when possible.
-- Use `_WIN32` macro for conditional directives when including code using
-Windows-specific API.
 - Use `__FreeBSD__` macro for conditional directives for FreeBSD-specific code.
 - Use `_MSC_VER` macro for conditional directives when including code using VC++
 or gcc specific extensions.
