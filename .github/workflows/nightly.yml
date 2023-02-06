@@ -1,0 +1,46 @@
+
+name: Nightly
+
+# The Nightly workflow runs less frequently used OSes.
+# It is run at 00:00 UTC every day or on demand.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 0 * * *'
+
+env:
+    GITHUB_REPO:    pmem/pmdk
+    DOCKER_REPO:    ghcr.io/pmem/pmdk
+    # use org's Private Access Token to log in to GitHub Container Registry
+    GH_CR_USER:     ${{ secrets.GH_CR_USER }}
+    GH_CR_PAT:      ${{ secrets.GH_CR_PAT }}
+    HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
+    WORKDIR:        utils/docker
+    PMDK_CC:        gcc
+    PMDK_CXX:       g++
+    MAKE_PKG:       0
+    VALGRIND:       1
+    SRC_CHECKERS:   0
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        CONFIG: ["OS=opensuse-leap OS_VER=15 FAULT_INJECTION=1 TEST_BUILD=debug",
+                 "OS=opensuse-leap OS_VER=15 FAULT_INJECTION=1 TEST_BUILD=nondebug PUSH_IMAGE=1"]
+    steps:
+       - name: Clone the git repo
+         uses: actions/checkout@v2
+         with:
+            fetch-depth: 50
+
+       - name: Pull or rebuild the image
+         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
+
+       - name: Run the build
+         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
+
+       - name: Push the image
+         run: cd $WORKDIR && source ./set-vars.sh && ${{ matrix.CONFIG }} /bin/bash -c "if [[ -f ${CI_FILE_PUSH_IMAGE_TO_REPO} ]]; then images/push-image.sh; fi"

@@ -1,0 +1,124 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2016-2023, Intel Corporation
+
+#
+# Dockerfile - a 'recipe' for Docker to build an image of openSUSE-based
+#              environment for building the PMDK project.
+#
+
+# Pull base image
+FROM opensuse/leap:15
+MAINTAINER piotr.balcer@intel.com
+
+ENV VALGRIND_DEPS "\
+	autoconf \
+	automake \
+	file \
+	findutils \
+	git"
+
+# pmdk base
+ENV BASE_DEPS "\
+	cmake \
+	gcc \
+	gcc-c++ \
+	git \
+	make \
+	pkgconfig \
+	systemd"
+
+# benchmarks (optional)
+ENV BENCH_DEPS "\
+	glib2-devel"
+
+# examples (optional)
+ENV EXAMPLES_DEPS "\
+	fuse \
+	fuse-devel \
+	ncurses-devel \
+	libuv-devel"
+
+# documentation (optional)
+ENV DOC_DEPS "\
+	pandoc"
+
+# tests
+ENV TESTS_DEPS "\
+	bc \
+	gdb \
+	libunwind-devel \
+	strace"
+
+# packaging
+ENV PACKAGING_DEPS "\
+	rpm-build \
+	rpmdevtools"
+
+# misc
+ENV MISC_DEPS "\
+	clang \
+	hub \
+	lbzip2 \
+	man \
+	python3-flake8 \
+	rsync \
+	sudo \
+	tar \
+	which \
+	xmlto"
+
+ENV NDCTL_DEPS "\
+	bash-completion-devel \
+	keyutils-devel \
+	libjson-c-devel \
+	libkmod-devel \
+	libtool \
+	libudev-devel \
+	libuuid-devel \
+	systemd-devel"
+
+# add openSUSE Leap 15.4 Oss repo
+RUN zypper ar -f http://download.opensuse.org/distribution/leap/15.4/repo/oss/ oss
+
+RUN zypper update -y && zypper install -y \
+	$VALGRIND_DEPS \
+	$BASE_DEPS \
+	$BENCH_DEPS \
+	$EXAMPLES_DEPS \
+	$DOC_DEPS \
+	$TESTS_DEPS \
+	$PACKAGING_DEPS \
+	$MISC_DEPS \
+	$TESTS_DEPS \
+	$NDCTL_DEPS \
+	&& zypper clean all
+
+# Copy install valgrind script
+COPY install-valgrind.sh install-valgrind.sh
+RUN ./install-valgrind.sh fedora
+
+# Copy install libndctl script
+COPY install-libndctl.sh install-libndctl.sh
+RUN ./install-libndctl.sh tags/v70.1
+
+# Add user
+ENV USER pmdkuser
+ENV USERPASS pmdkpass
+RUN useradd -m $USER
+ENV PFILE ./password
+RUN echo $USERPASS > $PFILE
+RUN echo $USERPASS >> $PFILE
+RUN passwd $USER < $PFILE
+RUN rm -f $PFILE
+RUN sed -i 's/# %wheel/%wheel/g' /etc/sudoers
+RUN groupadd wheel
+RUN gpasswd wheel -a $USER
+USER $USER
+
+# Set required environment variables
+ENV OS opensuse/leap
+ENV OS_VER 15
+ENV PACKAGE_MANAGER rpm
+ENV NOTTY 1
+ENV LD_LIBRARY_PATH /usr/lib:$LD_LIBRARY_PATH
+ENV PKG_CONFIG_PATH /usr/lib/pkgconfig:$PKG_CONFIG_PATH
