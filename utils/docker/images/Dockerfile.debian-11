@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2016-2023, Intel Corporation
+
+#
+# Dockerfile - a 'recipe' for Docker to build an image of Debian-based
+#              environment for building the PMDK project.
+#
+
+# Pull base image
+FROM debian:11
+MAINTAINER piotr.balcer@intel.com
+
+ENV DEBIAN_FRONTEND noninteractive
+
+ENV VALGRIND_DEPS "autoconf \
+	automake \
+	build-essential \
+	git"
+
+# pmdk base
+ENV BASE_DEPS "build-essential \
+	cmake \
+	git \
+	libdaxctl-dev \
+	libndctl-dev \
+	pkg-config"
+
+# benchmarks (optional)
+ENV BENCH_DEPS libglib2.0-dev
+
+# examples (optional)
+ENV EXAMPLES_DEPS "libfuse-dev \
+	libncurses5-dev \
+	libuv1-dev"
+
+# documentation (optional)
+ENV DOC_DEPS pandoc
+
+# tests
+ENV TESTS_DEPS "bc \
+	gdb \
+	libc6-dbg \
+	libunwind-dev \
+	ndctl \
+	python3 \
+	strace"
+
+# packaging
+ENV PACKAGING_DEPS "debhelper \
+	devscripts \
+	fakeroot"
+
+# misc
+ENV MISC_DEPS "clang \
+	clang-format \
+	flake8 \
+	sudo \
+	whois"
+
+# Copy install valgrind script
+COPY install-valgrind.sh install-valgrind.sh
+
+# Update the Apt cache and install basic tools
+RUN apt-get update && apt-get dist-upgrade -y \
+	&& apt-get install -y --no-install-recommends \
+	$VALGRIND_DEPS \
+	$BASE_DEPS \
+	$BENCH_DEPS \
+	$EXAMPLES_DEPS \
+	$DOC_DEPS \
+	$TESTS_DEPS \
+	$PACKAGING_DEPS \
+	$MISC_DEPS \
+	&& ./install-valgrind.sh ubuntu \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Add user
+ENV USER pmdkuser
+ENV USERPASS pmdkpass
+RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
+RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# switch user
+USER $USER
+
+# Set required environment variables
+ENV OS debian
+ENV OS_VER 11
+ENV PACKAGE_MANAGER dpkg
+ENV NOTTY 1

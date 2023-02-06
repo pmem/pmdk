@@ -28,7 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        CONFIG: ["OS=opensuse-leap OS_VER=15 FAULT_INJECTION=1 TEST_BUILD=debug",
+        CONFIG: ["OS=debian OS_VER=11 FAULT_INJECTION=1 TEST_BUILD=debug",
+                 "OS=debian OS_VER=11 FAULT_INJECTION=1 TEST_BUILD=nondebug PUSH_IMAGE=1",
+                 "OS=opensuse-leap OS_VER=15 FAULT_INJECTION=1 TEST_BUILD=debug",
                  "OS=opensuse-leap OS_VER=15 FAULT_INJECTION=1 TEST_BUILD=nondebug PUSH_IMAGE=1"]
     steps:
        - name: Clone the git repo
