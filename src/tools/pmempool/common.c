@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * common.c -- definitions of common functions
@@ -1375,8 +1375,13 @@ util_pool_clear_badblocks(const char *path, int create)
 		outv_err("clearing bad blocks in the pool set failed -- '%s'",
 			path);
 		errno = EIO;
-		return -1;
+		ret = -1;
+		goto err;
 	}
 
-	return 0;
+	ret = 0;
+
+err:
+	util_poolset_free(setp);
+	return ret;
 }
