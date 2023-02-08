@@ -178,8 +178,10 @@ poolset_open(const char *path, int rdonly)
 
 	/* open a memory pool */
 	unsigned flags = get_pool_open_flags(set, rdonly);
-	if (util_pool_open_nocheck(set, flags))
+	if (util_pool_open_nocheck(set, flags)) {
+		set = NULL;
 		goto err_open;
+	}
 
 	/* map all headers and check features */
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
