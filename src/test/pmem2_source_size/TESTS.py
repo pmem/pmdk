@@ -26,7 +26,6 @@ class TEST2(NormalFile):
     size = 16 * t.MiB
 
 
-# FreeBSD doesn't support O_TMPFILE
 @t.linux_only
 class TEST4(t.Test):
     test_type = t.Short

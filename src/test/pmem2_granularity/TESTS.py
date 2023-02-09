@@ -74,13 +74,6 @@ class TEST4(PMEM2_GRANULARITY):
     available_granularity = Granularity.PAGE
 
 
-@t.freebsd_only
-class TEST5(PMEM2_GRANULARITY):
-    """pass byte granularity, available page granularity"""
-    test_case = "test_granularity_req_byte_avail_page"
-    available_granularity = Granularity.PAGE
-
-
 class TEST6(PMEM2_GRANULARITY):
     """pass cache line granularity, available byte granularity"""
     test_case = "test_granularity_req_cl_avail_byte"
@@ -95,13 +88,6 @@ class TEST7(PMEM2_GRANULARITY):
 
 @t.linux_only
 class TEST9(PMEM2_GRANULARITY):
-    """pass cache line granularity, available page granularity"""
-    test_case = "test_granularity_req_cl_avail_page"
-    available_granularity = Granularity.PAGE
-
-
-@t.freebsd_only
-class TEST10(PMEM2_GRANULARITY):
     """pass cache line granularity, available page granularity"""
     test_case = "test_granularity_req_cl_avail_page"
     available_granularity = Granularity.PAGE

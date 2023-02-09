@@ -12,18 +12,6 @@
 
 #include "unittest.h"
 
-#ifdef __FreeBSD__
-#include <uuid/uuid.h>
-int
-ut_get_uuid_str(char *uu)
-{
-	uuid_t uuid;
-
-	uuid_generate(uuid);
-	uuid_unparse(uuid, uu);
-	return 0;
-}
-#else
 int
 ut_get_uuid_str(char *uu)
 {
@@ -35,7 +23,6 @@ ut_get_uuid_str(char *uu)
 	CLOSE(fd);
 	return 0;
 }
-#endif
 
 /* RHEL5 seems to be missing decls, even though libc supports them */
 extern DIR *fdopendir(int fd);
@@ -228,16 +215,7 @@ open_file_remove(struct fd_lut *root, int fdnum, const char *fdfile)
 		} else {
 			UT_ERR("open file changed: fd %d was \"%s\" now \"%s\"",
 			    fdnum, root->fdfile, fdfile);
-#ifdef __FreeBSD__
-			/*
-			 * XXX Pathname list not definitive on FreeBSD,
-			 *     so treat as warning
-			 */
-			FREE(root->fdfile);
-			root->fdfile = NULL;
-#else
 			Fd_errcount++;
-#endif
 		}
 	} else if (root->fdnum < fdnum)
 		open_file_remove(root->left, fdnum, fdfile);
@@ -295,61 +273,6 @@ close_output_files(void)
 		fclose(Tracefp);
 }
 
-#ifdef __FreeBSD__
-/* XXX Note: Pathname retrieval is not really supported in FreeBSD */
-#include <libutil.h>
-#include <sys/user.h>
-/*
- * record_open_files -- make a list of open files (used at START() time)
- */
-static void
-record_open_files(void)
-{
-	int numfds, i;
-	struct kinfo_file *fip, *f;
-
-	if ((fip = kinfo_getfile(getpid(), &numfds)) == NULL) {
-		UT_FATAL("!kinfo_getfile");
-	}
-	for (i = 0, f = fip; i < numfds; i++, f++) {
-		if (f->kf_fd >= 0) {
-			Fd_lut = open_file_add(Fd_lut, f->kf_fd, f->kf_path);
-		}
-	}
-	free(fip);
-}
-
-/*
- * check_open_files -- verify open files match recorded open files
- */
-static void
-check_open_files(void)
-{
-	int numfds, i;
-	struct kinfo_file *fip, *f;
-
-	if ((fip = kinfo_getfile(getpid(), &numfds)) == NULL) {
-		UT_FATAL("!kinfo_getfile");
-	}
-	for (i = 0, f = fip; i < numfds; i++, f++) {
-		if (f->kf_fd >= 0) {
-			open_file_remove(Fd_lut, f->kf_fd, f->kf_path);
-		}
-	}
-	open_file_walk(Fd_lut);
-	if (Fd_errcount) {
-		if (os_getenv("UNITTEST_DO_NOT_FAIL_OPEN_FILES"))
-			UT_OUT(
-				"open file list changed between START() and DONE()");
-		else
-			UT_FATAL(
-				"open file list changed between START() and DONE()");
-	}
-	open_file_free(Fd_lut);
-	free(fip);
-}
-
-#else /* !__FreeBSD__ */
 /*
  * record_open_files -- make a list of open files (used at START() time)
  */
@@ -421,7 +344,6 @@ check_open_files(void)
 	}
 	open_file_free(Fd_lut);
 }
-#endif /* __FreeBSD__ */
 
 /*
  * ut_start_common -- (internal) initialize unit test framework,
@@ -447,6 +369,7 @@ ut_start_common(const char *file, int line, const char *func,
 
 	if (ignore_bb && *ignore_bb)
 		Ignore_bb = 1;
+
 	if (os_getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
 		ut_register_sighandlers();
 
@@ -500,11 +423,6 @@ ut_start_common(const char *file, int line, const char *func,
 	prefix(file, line, func, 0);
 	vout(OF_NAME, "START", fmt, ap);
 
-#ifdef __FreeBSD__
-	/* XXX Record the fd that will be leaked by uuid_generate */
-	uuid_t u;
-	uuid_generate(u);
-#endif /* __FreeBSD__ */
 	record_open_files();
 
 	errno = saveerrno;

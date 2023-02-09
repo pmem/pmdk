@@ -9,7 +9,6 @@ from testframework import granularity as g
 from consts import MINIASYNC_LIBDIR
 
 
-@t.freebsd_exclude
 class PMEM2_MOVER(t.Test):
     test_type = t.Medium
 
