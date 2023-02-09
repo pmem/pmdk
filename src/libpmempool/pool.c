@@ -13,12 +13,7 @@
 #include <endian.h>
 
 #include <sys/ioctl.h>
-#ifdef __FreeBSD__
-#include <sys/disk.h>
-#define BLKGETSIZE64 DIOCGMEDIASIZE
-#else
 #include <linux/fs.h>
-#endif
 
 #include "libpmem.h"
 #include "libpmemlog.h"

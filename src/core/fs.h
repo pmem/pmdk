@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * fs.h -- file system traversal abstraction layer
@@ -34,7 +34,7 @@ struct fs_entry {
 	const char *path;
 	size_t pathlen;
 	/* the depth of the traversal */
-	/* XXX long on FreeBSD. Linux uses short. No harm in it being bigger */
+	/* Linux uses short. No harm in it being bigger */
 	long level;
 };
 

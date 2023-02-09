@@ -64,20 +64,6 @@ CamelCase or Hungarian notation.
 - Avoid using `l` as a variable name, because it is hard to distinguish `l` from `1`
 on some displays.
 
-### Multi-OS support (Linux/FreeBSD)
-- Do not add `#ifdef <OS>` sections lightly. They should be treated as technical
-debt and avoided when possible.
-- Use `__FreeBSD__` macro for conditional directives for FreeBSD-specific code.
-- In case of large portions of code (i.e. a whole function) that have different
-implementation for each OS, consider moving them to separate files.
-(i.e. *xxx_linux.c* and *xxx_freebsd.c*)
-- Remember to use `long long` types whenever it applies, as well
-as proper formatting strings and type suffixes (i.. `%llu`, `ULL`).
-- Standard compliant solutions should be used in preference of compiler-specific ones.
-(i.e. static inline functions versus statement expressions)
-- It is recommended to use `PRI*` and `SCN*` macros in printf()/scanf() functions
-for width-based integral types (`uint32_t`, `int64_t`, etc.).
-
 ### Debug traces and assertions
 - Put `LOG(3, ...)` at the beginning of each function. Consider using higher
 log level for most frequently called routines.

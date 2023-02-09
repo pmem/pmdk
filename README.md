@@ -21,9 +21,7 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 2. [Getting Started](#getting-started)
 3. [Version Conventions](#version-conventions)
 4. [Dependencies](#dependencies)
-	* [Linux](#linux)
-	* [FreeBSD](#freebsd)
-5. [Building PMDK on Linux or FreeBSD](#building-pmdk-on-linux-or-freebsd)
+5. [Building PMDK](#building-pmdk)
 	* [Make Options](#make-options)
 	* [Testing Libraries](#testing-libraries-on-linux-and-freebsd)
 	* [Memory Management Tools](#memory-management-tools)
@@ -75,14 +73,8 @@ Available Utilities:
 
 - [pmemcheck](https://pmem.io/2015/07/17/pmemcheck-basic.html): Use dynamic runtime analysis with an enhanced version of Valgrind for use with persistent memory.
 
-Currently these libraries only work on 64-bit Linux and 64-bit FreeBSD 11+<sup>*</sup>.
+Currently these libraries only work on 64-bit Linux<sup>*</sup>.
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
-
-> NOTICE:
-Support for Windows and FreeBSD are deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
-><sup>*</sup> DAX is not yet supported in FreeBSD, so at this time PMDK is available as a technical preview release for development purposes.
 
 ## Getting Started
 
@@ -110,8 +102,6 @@ See our **[Dockerfiles](utils/docker/images)** (used e.g. on our CI
 systems) to get an idea what packages are required to build
 the entire PMDK, with all the tests and examples.
 
-### Linux
-
 You will need to install the following required packages on the build system:
 
 * **autoconf**
@@ -130,29 +120,7 @@ detect hardware failures, which may lead to silent data corruption.
 For information how to disable RAS at runtime for kernels prior to 5.0.4 please
 see https://github.com/pmem/pmdk/issues/4207.
 
-### FreeBSD
-
-> NOTICE:
-Support for FreeBSD is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
-* **autoconf**
-* **bash**
-* **binutils**
-* **coreutils**
-* **e2fsprogs-libuuid**
-* **gmake**
-* **libunwind**
-* **ncurses**<sup>*</sup>
-* **pkgconf**
-
-><sup>*</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
-
-## Building PMDK on Linux or FreeBSD
-
-> NOTICE:
-Support for FreeBSD is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+## Building PMDK
 
 To build from source, clone this tree:
 ```
@@ -169,7 +137,6 @@ Once the build system is setup, the Persistent Memory Development Kit is built u
 ```
 	$ make
 ```
-For FreeBSD, use `gmake` rather than `make`.
 
 By default, all code is built with the `-Werror` flag, which fails
 the whole build when the compiler emits any warning. This is very useful during
@@ -223,7 +190,7 @@ This will install files to /tmp/usr/lib, /tmp/usr/include /tmp/usr/share/man.
 ```
 	$ make doc
 ```
-This call requires the following dependencies: **pandoc**. Pandoc is provided by the hs-pandoc package on FreeBSD.
+This call requires the following dependencies: **pandoc**.
 
 **Install copy of source tree** can be done by specifying the path where you want it installed.
 ```
@@ -253,11 +220,7 @@ To build dpkg packages without running tests:
 ```
 This requires **devscripts** to be installed.
 
-### Testing Libraries on Linux and FreeBSD
-
-> NOTICE:
-Support for FreeBSD is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+### Testing Libraries
 
 You will need to install the following package to run unit tests:
 * **ndctl**
@@ -285,7 +248,8 @@ run different types of tests.
 
 ### Memory Management Tools
 
-The PMDK libraries support standard Valgrind DRD, Helgrind and Memcheck, as well as a PM-aware version of [Valgrind](https://github.com/pmem/valgrind) (not yet available for FreeBSD). By default, support for all tools is enabled. If you wish to disable it, supply the compiler with **VG_\<TOOL\>_ENABLED** flag set to 0, for example:
+The PMDK libraries support standard Valgrind DRD, Helgrind and Memcheck, as well as a PM-aware version of [Valgrind](https://github.com/pmem/valgrind).
+By default, support for all tools is enabled. If you wish to disable it, supply the compiler with **VG_\<TOOL\>_ENABLED** flag set to 0, for example:
 ```
 	$ make EXTRA_CFLAGS=-DVG_MEMCHECK_ENABLED=0
 ```
