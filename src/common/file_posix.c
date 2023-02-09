@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * file_posix.c -- Posix versions of file APIs
  */
 
-#ifndef __FreeBSD__
 /* for O_TMPFILE */
 #define _GNU_SOURCE
-#endif
 
 #include <errno.h>
 #include <signal.h>

@@ -46,6 +46,7 @@
 extern "C" {
 #endif
 
+/* XXX - pmdk/issues/5716 */
 typedef union {
 	long long align;
 	char padding[44]; /* XXX linux: 40 windows: 44 */
@@ -67,7 +68,7 @@ typedef union {
 } os_thread_t;
 
 typedef union {
-	long long align;  /* linux: long FreeBSD: 12 */
+	long long align;  /* linux: long */
 	char padding[16]; /* 16 to be safe */
 } os_once_t;
 
@@ -90,12 +91,7 @@ typedef union {
 	char padding[512];
 } os_cpu_set_t;
 
-#ifdef __FreeBSD__
-#define cpu_set_t cpuset_t
-typedef uintptr_t os_spinlock_t;
-#else
 typedef volatile int os_spinlock_t;
-#endif
 
 void os_cpu_zero(os_cpu_set_t *set);
 void os_cpu_set(size_t cpu, os_cpu_set_t *set);
