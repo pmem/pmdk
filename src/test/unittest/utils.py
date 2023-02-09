@@ -56,25 +56,9 @@ def linux_only(tc):
     return _os_only(tc, 'linux')
 
 
-def freebsd_only(tc):
-    """
-    Disable test case (TEST[number] class) if NOT run on FreeBSD.
-    Use it as a class decorator.
-    """
-    return _os_only(tc, 'freebsd')
-
-
 def linux_exclude(tc):
     """
     Disable test case (TEST[number] class) on Linux.
     Use it as a class decorator.
     """
     return _os_exclude(tc, 'linux')
-
-
-def freebsd_exclude(tc):
-    """
-    Disable test case (TEST[number] class) on FreeBSD.
-    Use it as a class decorator.
-    """
-    return _os_exclude(tc, 'freebsd')

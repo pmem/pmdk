@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2017, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
  *
@@ -53,9 +53,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
-#ifdef __FreeBSD__
-#define _WITH_GETLINE
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
