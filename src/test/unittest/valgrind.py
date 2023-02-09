@@ -98,9 +98,6 @@ class Valgrind:
 
         self.add_suppression('ld.supp')
 
-        if 'freebsd' in sys.platform:
-            self.add_suppression('freebsd.supp')
-
         if tool == MEMCHECK:
             self.add_suppression('memcheck-libunwind.supp')
             self.add_suppression('memcheck-ndctl.supp')

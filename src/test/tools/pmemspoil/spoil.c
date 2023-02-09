@@ -5,9 +5,7 @@
  * spoil.c -- pmempool spoil command source file
  */
 #include <features.h>
-#ifndef __FreeBSD__
 #define __USE_UNIX98
-#endif
 #include <unistd.h>
 #include <stdio.h>
 #include <getopt.h>

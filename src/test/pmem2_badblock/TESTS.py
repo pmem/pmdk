@@ -9,7 +9,6 @@ from testframework import granularity as g
 import re
 
 
-@t.linux_only
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
 @t.require_ndctl(require_namespace=True)
@@ -51,7 +50,6 @@ class PMEM2_BADBLOCK_COUNT(t.Test):
         ctx.env['UNITTEST_LOG_LEVEL'] = old_log_level
 
 
-@t.linux_only
 @t.require_admin
 @g.require_granularity(g.CACHELINE)
 @t.require_ndctl(require_namespace=True)

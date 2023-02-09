@@ -19,7 +19,6 @@ def check_match(matches, expected):
     return True
 
 
-@t.freebsd_exclude
 @t.require_build('debug')
 class PMEM2_FUTURE(t.Test):
     test_type = t.Short

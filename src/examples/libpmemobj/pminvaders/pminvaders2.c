@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * pminvaders2.c -- PMEM-based clone of space invaders (version 2.0)
@@ -10,11 +10,7 @@
  */
 
 #include <stddef.h>
-#ifdef __FreeBSD__
-#include <ncurses/ncurses.h>	/* Need pkg, not system, version */
-#else
 #include <ncurses.h>
-#endif
 #include <unistd.h>
 #include <time.h>
 #include <stdlib.h>

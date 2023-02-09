@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * fallocate_detect -- checks fallocate support on filesystem
@@ -9,7 +9,6 @@
 #include "file.h"
 #include "os.h"
 
-#ifdef __linux__
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/magic.h>
@@ -64,14 +63,6 @@ exit:
 
 	return exit_code;
 }
-#else
-/* no support for fallocate in FreeBSD */
-static int
-check_fallocate(const char *file)
-{
-	return 1;
-}
-#endif
 
 int
 main(int argc, char *argv[])

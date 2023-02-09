@@ -1,12 +1,11 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 #
 
 import testframework as t
 
 
-@t.linux_only
 @t.require_ndctl()
 class BB_MOCKS_BASIC(t.Test):
     """PART #1 - basic tests"""
@@ -37,7 +36,6 @@ class TEST2(BB_MOCKS_BASIC):
     pass
 
 
-@t.linux_only
 @t.require_ndctl()
 class BB_MOCKS_READ_CLEAR(t.Test):
     """PART #2 - test reading and clearing bad blocks"""

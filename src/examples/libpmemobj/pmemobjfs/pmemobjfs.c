@@ -1878,9 +1878,6 @@ pmemobjfs_fuse_flush(const char *path, struct fuse_file_info *fi)
 /*
  * pmemobjfs_fuse_ioctl -- (FUSE) ioctl for file
  */
-#ifdef __FreeBSD__
-#define EBADFD EBADF /* XXX */
-#endif
 static int
 pmemobjfs_fuse_ioctl(const char *path, int cmd, void *arg,
 		struct fuse_file_info *fi, unsigned flags, void *data)
