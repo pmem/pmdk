@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * obj.h -- internal definitions for obj module
@@ -163,6 +163,7 @@ struct pmemobjpool {
 	struct tx_parameters *tx_params;
 
 	/*
+	 * XXX - pmdk/issues/5721
 	 * Locks are dynamically allocated on FreeBSD. Keep track so
 	 * we can free them on pmemobj_close.
 	 */

@@ -36,7 +36,7 @@
  * set.c -- pool set utilities
  */
 
-#if !defined(_GNU_SOURCE) && !defined(__FreeBSD__)
+#if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif
 
@@ -392,13 +392,6 @@ util_poolset_close(struct pool_set *set, enum del_parts_mode del)
 		(void) util_replica_close_local(rep, r, del);
 	}
 
-	/*
-	 * XXX On FreeBSD, mmap()ing a file does not increment the flock()
-	 *     reference count, so we had to keep the files open until now.
-	 */
-#ifdef __FreeBSD__
-	util_poolset_fdclose_always(set);
-#endif
 	util_poolset_free(set);
 
 	errno = oerrno;
@@ -458,19 +451,12 @@ util_poolset_fdclose_always(struct pool_set *set)
 }
 
 /*
- * util_poolset_fdclose -- close pool set file descriptors if not FreeBSD
- *
- * XXX On FreeBSD, mmap()ing a file does not increment the flock()
- *	reference count, so we need to keep the files open.
+ * util_poolset_fdclose -- close pool set file descriptors
  */
 void
 util_poolset_fdclose(struct pool_set *set)
 {
-#ifdef __FreeBSD__
-	LOG(3, "set %p: holding open", set);
-#else
 	util_poolset_fdclose_always(set);
-#endif
 }
 
 /*

@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * os_deep_linux.c -- Linux abstraction layer
  */
 
-#ifndef __FreeBSD__
 #define _GNU_SOURCE
-#endif
 
 #include <inttypes.h>
 #include <fcntl.h>

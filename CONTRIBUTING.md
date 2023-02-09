@@ -67,8 +67,6 @@ a pull request.  The Persistent Memory Development Kit project uses the common
 The [Git Workflow blog article](https://pmem.io/2014/09/09/git-workflow.html)
 describes our workflow in more detail.
 
-#### Linux/FreeBSD
-
 Before contributing please remember to run:
 ```
 	$ make cstyle

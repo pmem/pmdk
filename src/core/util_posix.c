@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * util_posix.c -- Abstraction layer for misc utilities (Posix implementation)
@@ -184,17 +184,7 @@ util_getexecname(char *path, size_t pathlen)
 	ASSERT(pathlen != 0);
 	ssize_t cc;
 
-#ifdef __FreeBSD__
-#include <sys/types.h>
-#include <sys/sysctl.h>
-
-	int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
-
-	cc = (sysctl(mib, 4, path, &pathlen, NULL, 0) == -1) ?
-		-1 : (ssize_t)pathlen;
-#else
 	cc = readlink("/proc/self/exe", path, pathlen);
-#endif
 	if (cc == -1) {
 		strncpy(path, "unknown", pathlen);
 		path[pathlen - 1] = '\0';

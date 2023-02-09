@@ -33,12 +33,7 @@ void *util_map(int fd, os_off_t off, size_t len, int flags, int rdonly,
 		size_t req_align, int *map_sync);
 int util_unmap(void *addr, size_t len);
 
-#ifdef __FreeBSD__
-#define MAP_NORESERVE 0
-#define OS_MAPFILE "/proc/curproc/map"
-#else
 #define OS_MAPFILE "/proc/self/maps"
-#endif
 
 #ifndef MAP_SYNC
 #define MAP_SYNC 0x80000

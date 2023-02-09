@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * lane.c -- lane implementation
  */
 
-#if !defined(_GNU_SOURCE) && !defined(__FreeBSD__)
+#if !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif
 

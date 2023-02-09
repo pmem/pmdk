@@ -1,20 +1,15 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2021, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * os_posix.c -- abstraction layer for basic Posix functions
  */
 
-#ifndef __FreeBSD__
 #define _GNU_SOURCE
-#endif
 
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/file.h>
-#ifdef __FreeBSD__
-#include <sys/mount.h>
-#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -147,45 +142,6 @@ int
 os_posix_fallocate(int fd, os_off_t offset, off_t len)
 {
 
-#ifdef __FreeBSD__
-	struct stat fbuf;
-	struct statfs fsbuf;
-/*
- * XXX Workaround for https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=223287
- *
- *	FreeBSD implements posix_fallocate with a simple block allocation/zero
- *	loop. If the requested size is unreasonably large, this can result in
- *	an uninterruptible system call that will suck up all the space in the
- *	file system and could take hours to fail. To avoid this, make a crude
- *	check to see if the requested allocation is larger than the available
- *	space in the file system (minus any blocks already allocated to the
- *	file), and if so, immediately return ENOSPC. We do the check only if
- *	the offset is 0; otherwise, trying to figure out how many additional
- *	blocks are required is too complicated.
- *
- *	This workaround is here mostly to fail "absurdly" large requests for
- *	testing purposes; however, it is coded to allow normal (albeit slow)
- *	operation if the space can actually be allocated. Because of the way
- *	PMDK uses posix_fallocate, supporting Linux-style fallocate in
- *	FreeBSD should be considered.
- */
-	if (offset == 0) {
-		if (fstatfs(fd, &fsbuf) == -1 || fstat(fd, &fbuf) == -1)
-			return errno;
-
-		size_t reqd_blocks =
-			((size_t)len + (fsbuf.f_bsize - 1)) / fsbuf.f_bsize;
-		if (fbuf.st_blocks > 0) {
-			if (reqd_blocks >= (size_t)fbuf.st_blocks)
-				reqd_blocks -= (size_t)fbuf.st_blocks;
-			else
-				reqd_blocks = 0;
-		}
-		if (reqd_blocks > (size_t)fsbuf.f_bavail)
-			return ENOSPC;
-	}
-#endif
-
 /*
  *	First, try to alloc the whole thing in one go.  This allows ENOSPC to
  *	fail immediately -- allocating piece by piece would fill the storage
@@ -315,20 +271,6 @@ os_setenv(const char *name, const char *value, int overwrite)
 {
 	return setenv(name, value, overwrite);
 }
-
-/*
- * secure_getenv -- provide GNU secure_getenv for FreeBSD
- */
-#if defined(__FreeBSD__)
-static char *
-secure_getenv(const char *name)
-{
-	if (issetugid() != 0)
-		return NULL;
-
-	return getenv(name);
-}
-#endif
 
 /*
  * os_getenv -- getenv abstraction layer

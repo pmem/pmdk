@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * mmap_posix.c -- memory-mapped files for Posix
@@ -16,11 +16,7 @@
 
 char *Mmap_mapfile = OS_MAPFILE; /* Should be modified only for testing */
 
-#ifdef __FreeBSD__
-static const char * const sscanf_os = "%p %p";
-#else
 static const char * const sscanf_os = "%p-%p";
-#endif
 
 /*
  * util_map_hint_unused -- use /proc to determine a hint address for mmap()
