@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * sync.c -- persistent memory resident synchronization primitives
@@ -15,19 +15,7 @@
 #include "util.h"
 #include "valgrind_internal.h"
 
-#ifdef __FreeBSD__
-#define RECORD_LOCK(init, type, p) \
-	if (init) {\
-		PMEM##type##_internal *head = pop->type##_head;\
-		while (!util_bool_compare_and_swap64(&pop->type##_head, head,\
-			p)) {\
-			head = pop->type##_head;\
-		}\
-		p->PMEM##type##_next = head;\
-	}
-#else
 #define RECORD_LOCK(init, type, p)
-#endif
 
 /*
  * _get_value -- (internal) atomically initialize and return a value.

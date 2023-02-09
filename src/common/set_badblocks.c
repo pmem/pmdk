@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2022, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * set_badblocks.c - common part of implementation of bad blocks API
  */
-#ifndef __FreeBSD__
 #define _GNU_SOURCE
-#endif
 
 #include <fcntl.h>
 #include <inttypes.h>

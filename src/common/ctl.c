@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2021, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * ctl.c -- implementation of the interface for examination and modification of
@@ -64,9 +64,8 @@ ctl_find_node(const struct ctl_node *nodes, const char *name,
 	while (node_name != NULL) {
 		char *endptr;
 		/*
-		 * Ignore errno from strtol: FreeBSD returns EINVAL if no
-		 * conversion is performed. Linux does not, but endptr
-		 * check is valid in both cases.
+		 * Ignore ERANGE or EINVA errno from strtol.
+		 * endptr is used to check conversion result.
 		 */
 		int tmp_errno = errno;
 		long index_value = strtol(node_name, &endptr, 0);
