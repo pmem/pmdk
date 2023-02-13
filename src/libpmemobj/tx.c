@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * tx.c -- transactions implementation
@@ -194,7 +194,8 @@ tx_action_add(struct tx *tx)
 	if (tx_action_reserve(tx, 1) != 0)
 		return NULL;
 
-	VEC_INC_BACK(&tx->actions);
+	if (VEC_INC_BACK(&tx->actions) == -1)
+		return NULL;
 
 	return &VEC_BACK(&tx->actions);
 }
@@ -710,7 +711,8 @@ tx_construct_user_buffer(struct tx *tx, void *addr, size_t size,
 		tx->redo_userbufs_capacity +=
 			userbuf.size - TX_INTENT_LOG_BUFFER_OVERHEAD;
 	} else {
-		operation_add_user_buffer(ctx, &userbuf);
+		if (operation_add_user_buffer(ctx, &userbuf) == -1)
+			goto err;
 	}
 
 	return 0;
@@ -1013,8 +1015,11 @@ pmemobj_tx_commit(void)
 		operation_start(tx->lane->external);
 
 		struct user_buffer_def *userbuf;
+		struct operation_context *ctx = tx->lane->external;
 		VEC_FOREACH_BY_PTR(userbuf, &tx->redo_userbufs)
-			operation_add_user_buffer(tx->lane->external, userbuf);
+			if (operation_add_user_buffer(ctx, userbuf) == -1)
+				FATAL("%s: failed to allocate the next vector",
+					__func__);
 
 		palloc_publish(&pop->heap, VEC_ARR(&tx->actions),
 			VEC_SIZE(&tx->actions), tx->lane->external);
@@ -1921,7 +1926,11 @@ pmemobj_tx_xpublish(struct pobj_action *actv, size_t actvcnt, uint64_t flags)
 	}
 
 	for (size_t i = 0; i < actvcnt; ++i) {
-		VEC_PUSH_BACK(&tx->actions, actv[i]);
+		if (VEC_PUSH_BACK(&tx->actions, actv[i]) != 0) {
+			int ret = obj_tx_fail_err(ENOMEM, flags);
+			PMEMOBJ_API_END();
+			return ret;
+		}
 	}
 
 	PMEMOBJ_API_END();

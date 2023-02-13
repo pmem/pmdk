@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * memops.c -- aggregated memory operations helper implementation
@@ -590,7 +590,7 @@ operation_user_buffer_verify_align(struct operation_context *ctx,
 /*
  * operation_add_user_buffer -- add user buffer to the ulog
  */
-void
+int
 operation_add_user_buffer(struct operation_context *ctx,
 		struct user_buffer_def *userbuf)
 {
@@ -614,9 +614,11 @@ operation_add_user_buffer(struct operation_context *ctx,
 	last_log->next = buffer_offset;
 	pmemops_persist(ctx->p_ops, &last_log->next, next_size);
 
-	VEC_PUSH_BACK(&ctx->next, buffer_offset);
+	if (VEC_PUSH_BACK(&ctx->next, buffer_offset) != 0)
+		return -1;
 	ctx->ulog_capacity += capacity;
 	operation_set_any_user_buffer(ctx, 1);
+	return 0;
 }
 
 /*
