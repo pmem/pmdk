@@ -225,7 +225,7 @@ ulog_rebuild_next_vec(struct ulog *ulog, struct ulog_next *next,
 {
 	do {
 		if (ulog->next != 0)
-			VEC_PUSH_BACK(next, ulog->next);
+			ASSERT(VEC_PUSH_BACK(next, ulog->next) == 0);
 	} while ((ulog = ulog_next(ulog, p_ops)) != NULL);
 }
 
@@ -257,7 +257,7 @@ ulog_reserve(struct ulog *ulog,
 	while (capacity < *new_capacity) {
 		if (extend(p_ops->base, &ulog->next, gen_num) != 0)
 			return -1;
-		VEC_PUSH_BACK(next, ulog->next);
+		ASSERT(VEC_PUSH_BACK(next, ulog->next) == 0);
 		ulog = ulog_next(ulog, p_ops);
 		ASSERTne(ulog, NULL);
 

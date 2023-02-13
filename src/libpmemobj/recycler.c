@@ -274,7 +274,8 @@ recycler_recalc(struct recycler *r, int force)
 			if (VEC_PUSH_BACK(&runs, nm) != 0)
 				ASSERT(0); /* XXX: fix after refactoring */
 		} else {
-			VEC_PUSH_BACK(&r->recalc, e);
+			if (VEC_PUSH_BACK(&r->recalc, e) != 0)
+				ASSERT(0); /* XXX: fix after refactoring */
 		}
 	} while (found_units < search_limit);
 
