@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2021, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * pool.h -- internal definitions for pool processing functions
@@ -29,7 +29,7 @@ extern "C" {
 enum pool_type {
 	POOL_TYPE_UNKNOWN	= (1 << 0),
 	POOL_TYPE_LOG		= (1 << 1),
-	POOL_TYPE_BLK		= (1 << 2),
+	POOL_TYPE_BLK		= (1 << 2), // DEPRECATED
 	POOL_TYPE_OBJ		= (1 << 3),
 	POOL_TYPE_BTT		= (1 << 4),
 

@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
+ * Libpmemblk is deprecated.
+ *
  * libpmemblk.h -- definitions of libpmemblk entry points
  *
  * This library provides support for programming with persistent memory (pmem).
@@ -45,6 +47,13 @@
 extern "C" {
 #endif
 
+#define BLK_DEPR_STR "Libpmemblk is deprecated."
+#ifdef _WIN32
+#define PMEMBLK_DEPR_ATTR __declspec(deprecated(BLK_DEPR_STR))
+#else
+#define PMEMBLK_DEPR_ATTR __attribute__((deprecated(BLK_DEPR_STR)))
+#endif
+
 /*
  * opaque type, internal to libpmemblk
  */
@@ -60,11 +69,14 @@ typedef struct pmemblk PMEMblkpool;
 #define PMEMBLK_MINOR_VERSION 1
 
 #ifndef _WIN32
+PMEMBLK_DEPR_ATTR
 const char *pmemblk_check_version(unsigned major_required,
 	unsigned minor_required);
 #else
-const char *pmemblk_check_versionU(unsigned major_required,
-	unsigned minor_required);
+PMEMBLK_DEPR_ATTR
+const char *pmemblk_check_versionU(
+	unsigned major_required, unsigned minor_required);
+PMEMBLK_DEPR_ATTR
 const wchar_t *pmemblk_check_versionW(unsigned major_required,
 	unsigned minor_required);
 #endif
@@ -96,35 +108,51 @@ const wchar_t *pmemblk_check_versionW(unsigned major_required,
 #define PMEMBLK_MIN_BLK ((size_t)512)
 
 #ifndef _WIN32
+PMEMBLK_DEPR_ATTR
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
 #else
+PMEMBLK_DEPR_ATTR
 PMEMblkpool *pmemblk_openU(const char *path, size_t bsize);
+PMEMBLK_DEPR_ATTR
 PMEMblkpool *pmemblk_openW(const wchar_t *path, size_t bsize);
 #endif
 
 #ifndef _WIN32
-PMEMblkpool *pmemblk_create(const char *path, size_t bsize,
-		size_t poolsize, mode_t mode);
+PMEMBLK_DEPR_ATTR
+PMEMblkpool *pmemblk_create(const char *path, size_t bsize, size_t poolsize,
+	mode_t mode);
 #else
-PMEMblkpool *pmemblk_createU(const char *path, size_t bsize,
-		size_t poolsize, mode_t mode);
+PMEMBLK_DEPR_ATTR
+PMEMblkpool *pmemblk_createU(const char *path, size_t bsize, size_t poolsize,
+	mode_t mode);
+PMEMBLK_DEPR_ATTR
 PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
-		size_t poolsize, mode_t mode);
+	size_t poolsize, mode_t mode);
 #endif
 
 #ifndef _WIN32
+PMEMBLK_DEPR_ATTR
 int pmemblk_check(const char *path, size_t bsize);
 #else
+PMEMBLK_DEPR_ATTR
 int pmemblk_checkU(const char *path, size_t bsize);
+PMEMBLK_DEPR_ATTR
 int pmemblk_checkW(const wchar_t *path, size_t bsize);
 #endif
 
+PMEMBLK_DEPR_ATTR
 void pmemblk_close(PMEMblkpool *pbp);
+PMEMBLK_DEPR_ATTR
 size_t pmemblk_bsize(PMEMblkpool *pbp);
+PMEMBLK_DEPR_ATTR
 size_t pmemblk_nblock(PMEMblkpool *pbp);
+PMEMBLK_DEPR_ATTR
 int pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno);
+PMEMBLK_DEPR_ATTR
 int pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno);
+PMEMBLK_DEPR_ATTR
 int pmemblk_set_zero(PMEMblkpool *pbp, long long blockno);
+PMEMBLK_DEPR_ATTR
 int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
 
 /*
@@ -132,6 +160,8 @@ int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
  * default for that function.  The replacement functions must not make calls
  * back into libpmemblk.
  */
+
+PMEMBLK_DEPR_ATTR
 void pmemblk_set_funcs(
 		void *(*malloc_func)(size_t size),
 		void (*free_func)(void *ptr),
@@ -139,23 +169,35 @@ void pmemblk_set_funcs(
 		char *(*strdup_func)(const char *s));
 
 #ifndef _WIN32
+PMEMBLK_DEPR_ATTR
 const char *pmemblk_errormsg(void);
 #else
+PMEMBLK_DEPR_ATTR
 const char *pmemblk_errormsgU(void);
+PMEMBLK_DEPR_ATTR
 const wchar_t *pmemblk_errormsgW(void);
 #endif
 
 #ifndef _WIN32
-/* EXPERIMENTAL */
+/* DEPRECATED */
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_get(PMEMblkpool *pbp, const char *name, void *arg);
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_set(PMEMblkpool *pbp, const char *name, void *arg);
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_exec(PMEMblkpool *pbp, const char *name, void *arg);
 #else
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_getU(PMEMblkpool *pbp, const char *name, void *arg);
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_getW(PMEMblkpool *pbp, const wchar_t *name, void *arg);
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_setU(PMEMblkpool *pbp, const char *name, void *arg);
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_setW(PMEMblkpool *pbp, const wchar_t *name, void *arg);
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_execU(PMEMblkpool *pbp, const char *name, void *arg);
+PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_execW(PMEMblkpool *pbp, const wchar_t *name, void *arg);
 #endif
 
