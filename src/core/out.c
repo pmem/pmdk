@@ -90,10 +90,8 @@ Last_errormsg_get(void)
 	struct errormsg *errormsg = os_tls_get(Last_errormsg_key);
 	if (errormsg == NULL) {
 		errormsg = malloc(sizeof(struct errormsg));
-		if (errormsg == NULL) {
-			ERR("!malloc");
-			goto error;
-		}
+		if (errormsg == NULL)
+			return NULL;
 		/* make sure it contains empty string initially */
 		errormsg->msg[0] = '\0';
 		int ret = os_tls_set(Last_errormsg_key, errormsg);
@@ -429,7 +427,7 @@ out_error(const char *file, int line, const char *func,
 	char *errormsg = (char *)out_get_errormsg();
 
 	if (errormsg == NULL) {
-		ERR("There's no memory to properly format error strings.");
+		Print("There's no memory to properly format error strings.");
 		return;
 	}
 
