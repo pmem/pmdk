@@ -8,9 +8,11 @@ rm: No such file or directory
 ./test.txt;ls: No such file or directory
 error: cannot parse 'rm' as block size
 error: invalid option specified for obj pool type -- block size
+NOTE: pmem blk pool is deprecated
 Usage: pmempool create [<args>] <blk|log|obj> [<bsize>] <file>
 file: No such file or directory
 create: invalid option -- '1'
+NOTE: pmem blk pool is deprecated
 Usage: pmempool create [<args>] <blk|log|obj> [<bsize>] <file>
 error: cannot parse '0x100' as block size
 error: cannot parse '0xffffffff' as block size

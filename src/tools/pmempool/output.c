@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * output.c -- definitions of output printing related functions
@@ -513,7 +513,7 @@ out_get_checksum(void *addr, size_t len, uint64_t *csump, size_t skip_off)
 }
 
 /*
- * out_get_btt_map_entry -- return BTT map entry with flags strings
+ * out_get_btt_map_entry -- return BTT map entry with flags strings (DEPRECATED)
  */
 const char *
 out_get_btt_map_entry(uint32_t map)
@@ -551,11 +551,11 @@ out_get_pool_type_str(pmem_pool_type_t type)
 	switch (type) {
 	case PMEM_POOL_TYPE_LOG:
 		return "log";
-	case PMEM_POOL_TYPE_BLK:
+	case PMEM_POOL_TYPE_BLK: /* deprecated */
 		return "blk";
 	case PMEM_POOL_TYPE_OBJ:
 		return "obj";
-	case PMEM_POOL_TYPE_BTT:
+	case PMEM_POOL_TYPE_BTT: /* deprecated */
 		return "btt";
 	default:
 		return "unknown";
@@ -571,7 +571,7 @@ out_get_pool_signature(pmem_pool_type_t type)
 	switch (type) {
 	case PMEM_POOL_TYPE_LOG:
 		return LOG_HDR_SIG;
-	case PMEM_POOL_TYPE_BLK:
+	case PMEM_POOL_TYPE_BLK: /* deprecated */
 		return BLK_HDR_SIG;
 	case PMEM_POOL_TYPE_OBJ:
 		return OBJ_HDR_SIG;

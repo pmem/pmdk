@@ -9,7 +9,7 @@ header: "pmem Tools version 1.4"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2016-2023, Intel Corporation)
 
 [comment]: <> (pmempool-convert.1 -- man page for pmempool-convert)
 
@@ -23,6 +23,11 @@ header: "pmem Tools version 1.4"
 
 **pmempool-convert** - this is a wrapper around pmdk-convert tool. More information
 can be found in **pmdk-convert**(1) man page.
+
+# NOTE #
+
+> NOTICE:
+The **libpmemblk** library is deprecated since PMDK 1.13.0 release.
 
 # SEE ALSO #
 

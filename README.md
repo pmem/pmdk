@@ -47,7 +47,7 @@ Libraries available in this repository:
 
 - [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
 
-- [libpmemblk](https://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated.
+- [libpmemblk](https://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated. (DEPRECATED)
 
 - [libpmemlog](https://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
 

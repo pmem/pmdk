@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * pmempool.c -- pmempool main source file
@@ -60,6 +60,7 @@ static const struct option long_options[] = {
 static void
 help_help(const char *appname)
 {
+	printf("NOTE: pmem blk pool is deprecated\n");
 	printf("Usage: %s help <command>\n", appname);
 }
 
@@ -163,6 +164,7 @@ static const struct command commands[] = {
 static void
 print_version(const char *appname)
 {
+	printf("NOTE: pmem blk pool is deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 
