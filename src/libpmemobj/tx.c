@@ -711,12 +711,8 @@ tx_construct_user_buffer(struct tx *tx, void *addr, size_t size,
 		tx->redo_userbufs_capacity +=
 			userbuf.size - TX_INTENT_LOG_BUFFER_OVERHEAD;
 	} else {
-		uint64_t buffer_offset = OBJ_PTR_TO_OFF(ctx->p_ops->base,
-							userbuf.addr);
-
-		if (VEC_PUSH_BACK(&ctx->next, buffer_offset) != 0)
+		if (operation_add_user_buffer(ctx, &userbuf) == -1);
 			goto err;
-		operation_add_user_buffer(ctx, &userbuf);
 	}
 
 	return 0;
@@ -1021,14 +1017,10 @@ pmemobj_tx_commit(void)
 		struct user_buffer_def *userbuf;
 		struct operation_context *ctx = tx->lane->external;
 		uint64_t buf_off;
-		VEC_FOREACH_BY_PTR(userbuf, &tx->redo_userbufs) {
-			buf_off = OBJ_PTR_TO_OFF(ctx->p_ops->base,
-						userbuf->addr);
-			if (VEC_PUSH_BACK(&ctx->next, buf_off) != 0)
+		VEC_FOREACH_BY_PTR(userbuf, &tx->redo_userbufs)
+			if (operation_add_user_buffer(ctx, userbuf) == -1)
 				FATAL("%s: failed to allocate the next vector",
 					__func__);
-			operation_add_user_buffer(ctx, userbuf);
-		}
 
 		palloc_publish(&pop->heap, VEC_ARR(&tx->actions),
 			VEC_SIZE(&tx->actions), tx->lane->external);

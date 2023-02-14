@@ -20,10 +20,59 @@
 #include "ravl.h"
 #include "ulog.h"
 #include "valgrind_internal.h"
+#include "vecq.h"
 #include "sys_util.h"
 
 #define ULOG_BASE_SIZE 1024
 #define OP_MERGE_SEARCH 64
+
+enum operation_state {
+	OPERATION_IDLE,
+	OPERATION_IN_PROGRESS,
+	OPERATION_CLEANUP,
+};
+
+struct operation_log {
+	size_t capacity; /* capacity of the ulog log */
+	size_t offset; /* data offset inside of the log */
+	struct ulog *ulog; /* DRAM allocated log of modifications */
+};
+
+/*
+ * operation_context -- context of an ongoing palloc operation
+ */
+struct operation_context {
+	enum log_type type;
+
+	ulog_extend_fn extend; /* function to allocate next ulog */
+	ulog_free_fn ulog_free; /* function to free next ulogs */
+
+	const struct pmem_ops *p_ops;
+	struct pmem_ops t_ops; /* used for transient data processing */
+	struct pmem_ops s_ops; /* used for shadow copy data processing */
+
+	size_t ulog_curr_offset; /* offset in the log for buffer stores */
+	size_t ulog_curr_capacity; /* capacity of the current log */
+	size_t ulog_curr_gen_num; /* transaction counter in the current log */
+	struct ulog *ulog_curr; /* current persistent log */
+	size_t total_logged; /* total amount of buffer stores in the logs */
+
+	struct ulog *ulog; /* pointer to the persistent ulog log */
+	size_t ulog_base_nbytes; /* available bytes in initial ulog log */
+	size_t ulog_capacity; /* sum of capacity, incl all next ulog logs */
+	int ulog_auto_reserve; /* allow or do not to auto ulog reservation */
+	int ulog_any_user_buffer; /* set if any user buffer is added */
+
+	struct ulog_next next; /* vector of 'next' fields of persistent ulog */
+
+	enum operation_state state; /* operation sanity check */
+
+	struct operation_log pshadow_ops; /* shadow copy of persistent ulog */
+	struct operation_log transient_ops; /* log of transient changes */
+
+	/* collection used to look for potential merge candidates */
+	VECQ(, struct ulog_entry_val *) merge_entries;
+};
 
 /*
  * operation_log_transient_init -- (internal) initialize operation log
@@ -541,7 +590,7 @@ operation_user_buffer_verify_align(struct operation_context *ctx,
 /*
  * operation_add_user_buffer -- add user buffer to the ulog
  */
-void
+int
 operation_add_user_buffer(struct operation_context *ctx,
 		struct user_buffer_def *userbuf)
 {
@@ -565,8 +614,11 @@ operation_add_user_buffer(struct operation_context *ctx,
 	last_log->next = buffer_offset;
 	pmemops_persist(ctx->p_ops, &last_log->next, next_size);
 
+	if (VEC_PUSH_BACK(&ctx->next, buffer_offset) != 0)
+		return -1;
 	ctx->ulog_capacity += capacity;
 	operation_set_any_user_buffer(ctx, 1);
+	return 0;
 }
 
 /*
