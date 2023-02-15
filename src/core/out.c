@@ -98,7 +98,6 @@ Last_errormsg_get(void)
 		if (ret)
 			FATAL("!os_tls_set");
 	}
-error:
 	return errormsg;
 }
 
