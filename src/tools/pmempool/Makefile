@@ -28,6 +28,11 @@ LIBPMEMOBJ_PRIV=memblock_from_offset alloc_class_by_id\
 LIBPMEMBLK_PRIV=btt_init btt_write btt_fini btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
 
+# Libpmemlog is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using pmemlog despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
+
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/libpmem2
 INCS += -I$(TOP)/src/libpmemlog
