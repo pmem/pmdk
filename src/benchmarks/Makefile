@@ -102,9 +102,9 @@ CXXFLAGS += -I../core
 CXXFLAGS += -I../examples/libpmemobj/map
 CXXFLAGS += $(OS_INCS)
 CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
-# Libpmemblk is deprecated.
+# Libpmemblk and libpmemlog are deprecated.
 # This flag allows to build tests, examples and benchmarks
-# using pmemblk despite the deprecated state.
+# using pmemblk/pmemlog despite the deprecated state.
 CXXFLAGS += -Wno-deprecated-declarations
 
 ifeq ($(OS_DIMM),ndctl)

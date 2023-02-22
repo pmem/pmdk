@@ -27,7 +27,7 @@ can be found in **pmdk-convert**(1) man page.
 # NOTE #
 
 > NOTICE:
-The **libpmemblk** library is deprecated since PMDK 1.13.0 release.
+The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
 
 # SEE ALSO #
 
