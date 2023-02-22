@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 #
 # src/test/ctl_cow/Makefile -- build ctl_cow test
@@ -12,3 +12,8 @@ LIBPMEMLOG=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
+
+# Libpmemlog is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using pmemlog despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations

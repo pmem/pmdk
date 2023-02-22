@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2022, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # src/libpmempool/Makefile -- Makefile for libpmempool
@@ -42,6 +42,11 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
 
 include ../Makefile.inc
+
+# Libpmemlog is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using pmemlog despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
 
 CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
 LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL_LIBS)

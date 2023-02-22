@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
+ * Libpmemlog is deprecated.
+ *
  * libpmemlog.h -- definitions of libpmemlog entry points
  *
  * This library provides support for programming with persistent memory (pmem).
@@ -47,6 +49,13 @@
 extern "C" {
 #endif
 
+#define LOG_DEPR_STR "Libpmemlog is deprecated."
+#ifdef _WIN32
+#define PMEMLOG_DEPR_ATTR __declspec(deprecated(LOG_DEPR_STR))
+#else
+#define PMEMLOG_DEPR_ATTR __attribute__((deprecated(LOG_DEPR_STR)))
+#endif
+
 /*
  * opaque type, internal to libpmemlog
  */
@@ -63,11 +72,14 @@ typedef struct pmemlog PMEMlogpool;
 #define PMEMLOG_MINOR_VERSION 1
 
 #ifndef _WIN32
+PMEMLOG_DEPR_ATTR
 const char *pmemlog_check_version(unsigned major_required,
 	unsigned minor_required);
 #else
+PMEMLOG_DEPR_ATTR
 const char *pmemlog_check_versionU(unsigned major_required,
 	unsigned minor_required);
+PMEMLOG_DEPR_ATTR
 const wchar_t *pmemlog_check_versionW(unsigned major_required,
 	unsigned minor_required);
 #endif
@@ -84,32 +96,48 @@ const wchar_t *pmemlog_check_versionW(unsigned major_required,
 #define PMEMLOG_MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
 #ifndef _WIN32
+PMEMLOG_DEPR_ATTR
 PMEMlogpool *pmemlog_open(const char *path);
 #else
+PMEMLOG_DEPR_ATTR
 PMEMlogpool *pmemlog_openU(const char *path);
+PMEMLOG_DEPR_ATTR
 PMEMlogpool *pmemlog_openW(const wchar_t *path);
 #endif
 
 #ifndef _WIN32
+PMEMLOG_DEPR_ATTR
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
 #else
+PMEMLOG_DEPR_ATTR
 PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
+PMEMLOG_DEPR_ATTR
 PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
 #endif
 
 #ifndef _WIN32
+PMEMLOG_DEPR_ATTR
 int pmemlog_check(const char *path);
 #else
+PMEMLOG_DEPR_ATTR
 int pmemlog_checkU(const char *path);
+PMEMLOG_DEPR_ATTR
 int pmemlog_checkW(const wchar_t *path);
 #endif
 
+PMEMLOG_DEPR_ATTR
 void pmemlog_close(PMEMlogpool *plp);
+PMEMLOG_DEPR_ATTR
 size_t pmemlog_nbyte(PMEMlogpool *plp);
+PMEMLOG_DEPR_ATTR
 int pmemlog_append(PMEMlogpool *plp, const void *buf, size_t count);
+PMEMLOG_DEPR_ATTR
 int pmemlog_appendv(PMEMlogpool *plp, const struct iovec *iov, int iovcnt);
+PMEMLOG_DEPR_ATTR
 long long pmemlog_tell(PMEMlogpool *plp);
+PMEMLOG_DEPR_ATTR
 void pmemlog_rewind(PMEMlogpool *plp);
+PMEMLOG_DEPR_ATTR
 void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
 	int (*process_chunk)(const void *buf, size_t len, void *arg),
 	void *arg);
@@ -119,6 +147,7 @@ void pmemlog_walk(PMEMlogpool *plp, size_t chunksize,
  * default for that function.  The replacement functions must not make calls
  * back into libpmemlog.
  */
+PMEMLOG_DEPR_ATTR
 void pmemlog_set_funcs(
 		void *(*malloc_func)(size_t size),
 		void (*free_func)(void *ptr),
@@ -126,23 +155,35 @@ void pmemlog_set_funcs(
 		char *(*strdup_func)(const char *s));
 
 #ifndef _WIN32
+PMEMLOG_DEPR_ATTR
 const char *pmemlog_errormsg(void);
 #else
+PMEMLOG_DEPR_ATTR
 const char *pmemlog_errormsgU(void);
+PMEMLOG_DEPR_ATTR
 const wchar_t *pmemlog_errormsgW(void);
 #endif
 
 #ifndef _WIN32
 /* EXPERIMENTAL */
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_get(PMEMlogpool *plp, const char *name, void *arg);
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_set(PMEMlogpool *plp, const char *name, void *arg);
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_exec(PMEMlogpool *plp, const char *name, void *arg);
 #else
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_getU(PMEMlogpool *plp, const char *name, void *arg);
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_getW(PMEMlogpool *plp, const wchar_t *name, void *arg);
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_setU(PMEMlogpool *plp, const char *name, void *arg);
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_setW(PMEMlogpool *plp, const wchar_t *name, void *arg);
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_execU(PMEMlogpool *plp, const char *name, void *arg);
+PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_execW(PMEMlogpool *plp, const wchar_t *name, void *arg);
 #endif
 

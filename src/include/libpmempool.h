@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * libpmempool.h -- definitions of libpmempool entry points
@@ -60,7 +60,7 @@ extern "C" {
  */
 enum pmempool_pool_type {
 	PMEMPOOL_POOL_TYPE_DETECT,
-	PMEMPOOL_POOL_TYPE_LOG,
+	PMEMPOOL_POOL_TYPE_LOG, // DEPRECATED
 	PMEMPOOL_POOL_TYPE_BLK,
 	PMEMPOOL_POOL_TYPE_OBJ,
 	PMEMPOOL_POOL_TYPE_BTT,

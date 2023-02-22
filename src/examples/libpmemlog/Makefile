@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # examples/libpmemlog/Makefile -- build the libpmemlog examples
@@ -10,5 +10,10 @@ DIRS = logfile
 LIBS = -lpmemlog -lpmem -pthread
 
 include ../Makefile.inc
+
+# Libpmemlog is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using pmemlog despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
 
 manpage: manpage.o
