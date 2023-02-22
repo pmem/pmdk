@@ -36,7 +36,7 @@
 
 #define OPT_SHIFT 12
 #define OPT_MASK (~((1 << OPT_SHIFT) - 1))
-#define OPT_LOG (1 << (PMEM_POOL_TYPE_LOG + OPT_SHIFT))
+#define OPT_LOG (1 << (PMEM_POOL_TYPE_LOG + OPT_SHIFT)) /* deprecated */
 #define OPT_BLK (1 << (PMEM_POOL_TYPE_BLK + OPT_SHIFT)) /* deprecated */
 #define OPT_OBJ (1 << (PMEM_POOL_TYPE_OBJ + OPT_SHIFT))
 #define OPT_BTT (1 << (PMEM_POOL_TYPE_BTT + OPT_SHIFT)) /* deprecated */
@@ -90,7 +90,7 @@
  * pmem_pool_type_t -- pool types
  */
 typedef enum {
-	PMEM_POOL_TYPE_LOG	= 0x01,
+	PMEM_POOL_TYPE_LOG	= 0x01, /* deprecated */
 	PMEM_POOL_TYPE_BLK	= 0x02, /* deprecated */
 	PMEM_POOL_TYPE_OBJ	= 0x04,
 	PMEM_POOL_TYPE_BTT	= 0x08, /* deprecated */

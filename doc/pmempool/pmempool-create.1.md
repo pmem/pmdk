@@ -32,7 +32,7 @@ $ pmempool create [<options>] [<type>] [<bsize>] <file>
 # NOTE #
 
 > NOTICE:
-The **libpmemblk** library is deprecated since PMDK 1.13.0 release.
+The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 

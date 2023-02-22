@@ -136,7 +136,7 @@ All features are described below.
    them in more human-readable formats with appropriate units
    (e.g. 4k, 8M, 16G).
 
-** Features for *log* pool type
+** Features for *log* pool type (DEPRECATED)
 
  * By default pmempool with *info* command displays the pool header, log pool
    type specific header and statistics. It is possible to print data in
@@ -232,7 +232,7 @@ Below is the description of available features:
    absolute or relative manner. (DEPRECATED)
 
  * In case of pmem log pool type it is possible to set size of chunk and range
-   of chunks to dump in either absolute or relative manner.
+   of chunks to dump in either absolute or relative manner. (DEPRECATED)
 
 2.5. rm
 -------

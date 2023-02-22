@@ -49,7 +49,7 @@ Libraries available in this repository:
 
 - [libpmemblk](https://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated. (DEPRECATED)
 
-- [libpmemlog](https://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
+- [libpmemlog](https://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file. (DEPRECATED)
 
 - [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 

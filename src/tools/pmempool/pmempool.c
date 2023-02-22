@@ -60,7 +60,7 @@ static const struct option long_options[] = {
 static void
 help_help(const char *appname)
 {
-	printf("NOTE: pmem blk pool is deprecated\n");
+	printf("NOTE: pmem blk/log pools are deprecated\n");
 	printf("Usage: %s help <command>\n", appname);
 }
 
@@ -164,7 +164,7 @@ static const struct command commands[] = {
 static void
 print_version(const char *appname)
 {
-	printf("NOTE: pmem blk pool is deprecated\n");
+	printf("NOTE: pmem blk/log pools are deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 

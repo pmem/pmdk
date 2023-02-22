@@ -1,2 +1,2 @@
-NOTE: pmem blk pool is deprecated
+NOTE: pmem blk/log pools are deprecated
 Usage: pmempool help <command>

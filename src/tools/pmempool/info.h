@@ -8,10 +8,13 @@
 #include "vec.h"
 
 #define BLK_DEPR_STR "Libpmemblk is deprecated."
+#define LOG_DEPR_STR "Libpmemlog is deprecated."
 #ifdef _WIN32
 #define PMEMBLK_DEPR_ATTR __declspec(deprecated(BLK_DEPR_STR))
+#define PMEMLOG_DEPR_ATTR __declspec(deprecated(LOG_DEPR_STR))
 #else
 #define PMEMBLK_DEPR_ATTR __attribute__((deprecated(BLK_DEPR_STR)))
+#define PMEMLOG_DEPR_ATTR __attribute__((deprecated(LOG_DEPR_STR)))
 #endif
 
 /*
@@ -64,7 +67,7 @@ struct pmempool_info_args {
 	int vstats;		/* verbosity level for statistics */
 	struct {
 		size_t walk;		/* data chunk size */
-	} log;
+	} log; /* deprecated */
 	struct {
 		int vmap;	/* verbosity level for BTT Map */
 		int vflog;	/* verbosity level for BTT FLOG */
@@ -168,6 +171,6 @@ void pmempool_info_help(const char *appname);
 int pmempool_info_read(struct pmem_info *pip, void *buff,
 		size_t nbytes, uint64_t off);
 PMEMBLK_DEPR_ATTR int pmempool_info_blk(struct pmem_info *pip);
-int pmempool_info_log(struct pmem_info *pip);
+PMEMLOG_DEPR_ATTR int pmempool_info_log(struct pmem_info *pip);
 int pmempool_info_obj(struct pmem_info *pip);
 PMEMBLK_DEPR_ATTR int pmempool_info_btt(struct pmem_info *pip);
