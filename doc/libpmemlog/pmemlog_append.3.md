@@ -9,7 +9,7 @@ header: "pmemlog API version 1.1"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2023, Intel Corporation)
 
 [comment]: <> (pmemlog_append.3 -- man page for pmemlog_append and pmemlog_appendv functions)
 
@@ -22,7 +22,7 @@ header: "pmemlog API version 1.1"
 
 # NAME #
 
-**pmemlog_append**(), **pmemlog_appendv**() - append bytes to the persistent
+**pmemlog_append**()(DEPRECATED), **pmemlog_appendv**()(DEPRECATED) - append bytes to the persistent
 memory resident log file
 
 # SYNOPSIS #

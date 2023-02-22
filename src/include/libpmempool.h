@@ -60,7 +60,7 @@ extern "C" {
  */
 enum pmempool_pool_type {
 	PMEMPOOL_POOL_TYPE_DETECT,
-	PMEMPOOL_POOL_TYPE_LOG,
+	PMEMPOOL_POOL_TYPE_LOG, /* deprecated */
 	PMEMPOOL_POOL_TYPE_BLK, /* deprecated */
 	PMEMPOOL_POOL_TYPE_OBJ,
 	PMEMPOOL_POOL_TYPE_BTT, /* deprecated */

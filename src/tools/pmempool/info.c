@@ -57,7 +57,7 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 	.vdata		= VERBOSE_SILENT,
 	.vhdrdump	= VERBOSE_SILENT,
 	.vstats		= VERBOSE_SILENT,
-	.log		= {
+	.log		= { /* deprecated */
 		.walk		= 0,
 	},
 	.blk		= { /* deprecated */
@@ -224,7 +224,7 @@ static const struct option_requirement option_requirements[] = {
  */
 static const char * const help_str =
 "Show information about pmem pool from specified file.\n"
-"NOTE: pmem blk pool is deprecated\n"
+"NOTE: pmem blk/log pools are deprecated\n"
 "\n"
 "Common options:\n"
 "  -h, --help                      Print this help and exit.\n"
@@ -238,7 +238,7 @@ static const char * const help_str =
 "  -r, --range <range>             Range of blocks/chunks/objects.\n"
 "  -k, --bad-blocks=<yes|no>       Print bad blocks.\n"
 "\n"
-"Options for PMEMLOG:\n"
+"Options for PMEMLOG: (DEPRECATED)\n"
 "  -w, --walk <size>               Chunk size.\n"
 "\n"
 "Options for PMEMBLK: (DEPRECATED)\n"
@@ -291,7 +291,7 @@ print_usage(const char *appname)
 static void
 print_version(const char *appname)
 {
-	printf("NOTE: pmem blk pool is deprecated\n");
+	printf("NOTE: pmem blk/log pools are deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 

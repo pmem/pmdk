@@ -32,7 +32,7 @@ pmempool transform [options] <poolset_file_src> <poolset_file_dst>
 # NOTE #
 
 > NOTICE:
-The **libpmemblk** library is deprecated since PMDK 1.13.0 release.
+The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 

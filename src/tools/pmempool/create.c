@@ -79,7 +79,7 @@ static const struct pmempool_create pmempool_create_default = {
  */
 static const char * const help_str =
 "Create pmem pool of specified size, type and name\n"
-"NOTE: pmem blk pool is deprecated\n"
+"NOTE: pmem blk/log pools are deprecated\n"
 "\n"
 "Common options:\n"
 "  -s, --size  <size>   size of pool\n"
@@ -123,7 +123,7 @@ static const struct option long_options[] = {
 static void
 print_usage(const char *appname)
 {
-	printf("NOTE: pmem blk pool is deprecated\n");
+	printf("NOTE: pmem blk/log pools are deprecated\n");
 	printf("Usage: %s create [<args>] <blk|log|obj> [<bsize>] <file>\n",
 			appname);
 }
@@ -134,7 +134,7 @@ print_usage(const char *appname)
 static void
 print_version(const char *appname)
 {
-	printf("NOTE: pmem blk pool is deprecated\n");
+	printf("NOTE: pmem blk/log pools are deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 
@@ -200,7 +200,7 @@ pmempool_create_blk(struct pmempool_create *pcp)
 }
 
 /*
- * pmempool_create_log -- create pmem log pool
+ * pmempool_create_log (DEPRECATED) -- create pmem log pool
  */
 static int
 pmempool_create_log(struct pmempool_create *pcp)
@@ -649,7 +649,7 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 	case PMEM_POOL_TYPE_BLK: /* deprecated */
 		ret = pmempool_create_blk(&pc);
 		break;
-	case PMEM_POOL_TYPE_LOG:
+	case PMEM_POOL_TYPE_LOG: /* deprecated */
 		ret = pmempool_create_log(&pc);
 		break;
 	case PMEM_POOL_TYPE_OBJ:

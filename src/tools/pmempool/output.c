@@ -549,7 +549,7 @@ const char *
 out_get_pool_type_str(pmem_pool_type_t type)
 {
 	switch (type) {
-	case PMEM_POOL_TYPE_LOG:
+	case PMEM_POOL_TYPE_LOG: /* deprecated */
 		return "log";
 	case PMEM_POOL_TYPE_BLK: /* deprecated */
 		return "blk";
@@ -569,7 +569,7 @@ const char *
 out_get_pool_signature(pmem_pool_type_t type)
 {
 	switch (type) {
-	case PMEM_POOL_TYPE_LOG:
+	case PMEM_POOL_TYPE_LOG: /* deprecated */
 		return LOG_HDR_SIG;
 	case PMEM_POOL_TYPE_BLK: /* deprecated */
 		return BLK_HDR_SIG;

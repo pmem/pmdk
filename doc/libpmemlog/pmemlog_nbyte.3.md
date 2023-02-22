@@ -9,7 +9,7 @@ header: "pmemlog API version 1.1"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2023, Intel Corporation)
 
 [comment]: <> (pmemlog_nbyte.3 -- man page for pmemlog_nbyte function)
 
@@ -21,7 +21,7 @@ header: "pmemlog API version 1.1"
 
 # NAME #
 
-**pmemlog_nbyte**() - checks the amount of usable space in the log pool.
+**pmemlog_nbyte**()(DEPRECATED) - checks the amount of usable space in the log pool.
 
 # SYNOPSIS #
 

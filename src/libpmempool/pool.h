@@ -28,7 +28,7 @@ extern "C" {
 
 enum pool_type {
 	POOL_TYPE_UNKNOWN	= (1 << 0),
-	POOL_TYPE_LOG		= (1 << 1),
+	POOL_TYPE_LOG		= (1 << 1), /* deprecated */
 	POOL_TYPE_BLK		= (1 << 2), /* deprecated */
 	POOL_TYPE_OBJ		= (1 << 3),
 	POOL_TYPE_BTT		= (1 << 4), /* deprecated */

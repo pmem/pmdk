@@ -34,8 +34,9 @@ $ pmempool info [<options>] <file>
 # NOTE #
 
 > NOTICE:
-The **libpmemblk** library is deprecated (this affects pool types **blk** and **btt**)
-since PMDK 1.13.0 release.
+
+The **libpmemblk** and **libpmemlog** libraries are deprecated (this affects pool types
+**blk**, **btt** and **log**) since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 
