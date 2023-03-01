@@ -799,7 +799,7 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
 			flags);
 
-	SUPPRESS_UNUSED(memset);
+	SUPPRESS_UNUSED(memset_funcs);
 
 	memset(pmemdest, c, len);
 
