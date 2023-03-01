@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * pmem.c -- pmem entry points for libpmem
@@ -799,7 +799,7 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
 			flags);
 
-	SUPPRESS_UNUSED(memset);
+	SUPPRESS_UNUSED(memset_funcs);
 
 	memset(pmemdest, c, len);
 
