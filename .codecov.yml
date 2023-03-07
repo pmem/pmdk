@@ -1,8 +1,8 @@
 ignore:
-  - src/windows/
-  - src/test/
-  - src/common/valgrind/
-  - src/benchmarks/
+  - windows
+  - test
+  - valgrind
+  - benchmarks
 
 comment:
   layout: "diff"
