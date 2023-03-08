@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * out.c -- support for logging, tracing, and assertion output
@@ -91,7 +91,7 @@ Last_errormsg_get(void)
 	if (errormsg == NULL) {
 		errormsg = malloc(sizeof(struct errormsg));
 		if (errormsg == NULL)
-			FATAL("!malloc");
+			return NULL;
 		/* make sure it contains empty string initially */
 		errormsg->msg[0] = '\0';
 		int ret = os_tls_set(Last_errormsg_key, errormsg);
@@ -424,6 +424,11 @@ out_error(const char *file, int line, const char *func,
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
 	char *errormsg = (char *)out_get_errormsg();
+
+	if (errormsg == NULL) {
+		Print("There's no memory to properly format error strings.");
+		return;
+	}
 
 	if (fmt) {
 		if (*fmt == '!') {
