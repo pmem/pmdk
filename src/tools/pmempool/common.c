@@ -41,7 +41,7 @@
 
 #define REQ_BUFF_SIZE	2048U
 #define Q_BUFF_SIZE	8192
-typedef const char *(*enum_to_str_fn)(int);
+typedef const char *(*enum_to_str_fn)(enum chunk_type);
 
 /*
  * pmem_pool_type -- return pool type based on first two pages.
@@ -790,7 +790,7 @@ util_parse_enum(const char *str, int first, int max, uint64_t *bitmap,
 		enum_to_str_fn enum_to_str)
 {
 	for (int i = first; i < max; i++) {
-		if (strcmp(str, enum_to_str(i)) == 0) {
+		if (strcmp(str, enum_to_str((enum chunk_type)i)) == 0) {
 			*bitmap |= (uint64_t)1<<i;
 			return 0;
 		}
