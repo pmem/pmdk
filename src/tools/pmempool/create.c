@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * create.c -- pmempool create command source file
@@ -79,6 +79,7 @@ static const struct pmempool_create pmempool_create_default = {
  */
 static const char * const help_str =
 "Create pmem pool of specified size, type and name\n"
+"NOTE: pmem blk pool is deprecated\n"
 "\n"
 "Common options:\n"
 "  -s, --size  <size>   size of pool\n"
@@ -90,7 +91,7 @@ static const char * const help_str =
 "  -v, --verbose        increase verbosity level\n"
 "  -h, --help           display this help and exit\n"
 "\n"
-"Options for PMEMBLK:\n"
+"Options for PMEMBLK: (DEPRECATED)\n"
 "  -w, --write-layout force writing the BTT layout\n"
 "\n"
 "Options for PMEMOBJ:\n"
@@ -122,6 +123,7 @@ static const struct option long_options[] = {
 static void
 print_usage(const char *appname)
 {
+	printf("NOTE: pmem blk pool is deprecated\n");
 	printf("Usage: %s create [<args>] <blk|log|obj> [<bsize>] <file>\n",
 			appname);
 }
@@ -132,6 +134,7 @@ print_usage(const char *appname)
 static void
 print_version(const char *appname)
 {
+	printf("NOTE: pmem blk pool is deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 
@@ -165,7 +168,7 @@ pmempool_create_obj(struct pmempool_create *pcp)
 }
 
 /*
- * pmempool_create_blk -- create pmem blk pool
+ * pmempool_create_blk (DEPRECATED) -- create pmem blk pool
  */
 static int
 pmempool_create_blk(struct pmempool_create *pcp)
@@ -279,7 +282,7 @@ print_pool_params(struct pmem_pool_params *params)
 	outv(1, "\tsize  : %s\n", out_get_size_str(params->size, 2));
 	outv(1, "\tmode  : 0%o\n", params->mode);
 	switch (params->type) {
-	case PMEM_POOL_TYPE_BLK:
+	case PMEM_POOL_TYPE_BLK: /* deprecated */
 		outv(1, "\tbsize : %s\n",
 			out_get_size_str(params->blk.bsize, 0));
 		break;
@@ -488,7 +491,7 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 			return -1;
 		}
 
-		if (PMEM_POOL_TYPE_BLK == pc.params.type) {
+		if (PMEM_POOL_TYPE_BLK == pc.params.type) { /* deprecated */
 			if (pc.str_bsize == NULL) {
 				outv_err("blk pool requires <bsize> "
 					"argument\n");
@@ -560,7 +563,7 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 		if (!pc.str_mode)
 			pc.params.mode = pc.inherit_params.mode;
 		switch (pc.params.type) {
-		case PMEM_POOL_TYPE_BLK:
+		case PMEM_POOL_TYPE_BLK: /* deprecated */
 			if (!pc.str_bsize)
 				pc.params.blk.bsize =
 					pc.inherit_params.blk.bsize;
@@ -643,7 +646,7 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 	}
 
 	switch (pc.params.type) {
-	case PMEM_POOL_TYPE_BLK:
+	case PMEM_POOL_TYPE_BLK: /* deprecated */
 		ret = pmempool_create_blk(&pc);
 		break;
 	case PMEM_POOL_TYPE_LOG:

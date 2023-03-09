@@ -9,7 +9,7 @@ header: "pmem Tools version 1.4"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2016-2023, Intel Corporation)
 
 [comment]: <> (pmempool-check.1 -- man page for pmempool-check)
 
@@ -28,6 +28,11 @@ header: "pmem Tools version 1.4"
 ```
 $ pmempool check [<options>] <file>
 ```
+
+# NOTE #
+
+> NOTICE:
+The **libpmemblk** library is deprecated since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 
