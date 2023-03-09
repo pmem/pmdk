@@ -9,7 +9,7 @@ header: "pmem Tools version 1.4"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2016-2023, Intel Corporation)
 
 [comment]: <> (pmempool-sync.1 -- man page for pmempool-sync)
 
@@ -31,6 +31,11 @@ pmempool sync [options] <poolset_file>
 
 NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
+
+# NOTE #
+
+> NOTICE:
+The **libpmemblk** library is deprecated since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 

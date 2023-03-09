@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # src/test/blk_include/Makefile -- compilation test for libpmemblk
@@ -10,3 +10,8 @@ OBJS = blk_include.o
 LIBPMEMBLK=y
 
 include ../Makefile.inc
+
+# Libpmemblk is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using pmemblk despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
