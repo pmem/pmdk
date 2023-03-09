@@ -9,7 +9,7 @@ header: "pmem Tools version 1.4"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2022, Intel Corporation)
+[comment]: <> (Copyright 2016-2023, Intel Corporation)
 
 [comment]: <> (pmempool-transform.1 -- man page for pmempool-transform)
 
@@ -28,6 +28,11 @@ header: "pmem Tools version 1.4"
 ```
 pmempool transform [options] <poolset_file_src> <poolset_file_dst>
 ```
+
+# NOTE #
+
+> NOTICE:
+The **libpmemblk** library is deprecated since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 

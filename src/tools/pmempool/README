@@ -146,7 +146,7 @@ All features are described below.
    This feature uses similar approach as pmemlog_walk() function. For details
    please refer to libpmemlog(7).
 
-** Features for *blk* pool type
+** Features for *blk* pool type (DEPRECATED)
 
  * By default pmempool with *info* command displays the pool header, blk pool
    type specific header, BTT Info header and statistics.
@@ -229,7 +229,7 @@ Below is the description of available features:
    specify a file name to dump data into.
 
  * In case of pmem blk pool type it is possible to set range of blocks in either
-   absolute or relative manner.
+   absolute or relative manner. (DEPRECATED)
 
  * In case of pmem log pool type it is possible to set size of chunk and range
    of chunks to dump in either absolute or relative manner.

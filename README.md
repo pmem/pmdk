@@ -40,6 +40,10 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 
 All PMDK related libraries are described in detail on [pmem.io/pmdk](https://pmem.io/pmdk/).
 
+> NOTICE:
+The **libpmemblk** library is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
+
 Libraries available in this repository:
 - [libpmem](https://pmem.io/pmdk/libpmem/):  provides low level persistent memory support.
 
@@ -47,7 +51,7 @@ Libraries available in this repository:
 
 - [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
 
-- [libpmemblk](https://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated.
+- [libpmemblk](https://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated. (DEPRECATED)
 
 - [libpmemlog](https://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
 
