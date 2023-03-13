@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019-2021, Intel Corporation)
+[comment]: <> (Copyright 2019-2023, Intel Corporation)
 
 [comment]: <> (libpmem2.7 -- man page for libpmem2)
 
@@ -285,9 +285,9 @@ There is nothing transactional about the *persist* from **pmem2_get_persist_fn**
 call in this example. Interrupting the program may result in a partial write to pmem.
 Use a transactional library such as **libpmemobj**(7) to avoid torn updates.
 
-<code data-gist-id='wlemkows/c7dc06875ee4aa9857020eba01114e75' data-gist-file='basic.c' data-gist-line='8-74'  data-gist-hide-footer='true'></code>
-
-The above example is described in detail [here](https://pmem.io/pmdk/libpmem2/).
+The basic example can be found in the repository under path
+[src/examples/libpmem2/basic/basic.c](https://github.com/pmem/pmdk/blob/master/src/examples/libpmem2/basic/basic.c).
+It is described in detail [here](https://pmem.io/pmdk/libpmem2/).
 
 # ACKNOWLEDGEMENTS #
 
