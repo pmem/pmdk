@@ -10,3 +10,6 @@ Use git sub-tree to pull changes for the pmem/miniasync repository.
 This copy is intended to be removed when miniasync will be released,
 and uploaded to the vcpkg repository.
 
+> NOTICE:
+Support for async functions is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release along with the miniasync dependency.

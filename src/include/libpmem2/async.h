@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2022, Intel Corporation */
+/* Copyright 2022-2023, Intel Corporation */
 
 /*
  * libpmem2/async.h -- definitions of libpmem2 functions and structs for
@@ -18,6 +18,14 @@
 extern "C" {
 #endif
 
+#define ASYNC_DEPR_STR "Async support for libpmem2 is deprecated."
+#ifdef _WIN32
+#define ASYNC_DEPR_ATTR __declspec(deprecated(ASYNC_DEPR_STR))
+#else
+#define ASYNC_DEPR_ATTR __attribute__((deprecated(ASYNC_DEPR_STR)))
+#endif
+
+ASYNC_DEPR_ATTR
 int pmem2_config_set_vdm(struct pmem2_config *cfg, struct vdm *vdm);
 
 /*
@@ -104,12 +112,15 @@ struct pmem2_future_output {
 FUTURE(pmem2_future, struct pmem2_future_data,
 	struct pmem2_future_output);
 
+ASYNC_DEPR_ATTR
 struct pmem2_future pmem2_memcpy_async(struct pmem2_map *map,
 	void *pmemdest, const void *src, size_t len, unsigned flags);
 
+ASYNC_DEPR_ATTR
 struct pmem2_future pmem2_memmove_async(struct pmem2_map *map,
 	void *pmemdest, const void *src, size_t len, unsigned flags);
 
+ASYNC_DEPR_ATTR
 struct pmem2_future pmem2_memset_async(struct pmem2_map *map,
 	void *str, int c, size_t n, unsigned flags);
 

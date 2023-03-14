@@ -45,6 +45,10 @@ Libraries available in this repository:
 
 - [libpmem2](https://pmem.io/pmdk/libpmem2/):  provides low level persistent memory support, is a new version of libpmem.
 
+> NOTICE:
+Support for async functions is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release along with the miniasync dependency.
+
 - [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
 
 - [libpmemblk](https://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated.
