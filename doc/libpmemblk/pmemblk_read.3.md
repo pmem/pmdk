@@ -9,7 +9,7 @@ header: "pmemblk API version 1.1"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2023, Intel Corporation)
 
 [comment]: <> (pmemblk_read.3 -- man page for libpmemblk read and write functions)
 
@@ -21,7 +21,7 @@ header: "pmemblk API version 1.1"
 
 # NAME #
 
-**pmemblk_read**(), **pmemblk_write**() - read or write a block from a block
+**pmemblk_read**()(DEPRECATED), **pmemblk_write**()(DEPRECATED) - read or write a block from a block
 memory pool
 
 # SYNOPSIS #

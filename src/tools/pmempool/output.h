@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * output.h -- declarations of output printing related functions
@@ -8,6 +8,13 @@
 #include <time.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#define BLK_DEPR_STR "Libpmemblk is deprecated."
+#ifdef _WIN32
+#define PMEMBLK_DEPR_ATTR __declspec(deprecated(BLK_DEPR_STR))
+#else
+#define PMEMBLK_DEPR_ATTR __attribute__((deprecated(BLK_DEPR_STR)))
+#endif
 
 void out_set_vlevel(int vlevel);
 void out_set_stream(FILE *stream);
@@ -32,7 +39,7 @@ const char *out_get_size_str(uint64_t size, int human);
 const char *out_get_percentage(double percentage);
 const char *out_get_checksum(void *addr, size_t len, uint64_t *csump,
 		uint64_t skip_off);
-const char *out_get_btt_map_entry(uint32_t map);
+PMEMBLK_DEPR_ATTR const char *out_get_btt_map_entry(uint32_t map);
 const char *out_get_pool_type_str(pmem_pool_type_t type);
 const char *out_get_pool_signature(pmem_pool_type_t type);
 const char *out_get_tx_state_str(uint64_t state);

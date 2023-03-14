@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * info.c -- pmempool info command main source file
@@ -60,7 +60,7 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 	.log		= {
 		.walk		= 0,
 	},
-	.blk		= {
+	.blk		= { /* deprecated */
 		.vmap		= VERBOSE_SILENT,
 		.vflog		= VERBOSE_SILENT,
 		.vbackup	= VERBOSE_SILENT,
@@ -224,6 +224,7 @@ static const struct option_requirement option_requirements[] = {
  */
 static const char * const help_str =
 "Show information about pmem pool from specified file.\n"
+"NOTE: pmem blk pool is deprecated\n"
 "\n"
 "Common options:\n"
 "  -h, --help                      Print this help and exit.\n"
@@ -240,7 +241,7 @@ static const char * const help_str =
 "Options for PMEMLOG:\n"
 "  -w, --walk <size>               Chunk size.\n"
 "\n"
-"Options for PMEMBLK:\n"
+"Options for PMEMBLK: (DEPRECATED)\n"
 "  -m, --map                       Print BTT Map entries.\n"
 "  -g, --flog                      Print BTT FLOG entries.\n"
 "  -B, --backup                    Print BTT Info header backup.\n"
@@ -290,6 +291,7 @@ print_usage(const char *appname)
 static void
 print_version(const char *appname)
 {
+	printf("NOTE: pmem blk pool is deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 

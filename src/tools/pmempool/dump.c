@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * create.c -- pmempool create command source file
@@ -68,6 +68,7 @@ static const struct option long_options[] = {
  */
 static const char * const help_str =
 "Dump user data from pool\n"
+"NOTE: pmem blk pool is deprecated\n"
 "\n"
 "Available options:\n"
 "  -o, --output <file>  output file name\n"
@@ -94,6 +95,7 @@ print_usage(const char *appname)
 static void
 print_version(const char *appname)
 {
+	printf("NOTE: pmem blk pool is deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 
@@ -221,7 +223,7 @@ end:
 }
 
 /*
- * pmempool_dump_blk -- dump data from pmem blk pool
+ * pmempool_dump_blk (DEPRECATED) -- dump data from pmem blk pool
  */
 static int
 pmempool_dump_blk(struct pmempool_dump *pdp)
@@ -357,7 +359,7 @@ pmempool_dump_func(const char *appname, int argc, char *argv[])
 	case PMEM_POOL_TYPE_LOG:
 		ret = pmempool_dump_log(&pd);
 		break;
-	case PMEM_POOL_TYPE_BLK:
+	case PMEM_POOL_TYPE_BLK: /* deprecated */
 		pd.bsize = params.blk.bsize;
 		ret = pmempool_dump_blk(&pd);
 		break;

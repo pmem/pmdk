@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2022, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # src/libpmempool/Makefile -- Makefile for libpmempool
@@ -40,6 +40,11 @@ SOURCE +=\
 LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 	btt_map_size btt_flog_get_valid map_entry_is_initial btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
+
+# Libpmemblk is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using pmemblk despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
 
 include ../Makefile.inc
 
