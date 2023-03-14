@@ -20,7 +20,12 @@ header: "pmem2 API version 1.0"
 [SEE ALSO](#see-also)<br />
 
 # NAME #
-**pmem2_config_set_vdm**(), **pmem2_memcpy_async**(), **pmem2_memmove_async**(), **pmem2_memset_async**() - asynchronous data movement operations
+**pmem2_config_set_vdm**()(DEPRECATED), **pmem2_memcpy_async**()(DEPRECATED), **pmem2_memmove_async**()(DEPRECATED),
+**pmem2_memset_async**()(DEPRECATED) - asynchronous data movement operations
+
+> NOTICE:
+Support for async functions is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release along with the miniasync dependency.
 
 # SYNOPSIS #
 

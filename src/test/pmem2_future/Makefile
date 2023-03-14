@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022, Intel Corporation
+# Copyright 2022-2023, Intel Corporation
 #
 
 #
@@ -19,3 +19,8 @@ OBJS = pmem2_future.o\
 LIBPMEM2=y
 LIBMINIASYNC=y
 include ../Makefile.inc
+
+# Miniasync support is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using miniasync despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
