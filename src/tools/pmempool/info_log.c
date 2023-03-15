@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
- * info_log.c -- pmempool info command source file for log pool
+ * info_log.c -- pmempool info command source file for log pool (DEPRECATED)
  */
 #include <stdbool.h>
 #include <stdlib.h>

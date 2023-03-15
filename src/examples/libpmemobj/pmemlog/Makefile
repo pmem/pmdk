@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # examples/libpmemobj/pmemlog/Makefile -- build obj implementations of pmemlog
@@ -9,6 +9,11 @@ PROGS = obj_pmemlog obj_pmemlog_macros obj_pmemlog_minimal obj_pmemlog_simple
 LIBS = -lpmemobj -lpmem -pthread
 
 include ../../Makefile.inc
+
+# Libpmemlog is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using pmemlog despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
 
 obj_pmemlog: obj_pmemlog.o
 

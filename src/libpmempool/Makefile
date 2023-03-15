@@ -48,6 +48,11 @@ CFLAGS += -Wno-deprecated-declarations
 
 include ../Makefile.inc
 
+# Libpmemlog is deprecated.
+# This flag allows to build tests, examples and benchmarks
+# using pmemlog despite the deprecated state.
+CFLAGS += -Wno-deprecated-declarations
+
 CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
 LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL_LIBS)
 CFLAGS += -DUSE_LIBDL

@@ -57,7 +57,11 @@ and will be removed in the PMDK 1.14.0 release along with the miniasync dependen
 The **libpmemblk** library is deprecated since PMDK 1.13.0 release
 and will be removed in the PMDK 1.14.0 release.
 
-- [libpmemlog](https://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
+- [libpmemlog](https://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file. (DEPRECATED)
+
+> NOTICE:
+The **libpmemlog** library is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
 
 - [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
