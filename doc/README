@@ -29,6 +29,9 @@ libpmempool -- persistent memory pool management library
 pmempool -- persistent memory pool management tool
 daxio -- perform I/O on Device DAX device
 
+NOTE: Support for Windows and FreeBSD are deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
+
 These man pages provide the API specification for the corresponding libraries
 and commands in this source tree, so any updates to one should be tested,
 reviewed, and committed with changes to the other.

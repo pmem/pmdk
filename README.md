@@ -82,6 +82,10 @@ Available Utilities:
 Currently these libraries only work on 64-bit Linux, Windows<sup>2</sup>, and 64-bit FreeBSD 11+<sup>3</sup>.
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
 
+> NOTICE:
+Support for Windows is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
+
 ><sup>1</sup> Not supported on Windows.
 >
 ><sup>2</sup> PMDK for Windows is feature complete, but not yet considered production quality.
@@ -106,6 +110,10 @@ Additionally, we recommend reading [Introduction to Programming with Persistent 
 - **Stable Releases** use a _major.minor_ tag like `0.2`
 
 ## Pre-Built Packages for Windows
+
+> NOTICE:
+Support for Windows is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
 
 The recommended and easiest way to install PMDK on Windows is to use Microsoft vcpkg. Vcpkg is an open source tool and ecosystem created for library management.
 
@@ -158,6 +166,10 @@ For information how to disable RAS at runtime for kernels prior to 5.0.4 please
 see https://github.com/pmem/pmdk/issues/4207.
 
 ### Windows
+
+> NOTICE:
+Support for Windows is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
 
 * **MS Visual Studio 2022**
 * [Windows SDK 10.0.22000.0](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
@@ -325,6 +337,10 @@ and UndefinedBehaviorSanitizer, run:
 
 ## Building PMDK on Windows
 
+> NOTICE:
+Support for Windows is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
+
 Clone the PMDK tree and open the solution:
 ```
 	> git clone https://github.com/pmem/pmdk
@@ -336,6 +352,10 @@ Select the desired configuration (Debug or Release) and build the solution
 (i.e. by pressing Ctrl-Shift-B).
 
 ### Testing Libraries on Windows
+
+> NOTICE:
+Support for Windows is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
 
 Before running the tests, you may need to prepare a test configuration file (src/test/testconfig.ps1). Please see the available configuration settings in the example file [src/test/testconfig.ps1.example](src/test/testconfig.ps1.example).
 
