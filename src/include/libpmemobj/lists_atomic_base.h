@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmemobj/lists_atomic_base.h -- definitions of libpmemobj atomic lists
@@ -18,16 +18,28 @@ extern "C" {
  * Non-transactional persistent atomic circular doubly-linked list
  */
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, PMEMoid oid);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 PMEMoid pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid dest, int before, size_t size, uint64_t type_num,
 	pmemobj_constr constructor, void *arg);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid oid, int free);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset,
 	void *head_old, size_t pe_new_offset, void *head_new,
 	PMEMoid dest, int before, PMEMoid oid);
