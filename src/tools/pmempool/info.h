@@ -12,6 +12,9 @@
 #ifdef _WIN32
 #define PMEMBLK_DEPR_ATTR __declspec(deprecated(BLK_DEPR_STR))
 #define PMEMLOG_DEPR_ATTR __declspec(deprecated(LOG_DEPR_STR))
+
+#define WIN_DEPR_STR "Windows support is deprecated."
+#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
 #else
 #define PMEMBLK_DEPR_ATTR __attribute__((deprecated(BLK_DEPR_STR)))
 #define PMEMLOG_DEPR_ATTR __attribute__((deprecated(LOG_DEPR_STR)))
@@ -165,12 +168,24 @@ struct pmem_info {
 	} obj;
 };
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmempool_info_func(const char *appname, int argc, char *argv[]);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmempool_info_help(const char *appname);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmempool_info_read(struct pmem_info *pip, void *buff,
 		size_t nbytes, uint64_t off);
 PMEMBLK_DEPR_ATTR int pmempool_info_blk(struct pmem_info *pip);
 PMEMLOG_DEPR_ATTR int pmempool_info_log(struct pmem_info *pip);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmempool_info_obj(struct pmem_info *pip);
 PMEMBLK_DEPR_ATTR int pmempool_info_btt(struct pmem_info *pip);

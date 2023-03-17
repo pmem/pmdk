@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * libpmemobj/action_base.h -- definitions of libpmemobj action interface
@@ -51,20 +51,44 @@ struct pobj_action {
 	POBJ_XALLOC_ARENA_MASK |\
 	POBJ_XALLOC_ZERO)
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num, uint64_t flags);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_tx_xpublish(struct pobj_action *actv, size_t actvcnt,
 		uint64_t flags);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt);
 
 #ifdef __cplusplus

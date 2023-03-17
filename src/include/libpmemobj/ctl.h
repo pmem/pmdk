@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2021, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * libpmemobj/ctl.h -- definitions of pmemobj_ctl related entry points
@@ -155,11 +155,17 @@ int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg);
 int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg);
 int pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg);
 #else
+WIN_DEPR_ATTR
 int pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg);
+WIN_DEPR_ATTR
 int pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg);
+WIN_DEPR_ATTR
 int pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg);
+WIN_DEPR_ATTR
 int pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg);
+WIN_DEPR_ATTR
 int pmemobj_ctl_execU(PMEMobjpool *pop, const char *name, void *arg);
+WIN_DEPR_ATTR
 int pmemobj_ctl_execW(PMEMobjpool *pop, const wchar_t *name, void *arg);
 
 #ifndef PMDK_UTF8_API

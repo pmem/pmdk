@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmem.h -- definitions of libpmem entry points
@@ -27,6 +27,9 @@
 #define pmem_map_file pmem_map_fileU
 #define pmem_check_version pmem_check_versionU
 #define pmem_errormsg pmem_errormsgU
+
+#define WIN_DEPR_STR "Windows support is deprecated."
+#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
 #endif
 
 #endif
@@ -53,29 +56,82 @@ extern "C" {
 void *pmem_map_file(const char *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
 #else
+WIN_DEPR_ATTR
 void *pmem_map_fileU(const char *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
+WIN_DEPR_ATTR
 void *pmem_map_fileW(const wchar_t *path, size_t len, int flags, mode_t mode,
 	size_t *mapped_lenp, int *is_pmemp);
 #endif
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem_unmap(void *addr, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem_is_pmem(const void *addr, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmem_persist(const void *addr, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem_msync(const void *addr, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem_has_auto_flush(void);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmem_flush(const void *addr, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmem_deep_flush(const void *addr, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem_deep_drain(const void *addr, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem_deep_persist(const void *addr, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmem_drain(void);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem_has_hw_drain(void);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memmove_persist(void *pmemdest, const void *src, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memcpy_persist(void *pmemdest, const void *src, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memset_persist(void *pmemdest, int c, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 
 #define PMEM_F_MEM_NODRAIN	(1U << 0)
@@ -95,8 +151,17 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 				PMEM_F_MEM_WB | \
 				PMEM_F_MEM_NOFLUSH)
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem_memset(void *pmemdest, int c, size_t len, unsigned flags);
 
 /*
@@ -112,8 +177,10 @@ void *pmem_memset(void *pmemdest, int c, size_t len, unsigned flags);
 const char *pmem_check_version(unsigned major_required,
 	unsigned minor_required);
 #else
+WIN_DEPR_ATTR
 const char *pmem_check_versionU(unsigned major_required,
 	unsigned minor_required);
+WIN_DEPR_ATTR
 const wchar_t *pmem_check_versionW(unsigned major_required,
 	unsigned minor_required);
 #endif
@@ -121,7 +188,9 @@ const wchar_t *pmem_check_versionW(unsigned major_required,
 #ifndef _WIN32
 const char *pmem_errormsg(void);
 #else
+WIN_DEPR_ATTR
 const char *pmem_errormsgU(void);
+WIN_DEPR_ATTR
 const wchar_t *pmem_errormsgW(void);
 #endif
 

@@ -52,6 +52,8 @@ extern "C" {
 #define LOG_DEPR_STR "Libpmemlog is deprecated."
 #ifdef _WIN32
 #define PMEMLOG_DEPR_ATTR __declspec(deprecated(LOG_DEPR_STR))
+#define WIN_DEPR_STR "Windows support is deprecated."
+#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
 #else
 #define PMEMLOG_DEPR_ATTR __attribute__((deprecated(LOG_DEPR_STR)))
 #endif
@@ -76,10 +78,10 @@ PMEMLOG_DEPR_ATTR
 const char *pmemlog_check_version(unsigned major_required,
 	unsigned minor_required);
 #else
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 const char *pmemlog_check_versionU(unsigned major_required,
 	unsigned minor_required);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 const wchar_t *pmemlog_check_versionW(unsigned major_required,
 	unsigned minor_required);
 #endif
@@ -99,9 +101,9 @@ const wchar_t *pmemlog_check_versionW(unsigned major_required,
 PMEMLOG_DEPR_ATTR
 PMEMlogpool *pmemlog_open(const char *path);
 #else
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 PMEMlogpool *pmemlog_openU(const char *path);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 PMEMlogpool *pmemlog_openW(const wchar_t *path);
 #endif
 
@@ -109,9 +111,9 @@ PMEMlogpool *pmemlog_openW(const wchar_t *path);
 PMEMLOG_DEPR_ATTR
 PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
 #else
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 PMEMlogpool *pmemlog_createU(const char *path, size_t poolsize, mode_t mode);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
 #endif
 
@@ -119,9 +121,9 @@ PMEMlogpool *pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode);
 PMEMLOG_DEPR_ATTR
 int pmemlog_check(const char *path);
 #else
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemlog_checkU(const char *path);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemlog_checkW(const wchar_t *path);
 #endif
 
@@ -158,9 +160,9 @@ void pmemlog_set_funcs(
 PMEMLOG_DEPR_ATTR
 const char *pmemlog_errormsg(void);
 #else
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 const char *pmemlog_errormsgU(void);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 const wchar_t *pmemlog_errormsgW(void);
 #endif
 
@@ -173,17 +175,17 @@ int pmemlog_ctl_set(PMEMlogpool *plp, const char *name, void *arg);
 PMEMLOG_DEPR_ATTR
 int pmemlog_ctl_exec(PMEMlogpool *plp, const char *name, void *arg);
 #else
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemlog_ctl_getU(PMEMlogpool *plp, const char *name, void *arg);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemlog_ctl_getW(PMEMlogpool *plp, const wchar_t *name, void *arg);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemlog_ctl_setU(PMEMlogpool *plp, const char *name, void *arg);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemlog_ctl_setW(PMEMlogpool *plp, const wchar_t *name, void *arg);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemlog_ctl_execU(PMEMlogpool *plp, const char *name, void *arg);
-PMEMLOG_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemlog_ctl_execW(PMEMlogpool *plp, const wchar_t *name, void *arg);
 #endif
 
