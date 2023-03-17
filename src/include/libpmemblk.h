@@ -43,15 +43,17 @@
 
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define BLK_DEPR_STR "Libpmemblk is deprecated."
 #ifdef _WIN32
 #define PMEMBLK_DEPR_ATTR __declspec(deprecated(BLK_DEPR_STR))
+#define WIN_DEPR_STR "Windows support is deprecated."
+#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
 #else
 #define PMEMBLK_DEPR_ATTR __attribute__((deprecated(BLK_DEPR_STR)))
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /*
@@ -73,10 +75,10 @@ PMEMBLK_DEPR_ATTR
 const char *pmemblk_check_version(unsigned major_required,
 	unsigned minor_required);
 #else
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 const char *pmemblk_check_versionU(
 	unsigned major_required, unsigned minor_required);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 const wchar_t *pmemblk_check_versionW(unsigned major_required,
 	unsigned minor_required);
 #endif
@@ -111,9 +113,9 @@ const wchar_t *pmemblk_check_versionW(unsigned major_required,
 PMEMBLK_DEPR_ATTR
 PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
 #else
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 PMEMblkpool *pmemblk_openU(const char *path, size_t bsize);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 PMEMblkpool *pmemblk_openW(const wchar_t *path, size_t bsize);
 #endif
 
@@ -122,10 +124,10 @@ PMEMBLK_DEPR_ATTR
 PMEMblkpool *pmemblk_create(const char *path, size_t bsize, size_t poolsize,
 	mode_t mode);
 #else
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 PMEMblkpool *pmemblk_createU(const char *path, size_t bsize, size_t poolsize,
 	mode_t mode);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
 	size_t poolsize, mode_t mode);
 #endif
@@ -134,9 +136,9 @@ PMEMblkpool *pmemblk_createW(const wchar_t *path, size_t bsize,
 PMEMBLK_DEPR_ATTR
 int pmemblk_check(const char *path, size_t bsize);
 #else
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemblk_checkU(const char *path, size_t bsize);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemblk_checkW(const wchar_t *path, size_t bsize);
 #endif
 
@@ -172,9 +174,9 @@ void pmemblk_set_funcs(
 PMEMBLK_DEPR_ATTR
 const char *pmemblk_errormsg(void);
 #else
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 const char *pmemblk_errormsgU(void);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 const wchar_t *pmemblk_errormsgW(void);
 #endif
 
@@ -187,17 +189,17 @@ int pmemblk_ctl_set(PMEMblkpool *pbp, const char *name, void *arg);
 PMEMBLK_DEPR_ATTR
 int pmemblk_ctl_exec(PMEMblkpool *pbp, const char *name, void *arg);
 #else
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemblk_ctl_getU(PMEMblkpool *pbp, const char *name, void *arg);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemblk_ctl_getW(PMEMblkpool *pbp, const wchar_t *name, void *arg);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemblk_ctl_setU(PMEMblkpool *pbp, const char *name, void *arg);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemblk_ctl_setW(PMEMblkpool *pbp, const wchar_t *name, void *arg);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemblk_ctl_execU(PMEMblkpool *pbp, const char *name, void *arg);
-PMEMBLK_DEPR_ATTR
+WIN_DEPR_ATTR
 int pmemblk_ctl_execW(PMEMblkpool *pbp, const wchar_t *name, void *arg);
 #endif
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmemobj/iterator_base.h -- definitions of libpmemobj iterator entry points
@@ -25,11 +25,17 @@ extern "C" {
 /*
  * Returns the first object of the specified type number.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 PMEMoid pmemobj_first(PMEMobjpool *pop);
 
 /*
  * Returns the next object of the same type.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 PMEMoid pmemobj_next(PMEMoid oid);
 
 #ifdef __cplusplus

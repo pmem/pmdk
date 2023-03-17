@@ -47,6 +47,9 @@
 #define pmempool_feature_query pmempool_feature_queryU
 #endif
 
+#define WIN_DEPR_STR "Windows support is deprecated."
+#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
+
 #endif
 
 #ifdef __cplusplus
@@ -210,10 +213,12 @@ struct pmempool_check_argsW {
 PMEMpoolcheck *
 pmempool_check_init(struct pmempool_check_args *args, size_t args_size);
 #else
-PMEMpoolcheck *
-pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size);
-PMEMpoolcheck *
-pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size);
+WIN_DEPR_ATTR
+PMEMpoolcheck *pmempool_check_initU(struct pmempool_check_argsU *args,
+	size_t args_size);
+WIN_DEPR_ATTR
+PMEMpoolcheck *pmempool_check_initW(struct pmempool_check_argsW *args,
+	size_t args_size);
 #endif
 
 /*
@@ -222,7 +227,9 @@ pmempool_check_initW(struct pmempool_check_argsW *args, size_t args_size);
 #ifndef _WIN32
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 #else
+WIN_DEPR_ATTR
 struct pmempool_check_statusU *pmempool_checkU(PMEMpoolcheck *ppc);
+WIN_DEPR_ATTR
 struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
 #endif
 
@@ -238,7 +245,9 @@ struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
 #ifndef _WIN32
 int pmempool_sync(const char *poolset_file, unsigned flags);
 #else
+WIN_DEPR_ATTR
 int pmempool_syncU(const char *poolset_file, unsigned flags);
+WIN_DEPR_ATTR
 int pmempool_syncW(const wchar_t *poolset_file, unsigned flags);
 #endif
 
@@ -251,8 +260,10 @@ int pmempool_syncW(const wchar_t *poolset_file, unsigned flags);
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst, unsigned flags);
 #else
+WIN_DEPR_ATTR
 int pmempool_transformU(const char *poolset_file_src,
 	const char *poolset_file_dst, unsigned flags);
+WIN_DEPR_ATTR
 int pmempool_transformW(const wchar_t *poolset_file_src,
 	const wchar_t *poolset_file_dst, unsigned flags);
 #endif
@@ -274,8 +285,10 @@ enum pmempool_feature {
 int pmempool_feature_enable(const char *path, enum pmempool_feature feature,
 	unsigned flags);
 #else
+WIN_DEPR_ATTR
 int pmempool_feature_enableU(const char *path, enum pmempool_feature feature,
 	unsigned flags);
+WIN_DEPR_ATTR
 int pmempool_feature_enableW(const wchar_t *path,
 	enum pmempool_feature feature, unsigned flags);
 #endif
@@ -285,8 +298,10 @@ int pmempool_feature_enableW(const wchar_t *path,
 int pmempool_feature_disable(const char *path, enum pmempool_feature feature,
 	unsigned flags);
 #else
+WIN_DEPR_ATTR
 int pmempool_feature_disableU(const char *path, enum pmempool_feature feature,
 	unsigned flags);
+WIN_DEPR_ATTR
 int pmempool_feature_disableW(const wchar_t *path,
 	enum pmempool_feature feature, unsigned flags);
 #endif
@@ -296,8 +311,10 @@ int pmempool_feature_disableW(const wchar_t *path,
 int pmempool_feature_query(const char *path, enum pmempool_feature feature,
 	unsigned flags);
 #else
+WIN_DEPR_ATTR
 int pmempool_feature_queryU(const char *path, enum pmempool_feature feature,
 	unsigned flags);
+WIN_DEPR_ATTR
 int pmempool_feature_queryW(const wchar_t *path,
 	enum pmempool_feature feature, unsigned flags);
 #endif
@@ -306,7 +323,9 @@ int pmempool_feature_queryW(const wchar_t *path,
 #ifndef _WIN32
 int pmempool_rm(const char *path, unsigned flags);
 #else
+WIN_DEPR_ATTR
 int pmempool_rmU(const char *path, unsigned flags);
+WIN_DEPR_ATTR
 int pmempool_rmW(const wchar_t *path, unsigned flags);
 #endif
 
@@ -314,8 +333,10 @@ int pmempool_rmW(const wchar_t *path, unsigned flags);
 const char *pmempool_check_version(unsigned major_required,
 	unsigned minor_required);
 #else
+WIN_DEPR_ATTR
 const char *pmempool_check_versionU(unsigned major_required,
 	unsigned minor_required);
+WIN_DEPR_ATTR
 const wchar_t *pmempool_check_versionW(unsigned major_required,
 	unsigned minor_required);
 #endif
@@ -323,7 +344,9 @@ const wchar_t *pmempool_check_versionW(unsigned major_required,
 #ifndef _WIN32
 const char *pmempool_errormsg(void);
 #else
+WIN_DEPR_ATTR
 const char *pmempool_errormsgU(void);
+WIN_DEPR_ATTR
 const wchar_t *pmempool_errormsgW(void);
 #endif
 
