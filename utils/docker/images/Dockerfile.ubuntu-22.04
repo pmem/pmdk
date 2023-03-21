@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2022, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
@@ -56,7 +56,7 @@ ENV PACKAGING_DEPS "debhelper \
 	fakeroot"
 
 # CodeCov
-ENV CODECOV_DEPS curl
+ENV CODECOV_DEPS curl perl
 
 # Coverity
 ENV COVERITY_DEPS ruby gcc g++ wget
@@ -71,10 +71,8 @@ ENV MISC_DEPS "clang \
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
 
-# Copy codecov patch and script to download scripts required in run-*.sh
+# Copy script to download codecov script required in run-coverage.sh
 COPY download-scripts.sh download-scripts.sh
-COPY 0001-fix-generating-gcov-files-and-turn-off-verbose-log.patch \
-	0001-fix-generating-gcov-files-and-turn-off-verbose-log.patch
 
 # Update the Apt cache and install basic tools
 RUN apt-get update && apt-get dist-upgrade -y \

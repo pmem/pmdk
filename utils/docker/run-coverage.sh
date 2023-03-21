@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2022, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 
 #
 # run-coverage.sh - is called inside a Docker container; runs tests
@@ -19,31 +19,34 @@ export UT_DUMP_LINES=0
 export UT_VALGRIND_SKIP_PRINT_MISMATCHED=1
 
 # Build all and run tests
-cd $WORKDIR
+pushd ${WORKDIR}
 make -j$(nproc) COVERAGE=1
 make -j$(nproc) test COVERAGE=1
 
-# XXX: unfortunately valgrind raports issues in coverage instrumentation
+# XXX: unfortunately valgrind reports issues in coverage instrumentation
 # which we have to ignore (-k flag)
-cd src/test
+pushd src/test
 # do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -kj2 pcheck-local-quiet TEST_BUILD=debug || true
 # do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -kj2 pycheck TEST_BUILD=debug || true
-cd ../..
+popd
 
 # prepare flag for codecov report to differentiate builds
 flag=tests
-[ -n "$GITHUB_ACTIONS" ] && flag=GHA
-[ -n "$TRAVIS" ] && flag=Travis
+[ -n "${GITHUB_ACTIONS}" ] && flag=GHA
+[ -n "${TRAVIS}" ] && flag=Travis
 
-# run gcov exe, using codecov's bash (remove parsed coverage files, set flag and exit 1 if not successful)
-/opt/scripts/codecov -c -F ${flag} -Z
+# validate codecov.yaml file
+cat "${WORKDIR}/.codecov.yml" | curl --data-binary @- https://codecov.io/validate
 
-printf "check for any leftover gcov files\n"
-leftover_files=$(find . -name "*.gcov" | wc -l)
-if [[ $leftover_files > 0 ]]; then
+# run codecov's uploader in current dir (WORKDIR), with gcov executable
+# (clean parsed coverage files, set flag and exit 1 if not successful)
+/opt/scripts/codecov --rootDir . --gcov --clean --flags ${flag} --nonZero --verbose
+echo "Check for any leftover gcov files"
+leftover_files=$(find . -name "*.gcov")
+if [[ -n "${leftover_files}" ]]; then
 	# display found files and exit with error (they all should be parsed)
-	find . -name "*.gcov"
+	echo "${leftover_files}"
 	return 1
 fi
