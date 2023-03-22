@@ -83,7 +83,7 @@ Currently these libraries only work on 64-bit Linux, Windows<sup>2</sup>, and 64
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
 
 > NOTICE:
-Support for Windows is deprecated since PMDK 1.13.0 release
+Support for Windows and FreeBSD are deprecated since PMDK 1.13.0 release
 and will be removed in the PMDK 1.14.0 release.
 
 ><sup>1</sup> Not supported on Windows.
@@ -179,6 +179,10 @@ and will be removed in the PMDK 1.14.0 release.
 
 ### FreeBSD
 
+> NOTICE:
+Support for FreeBSD is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
+
 * **autoconf**
 * **bash**
 * **binutils**
@@ -192,6 +196,10 @@ and will be removed in the PMDK 1.14.0 release.
 ><sup>4</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
 
 ## Building PMDK on Linux or FreeBSD
+
+> NOTICE:
+Support for FreeBSD is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
 
 To build from source, clone this tree:
 ```
@@ -293,6 +301,10 @@ To build dpkg packages without running tests:
 This requires **devscripts** to be installed.
 
 ### Testing Libraries on Linux and FreeBSD
+
+> NOTICE:
+Support for FreeBSD is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
 
 You will need to install the following package to run unit tests:
 * **ndctl**
