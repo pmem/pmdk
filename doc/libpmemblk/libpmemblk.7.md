@@ -29,7 +29,7 @@ header: "pmemblk API version 1.1"
 **libpmemblk** - persistent memory resident array of blocks (DEPRECATED)
 
 >NOTE:
-Support for Windows is deprecated since PMDK 1.13.0 release
+Support for Windows and FreeBSD deprecated since PMDK 1.13.0 release
 and will be removed in the PMDK 1.14.0 release.
 
 # SYNOPSIS #
