@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 #
 """Various requirements"""
 
@@ -66,8 +66,11 @@ class Requirements:
     def check_namespace(self):
         cmd = ['ndctl', 'list']
         cmd_as_str = ' '.join(cmd)
-        proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
-                      universal_newlines=True)
+        try:
+            proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
+                          universal_newlines=True)
+        except (OSError):
+            raise futils.Fail('ndctl is not installed')
         if proc.returncode != 0:
             raise futils.Fail('"{}" failed:{}{}'.format(cmd_as_str, os.linesep,
                                                         proc.stdout))
