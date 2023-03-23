@@ -282,6 +282,9 @@ This requires **devscripts** to be installed.
 
 ### Testing Libraries on Linux and FreeBSD
 
+You will need to install the following required package on the run unit tests:
+* **ndctl**
+
 Before running the tests, you may need to prepare a test configuration file (src/test/testconfig.sh). Please see the available configuration settings in the example file [src/test/testconfig.sh.example](src/test/testconfig.sh.example).
 
 To build and run the **unit tests**:
