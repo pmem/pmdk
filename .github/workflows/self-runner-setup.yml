@@ -10,7 +10,11 @@ jobs:
   linux:
     name: self_runner_setup
     if: github.repository == 'pmem/pmdk'
-    runs-on: self-hosted,rockylinux,icx
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [[self-hosted, rockylinux],[self-hosted, rockylinux]]
     env:
       WORKDIR: utils/gha-runners
 
