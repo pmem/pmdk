@@ -19,5 +19,7 @@ jobs:
       WORKDIR: utils/gha-runners
 
     steps:
-        - name: List directory
+    - name: Clone the git repo
+          uses: actions/checkout@v2
+    - name: List directory
           run: ls
