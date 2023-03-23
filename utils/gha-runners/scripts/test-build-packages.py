@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018-2023, Intel Corporation
 
-
 """
 This module includes tests that check if all packages in PMDK library are
 built correctly.
@@ -39,22 +38,22 @@ def get_package_version_and_system_architecture(pmdk_path):
     from packages directory.
     """
     os_distro=distro.id()
-    if os_distro == 'fedora' or os_distro == "rhel":
+    if os_distro != 'ubuntu':
         pkg_directory = path.join(pmdk_path, 'rpm')
-    elif os_distro == 'ubuntu':
+    else:
         pkg_directory = path.join(pmdk_path, 'dpkg')
 
     version = ''
     architecture = ''
     for elem in listdir(pkg_directory):
-        if os_distro == 'fedora' or os_distro == "rhel":
+        if os_distro != 'ubuntu':
             if '.src.rpm' in elem:
                 # looks for the version number of rpm package in rpm package name
                 version = re.search(r'[\s]*pmdk-([\S]+).src.rpm', elem).group(1)
             else:
                 architecture = elem
 
-        elif os_distro == 'ubuntu':
+        else:
             if '.changes' in elem:
                 # looks for the version number of packages in package name
                 version = re.search(r'pmdk_*(.+)_(.+).changes', elem).group(1)
@@ -104,7 +103,7 @@ def get_names_of_packages(packages_info, without_rpmem):
     pkg_ext = ''
     separator = ''
     os_distro=distro.id()
-    if os_distro == 'fedora' or os_distro == "rhel":
+    if os_distro != 'ubuntu':
         types = ['-', '-debug-', '-devel-', '-debuginfo-', '-debug-debuginfo-']
         pkg_ext = '.rpm'
         separator ='.'
@@ -122,7 +121,17 @@ def get_names_of_packages(packages_info, without_rpmem):
                 continue
         sets_of_information = zip(packages_info[elem], types)
         for kit in sets_of_information:
-            if kit[0]:
+            if kit[0] and os_distro == 'opensuse-leap':
+                if elem.startswith('lib') and (kit[1] == '-' or kit[1] == '-debuginfo-'):
+                    package_name = elem + str(1) + kit[1] + PMDK_VERSION + separator + \
+                        SYSTEM_ARCHITECTURE + pkg_ext
+                    packages.append(package_name)
+                elif kit[0]:
+                    package_name = elem + kit[1] + PMDK_VERSION + separator + \
+                        SYSTEM_ARCHITECTURE + pkg_ext
+                    packages.append(package_name)
+
+            elif kit[0] and not os_distro == 'opensuse-leap':
                 package_name = elem + kit[1] + PMDK_VERSION + separator +\
                     SYSTEM_ARCHITECTURE + pkg_ext
                 packages.append(package_name)
@@ -185,6 +194,8 @@ def find_missing_libraries_and_other_elements(packages_path, pmdk_path, pmdk_deb
     # looks for the name of library/others in package name
     for elem in listdir(packages_path):
         library_name = re.search(library_name_pattern, elem).group(1)
+        if library_name.endswith('1'):
+            library_name = library_name.replace('1','')
         if library_name not in libraries.keys() and library_name not in\
                 others_pkg and library_name not in missing_elements:
             missing_elements.append(library_name)
@@ -268,13 +279,13 @@ if __name__ == '__main__':
             PMDK_VERSION, SYSTEM_ARCHITECTURE =\
                 get_package_version_and_system_architecture(pmdk_path)
             os_distro=distro.id()
-            if os_distro == 'fedora' or os_distro == "rhel":
+            if os_distro != 'ubuntu':
                 packages_path = path.join(pmdk_path, 'rpm', SYSTEM_ARCHITECTURE)
                 pmdk_debuginfo_package_name = 'pmdk-debuginfo-' + PMDK_VERSION + '.' + SYSTEM_ARCHITECTURE + '.rpm'
                 if without_pmem2:
                     library_name_pattern = r'[\s]*([a-zA-Z+]+)-'
                 else:
-                    library_name_pattern = r'[\s]*([2a-zA-Z+]+)-'
+                    library_name_pattern = r'[\s]*([2a-zA-Z+\d]+)-'
             elif os_distro == 'ubuntu':
                 packages_path = path.join(pmdk_path, 'dpkg')
                 pmdk_debuginfo_package_name = 'pmdk-debuginfo-' + PMDK_VERSION + '.' + '.deb'

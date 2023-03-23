@@ -51,6 +51,8 @@ if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; fi
 if [[ $BANDIT -eq 1 ]] ; then command="./run-bandit.sh"; fi
+if [[ $CHECK_PKGS -eq 1 ]] ; then command="./build-pmdk-package.sh"; fi
+
 
 if [[ ( "$CI_EVENT_TYPE" == "cron" || "$CI_BRANCH" == "coverity_scan" )\
 	&& "$COVERITY" -eq 1 ]]; then
@@ -116,6 +118,7 @@ docker run --rm --name=$containerName -i $TTY \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env BUILD_PACKAGE_CHECK=$BUILD_PACKAGE_CHECK \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
+	--env GHA_WORKDIR=$GHA_WORKDIR \
 	--env TRAVIS=$TRAVIS \
 	--env CI_COMMIT_RANGE=$CI_COMMIT_RANGE \
 	--env CI_COMMIT=$CI_COMMIT \

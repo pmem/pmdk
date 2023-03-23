@@ -23,6 +23,17 @@ TEST_TIMEOUT=60m
 ENABLE_SUDO_TESTS=y
 EOL
 
+if $PKG; then
+	#Append variables exclusively for PKG tests:
+	if [ $OS = opensuse-leap ] || [ $OS = rockylinux ]; then
+		echo "PMDK_LIB_PATH_NONDEBUG=/usr/lib64" >> ${CONF_PATH}/testconfig.sh
+		echo "PMDK_LIB_PATH_DEBUG=/usr/lib64/pmdk_debug" >> ${CONF_PATH}/testconfig.sh
+	elif [ $OS = ubuntu ]; then
+		echo "PMDK_LIB_PATH_NONDEBUG=/lib/x86_64-linux-gnu" >> ${CONF_PATH}/testconfig.sh
+		echo "PMDK_LIB_PATH_DEBUG=/lib/x86_64-linux-gnu/pmdk_dbg" >> ${CONF_PATH}/testconfig.sh
+	fi
+fi
+
 # Create config file for py tests.
 # We are using ndctl command to gather information about devdaxes, in form known from namespace configuration.
 cat >${CONF_PATH}/testconfig.py <<EOL

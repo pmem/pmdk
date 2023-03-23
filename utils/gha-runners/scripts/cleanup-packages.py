@@ -43,7 +43,7 @@ def get_package_version_and_system_architecture(pmdk_path):
 
     # if cannot read values from json file, read them from rpms:
     if version == '' or architecture == '':
-        if os_distro == 'fedora' or os_distro == "rhel":
+        if os_distro != 'ubuntu':
             pkg_directory = path.join(pmdk_path, 'rpm')
             for elem in listdir(pkg_directory):
                 if '.src.rpm' in elem:
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         get_package_version_and_system_architecture(args.pmdk_path)
 
     os_distro=distro.id()
-    if os_distro == 'fedora' or os_distro == "rhel":
+    if os_distro != 'ubuntu':
         remove_install_rpm_packages(args.pmdk_path)
     elif os_distro == 'ubuntu':
         remove_install_dpkg_packages(args.pmdk_path)
