@@ -13,6 +13,10 @@ testconfig.sh.example provides more detail.  The script RUNTESTS, when run with
 no arguments, will run all unit tests through all the combinations of fs-types
 and build-types, running the "check" level test.
 
+DEPENDENCIES
+You will need to install the following package to run unit tests:
+	ndctl
+
 DETAILS ON HOW TO RUN UNIT TESTS
 
 See the top-level README for instructions on building, installing, running

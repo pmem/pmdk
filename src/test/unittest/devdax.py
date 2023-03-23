@@ -88,8 +88,9 @@ class DevDaxes():
             setattr(self, dd.name, dd)
 
     def setup(self, **kwargs):
-        # DevDax tests always require ndctl
+        # DevDax tests always require libndctl
         req.Requirements().check_ndctl_enable()
+        req.Requirements().check_libndctl()
         req.Requirements().check_ndctl()
 
         tools = kwargs['tools']

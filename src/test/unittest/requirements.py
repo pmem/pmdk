@@ -14,7 +14,7 @@ import context as ctx
 import futils
 
 
-NDCTL_MIN_VERSION = '63'
+LIBNDCTL_MIN_VERSION = '63'
 
 
 class Requirements:
@@ -52,11 +52,17 @@ class Requirements:
 
             return True
 
-    def check_ndctl(self):
-        is_ndctl = self._check_pkgconfig('libndctl', NDCTL_MIN_VERSION)
-        if not is_ndctl:
+    def check_libndctl(self):
+        is_libndctl = self._check_pkgconfig('libndctl', LIBNDCTL_MIN_VERSION)
+        if not is_libndctl:
             raise futils.Skip('libndctl (>=v{}) is not installed'
-                              .format(NDCTL_MIN_VERSION))
+                              .format(LIBNDCTL_MIN_VERSION))
+
+    def check_ndctl(self):
+        try:
+            sp.check_call('ndctl')
+        except (OSError, sp.SubprocessError, sp.CalledProcessError):
+            raise futils.Fail('ndctl is not installed')
 
     def check_ndctl_enable(self):
         if self._is_ndctl_enabled() is False:
@@ -83,6 +89,7 @@ class Requirements:
             return True
 
         self.check_ndctl_enable()
+        self.check_libndctl()
         self.check_ndctl()
 
         if kwargs.get('require_namespace', False):
