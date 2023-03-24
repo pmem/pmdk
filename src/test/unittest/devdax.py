@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2023, Intel Corporation
+# Copyright 2019-2022, Intel Corporation
 #
 
 """Device dax context classes and utilities"""
@@ -88,9 +88,8 @@ class DevDaxes():
             setattr(self, dd.name, dd)
 
     def setup(self, **kwargs):
-        # DevDax tests always require libndctl
+        # DevDax tests always require ndctl
         req.Requirements().check_ndctl_enable()
-        req.Requirements().check_libndctl()
         req.Requirements().check_ndctl()
 
         tools = kwargs['tools']
