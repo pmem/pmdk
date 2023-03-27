@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
  * obj_ctl_stats.c -- tests for the libpmemobj statistics module
@@ -27,16 +27,25 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(enabled, 0);
 	UT_ASSERTeq(ret, 0);
 
+	size_t allocated;
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocated);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(allocated, 0);
+
 	ret = pmemobj_alloc(pop, NULL, 1, 0, NULL, NULL);
 	UT_ASSERTeq(ret, 0);
 
-	size_t allocated;
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocated);
+	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(allocated, 0);
 
 	enabled = 1;
 	ret = pmemobj_ctl_set(pop, "stats.enabled", &enabled);
 	UT_ASSERTeq(ret, 0);
+
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocated);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(allocated, 0);
 
 	PMEMoid oid;
 	ret = pmemobj_alloc(pop, &oid, 1, 0, NULL, NULL);
