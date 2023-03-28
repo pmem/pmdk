@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+#
+# src/test/obj_pmalloc_mt/TEST3 -- multithreaded allocator test
+#	(medium drd version) w/ statistics
+#
+
+. ../unittest/unittest.sh
+
+require_valgrind 3.10
+require_fs_type pmem
+require_test_type long
+configure_valgrind drd force-enable
+setup
+
+PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
+	./obj_pmalloc_mt$EXESUFFIX 4 64 4 $DIR/testfile 1
+
+pass
