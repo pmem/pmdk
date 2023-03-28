@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * obj_pmalloc_mt.c -- multithreaded test of allocator
@@ -59,10 +59,13 @@ static void *
 realloc_worker(void *arg)
 {
 	struct worker_args *a = arg;
+	int ret;
 
 	for (unsigned i = 0; i < Ops_per_thread; ++i) {
-		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE, 0, 0);
+		ret = prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE,
+				0, 0);
 		UT_ASSERTne(a->r->offs[a->idx][i], 0);
+		UT_ASSERTeq(ret, 0);
 	}
 
 	return NULL;
@@ -110,6 +113,7 @@ static void *
 tx_worker(void *arg)
 {
 	struct worker_args *a = arg;
+	PMEMoid oid;
 
 	/*
 	 * Allocate objects until exhaustion, once that happens the transaction
@@ -117,7 +121,8 @@ tx_worker(void *arg)
 	 */
 	TX_BEGIN(a->pop) {
 		for (unsigned n = 0; ; ++n) { /* this is NOT an infinite loop */
-			pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+			oid = pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+			UT_ASSERT(!OID_IS_NULL(oid));
 			if (Ops_per_thread != MAX_OPS_PER_THREAD &&
 			    n == Ops_per_thread) {
 				pmemobj_tx_abort(0);
@@ -132,6 +137,7 @@ static void *
 tx3_worker(void *arg)
 {
 	struct worker_args *a = arg;
+	PMEMoid oid;
 
 	/*
 	 * Allocate N objects, abort, repeat M times. Should reveal issues in
@@ -140,7 +146,8 @@ tx3_worker(void *arg)
 	for (unsigned n = 0; n < Tx_per_thread; ++n) {
 		TX_BEGIN(a->pop) {
 			for (unsigned i = 0; i < Ops_per_thread; ++i) {
-				pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+				oid = pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+				UT_ASSERT(!OID_IS_NULL(oid));
 			}
 			pmemobj_tx_abort(EINVAL);
 		} TX_END
@@ -314,15 +321,28 @@ run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 		THREAD_JOIN(&t[i], NULL);
 }
 
+static inline size_t
+allocation_inc(size_t base)
+{
+	size_t result = ((base / 128) + 1) * 128;
+	result *= Ops_per_thread;
+	result *= Threads;
+	return result;
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_pmalloc_mt");
 
-	if (argc != 5)
-		UT_FATAL("usage: %s <threads> <ops/t> <tx/t> [file]", argv[0]);
+	if (argc < 5)
+		UT_FATAL(
+		"usage: %s <threads> <ops/t> <tx/t> <file> [enable stats]",
+		argv[0]);
 
 	PMEMobjpool *pop;
+	unsigned enable_stats = 0;
+	size_t allocPre, alloc, allocPost;
 
 	Threads = ATOU(argv[1]);
 	if (Threads > MAX_THREADS)
@@ -349,10 +369,20 @@ main(int argc, char *argv[])
 		if (pop == NULL)
 			UT_FATAL("!pmemobj_open");
 	}
+	if (argc > 5)
+		enable_stats = ATOU(argv[5]);
+
+	if (enable_stats) {
+		int ret = pmemobj_ctl_set(pop, "stats.enabled", &enable_stats);
+		UT_ASSERTeq(ret, 0);
+	}
 
 	PMEMoid oid = pmemobj_root(pop, sizeof(struct root));
 	struct root *r = pmemobj_direct(oid);
 	UT_ASSERTne(r, NULL);
+
+	int ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPre);
+	UT_ASSERTeq(ret, 0);
 
 	struct worker_args args[MAX_THREADS];
 
@@ -367,16 +397,56 @@ main(int argc, char *argv[])
 		}
 	}
 
+	alloc = allocPre;
+	if (enable_stats)
+		alloc += allocation_inc(ALLOC_SIZE);
 	run_worker(alloc_worker, args);
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
+	UT_ASSERTeq(alloc, allocPost);
+
+	if (enable_stats) {
+		alloc -= allocation_inc(ALLOC_SIZE);
+		alloc += allocation_inc(REALLOC_SIZE);
+	}
 	run_worker(realloc_worker, args);
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
+	UT_ASSERTeq(alloc, allocPost);
+
+	alloc = allocPre;
 	run_worker(free_worker, args);
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
+	UT_ASSERTeq(alloc, allocPost);
+
 	run_worker(mix_worker, args);
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
+	UT_ASSERTeq(alloc, allocPost);
+
 	run_worker(alloc_free_worker, args);
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
+	UT_ASSERTeq(alloc, allocPost);
+
 	run_worker(action_cancel_worker, args);
 	actions_clear(pop, r);
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
+	UT_ASSERTeq(alloc, allocPost);
+	if (enable_stats && Threads > 1)
+		alloc += allocation_inc(ALLOC_SIZE) / 2;
 	run_worker(action_publish_worker, args);
 	actions_clear(pop, r);
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated",	&allocPost);
+	UT_ASSERTeq(alloc, allocPost);
+
+	if (enable_stats && Threads > 1)
+		alloc += allocation_inc(ALLOC_SIZE) / 4;
 	run_worker(action_mix_worker, args);
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
+	UT_ASSERTeq(alloc, allocPost);
+
+	if (enable_stats) {
+		enable_stats = 0;
+		ret = pmemobj_ctl_set(pop, "stats.enabled", &enable_stats);
+		UT_ASSERTeq(ret, 0);
+	}
 
 	/*
 	 * Reduce the number of lanes to a value smaller than the number of
@@ -395,7 +465,6 @@ main(int argc, char *argv[])
 	 */
 	if (Threads == MAX_THREADS) /* don't run for short tests */
 		run_worker(tx_worker, args);
-
 	run_worker(tx3_worker, args);
 
 	pmemobj_close(pop);

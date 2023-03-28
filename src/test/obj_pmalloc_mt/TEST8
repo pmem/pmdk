@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+#
+# src/test/obj_pmalloc_mt/TEST8 -- multithreaded allocator test
+#	(long - several iteration) w/ statistics
+#
+
+. ../unittest/unittest.sh
+
+require_valgrind 3.10
+require_fs_type pmem non-pmem
+require_test_type long
+configure_valgrind helgrind force-enable
+setup
+
+for n in {1..500}
+do
+	if test -f "rm $DIR/testfile"; then
+		rm $DIR/testfile
+	fi
+	PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
+		./obj_pmalloc_mt$EXESUFFIX 32 1000 100 $DIR/testfile 1 $n
+done
+
+pass
