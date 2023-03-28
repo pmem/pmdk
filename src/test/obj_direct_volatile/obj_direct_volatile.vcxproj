@@ -69,8 +69,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>Disabled</Optimization>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
@@ -79,8 +78,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />

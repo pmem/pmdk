@@ -28,6 +28,10 @@ header: "pmem2 API version 1.0"
 
 **libpmem2** - persistent memory support library
 
+>NOTE:
+Support for Windows is deprecated since PMDK 1.13.0 release
+and will be removed in the PMDK 1.14.0 release.
+
 # SYNOPSIS #
 
 ```c

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * libpmemobj/atomic_base.h -- definitions of libpmemobj atomic entry points
@@ -30,12 +30,18 @@ extern "C" {
  * initialized, or if it's interrupted before the constructor completes, the
  * memory reserved for the object is automatically reclaimed.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num, pmemobj_constr constructor, void *arg);
 
 /*
  * Allocates with flags a new object from the pool.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num, uint64_t flags,
 	pmemobj_constr constructor, void *arg);
@@ -43,36 +49,54 @@ int pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 /*
  * Allocates a new zeroed object from the pool.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num);
 
 /*
  * Resizes an existing object.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num);
 
 /*
  * Resizes an existing object, if extended new space is zeroed.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num);
 
 /*
  * Allocates a new object with duplicate of the string s.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 	uint64_t type_num);
 
 /*
  * Allocates a new object with duplicate of the wide character string s.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
 	uint64_t type_num);
 
 /*
  * Frees an existing object.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmemobj_free(PMEMoid *oidp);
 
 struct pobj_defrag_result {
@@ -83,6 +107,9 @@ struct pobj_defrag_result {
 /*
  * Performs defragmentation on the provided array of objects.
  */
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmemobj_defrag(PMEMobjpool *pop, PMEMoid **oidv, size_t oidcnt,
 	struct pobj_defrag_result *result);
 

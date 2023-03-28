@@ -51,8 +51,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link />
   </ItemDefinitionGroup>

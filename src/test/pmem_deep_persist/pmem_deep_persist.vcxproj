@@ -137,8 +137,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <DisableSpecificWarnings>
-      </DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;$(SolutionDir)\libpmem2\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2022, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * libpmem2.h -- definitions of libpmem2 entry points
@@ -28,6 +28,9 @@
 #define pmem2_errormsg pmem2_errormsgU
 #define pmem2_perror pmem2_perrorU
 #endif
+
+#define WIN_DEPR_STR "Windows support is deprecated."
+#define WIN_DEPR_ATTR __declspec(deprecated(WIN_DEPR_STR))
 
 #endif
 
@@ -77,25 +80,48 @@ extern "C" {
 
 struct pmem2_source;
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_from_fd(struct pmem2_source **src, int fd);
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_from_anon(struct pmem2_source **src, size_t size);
 #ifdef _WIN32
+WIN_DEPR_ATTR
 int pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle);
+WIN_DEPR_ATTR
 int pmem2_source_get_handle(const struct pmem2_source *src, HANDLE *h);
 #else
 int pmem2_source_get_fd(const struct pmem2_source *src, int *fd);
 #endif
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_size(const struct pmem2_source *src, size_t *size);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_alignment(const struct pmem2_source *src,
 	size_t *alignment);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_delete(struct pmem2_source **src);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_pread_mcsafe(struct pmem2_source *src, void *buf, size_t size,
 	size_t offset);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_pwrite_mcsafe(struct pmem2_source *src, void *buf, size_t size,
 	size_t offset);
 
@@ -104,32 +130,65 @@ int pmem2_source_pwrite_mcsafe(struct pmem2_source *src, void *buf, size_t size,
 struct pmem2_map;
 struct pmem2_vm_reservation;
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem2_vm_reservation_get_address(struct pmem2_vm_reservation *rsv);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 size_t pmem2_vm_reservation_get_size(struct pmem2_vm_reservation *rsv);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 	void *addr, size_t size);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
 	size_t size);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_map_find(struct pmem2_vm_reservation *rsv,
 	size_t reserv_offset, size_t len, struct pmem2_map **map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_map_find_prev(struct pmem2_vm_reservation *rsv,
 	struct pmem2_map *map, struct pmem2_map **prev_map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_map_find_next(struct pmem2_vm_reservation *rsv,
 	struct pmem2_map *map, struct pmem2_map **next_map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_map_find_first(struct pmem2_vm_reservation *rsv,
 	struct pmem2_map **map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_vm_reservation_map_find_last(struct pmem2_vm_reservation *rsv,
 	struct pmem2_map **map);
 
@@ -137,8 +196,14 @@ int pmem2_vm_reservation_map_find_last(struct pmem2_vm_reservation *rsv,
 
 struct pmem2_config;
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_config_new(struct pmem2_config **cfg);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_config_delete(struct pmem2_config **cfg);
 
 enum pmem2_granularity {
@@ -147,11 +212,20 @@ enum pmem2_granularity {
     PMEM2_GRANULARITY_PAGE,
 };
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 	enum pmem2_granularity g);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_config_set_length(struct pmem2_config *cfg, size_t length);
 
 enum pmem2_sharing_type {
@@ -159,6 +233,9 @@ enum pmem2_sharing_type {
     PMEM2_PRIVATE,
 };
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_config_set_sharing(struct pmem2_config *cfg,
 	enum pmem2_sharing_type type);
 
@@ -167,41 +244,83 @@ int pmem2_config_set_sharing(struct pmem2_config *cfg,
 #define PMEM2_PROT_WRITE	(1U << 31)
 #define PMEM2_PROT_NONE	0
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_config_set_protection(struct pmem2_config *cfg,
 	unsigned prot);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 	struct pmem2_vm_reservation *rsv, size_t offset);
 
 /* mapping */
 struct pmem2_map;
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_map_from_existing(struct pmem2_map **map,
 	const struct pmem2_source *src, void *addr, size_t len,
 	enum pmem2_granularity gran);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	const struct pmem2_source *src);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_map_delete(struct pmem2_map **map_ptr);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void *pmem2_map_get_address(struct pmem2_map *map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 size_t pmem2_map_get_size(struct pmem2_map *map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 enum pmem2_granularity pmem2_map_get_store_granularity(struct pmem2_map *map);
 
 /* flushing */
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 typedef void (*pmem2_persist_fn)(const void *ptr, size_t size);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 typedef void (*pmem2_flush_fn)(const void *ptr, size_t size);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 typedef void (*pmem2_drain_fn)(void);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 pmem2_persist_fn pmem2_get_persist_fn(struct pmem2_map *map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 pmem2_flush_fn pmem2_get_flush_fn(struct pmem2_map *map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 pmem2_drain_fn pmem2_get_drain_fn(struct pmem2_map *map);
 
 #define PMEM2_F_MEM_NODRAIN	(1U << 0)
@@ -221,38 +340,66 @@ pmem2_drain_fn pmem2_get_drain_fn(struct pmem2_map *map);
 		PMEM2_F_MEM_WB | \
 		PMEM2_F_MEM_NOFLUSH)
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 typedef void *(*pmem2_memmove_fn)(void *pmemdest, const void *src, size_t len,
 	unsigned flags);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 typedef void *(*pmem2_memcpy_fn)(void *pmemdest, const void *src, size_t len,
 	unsigned flags);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 typedef void *(*pmem2_memset_fn)(void *pmemdest, int c, size_t len,
 	unsigned flags);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 pmem2_memmove_fn pmem2_get_memmove_fn(struct pmem2_map *map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 pmem2_memcpy_fn pmem2_get_memcpy_fn(struct pmem2_map *map);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 pmem2_memset_fn pmem2_get_memset_fn(struct pmem2_map *map);
 
 /* RAS */
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_deep_flush(struct pmem2_map *map, void *ptr, size_t size);
 
 #ifndef _WIN32
 int pmem2_source_device_id(const struct pmem2_source *src,
 	char *id, size_t *len);
 #else
+WIN_DEPR_ATTR
 int pmem2_source_device_idW(const struct pmem2_source *src,
 	wchar_t *id, size_t *len);
-
+WIN_DEPR_ATTR
 int pmem2_source_device_idU(const struct pmem2_source *src,
 	char *id, size_t *len);
 #endif
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_source_numa_node(const struct pmem2_source *src, int *numa_node);
 
 struct pmem2_badblock_context;
@@ -262,15 +409,27 @@ struct pmem2_badblock {
     size_t length;
 };
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
 	const struct pmem2_source *src);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	struct pmem2_badblock *bb);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 void pmem2_badblock_context_delete(
 	struct pmem2_badblock_context **bbctx);
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 	const struct pmem2_badblock *bb);
 
@@ -279,19 +438,24 @@ int pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 #ifndef _WIN32
 const char *pmem2_errormsg(void);
 #else
+WIN_DEPR_ATTR
 const char *pmem2_errormsgU(void);
-
+WIN_DEPR_ATTR
 const wchar_t *pmem2_errormsgW(void);
 #endif
 
+#ifdef _WIN32
+WIN_DEPR_ATTR
+#endif
 int pmem2_err_to_errno(int);
 
 #ifndef _WIN32
 void pmem2_perror(const char *format,
 	...) __attribute__((__format__(__printf__, 1, 2)));
 #else
+WIN_DEPR_ATTR
 void pmem2_perrorU(const char *format, ...);
-
+WIN_DEPR_ATTR
 void pmem2_perrorW(const wchar_t *format, ...);
 #endif
 
