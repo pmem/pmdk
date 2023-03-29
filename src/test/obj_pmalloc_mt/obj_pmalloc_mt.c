@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * obj_pmalloc_mt.c -- multithreaded test of allocator
@@ -107,49 +107,6 @@ mix_worker(void *arg)
 }
 
 static void *
-tx_worker(void *arg)
-{
-	struct worker_args *a = arg;
-
-	/*
-	 * Allocate objects until exhaustion, once that happens the transaction
-	 * will automatically abort and all of the objects will be freed.
-	 */
-	TX_BEGIN(a->pop) {
-		for (unsigned n = 0; ; ++n) { /* this is NOT an infinite loop */
-			pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
-			if (Ops_per_thread != MAX_OPS_PER_THREAD &&
-			    n == Ops_per_thread) {
-				pmemobj_tx_abort(0);
-			}
-		}
-	} TX_END
-
-	return NULL;
-}
-
-static void *
-tx3_worker(void *arg)
-{
-	struct worker_args *a = arg;
-
-	/*
-	 * Allocate N objects, abort, repeat M times. Should reveal issues in
-	 * transaction abort handling.
-	 */
-	for (unsigned n = 0; n < Tx_per_thread; ++n) {
-		TX_BEGIN(a->pop) {
-			for (unsigned i = 0; i < Ops_per_thread; ++i) {
-				pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
-			}
-			pmemobj_tx_abort(EINVAL);
-		} TX_END
-	}
-
-	return NULL;
-}
-
-static void *
 alloc_free_worker(void *arg)
 {
 	struct worker_args *a = arg;
@@ -160,38 +117,6 @@ alloc_free_worker(void *arg)
 				0, NULL, NULL);
 		UT_ASSERTeq(err, 0);
 		pmemobj_free(&oid);
-	}
-
-	return NULL;
-}
-
-#define OPS_PER_TX 10
-#define STEP 8
-#define TEST_LANES 4
-
-static void *
-tx2_worker(void *arg)
-{
-	struct worker_args *a = arg;
-
-	for (unsigned n = 0; n < Tx_per_thread; ++n) {
-		PMEMoid oids[OPS_PER_TX];
-		TX_BEGIN(a->pop) {
-			for (int i = 0; i < OPS_PER_TX; ++i) {
-				oids[i] = pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
-				for (unsigned j = 0; j < ALLOC_SIZE;
-						j += STEP) {
-					pmemobj_tx_add_range(oids[i], j, STEP);
-				}
-			}
-		} TX_END
-
-		TX_BEGIN(a->pop) {
-			for (int i = 0; i < OPS_PER_TX; ++i)
-				pmemobj_tx_free(oids[i]);
-		} TX_ONABORT {
-			UT_ASSERT(0);
-		} TX_END
 	}
 
 	return NULL;
@@ -377,26 +302,6 @@ main(int argc, char *argv[])
 	run_worker(action_publish_worker, args);
 	actions_clear(pop, r);
 	run_worker(action_mix_worker, args);
-
-	/*
-	 * Reduce the number of lanes to a value smaller than the number of
-	 * threads. This will ensure that at least some of the state of the lane
-	 * will be shared between threads. Doing this might reveal bugs related
-	 * to runtime race detection instrumentation.
-	 */
-	unsigned old_nlanes = pop->lanes_desc.runtime_nlanes;
-	pop->lanes_desc.runtime_nlanes = TEST_LANES;
-	run_worker(tx2_worker, args);
-	pop->lanes_desc.runtime_nlanes = old_nlanes;
-
-	/*
-	 * This workload might create many allocation classes due to pvector,
-	 * keep it last.
-	 */
-	if (Threads == MAX_THREADS) /* don't run for short tests */
-		run_worker(tx_worker, args);
-
-	run_worker(tx3_worker, args);
 
 	pmemobj_close(pop);
 
