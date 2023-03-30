@@ -4,15 +4,15 @@
 
 #
 # src/test/obj_pmalloc_mt/TEST9 -- multithreaded allocator test
-#	(medium drd version) w/ statistics
+#	(long drd version) w/ statistics
 #
 
 . ../unittest/unittest.sh
 
-#require_valgrind 3.10
+require_valgrind 3.10
 require_fs_type pmem non-pmem
-require_test_type short
-#configure_valgrind drd force-enable
+require_test_type long
+configure_valgrind drd force-enable
 setup
 
 for n in {1..50}
