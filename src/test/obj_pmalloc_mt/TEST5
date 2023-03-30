@@ -3,13 +3,13 @@
 # Copyright 2023, Intel Corporation
 
 #
-# src/test/obj_pmalloc_mt/TEST1 -- multithreaded allocator test
+# src/test/obj_pmalloc_mt/TEST5 -- multithreaded allocator test
 #	(medium non-helgrind/drd version)  w/ statistics
 #
 
 . ../unittest/unittest.sh
 
-require_fs_type pmem
+require_fs_type pmem non-pmem
 require_test_type medium
 configure_valgrind drd force-disable
 configure_valgrind helgrind force-disable

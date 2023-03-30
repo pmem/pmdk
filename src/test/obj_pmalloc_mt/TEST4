@@ -3,14 +3,14 @@
 # Copyright 2023, Intel Corporation
 
 #
-# src/test/obj_pmalloc_mt/TEST0 -- multithreaded allocator test
+# src/test/obj_pmalloc_mt/TEST4 -- multithreaded allocator test
 #	(long helgrind version) w/ statistics
 #
 
 . ../unittest/unittest.sh
 
 require_valgrind 3.10
-require_fs_type pmem
+require_fs_type pmem non-pmem
 require_test_type long
 configure_valgrind helgrind force-enable
 setup

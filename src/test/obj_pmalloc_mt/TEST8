@@ -3,15 +3,15 @@
 # Copyright 2023, Intel Corporation
 
 #
-# src/test/obj_pmalloc_mt/TEST3 -- multithreaded allocator test
-#	(medium drd version) w/ statistics
+# src/test/obj_pmalloc_mt/TEST8 -- multithreaded allocator test
+#	(short - several iteration) w/ statistics
 #
 
 . ../unittest/unittest.sh
 
-require_valgrind 3.10
-require_fs_type pmem
-require_test_type long
+#require_valgrind 3.10
+require_fs_type pmem non-pmem
+require_test_type short
 #configure_valgrind drd force-enable
 setup
 
