@@ -1,0 +1,6 @@
+Persistent Memory Development Kit
+
+This is utils/ansible/README.
+
+The scripts in this directory allow you to set up an ubuntu or fedora-based
+environment on a real HW and build a PMDK project in it.
