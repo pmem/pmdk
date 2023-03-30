@@ -9,13 +9,13 @@
 
 . ../unittest/unittest.sh
 
-#require_valgrind 3.10
+require_valgrind 3.10
 require_fs_type pmem non-pmem
 require_test_type short
 #configure_valgrind drd force-enable
 setup
 
-for n in {1..50}
+for n in {1..500}
 do
 	if test -f "rm $DIR/testfile"; then
 		rm $DIR/testfile
