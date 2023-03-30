@@ -321,6 +321,15 @@ run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 		THREAD_JOIN(&t[i], NULL);
 }
 
+static inline size_t
+allocation_inc(size_t base)
+{
+	size_t result = ((base / 128) + 1) * 128;
+	result *= Ops_per_thread;
+	result *= Threads;
+	return result;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -390,17 +399,14 @@ main(int argc, char *argv[])
 
 	alloc = allocPre;
 	if (enable_stats)
-		alloc += Ops_per_thread * Threads * ((ALLOC_SIZE / 128) + 1)
-									* 128;
+		alloc += allocation_inc(ALLOC_SIZE);
 	run_worker(alloc_worker, args);
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
 	UT_ASSERTeq(alloc, allocPost);
 
 	if (enable_stats) {
-		alloc -= Ops_per_thread * Threads * ((ALLOC_SIZE / 128) + 1)
-									* 128;
-		alloc += Ops_per_thread * Threads * ((REALLOC_SIZE / 128) + 1)
-									* 128;
+		alloc -= allocation_inc(ALLOC_SIZE);
+		alloc += allocation_inc(REALLOC_SIZE);
 	}
 	run_worker(realloc_worker, args);
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
@@ -424,16 +430,14 @@ main(int argc, char *argv[])
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
 	UT_ASSERTeq(alloc, allocPost);
 	if (enable_stats && Threads > 1)
-		alloc += Ops_per_thread / 2 * Threads
-					* ((ALLOC_SIZE / 128) + 1) * 128;
+		alloc += allocation_inc(ALLOC_SIZE) / 2;
 	run_worker(action_publish_worker, args);
 	actions_clear(pop, r);
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated",	&allocPost);
 	UT_ASSERTeq(alloc, allocPost);
 
 	if (enable_stats && Threads > 1)
-		alloc += Ops_per_thread / 4 * Threads
-					 * ((ALLOC_SIZE / 128) + 1) * 128;
+		alloc += allocation_inc(ALLOC_SIZE) / 4;
 	run_worker(action_mix_worker, args);
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocPost);
 	UT_ASSERTeq(alloc, allocPost);
