@@ -1,0 +1,2 @@
+{obj_pmalloc_mt.c:68 realloc_worker} obj_pmalloc_mt/TEST9: Error: assertion failure: ret (0xffffffffffffffff) == 0 (0x0)
+{obj_pmalloc_mt.c:68 realloc_worker} obj_pmalloc_mt/TEST9: Error: assertion failure: ret (0xffffffffffffffff) == 0 (0x0)

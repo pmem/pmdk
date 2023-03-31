@@ -465,6 +465,7 @@ main(int argc, char *argv[])
 	 */
 	if (Threads == MAX_THREADS) /* don't run for short tests */
 		run_worker(tx_worker, args);
+
 	run_worker(tx3_worker, args);
 
 	pmemobj_close(pop);
