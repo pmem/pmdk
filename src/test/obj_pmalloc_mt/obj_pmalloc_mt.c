@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * obj_pmalloc_mt.c -- multithreaded test of allocator
@@ -59,9 +59,12 @@ static void *
 realloc_worker(void *arg)
 {
 	struct worker_args *a = arg;
+	int ret;
 
 	for (unsigned i = 0; i < Ops_per_thread; ++i) {
-		prealloc(a->pop, &a->r->offs[a->idx][i], REALLOC_SIZE, 0, 0);
+		ret = prealloc(a->pop, &a->r->offs[a->idx][i],
+							REALLOC_SIZE, 0, 0);
+		UT_ASSERTeq(ret, 0);
 		UT_ASSERTne(a->r->offs[a->idx][i], 0);
 	}
 
@@ -85,6 +88,7 @@ static void *
 mix_worker(void *arg)
 {
 	struct worker_args *a = arg;
+	int ret;
 
 	/*
 	 * The mix scenario is ran twice to increase the chances of run
@@ -92,8 +96,9 @@ mix_worker(void *arg)
 	 */
 	for (unsigned j = 0; j < MIX_RERUNS; ++j) {
 		for (unsigned i = 0; i < Ops_per_thread; ++i) {
-			pmalloc(a->pop, &a->r->offs[a->idx][i],
+			ret = pmalloc(a->pop, &a->r->offs[a->idx][i],
 				ALLOC_SIZE, 0, 0);
+			UT_ASSERTeq(ret, 0);
 			UT_ASSERTne(a->r->offs[a->idx][i], 0);
 		}
 
