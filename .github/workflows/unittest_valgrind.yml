@@ -10,7 +10,7 @@ jobs:
     name: valgrind
     if: github.repository == 'pmem/pmdk'
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 4320
+    timeout-minutes: 4320 # wait max 3 days
     strategy:
       fail-fast: false
       matrix:
