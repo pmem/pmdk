@@ -27,11 +27,11 @@ make -j$(nproc) test
 echo ""
 echo "## Running make pcheck"
 # do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
+make -j1 pcheck TEST_BUILD=$TEST_BUILD
 echo ""
 echo "## Running make pycheck"
 # do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
-make -j2 pycheck
+make -j1 pycheck
 echo ""
 echo "## Running make source"
 make -j$(nproc) DESTDIR=/tmp source
