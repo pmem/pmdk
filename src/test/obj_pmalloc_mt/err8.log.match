@@ -1,1 +1,1 @@
-{obj_pmalloc_mt.c:67 realloc_worker} obj_pmalloc_mt/TEST8: Error: assertion failure: ret (0xffffffffffffffff) == 0 (0x0)
+{obj_pmalloc_mt.c:52 alloc_worker} obj_pmalloc_mt/TEST8: Error: assertion failure: a->r->offs[a->idx][i] (0x0) != 0 (0x0)

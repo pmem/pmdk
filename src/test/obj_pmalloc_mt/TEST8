@@ -9,8 +9,11 @@
 
 . ../unittest/unittest.sh
 
+require_valgrind 3.10
 require_fs_type pmem
-require_test_type short
+require_test_type medium
+configure_valgrind helgrind force-enable
+
 setup
 
 if test -f "rm $DIR/testfile.TEST8"; then
