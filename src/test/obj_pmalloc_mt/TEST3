@@ -16,6 +16,6 @@ configure_valgrind drd force-enable
 setup
 
 PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
-	./obj_pmalloc_mt$EXESUFFIX 4 64 4 $DIR/testfile.TEST3
+	./obj_pmalloc_mt$EXESUFFIX 4 64 4 $DIR/testfile3
 
 pass
