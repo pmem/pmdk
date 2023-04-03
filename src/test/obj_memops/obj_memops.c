@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2022, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * obj_memops.c -- basic memory operations tests
@@ -63,6 +63,7 @@ static void
 test_free_entry(void *base, uint64_t *next)
 {
 	*next = 0;
+	VALGRIND_DO_PERSIST(next, sizeof(next));
 	/* noop for fake ulog entries */
 }
 
