@@ -65,8 +65,14 @@ ENV COVERITY_DEPS ruby gcc g++ wget
 ENV MISC_DEPS "clang \
 	clang-format \
 	flake8 \
+	python3-pip \
 	sudo \
 	whois"
+
+# for python scripts
+ENV PYTHON_DEPS "\
+	distro \
+	xmlrunner"
 
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
@@ -90,6 +96,8 @@ RUN apt-get update && apt-get dist-upgrade -y \
 	&& ./install-valgrind.sh ubuntu \
 	&& ./download-scripts.sh \
 	&& rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install $PYTHON_DEPS
 
 # Add user
 ENV USER pmdkuser
