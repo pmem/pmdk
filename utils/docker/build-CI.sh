@@ -38,6 +38,7 @@ if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; fi
 if [[ $BANDIT -eq 1 ]] ; then command="./run-bandit.sh"; fi
 if [[ "$COVERITY" -eq 1 ]]; then command="./run-coverity.sh"; fi
+if [[ $CHECK_PKGS -eq 1 ]] ; then command="./build-and-test-pmdk-packages.sh"; fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUILD_PACKAGE_CHECK=y; fi

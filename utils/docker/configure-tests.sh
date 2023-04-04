@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2022, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # configure-tests.sh - is called inside a Docker container; configures tests
@@ -21,6 +21,17 @@ TEST_BUILD="debug nondebug"
 ENABLE_SUDO_TESTS=y
 TM=1
 EOF
+
+if [[ "${1}" == "PKG" ]]; then
+	#Append variables exclusively for PKG tests:
+	if [ $OS = opensuse/leap ] || [ $OS = rockylinux/rockylinux ]; then
+		echo "PMDK_LIB_PATH_NONDEBUG=/usr/lib64" >> $WORKDIR/src/test/testconfig.sh
+		echo "PMDK_LIB_PATH_DEBUG=/usr/lib64/pmdk_debug" >> $WORKDIR/src/test/testconfig.sh
+	elif [ $OS = ubuntu ]; then
+		echo "PMDK_LIB_PATH_NONDEBUG=/lib/x86_64-linux-gnu" >> $WORKDIR/src/test/testconfig.sh
+		echo "PMDK_LIB_PATH_DEBUG=/lib/x86_64-linux-gnu/pmdk_dbg" >> $WORKDIR/src/test/testconfig.sh
+	fi
+fi
 
 # Configure python tests
 	cat << EOF >> $WORKDIR/src/test/testconfig.py
