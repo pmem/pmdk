@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2022, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # run-build.sh - is called inside a Docker container; prepares the environment
@@ -26,12 +26,12 @@ echo "## Running make test"
 make -j$(nproc) test
 echo ""
 echo "## Running make pcheck"
-# do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
+# do not change -j1 to -j$(nproc) in case of tests (make check/pycheck)
+make -j1 pcheck TEST_BUILD=$TEST_BUILD
 echo ""
 echo "## Running make pycheck"
-# do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
-make -j2 pycheck
+# do not change -j1 to -j$(nproc) in case of tests (make check/pycheck)
+make -j1 pycheck
 echo ""
 echo "## Running make source"
 make -j$(nproc) DESTDIR=/tmp source
