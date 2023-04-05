@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022, Intel Corporation
+# Copyright 2023, Intel Corporation
 
 #
 # get-system-info.sh - Script for printing system info
@@ -13,8 +13,8 @@ function system_info {
 	echo "libndctl: $(pkg-config --modversion libndctl || echo 'libndctl not found')"
 	echo "valgrind: $(pkg-config --modversion valgrind || echo 'valgrind not found')"
 	echo "******************** memory-info *******************"
-	ipmctl show -dimm || true
-	ipmctl show -topology || true
+	sudo ipmctl show -dimm || true
+	sudo ipmctl show -topology || true
 	echo "*************** list-existing-namespaces ***************"
 	ndctl list -M -N
 	echo "*************** installed-packages ***************"
