@@ -13,8 +13,8 @@ function system_info {
 	echo "libndctl: $(pkg-config --modversion libndctl || echo 'libndctl not found')"
 	echo "valgrind: $(pkg-config --modversion valgrind || echo 'valgrind not found')"
 	echo "******************** memory-info *******************"
-	ipmctl show -dimm || true
-	ipmctl show -topology || true
+	sudo ipmctl show -dimm || true
+	sudo ipmctl show -topology || true
 	echo "*************** list-existing-namespaces ***************"
 	ndctl list -M -N
 	echo "*************** installed-packages ***************"
