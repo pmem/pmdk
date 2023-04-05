@@ -13,8 +13,8 @@ function system_info {
 	echo "libndctl: $(pkg-config --modversion libndctl || echo 'libndctl not found')"
 	echo "valgrind: $(pkg-config --modversion valgrind || echo 'valgrind not found')"
 	echo "******************** memory-info *******************"
-	ipmctl show -dimm || true
-	ipmctl show -topology || true
+	sudo ipmctl show -dimm || true
+	sudo ipmctl show -topology || true
 	echo "*************** list-existing-namespaces ***************"
 	ndctl list -M -N
 	echo "*************** installed-packages ***************"
@@ -45,6 +45,7 @@ function system_info {
 	echo "**********list-avaialble-pmem-devices**********"
 	ls -la /dev/dax*
 	ls -la /dev/pmem*
+	ls -la /mnt/pmem*
 	echo "**********list-nd-resources**********"
 	ls -la /sys/bus/nd/devices/ndbus*/region*/resource
 	ls -la /sys/bus/nd/devices/ndbus*/region*/dax*/resource
