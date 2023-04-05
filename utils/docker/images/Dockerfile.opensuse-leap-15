@@ -10,6 +10,7 @@
 FROM opensuse/leap:15
 MAINTAINER piotr.balcer@intel.com
 
+# Valgrind dependencies
 ENV VALGRIND_DEPS "\
 	autoconf \
 	automake \
@@ -17,44 +18,47 @@ ENV VALGRIND_DEPS "\
 	findutils \
 	git"
 
-# pmdk base
+# PMDK basic dependencies
 ENV BASE_DEPS "\
 	cmake \
 	gcc \
 	gcc-c++ \
 	git \
+	libndctl-devel \
 	make \
-	pkgconfig \
+	pkg-config \
 	systemd"
 
-# benchmarks (optional)
+# benchmarks dependencies (optional)
 ENV BENCH_DEPS "\
 	glib2-devel"
 
-# examples (optional)
+# examples dependencies (optional)
 ENV EXAMPLES_DEPS "\
 	fuse \
 	fuse-devel \
 	ncurses-devel \
 	libuv-devel"
 
-# documentation (optional)
+# documentation dependencies (optional)
 ENV DOC_DEPS "\
 	pandoc"
 
-# tests
+# tests dependencies
 ENV TESTS_DEPS "\
 	bc \
 	gdb \
 	libunwind-devel \
+	ndctl \
 	strace"
 
-# packaging
+# packaging dependencies
 ENV PACKAGING_DEPS "\
+	fdupes \
 	rpm-build \
 	rpmdevtools"
 
-# misc
+# miscellaneous dependencies
 ENV MISC_DEPS "\
 	clang \
 	hub \
@@ -66,16 +70,6 @@ ENV MISC_DEPS "\
 	tar \
 	which \
 	xmlto"
-
-ENV NDCTL_DEPS "\
-	bash-completion-devel \
-	keyutils-devel \
-	libjson-c-devel \
-	libkmod-devel \
-	libtool \
-	libudev-devel \
-	libuuid-devel \
-	systemd-devel"
 
 # add openSUSE Leap 15.4 Oss repo
 RUN zypper ar -f http://download.opensuse.org/distribution/leap/15.4/repo/oss/ oss
@@ -89,17 +83,11 @@ RUN zypper update -y && zypper install -y \
 	$TESTS_DEPS \
 	$PACKAGING_DEPS \
 	$MISC_DEPS \
-	$TESTS_DEPS \
-	$NDCTL_DEPS \
 	&& zypper clean all
 
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
 RUN ./install-valgrind.sh fedora
-
-# Copy install libndctl script
-COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh tags/v70.1
 
 # Add user
 ENV USER pmdkuser
