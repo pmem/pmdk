@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * btree.c -- implementation of persistent binary search tree
@@ -135,7 +135,9 @@ int
 main(int argc, char *argv[])
 {
 	if (argc < 3) {
-		printf("usage: %s file-name [p|i|f] [key] [value] \n", argv[0]);
+		printf(
+			"usage: %s file-name [p|i|f] [key (int64_t != 0)] [value (str)]\n",
+			argv[0]);
 		return 1;
 	}
 
@@ -167,8 +169,20 @@ main(int argc, char *argv[])
 		break;
 		case 'i':
 			key = atoll(argv[3]);
-			value = argv[4];
-			btree_insert(pop, key, value);
+			/*
+			 * atoll returns 0 if conversion failed;
+			 * disallow 0 as a key
+			 */
+			if (key == 0) {
+				printf(
+					"Expecting a key of type int64, not equal to 0\n");
+			} else {
+				value = argv[4];
+				btree_insert(pop, key, value);
+				printf(
+					"Inserted key: '%ld' with value: '%s'\n",
+					(long)key, value);
+			}
 		break;
 		case 'f':
 			key = atoll(argv[3]);
