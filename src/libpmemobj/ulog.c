@@ -227,7 +227,7 @@ ulog_rebuild_next_vec(struct ulog *ulog, struct ulog_next *next,
 		if (ulog->next != 0)
 			if (VEC_PUSH_BACK(next, ulog->next) == 0)
 				FATAL("%s: failed to allocate a next vector",
-				      __func__);
+					__func__);
 	} while ((ulog = ulog_next(ulog, p_ops)) != NULL);
 }
 
@@ -261,7 +261,7 @@ ulog_reserve(struct ulog *ulog,
 			return -1;
 		if (VEC_PUSH_BACK(next, ulog->next) == 0)
 			FATAL("%s: failed to allocate a next vector",
-			      __func__);
+				__func__);
 		ulog = ulog_next(ulog, p_ops);
 		ASSERTne(ulog, NULL);
 
