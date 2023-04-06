@@ -108,7 +108,7 @@ def get_names_of_packages(packages_info):
     for elem in packages_info:
         sets_of_information = zip(packages_info[elem], types)
         for kit in sets_of_information:
-            if kit[0] and os_distro == 'opensuse-leap':
+            if kit[0] and os_distro == 'opensuse':
                 if elem.startswith('lib') and (kit[1] == '-' or kit[1] == '-debuginfo-'):
                     package_name = elem + str(1) + kit[1] + PMDK_VERSION + separator + \
                         SYSTEM_ARCHITECTURE + pkg_ext
@@ -118,7 +118,7 @@ def get_names_of_packages(packages_info):
                         SYSTEM_ARCHITECTURE + pkg_ext
                     packages.append(package_name)
 
-            elif kit[0] and not os_distro == 'opensuse-leap':
+            elif kit[0] and not os_distro == 'opensuse':
                 package_name = elem + kit[1] + PMDK_VERSION + separator +\
                     SYSTEM_ARCHITECTURE + pkg_ext
                 packages.append(package_name)

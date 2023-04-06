@@ -65,6 +65,7 @@ ENV MISC_DEPS "\
 	lbzip2 \
 	man \
 	python3-flake8 \
+	python3-pip \
 	rsync \
 	sudo \
 	tar \
@@ -85,9 +86,16 @@ RUN zypper update -y && zypper install -y \
 	$MISC_DEPS \
 	&& zypper clean all
 
+# for python scripts
+ENV PYTHON_DEPS "\
+	distro \
+	xmlrunner"
+
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
 RUN ./install-valgrind.sh fedora
+
+RUN pip3 install $PYTHON_DEPS
 
 # Add user
 ENV USER pmdkuser

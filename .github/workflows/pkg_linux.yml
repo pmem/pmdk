@@ -10,7 +10,8 @@ jobs:
       fail-fast: false
       matrix:
         CONFIG: ["OS=ubuntu OS_VER=22.04",
-                 "OS=rockylinux OS_VER=9"
+                 "OS=rockylinux OS_VER=9",
+                 "OS=opensuse-leap OS_VER=15"
                 ]
     env:
       GITHUB_REPO:    pmem/pmdk
