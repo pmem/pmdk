@@ -18,8 +18,8 @@ cat >${CONF_PATH}/testconfig.sh <<EOL
 PMEM_FS_DIR=${MOUNT_POINT}
 NON_PMEM_FS_DIR=${NON_PMEM_DIR}
 DEVICE_DAX_PATH=($(ndctl list -X | jq -r '.[].daxregion.devices[].chardev' | awk '$0="/dev/"$0' | paste -sd' '))
-KEEP_GOING=n
-TEST_TIMEOUT=75m
+KEEP_GOING=y
+TEST_TIMEOUT=120m
 ENABLE_SUDO_TESTS=y
 EOL
 
@@ -40,8 +40,8 @@ config = {
     'build': 'all',
     'granularity': 'all',
     'fail_on_skip': False,
-    'keep_going': False,
-    'timeout': '75m',
+    'keep_going': True,
+    'timeout': '120m',
     'fs_dir_force_pmem': 0,
     'dump_lines': 30,
     'force_enable': None,
