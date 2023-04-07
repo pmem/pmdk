@@ -65,11 +65,17 @@ ENV MISC_DEPS "\
 	lbzip2 \
 	man \
 	python3-flake8 \
+	python3-pip \
 	rsync \
 	sudo \
 	tar \
 	which \
 	xmlto"
+
+# python scripts dependencies
+ENV PYTHON_DEPS "\
+	distro \
+	xmlrunner"
 
 # add openSUSE Leap 15.4 Oss repo
 RUN zypper ar -f http://download.opensuse.org/distribution/leap/15.4/repo/oss/ oss
@@ -84,6 +90,8 @@ RUN zypper update -y && zypper install -y \
 	$PACKAGING_DEPS \
 	$MISC_DEPS \
 	&& zypper clean all
+
+RUN pip3 install $PYTHON_DEPS
 
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh

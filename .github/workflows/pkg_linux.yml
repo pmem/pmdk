@@ -9,9 +9,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        CONFIG: ["OS=ubuntu OS_VER=22.04",
-                 "OS=rockylinux OS_VER=9"
-                ]
+        CONFIG: ["OS=opensuse-leap OS_VER=15",
+                 "OS=rockylinux OS_VER=9",
+                 "OS=ubuntu OS_VER=22.04"]
     env:
       GITHUB_REPO:    pmem/pmdk
       DOCKER_REPO:    ghcr.io/pmem/pmdk
@@ -25,9 +25,8 @@ jobs:
       CHECK_PKGS:     1
 
     steps:
-
         - name: Clone the git repo
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
             fetch-depth: 0
 

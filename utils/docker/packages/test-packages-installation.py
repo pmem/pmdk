@@ -63,7 +63,13 @@ def get_libraries_names(packages_path, split_param):
     libraries_names = [re.split(split_param, elem)[0] for elem in listdir(packages_path)
                            if PMDK_VERSION in elem]
 
-    return set(libraries_names)
+    libraries_names_filtered = []
+    for library_name in libraries_names:
+        if library_name.endswith('1'):
+            library_name = library_name.replace('1','')
+        libraries_names_filtered.append(library_name)
+
+    return set(libraries_names_filtered)
 
 
 def get_not_installed_packages(packages_path, so_path, split_param):
