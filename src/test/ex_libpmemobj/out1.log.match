@@ -1,3 +1,7 @@
+Inserted key: '1234' with value: 'foo'
+Inserted key: '4321' with value: 'bar'
+Inserted key: '1' with value: 'Hello'
+Inserted key: '2' with value: 'World!'
 1 Hello
 2 World!
 1234 foo
