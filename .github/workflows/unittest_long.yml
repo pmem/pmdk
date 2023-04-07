@@ -7,13 +7,13 @@ on:
 jobs:
   linux:
     name: long
-    if: github.repository == 'pmem/pmdk'
+    if: github.repository == 'osalyk/pmdk'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 960
     strategy:
       fail-fast: false
       matrix:
-        os: [[self-hosted, rhel],[self-hosted, opensuse]]
+        os: [[self-hosted, Rocky8]]
     env:
       WORKDIR: utils/gha-runners
 
