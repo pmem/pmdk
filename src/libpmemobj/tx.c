@@ -1018,7 +1018,7 @@ pmemobj_tx_commit(void)
 		struct operation_context *ctx = tx->lane->external;
 		VEC_FOREACH_BY_PTR(userbuf, &tx->redo_userbufs)
 			if (operation_add_user_buffer(ctx, userbuf) == -1)
-				FATAL("%s: failed to allocate the next vector",
+				FATAL("%s: failed to allocate a next vector",
 					__func__);
 
 		palloc_publish(&pop->heap, VEC_ARR(&tx->actions),
