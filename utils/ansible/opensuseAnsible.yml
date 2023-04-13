@@ -29,7 +29,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-- hosts: '{{ host }}'
+- hosts: "{{ host }}"
+  # - hosts: localhost
+  # - connection: local
   tasks:
 
     - name: "Update kernel packages"
@@ -153,10 +155,10 @@
           - systemd-devel
 
     - name: "Run the install-valgrind script with arguments"
-      script: install-valgrind.sh fedora
+      script: ../docker/images/install-valgrind.sh fedora
 
     - name: "Run the install-libndctl script with arguments"
-      script: install-libndctl.sh tags/v70.1
+      script: ../docker/images/install-libndctl.sh tags/v70.1
 
     - name: "Add new user"
       shell: |

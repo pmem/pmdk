@@ -29,7 +29,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-- hosts: '{{ host }}'
+- hosts: "{{ host }}"
+  # - hosts: localhost
+  # - connection: local
   vars:
     newRegions: false
 
@@ -38,12 +40,15 @@
       shell: which ndctl
 
     - name: "Unmount namespaces if they exist"
-      shell: umount /dev/pmem* || true
+      shell: sudo umount /dev/pmem* || true
     
     - name: "Destroy current namespaces"
       shell: |
-        ndctl disable-namespace all
-        ndctl destroy-namespace all
+        sudo ndctl disable-namespace all
+        sudo ndctl destroy-namespace all
+      register: namespaces
+
+    - debug: var=namespaces
 
     - name: "Create new regions"
       block:
@@ -62,6 +67,7 @@
         #!/usr/bin/env bash
         DEV_DAX_R=0x0000
         FS_DAX_R=0x0001
+        MOUNT_POINT="/mnt/pmem0"
 
         function check_alignment() {
           local size=$1
@@ -97,6 +103,7 @@
           if [ $? -ne 0 ]; then
             exit 1;
           fi
+          jq -r '.blockdev' <<< $result
         }
 
         BIG_NS_SIZE=$(check_alignment 55)
@@ -112,9 +119,20 @@
         create_devdax 2m $BIG_NS_SIZE
         create_devdax 2m $SMALL_NS_SIZE
 
-        create_fsdax
+        pmem_name=$(create_fsdax)
+
+        if [ ! -d "${MOUNT_POINT}" ]; then
+          sudo mkdir ${MOUNT_POINT}
+        fi
+
+        sudo mkfs.ext4 -F /dev/${pmem_name}
+        sudo mount -o dax /dev/${pmem_name} ${MOUNT_POINT}
+        sudo chown -R pmdkuser ${MOUNT_POINT}
 
         sudo chmod 777 /dev/dax* || true
         sudo chmod a+rw /sys/bus/nd/devices/region*/deep_flush
         sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/resource
         sudo chmod +r  /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+      register: script
+
+    - debug: var=script
