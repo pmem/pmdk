@@ -77,3 +77,5 @@ pobj_xpublish_no_abort
 pobj_xpublish_valid_flags
 pobj_xlog_append_buffer_no_abort
 pobj_xlog_append_buffer_valid_flags
+win_depr_str
+win_depr_attr

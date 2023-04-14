@@ -2,8 +2,8 @@ Persistent Memory Development Kit
 
 This is utils/ansible/README.
 
-Ansible playbooks in this directory let user configure platforms to be used as tests runners.
-User can install packages for openSUSE and Rocky Linux using those playbooks and also configure provisioning for DIMMs and Namespaces.
+The scripts in this directory allow you to set up an RockyLinux and OpenSuSe
+environment on a real HW and build a PMDK project in it.
 
 To use playbooks it is required to install Ansible first. It must be done on computer that will be used to execute script, not on target platform.
 

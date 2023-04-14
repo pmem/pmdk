@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2020-2023, Intel Corporation
 
-
 """
 This module includes functions which install packages from PMDK library.
 """
@@ -24,15 +23,15 @@ def get_package_version_and_system_architecture(pmdk_path):
     from packages directory.
     """
     os_distro=distro.id()
-    if os_distro == 'fedora' or os_distro == "rhel":
+    if os_distro != 'ubuntu':
         pkg_directory = path.join(pmdk_path, 'rpm')
-    elif os_distro == 'ubuntu':
+    else:
         pkg_directory = path.join(pmdk_path, 'dpkg')
 
     version = ''
     architecture = ''
     for elem in listdir(pkg_directory):
-        if os_distro == 'fedora' or os_distro == "rhel":
+        if os_distro != 'ubuntu':
             if '.src.rpm' in elem:
                 # looks for the version number of package in package name
                 version = re.search(r'[\s]*pmdk-([\S]+).src.rpm', elem).group(1)
@@ -168,14 +167,14 @@ if __name__ == '__main__':
     PMDK_VERSION, SYSTEM_ARCHITECTURE =\
         get_package_version_and_system_architecture(args.pmdk_path)
     save_pkg_version(args.pmdk_path + "/pkgVersion.json")
-    if os_distro == 'fedora' or os_distro == "rhel":
+    if os_distro != 'ubuntu':
         so_path = '/usr/lib64/'
         split_param = '-'
         packages_path = path.join(args.pmdk_path, 'rpm', SYSTEM_ARCHITECTURE)
         install_cmd = 'rpm -i --nodeps '
         install_func = install_rpm_packages
         get_names_of_pkg_content_func = get_names_of_rpm_content
-    elif os_distro == 'ubuntu':
+    else:
         so_path = '/lib/x86_64-linux-gnu/'
         split_param = '_'
         packages_path = path.join(args.pmdk_path, 'dpkg')
