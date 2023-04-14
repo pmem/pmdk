@@ -10,7 +10,7 @@ To use playbooks it is required to install Ansible first. It must be done on com
 Commands:
 'ansible-playbook -i <target_platform_ip_address>, opensuseAnsible.yml --extra-vars "host=all ansible_user=root ansible_password=<password_for_root_on_target>"'
 'ansible-playbook -i <target_platform_ip_address>, rockyAnsible.yml --extra-vars "host=all ansible_user=root ansible_password=<password_for_root_on_target>"'
-Those commands above will install required packages to build and use platform as runner for PMDK tests.
+Those commands above will install required packages to build PMDK tests.
 
 'ansible-playbook -i <target_platform_ip_address>, configureProvisioning.yml --extra-vars "host=all ansible_user=root ansible_password=<password_for_root_on_target>"'
 This command will configure regions and namespaces on DIMMs.
@@ -24,7 +24,7 @@ Configured regions are required to create namespaces on the DIMMs.
 
 - If Linux kernel is outdated, opensuseAnsible and rockyAnsible playbooks will reboot target platform.
 
-- It is possible to run playbooks inside target platform but if note above occurs then you need to rerun this playbook.
+- It is possible to run playbooks inside target platform but if notes above occurs then you need to rerun this playbook.
 
 To run playbooks inside the runner please comment line:
 
