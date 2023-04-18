@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022, Intel Corporation
+# Copyright 2022-2023, Intel Corporation
 
 #
 # get-system-info.sh - Script for printing system info
@@ -42,6 +42,9 @@ function system_info {
 	dnf check-update 2>/dev/null || true
 	echo "**********list-enviroment**********"
 	env
+	echo "**********list-avaialble-pmem-devices**********"
+	ls -la /dev/dax*
+	ls -la /dev/pmem*
 }
 
 # Call the function above to print system info.
