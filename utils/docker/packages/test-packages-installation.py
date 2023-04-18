@@ -63,6 +63,10 @@ def get_libraries_names(packages_path, split_param):
     libraries_names = [re.split(split_param, elem)[0] for elem in listdir(packages_path)
                            if PMDK_VERSION in elem]
 
+    for i in range(len(libraries_names)):
+        if libraries_names[i].endswith('1'):
+            libraries_names[i] = libraries_names[i].replace('1', '')
+
     return set(libraries_names)
 
 
