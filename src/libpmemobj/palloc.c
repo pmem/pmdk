@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * palloc.c -- implementation of pmalloc POSIX-like API
@@ -269,13 +269,13 @@ palloc_heap_action_exec(struct palloc_heap *heap,
 	/* suppress unused-parameter errors */
 	SUPPRESS_UNUSED(heap);
 
-#ifdef DEBUG
 	enum memblock_state s = act->m.m_ops->get_state(&act->m);
 	if (s == act->new_state || s == MEMBLOCK_STATE_UNKNOWN) {
 		ERR("invalid operation or heap corruption");
+#ifdef DEBUG
 		ASSERT(0);
-	}
 #endif /* DEBUG */
+	}
 
 	/*
 	 * The actual required metadata modifications are chunk-type
