@@ -8,19 +8,19 @@
 
 # Pull base image
 FROM ubuntu:22.04
-MAINTAINER piotr.balcer@intel.com
+MAINTAINER tomasz.gromadzki@intel.com
 
+# Set required environment variables
+ENV OS ubuntu
+ENV OS_VER 22.04
+ENV PACKAGE_MANAGER dpkg
+ENV NOTTY 1
 ENV DEBIAN_FRONTEND noninteractive
 
 # Additional parameters to build docker without building components
 ARG SKIP_SCRIPTS_DOWNLOAD
 
-ENV VALGRIND_DEPS "autoconf \
-	automake \
-	build-essential \
-	git"
-
-# pmdk base
+# PMDK basic dependencies
 ENV BASE_DEPS "build-essential \
 	cmake \
 	git \
@@ -28,18 +28,24 @@ ENV BASE_DEPS "build-essential \
 	libndctl-dev \
 	pkg-config"
 
-# benchmarks (optional)
+# Valgrind dependencies
+ENV VALGRIND_DEPS "autoconf \
+	automake \
+	build-essential \
+	git"
+
+# benchmarks dependencies (optional)
 ENV BENCH_DEPS libglib2.0-dev
 
-# examples (optional)
+# examples dependencies (optional)
 ENV EXAMPLES_DEPS "libfuse-dev \
 	libncurses5-dev \
 	libuv1-dev"
 
-# documentation (optional)
+# documentation dependencies (optional)
 ENV DOC_DEPS pandoc
 
-# tests
+# tests dependencies
 ENV TESTS_DEPS "bc \
 	gdb \
 	libc6-dbg \
@@ -50,18 +56,18 @@ ENV TESTS_DEPS "bc \
 	strace \
 	bandit "
 
-# packaging
+# packaging dependencies
 ENV PACKAGING_DEPS "debhelper \
 	devscripts \
 	fakeroot"
 
-# CodeCov
+# CodeCov (coverage measurement) dependencies (optional)
 ENV CODECOV_DEPS curl perl
 
-# Coverity
+# Coverity (static analysis) dependencies (optional)
 ENV COVERITY_DEPS ruby gcc g++ wget
 
-# misc
+# miscellaneous dependencies (mostly for CI)
 ENV MISC_DEPS "clang \
 	clang-format \
 	flake8 \
@@ -69,7 +75,7 @@ ENV MISC_DEPS "clang \
 	sudo \
 	whois"
 
-# for python scripts
+# python scripts dependencies
 ENV PYTHON_DEPS "\
 	distro \
 	xmlrunner"
@@ -83,8 +89,8 @@ COPY download-scripts.sh download-scripts.sh
 # Update the Apt cache and install basic tools
 RUN apt-get update && apt-get dist-upgrade -y \
 	&& apt-get install -y --no-install-recommends \
-	$VALGRIND_DEPS \
 	$BASE_DEPS \
+	$VALGRIND_DEPS \
 	$BENCH_DEPS \
 	$EXAMPLES_DEPS \
 	$DOC_DEPS \
@@ -99,17 +105,9 @@ RUN apt-get update && apt-get dist-upgrade -y \
 
 RUN pip3 install $PYTHON_DEPS
 
-# Add user
+# Add and switch user
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
 RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
 RUN echo "%sudo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-# switch user
 USER $USER
-
-# Set required environment variables
-ENV OS ubuntu
-ENV OS_VER 22.04
-ENV PACKAGE_MANAGER dpkg
-ENV NOTTY 1

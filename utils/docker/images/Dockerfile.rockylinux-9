@@ -10,14 +10,13 @@
 FROM rockylinux/rockylinux:9
 MAINTAINER tomasz.gromadzki@intel.com
 
-ENV VALGRIND_DEPS "\
-	autoconf \
-	automake \
-	file \
-	findutils \
-	git"
+# Set required environment variables
+ENV OS rockylinux/rockylinux
+ENV OS_VER 9
+ENV PACKAGE_MANAGER rpm
+ENV NOTTY 1
 
-# PMDK base deps
+# PMDK basic dependencies
 ENV BASE_DEPS "\
 	cmake \
 	git \
@@ -27,22 +26,30 @@ ENV BASE_DEPS "\
 	passwd \
 	pkgconfig"
 
-# benchmarks deps (optional)
+# Valgrind dependencies
+ENV VALGRIND_DEPS "\
+	autoconf \
+	automake \
+	file \
+	findutils \
+	git"
+
+# benchmarks dependencies (optional)
 ENV BENCH_DEPS "\
 	glib2-devel"
 
-# examples deps (optional)
+# examples dependencies (optional)
 ENV EXAMPLES_DEPS "\
 	fuse \
 	fuse-devel \
 	ncurses-devel \
 	libuv-devel"
 
-# documentation deps (optional)
+# documentation dependencies (optional)
 ENV DOC_DEPS "\
 	pandoc"
 
-# tests deps
+# tests dependencies
 ENV TESTS_DEPS "\
 	bc \
 	gdb \
@@ -51,13 +58,13 @@ ENV TESTS_DEPS "\
 	openssh-server \
 	strace"
 
-# packaging deps
+# packaging dependencies
 ENV PACKAGING_DEPS "\
 	rpm-build \
 	rpm-build-libs \
 	rpmdevtools"
 
-# miscellaneous deps
+# miscellaneous dependencies (mostly for CI)
 ENV MISC_DEPS "\
 	clang \
 	lbzip2 \
@@ -72,7 +79,7 @@ ENV MISC_DEPS "\
 	which \
 	xmlto"
 
-# for python scripts
+# python scripts dependencies
 ENV PYTHON_DEPS "\
 	distro \
 	xmlrunner"
@@ -82,21 +89,20 @@ COPY install-valgrind.sh install-valgrind.sh
 
 RUN dnf update -y && dnf install -y epel-release \
 && dnf --enablerepo devel install -y \
-	$VALGRIND_DEPS \
 	$BASE_DEPS \
+	$VALGRIND_DEPS \
 	$BENCH_DEPS \
 	$EXAMPLES_DEPS \
 	$DOC_DEPS \
 	$TESTS_DEPS \
 	$PACKAGING_DEPS \
 	$MISC_DEPS \
-	$TESTS_DEPS \
 	&& ./install-valgrind.sh rockylinux \
-&& dnf clean all
+	&& dnf clean all
 
 RUN pip3 install $PYTHON_DEPS
 
-# Add user
+# Add ans switch user
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
 RUN useradd -m $USER
@@ -104,9 +110,3 @@ RUN echo $USERPASS | passwd $USER --stdin
 RUN gpasswd wheel -a $USER
 RUN echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 USER $USER
-
-# Set required environment variables
-ENV OS rockylinux/rockylinux
-ENV OS_VER 9
-ENV PACKAGE_MANAGER rpm
-ENV NOTTY 1
