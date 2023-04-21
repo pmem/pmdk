@@ -45,6 +45,12 @@ function system_info {
 	echo "**********list-avaialble-pmem-devices**********"
 	ls -la /dev/dax*
 	ls -la /dev/pmem*
+	echo "**********list-nd-resources**********"
+	ls -la /sys/bus/nd/devices/ndbus*/region*/resource
+	ls -la /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+	ls -la /sys/bus/nd/devices/ndbus*/region*/pfn*/resource
+	ls -la /sys/bus/nd/devices/ndbus*/region*/namespace*/resource
+	ls -la /sys/bus/nd/devices/region*/deep_flush
 }
 
 # Call the function above to print system info.
