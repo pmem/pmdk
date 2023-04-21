@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # RUNTESTS -- setup the environment and run each test
@@ -69,6 +69,8 @@ runtest_local() {
 		}
 	done
 
+	ls -al /dev/dax* || echo "No DAX devices found"
+
 	if [ "$dryrun" ]
 	then
 		echo "(in ./$RUNTEST_DIR) $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
@@ -87,6 +89,9 @@ runtest_local() {
 	fi
 
 	retval=$?
+
+	ls -al /dev/dax* || echo "No DAX devices found"
+
 	errmsg='failed'
 	[ $retval = 124 -o $retval = 137 ] && errmsg='timed out'
 	[ $retval != 0 ] && {

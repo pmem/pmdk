@@ -18,16 +18,17 @@ cat >${CONF_PATH}/testconfig.sh <<EOL
 PMEM_FS_DIR=${MOUNT_POINT}
 NON_PMEM_FS_DIR=${NON_PMEM_DIR}
 DEVICE_DAX_PATH=($(ndctl list -X | jq -r '.[].daxregion.devices[].chardev' | awk '$0="/dev/"$0' | paste -sd' '))
-KEEP_GOING=y
+KEEP_GOING=n
 TEST_TIMEOUT=120m
 ENABLE_SUDO_TESTS=y
+UNITTEST_LOG_LEVEL=2
 EOL
 
 # Create config file for py tests.
 # We are using ndctl command to gather information about devdaxes, in form known from namespace configuration.
 cat >${CONF_PATH}/testconfig.py <<EOL
 config = {
-    'unittest_log_level': 1,
+    'unittest_log_level': 2,
     'page_fs_dir': '${NON_PMEM_DIR}',
     'fs': 'all',
     'cacheline_fs_dir': '${MOUNT_POINT}',
@@ -40,7 +41,7 @@ config = {
     'build': 'all',
     'granularity': 'all',
     'fail_on_skip': False,
-    'keep_going': True,
+    'keep_going': False,
     'timeout': '120m',
     'fs_dir_force_pmem': 0,
     'dump_lines': 30,
