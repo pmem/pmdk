@@ -1,3 +1,32 @@
+Fri Apr 21 2023 Łukasz Stolarczuk <lukasz.stolarczuk@intel.com>
+
+	* Version 1.13.0-rc1
+
+	This release:
+	- Removes (previously deprecated) librpmem. Those interested
+	in remote persistent memory support should use the rpma library
+	(https://github.com/pmem/rpma).
+	- Removes libpmemset - it was an experimental library.
+	- Sets libpmemblk as deprecated, to be removed in the next release.
+	- Sets libpmemlog as deprecated, to be removed in the next release.
+	- Sets btt support as deprecated, to be removed in the next release.
+	- Sets async as deprecated, to be removed in the next release.
+	- Sets FreeBSD support as deprecated, to be removed in the next release.
+	- Sets Windows support as depracated, to be removed in the next release.
+
+	Deprecations and removals are done accordingly to the support strategy
+	outlined in the blog post:
+	https://pmem.io/blog/2022/11/update-on-pmdk-and-our-long-term-support-strategy.
+
+	Other changes and notable bug fixes:
+	- core: handle ENOMEM gracefully during logging (#5515)
+	- pool: fix dependencies with pmempool (#5521)
+	- test: add more security checks for pmempool input
+	- pmreorder: share markers from an application through env variable (#5419)
+	- examples: fix potential buffer overflow in pmemobjfs example (#5472)
+	- several fixes to support ppc64le architecture
+	- several fixes for issues found by Coverity tool
+
 Tue Aug 25 2022 Łukasz Plewa <lukasz.plewa@intel.com>
 
 	* Version 1.12.1
