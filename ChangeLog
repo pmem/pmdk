@@ -27,6 +27,12 @@ Fri Apr 21 2023 Łukasz Stolarczuk <lukasz.stolarczuk@intel.com>
 	- several fixes to support ppc64le architecture
 	- several fixes for issues found by Coverity tool
 
+	Known issues:
+	- The latest validation cycle exposed three previously unknown persistency
+	issues related to libpmem2: #5595, #5596, and #5597. It is not known whether
+	these issues affect previous libpmem2 releases as well. There are no signs
+	these issues affect any other PMDK library.
+
 Tue Aug 25 2022 Łukasz Plewa <lukasz.plewa@intel.com>
 
 	* Version 1.12.1
