@@ -90,8 +90,8 @@
         branch: master
         target_dir: "{{ working_dir_path }}/pmdk"
       pmdk_tests:
-        url: https://github.com/pmem/pmdk-tests
-        branch: master
+        url: https://github.com/tszczyp/pmdk-tests
+        branch: repo_cleanup
         target_dir: "{{ working_dir_path }}/pmdk-tests"
 
   tasks:
