@@ -165,6 +165,8 @@ ringbuf_new(struct pmem2_source *source, uint64_t entry_size)
 	}
 
 	ringbuf_data_force_page_allocation(rbuf->data, size);
+	rbuf->persist(rbuf->data, sizeof(*rbuf->data));
+
 	pmem2_config_delete(&config);
 
 	return rbuf;
@@ -233,6 +235,7 @@ ringbuf_store_position(struct ringbuf *rbuf, uint64_t *pos, uint64_t val)
 	 */
 	if (rbuf->granularity == PMEM2_GRANULARITY_BYTE) {
 		__atomic_store_n(pos, val, __ATOMIC_RELEASE);
+		rbuf->persist(pos, sizeof(val));
 	} else {
 		__atomic_store_n(pos, val | RINGBUF_POS_PERSIST_BIT,
 				__ATOMIC_RELEASE);
