@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * map_posix.c -- pmem2_map (POSIX)
@@ -590,14 +590,17 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 	if (ret)
 		return ret;
 
+#ifndef _WIN32
+	if (map->source.type == PMEM2_SOURCE_FD) {
+		 VALGRIND_REMOVE_PMEM_MAPPING(map_addr, map_len);
+	}
+#endif
 	/*
 	 * when reserved_length==0 mapping is created by pmem2_map_from_existing
 	 * such mappings are provided by the users and shouldn't be unmapped
 	 * by pmem2.
 	 */
 	if (map->reserved_length) {
-		VALGRIND_REMOVE_PMEM_MAPPING(map_addr, map_len);
-
 		if (rsv) {
 			void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 			size_t rsv_offset = (size_t)map_addr - (size_t)rsv_addr;
