@@ -370,7 +370,7 @@ void *
 ut_file_map(const char *file, int line, const char *func, int fd, size_t size)
 {
 	void *addr = NULL;
-	ut_mmap(file, line, func, addr, size, PROT_READ | PROT_WRITE,
+	addr = ut_mmap(file, line, func, NULL, size, PROT_READ | PROT_WRITE,
 		MAP_SHARED, fd, 0);
 	return addr;
 }
