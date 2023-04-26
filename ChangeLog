@@ -1,6 +1,6 @@
-Fri Apr 21 2023 Łukasz Stolarczuk <lukasz.stolarczuk@intel.com>
+Wed Apr 26 2023 Łukasz Stolarczuk <lukasz.stolarczuk@intel.com>
 
-	* Version 1.13.0-rc1
+	* Version 1.13.0
 
 	This release:
 	- Removes (previously deprecated) librpmem. Those interested
@@ -12,7 +12,7 @@ Fri Apr 21 2023 Łukasz Stolarczuk <lukasz.stolarczuk@intel.com>
 	- Sets btt support as deprecated, to be removed in the next release.
 	- Sets async as deprecated, to be removed in the next release.
 	- Sets FreeBSD support as deprecated, to be removed in the next release.
-	- Sets Windows support as depracated, to be removed in the next release.
+	- Sets Windows support as deprecated, to be removed in the next release.
 
 	Deprecations and removals are done accordingly to the support strategy
 	outlined in the blog post:
