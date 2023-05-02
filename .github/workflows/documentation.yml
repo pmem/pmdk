@@ -1,6 +1,10 @@
+# Run checks around PMDK's documentation (like missing manpages, etc.).
+#
+# This workflow does not use docker containers.
 name: Documentation
 
 on:
+  workflow_dispatch:
   schedule:
     # run this job at 00:00 UTC every Saturday
     - cron: '0 0 * * 6'
@@ -8,23 +12,29 @@ on:
 jobs:
   linux:
     name: Documentation
-    if: github.repository == 'pmem/pmdk'
     runs-on: ubuntu-latest
     env:
-      WORKDIR: utils/gha-runners
-      SCRIPT: utils/check_docs/split_manpage_tests.py
+      WORKDIR:  utils/gha-runners
+      SCRIPT:   utils/check_docs/split_manpage_tests.py
 
     steps:
-        - name: clone PMDK repository
-          uses: actions/checkout@v2
+      - name: Clone the git repo
+        uses: actions/checkout@v3
 
-        - name: Install necessary packages
-          run: |
-            sudo apt-get install -y build-essential cmake libndctl-dev libdaxctl-dev pandoc pkg-config
+      - name: Install required packages
+        run: |
+          export BASE_DEPS="build-essential \
+            cmake \
+            libdaxctl-dev \
+            libndctl-dev \
+            pandoc \
+            pkg-config"
 
-        - name: Build
-          run: |
-            ./$WORKDIR/build-pmdk-documentation.sh
+          sudo apt-get update \
+          && sudo apt-get install -y --no-install-recommends ${BASE_DEPS}
 
-        - name: Run tests
-          run: python3 ${SCRIPT} --with-pmem2 -r $(pwd) -i $(pwd)/../install -v
+      - name: Build and install PMDK with docs
+        run: ./$WORKDIR/build-pmdk-documentation.sh
+
+      - name: Run docs' tests
+        run: python3 ${SCRIPT} --with-pmem2 -r $(pwd) -i $(pwd)/../install -v
