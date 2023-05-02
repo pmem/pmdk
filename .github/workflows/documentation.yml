@@ -14,8 +14,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     env:
-      WORKDIR:  utils/gha-runners
-      SCRIPT:   utils/check_docs/split_manpage_tests.py
+      TEST_SCRIPT: utils/check_docs/docs_tests.py
 
     steps:
       - name: Clone the git repo
@@ -34,7 +33,7 @@ jobs:
           && sudo apt-get install -y --no-install-recommends ${BASE_DEPS}
 
       - name: Build and install PMDK with docs
-        run: ./$WORKDIR/build-pmdk-documentation.sh
+        run: make doc install prefix=$(pwd)/../install -j$(nproc)
 
       - name: Run docs' tests
-        run: python3 ${SCRIPT} --with-pmem2 -r $(pwd) -i $(pwd)/../install -v
+        run: python3 ${TEST_SCRIPT} -r $(pwd) -i $(pwd)/../install -v
