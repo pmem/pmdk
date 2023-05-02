@@ -17,6 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
+        config: ['RUNTESTS -t long',
+                 'RUNTESTS.py -t long']
     env:
       WORKDIR: utils/gha-runners
 
@@ -33,8 +35,5 @@ jobs:
       - name: Create testconfig file
         run: ./$WORKDIR/create-testconfig.sh
 
-      - name: Run tests - Bash framework
-        run: cd src/test/ && ./RUNTESTS -t "long"
-
-      - name: Run tests - Python framework
-        run: cd src/test/ && ./RUNTESTS.py -t "long"
+      - name: Run tests
+        run: cd src/test/ && ./${{ matrix.config }}
