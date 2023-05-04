@@ -86,6 +86,7 @@ ringbuf_data_force_page_allocation(struct ringbuf_data *rbuf_data, size_t size)
 	char *addr_end = (char *)cur_addr + size;
 	for (; cur_addr < addr_end; cur_addr += pagesize) {
 		*cur_addr = *cur_addr;
+		VALGRIND_SET_CLEAN(cur_addr, 1);
 	}
 }
 
@@ -233,6 +234,7 @@ ringbuf_store_position(struct ringbuf *rbuf, uint64_t *pos, uint64_t val)
 	 */
 	if (rbuf->granularity == PMEM2_GRANULARITY_BYTE) {
 		__atomic_store_n(pos, val, __ATOMIC_RELEASE);
+		VALGRIND_SET_CLEAN(pos, sizeof(val));
 	} else {
 		__atomic_store_n(pos, val | RINGBUF_POS_PERSIST_BIT,
 				__ATOMIC_RELEASE);
