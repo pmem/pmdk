@@ -83,7 +83,6 @@ of the file. The file is too small.
 * **PMEM2_E_SOURCE_EMPTY** - mapped file has size equal to 0.
 
 * **PMEM2_E_MAPPING_EXISTS** - if the object exists before the function call.
-For details please see **CreateFileMapping**() manual pages. (Windows only)
 
 * **PMEM2_E_OFFSET_UNALIGNED** - argument unaligned, offset is not a multiple of
 the alignment required for specific *\*source*. Please see

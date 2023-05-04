@@ -56,11 +56,6 @@ On all systems:
 
 * **PMEM2_E_INVALID_FILE_HANDLE** - source contains an invalid file handle.
 
-On Windows:
-
-* **PMEM2_E_INVALID_FILE_TYPE** - handle points to a resource that is not
-a regular file.
-
 On Linux:
 
 * **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,

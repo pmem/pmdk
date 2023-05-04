@@ -59,8 +59,7 @@ The **pmem2_map_delete**() can fail with the following errors:
 * **PMEM2_E_MAPPING_NOT_FOUND** - mapping was not found (it was already
 unmapped or pmem2_map state was corrupted)
 
-On systems other than Windows it can also return **-EINVAL** from the underlying
-**munmap**(2) function.
+**-EINVAL** from the underlying **munmap**(2) function.
 
 # SEE ALSO #
 
