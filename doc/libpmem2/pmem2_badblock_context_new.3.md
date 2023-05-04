@@ -63,8 +63,6 @@ The **pmem2_badblock_context_delete**() function frees *\*bbctx* returned by
 **pmem2_badblock_context_new**() and sets *\*bbctx* to NULL. If *\*bbctx*
 is NULL, no operation is performed.
 
-It is not supported on Windows.
-
 # RETURN VALUE #
 
 The **pmem2_badblock_context_new**() function returns 0 on success
@@ -87,7 +85,7 @@ the given *src*.
 * **PMEM2_E_CANNOT_READ_BOUNDS** - cannot read offset or size of the namespace
 of the given *src*.
 
-* **PMEM2_E_NOSUPP** - on Windows or when the OS does not support this functionality
+* **PMEM2_E_NOSUPP** - when the OS does not support this functionality
 
 * **-ENOMEM** - out of memory
 

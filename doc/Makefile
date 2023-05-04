@@ -109,11 +109,11 @@ MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.m
 		libpmem2/pmem2_deep_flush.3.md libpmem2/pmem2_source_from_anon.3.md \
 		libpmem2/pmem2_source_device_id.3.md libpmem2/pmem2_source_device_usc.3.md \
 		libpmem2/pmem2_map_from_existing.3.md libpmem2/pmem2_source_get_fd.3.md \
-		libpmem2/pmem2_source_get_handle.3.md libpmem2/pmem2_vm_reservation_extend.3.md \
+		libpmem2/pmem2_vm_reservation_extend.3.md \
 		libpmem2/pmem2_vm_reservation_map_find.3.md libpmem2/pmem2_source_pread_mcsafe.3.md \
 
 MANPAGES_1_MD_PMEM2 =
-MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_config_set_vdm.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3 \
+MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_config_set_vdm.3 libpmem2/pmem2_source_delete.3 \
 	libpmem2/pmem2_get_memset_fn.3 libpmem2/pmem2_get_memcpy_fn.3 libpmem2/pmem2_memcpy_async.3 libpmem2/pmem2_memmove_async.3 \
 	libpmem2/pmem2_memset_async.3 libpmem2/pmem2_vm_reservation_delete.3 \
 	libpmem2/pmem2_badblock_context_delete.3 libpmem2/pmem2_vm_reservation_shrink.3 \
