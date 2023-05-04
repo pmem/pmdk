@@ -58,21 +58,6 @@ On all systems:
 * **PMEM2_E_NOSUPP** - the underlying platform does not expose unsafe shutdown
 count information.
 
-On Windows:
-
-* -**errno** equivalent of return code set by failing
-**GetFinalPathNameByHandleW**(), while trying to resolve volume path from the
-file handle.
-
-* -**errno** set by failing **malloc**(3), while trying to allocate a buffer
-for storing volume path.
-
-* -**errno** equivalent of return code set by failing
-**CreateFileW**(), while trying to obtain a handle to the volume.
-
-* -**errno** equivalent of return code set by failing
-**DeviceIoControl**(), while trying to obtain  volume **USC** value.
-
 On Linux:
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file
