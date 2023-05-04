@@ -89,7 +89,7 @@ Steps to make a package:
 ## 6. Later, for major/minor release
 - on the stable-$VER branch, bump the version of Docker images (`utils/docker/images/set-images-version.sh`) to $VER
 - once the pmem.github.io repository contains new documentation (thanks to `utils/docker/run-doc-update.sh` script run in CI),
-  add a new tag ("$VER") in file `data/releases_linux.yml`, based on previous tags in these files
+  add a new tag ("$VER") in file `data/releases_linux.yml`, based on previous tags in this file
 
 ## 7. For curious readers
 

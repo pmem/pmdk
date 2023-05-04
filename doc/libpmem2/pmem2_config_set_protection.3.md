@@ -58,7 +58,7 @@ It is either PROT_NONE or the bitwise OR of one or more of the following flags:
 
 * **PMEM2_PROT_WRITE** - Pages may be written.
 
-* **PMEM2_PROT_NONE** - Pages may not be accessed. On Windows this flag is not supported.
+* **PMEM2_PROT_NONE** - Pages may not be accessed.
 
 # RETURN VALUE #
 

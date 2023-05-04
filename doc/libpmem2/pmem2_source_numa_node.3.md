@@ -66,9 +66,9 @@ on Linux:
 This call requires **libndctl** to retrieve the numa information.
 It only works for sources that are actually located on persistent memory, i.e., devdax or fsdax.
 As anonymous sources are not backed by files on persistent memory, this method is not supported for them.
-It also does not work under Windows or systems without **libndctl**.
+It also does not work under systems without **libndctl**.
 
 # SEE ALSO #
 
-**errno**(3), **ndctl_new**(3), **pmem2_source_from_handle**(3),
-**pmem2_source_from_fd**(3), **libpmem2**(7), **libndctl**(7) and **<https://pmem.io>**
+**errno**(3), **ndctl_new**(3), **pmem2_source_from_fd**(3),
+**libpmem2**(7), **libndctl**(7) and **<https://pmem.io>**

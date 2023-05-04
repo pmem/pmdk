@@ -80,7 +80,6 @@ MANPAGES_3_DUMMY = libpmem/pmem_drain.3 libpmem/pmem_has_hw_drain.3 libpmem/pmem
 		   libpmemobj/pmemobj_defrag.3 libpmemobj/pmemobj_get_user_data.3 libpmemobj/pmemobj_set_user_data.3 libpmemobj/pmemobj_tx_get_user_data.3 libpmemobj/pmemobj_tx_set_user_data.3 libpmemobj/pmemobj_tx_get_failure_behavior.3 libpmemobj/pmemobj_tx_set_failure_behavior.3
 
 MANPAGES_WEBDIR_LINUX = web_linux
-MANPAGES_WEBDIR_WINDOWS = web_windows
 
 # experimental
 MANPAGES_7_MD_EXP =
@@ -109,11 +108,11 @@ MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.m
 		libpmem2/pmem2_deep_flush.3.md libpmem2/pmem2_source_from_anon.3.md \
 		libpmem2/pmem2_source_device_id.3.md libpmem2/pmem2_source_device_usc.3.md \
 		libpmem2/pmem2_map_from_existing.3.md libpmem2/pmem2_source_get_fd.3.md \
-		libpmem2/pmem2_source_get_handle.3.md libpmem2/pmem2_vm_reservation_extend.3.md \
+		libpmem2/pmem2_vm_reservation_extend.3.md \
 		libpmem2/pmem2_vm_reservation_map_find.3.md libpmem2/pmem2_source_pread_mcsafe.3.md \
 
 MANPAGES_1_MD_PMEM2 =
-MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_config_set_vdm.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3 \
+MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_config_set_vdm.3 libpmem2/pmem2_source_delete.3 \
 	libpmem2/pmem2_get_memset_fn.3 libpmem2/pmem2_get_memcpy_fn.3 libpmem2/pmem2_memcpy_async.3 libpmem2/pmem2_memmove_async.3 \
 	libpmem2/pmem2_memset_async.3 libpmem2/pmem2_vm_reservation_delete.3 \
 	libpmem2/pmem2_badblock_context_delete.3 libpmem2/pmem2_vm_reservation_shrink.3 \
@@ -193,8 +192,7 @@ txt: $(TXTFILES)
 
 all: | $(MANPAGES)
 
-$(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
-	$(MKDIR) -p $@
+	$(MKDIR) -p $(MANPAGES_WEBDIR_LINUX)
 
 %.1: %.1.md
 	../utils/md2man.sh $< default.man $@
@@ -219,16 +217,12 @@ $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 
 html: $(HTMLFILES)
 
-web: $(MANPAGES) | $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS)
+web: $(MANPAGES) | $(MANPAGES_WEBDIR_LINUX)
 	$(MAKE) -C generated all
-	$(foreach f, $(MANPAGES_7_MD_WEB), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
-	$(foreach f, $(MANPAGES_5_MD_WEB), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
-	$(foreach f, $(MANPAGES_3_MD_WEB), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
-	$(foreach f, $(MANPAGES_1_MD_WEB), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
-	$(foreach f, $(MANPAGES_7_MD_WEB), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
-	$(foreach f, $(MANPAGES_5_MD_WEB), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
-	$(foreach f, $(MANPAGES_3_MD_WEB), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
-	$(foreach f, $(MANPAGES_1_MD_WEB), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
+	$(foreach f, $(MANPAGES_7_MD_WEB), WEB=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
+	$(foreach f, $(MANPAGES_5_MD_WEB), WEB=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
+	$(foreach f, $(MANPAGES_3_MD_WEB), WEB=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
+	$(foreach f, $(MANPAGES_1_MD_WEB), WEB=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
 
 compress: $(GZFILES)
 
@@ -236,8 +230,7 @@ clean:
 
 clobber: clean
 	$(RM) $(TXTFILES) $(HTMLFILES) $(GZFILES) $(MANPAGES)
-	$(RM) -r $(MANPAGES_WEBDIR_LINUX) \
-		$(MANPAGES_WEBDIR_WINDOWS)
+	$(RM) -r $(MANPAGES_WEBDIR_LINUX)
 
 install: compress
 	install -d -v $(MANPAGES_DESTDIR_7)

@@ -42,8 +42,6 @@ int pmem2_badblock_next(
 The **pmem2_badblock_next**() function reads the next bad block for the given
 bad block context *\*bbctx*.
 
-It is not supported on Windows.
-
 # RETURN VALUE #
 
 The **pmem2_badblock_next**() function returns 0 and stores the next bad block
@@ -57,7 +55,7 @@ bad blocks for the given bad block context *\*bbctx*.
 * **PMEM2_E_NO_BAD_BLOCK_FOUND** - there are no more bad blocks for the given
 bad block context *\*bbctx*, *\*bb* is undefined in this case.
 
-* **PMEM2_E_NOSUPP** - on Windows or when the OS does not support this functionality
+* **PMEM2_E_NOSUPP** - when the OS does not support this functionality
 
 # SEE ALSO #
 
