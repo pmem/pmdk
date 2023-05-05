@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 import futils
 import testframework as t
@@ -83,6 +83,7 @@ class TEST5(EX_LIBPMEM2):
 
 
 @t.windows_exclude
+@t.require_valgrind_disabled('pmemcheck')
 class TEST6(EX_LIBPMEM2):
 
     def run(self, ctx):
