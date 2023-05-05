@@ -8,16 +8,15 @@
 
 # Pull base image
 FROM fedora:37
-MAINTAINER piotr.balcer@intel.com
+MAINTAINER tomasz.gromadzki@intel.com
 
-ENV VALGRIND_DEPS "\
-	autoconf \
-	automake \
-	file \
-	findutils \
-	git"
+# Set required environment variables
+ENV OS fedora
+ENV OS_VER 37
+ENV PACKAGE_MANAGER rpm
+ENV NOTTY 1
 
-# pmdk base
+# PMDK basic dependencies
 ENV BASE_DEPS "\
 	cmake \
 	git \
@@ -26,22 +25,30 @@ ENV BASE_DEPS "\
 	ndctl-devel \
 	pkgconfig"
 
-# benchmarks (optional)
+# Valgrind dependencies
+ENV VALGRIND_DEPS "\
+	autoconf \
+	automake \
+	file \
+	findutils \
+	git"
+
+# benchmarks dependencies (optional)
 ENV BENCH_DEPS "\
 	glib2-devel"
 
-# examples (optional)
+# examples dependencies (optional)
 ENV EXAMPLES_DEPS "\
 	fuse \
 	fuse-devel \
 	ncurses-devel \
 	libuv-devel"
 
-# documentation (optional)
+# documentation dependencies (optional)
 ENV DOC_DEPS "\
 	pandoc"
 
-# tests
+# tests dependencies
 ENV TESTS_DEPS "\
 	bc \
 	gdb \
@@ -50,18 +57,13 @@ ENV TESTS_DEPS "\
 	openssh-server \
 	strace"
 
-# packaging
+# packaging dependencies
 ENV PACKAGING_DEPS "\
 	rpm-build \
 	rpm-build-libs \
 	rpmdevtools"
 
-# Coverity
-ENV COVERITY_DEPS "\
-	gcc \
-	wget"
-
-# misc
+# miscellaneous dependencies (mostly for CI)
 ENV MISC_DEPS "\
 	clang \
 	hub \
@@ -79,20 +81,18 @@ ENV MISC_DEPS "\
 COPY install-valgrind.sh install-valgrind.sh
 
 RUN dnf update -y && dnf install -y \
-	$VALGRIND_DEPS \
 	$BASE_DEPS \
+	$VALGRIND_DEPS \
 	$BENCH_DEPS \
 	$EXAMPLES_DEPS \
 	$DOC_DEPS \
 	$TESTS_DEPS \
 	$PACKAGING_DEPS \
-	$COVERITY_DEPS \
 	$MISC_DEPS \
-	$TESTS_DEPS \
 	&& ./install-valgrind.sh fedora \
 	&& dnf clean all
 
-# Add user
+# Add and switch user
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
 RUN useradd -m $USER
@@ -100,9 +100,3 @@ RUN echo "$USER:$USERPASS" | chpasswd
 RUN gpasswd wheel -a $USER
 RUN echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 USER $USER
-
-# Set required environment variables
-ENV OS fedora
-ENV OS_VER 37
-ENV PACKAGE_MANAGER rpm
-ENV NOTTY 1

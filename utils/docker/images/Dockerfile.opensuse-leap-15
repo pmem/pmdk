@@ -8,15 +8,15 @@
 
 # Pull base image
 FROM opensuse/leap:15
-MAINTAINER piotr.balcer@intel.com
+MAINTAINER tomasz.gromadzki@intel.com
 
-# Valgrind dependencies
-ENV VALGRIND_DEPS "\
-	autoconf \
-	automake \
-	file \
-	findutils \
-	git"
+# Set required environment variables
+ENV OS opensuse/leap
+ENV OS_VER 15
+ENV PACKAGE_MANAGER rpm
+ENV NOTTY 1
+ENV LD_LIBRARY_PATH /usr/lib:$LD_LIBRARY_PATH
+ENV PKG_CONFIG_PATH /usr/lib/pkgconfig:$PKG_CONFIG_PATH
 
 # PMDK basic dependencies
 ENV BASE_DEPS "\
@@ -28,6 +28,14 @@ ENV BASE_DEPS "\
 	make \
 	pkg-config \
 	systemd"
+
+# Valgrind dependencies
+ENV VALGRIND_DEPS "\
+	autoconf \
+	automake \
+	file \
+	findutils \
+	git"
 
 # benchmarks dependencies (optional)
 ENV BENCH_DEPS "\
@@ -58,7 +66,7 @@ ENV PACKAGING_DEPS "\
 	rpm-build \
 	rpmdevtools"
 
-# miscellaneous dependencies
+# miscellaneous dependencies (mostly for CI)
 ENV MISC_DEPS "\
 	clang \
 	hub \
@@ -72,32 +80,32 @@ ENV MISC_DEPS "\
 	which \
 	xmlto"
 
-# add openSUSE Leap 15.4 Oss repo
-RUN zypper ar -f http://download.opensuse.org/distribution/leap/15.4/repo/oss/ oss
-
-RUN zypper update -y && zypper install -y \
-	$VALGRIND_DEPS \
-	$BASE_DEPS \
-	$BENCH_DEPS \
-	$EXAMPLES_DEPS \
-	$DOC_DEPS \
-	$TESTS_DEPS \
-	$PACKAGING_DEPS \
-	$MISC_DEPS \
-	&& zypper clean all
-
-# for python scripts
+# python scripts dependencies
 ENV PYTHON_DEPS "\
 	distro \
 	xmlrunner"
 
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
-RUN ./install-valgrind.sh fedora
+
+# add openSUSE Leap 15.4 Oss repo
+RUN zypper ar -f http://download.opensuse.org/distribution/leap/15.4/repo/oss/ oss
+
+RUN zypper update -y && zypper install -y \
+	$BASE_DEPS \
+	$VALGRIND_DEPS \
+	$BENCH_DEPS \
+	$EXAMPLES_DEPS \
+	$DOC_DEPS \
+	$TESTS_DEPS \
+	$PACKAGING_DEPS \
+	$MISC_DEPS \
+	&& ./install-valgrind.sh fedora \
+	&& zypper clean all
 
 RUN pip3 install $PYTHON_DEPS
 
-# Add user
+# Add and switch user
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
 RUN useradd -m $USER
@@ -110,11 +118,3 @@ RUN sed -i 's/# %wheel/%wheel/g' /etc/sudoers
 RUN groupadd wheel
 RUN gpasswd wheel -a $USER
 USER $USER
-
-# Set required environment variables
-ENV OS opensuse/leap
-ENV OS_VER 15
-ENV PACKAGE_MANAGER rpm
-ENV NOTTY 1
-ENV LD_LIBRARY_PATH /usr/lib:$LD_LIBRARY_PATH
-ENV PKG_CONFIG_PATH /usr/lib/pkgconfig:$PKG_CONFIG_PATH
