@@ -43,7 +43,7 @@ def get_package_version_and_system_architecture(pmdk_path):
 
     # if cannot read values from json file, read them from rpms:
     if version == '' or architecture == '':
-        if os_distro == 'fedora' or os_distro == "rhel":
+        if os_distro != 'ubuntu':
             pkg_directory = path.join(pmdk_path, 'rpm')
             for elem in listdir(pkg_directory):
                 if '.src.rpm' in elem:
@@ -51,7 +51,7 @@ def get_package_version_and_system_architecture(pmdk_path):
                 else:
                     architecture = elem
 
-        elif os_distro == 'ubuntu':
+        else:
             pkg_directory = path.join(pmdk_path, 'dpkg')
             for elem in listdir(pkg_directory):
                 if '.changes' in elem:
@@ -62,7 +62,7 @@ def get_package_version_and_system_architecture(pmdk_path):
     return version, architecture
 
 
-def remove_install_rpm_packages(pmdk_path):
+def uninstall_rpm_packages(pmdk_path):
     """
     Removes binaries installed from packages from PMDK library.
     """
@@ -78,7 +78,7 @@ def remove_install_rpm_packages(pmdk_path):
         check_output('rpm -e ' + pkg_to_uninstall, cwd=pmdk_path, shell=True)
 
 
-def remove_install_dpkg_packages(pmdk_path):
+def uninstall_dpkg_packages(pmdk_path):
     """
     Removes binaries installed from packages from PMDK library.
     """
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         get_package_version_and_system_architecture(args.pmdk_path)
 
     os_distro=distro.id()
-    if os_distro == 'fedora' or os_distro == "rhel":
-        remove_install_rpm_packages(args.pmdk_path)
-    elif os_distro == 'ubuntu':
-        remove_install_dpkg_packages(args.pmdk_path)
+    if os_distro != 'ubuntu':
+        uninstall_rpm_packages(args.pmdk_path)
+    else:
+        uninstall_dpkg_packages(args.pmdk_path)

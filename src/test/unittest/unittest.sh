@@ -1,6 +1,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -1188,6 +1188,8 @@ function require_dax_device_alignments() {
 		fatal "$UNITTEST_NAME: Do not use 'require_dax_devices' and "
 			"'require_dax_device_alignments' together. Use the latter instead."
 	fi
+
+	REQUIRE_DAX_DEVICES="$#"
 
 	local device_dax_path=(${DEVICE_DAX_PATH[@]})
 	local cmd="$PMEMDETECT -a"

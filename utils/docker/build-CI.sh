@@ -14,20 +14,6 @@ set -e
 source $(dirname $0)/set-ci-vars.sh
 source $(dirname $0)/set-vars.sh
 
-if [[ "$CI_EVENT_TYPE" != "cron" && "$CI_BRANCH" != "coverity_scan" \
-	&& "$COVERITY" -eq 1 ]]; then
-	echo "INFO: Skip Coverity scan job if build is triggered neither by " \
-		"'cron' nor by a push to 'coverity_scan' branch"
-	exit 0
-fi
-
-if [[ ( "$CI_EVENT_TYPE" == "cron" || "$CI_BRANCH" == "coverity_scan" )\
-	&& "$COVERITY" -ne 1 ]]; then
-	echo "INFO: Skip regular jobs if build is triggered either by 'cron'" \
-		" or by a push to 'coverity_scan' branch"
-	exit 0
-fi
-
 if [[ -z "$OS" || -z "$OS_VER" || -z "$IMG_VER" ]]; then
 	echo "ERROR: The variables OS, OS_VER and IMG_VER have to be set properly " \
 		"(eg. OS=ubuntu, OS_VER=16.04, IMG_VER=1.10)."
@@ -51,11 +37,8 @@ if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; fi
 if [[ $BANDIT -eq 1 ]] ; then command="./run-bandit.sh"; fi
-
-if [[ ( "$CI_EVENT_TYPE" == "cron" || "$CI_BRANCH" == "coverity_scan" )\
-	&& "$COVERITY" -eq 1 ]]; then
-	command="./run-coverity.sh"
-fi
+if [[ "$COVERITY" -eq 1 ]]; then command="./run-coverity.sh"; fi
+if [[ $CHECK_PKGS -eq 1 ]] ; then command="./build-and-test-pmdk-packages.sh"; fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUILD_PACKAGE_CHECK=y; fi

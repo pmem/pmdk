@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018-2023, Intel Corporation
 
-
 """
 This module includes tests for PMDK packages installation.
 Tests check:
@@ -37,7 +36,7 @@ def get_package_version_and_system_architecture():
     global PMDK_VERSION
     global SYSTEM_ARCHITECTURE
     os_distro = distro.id()
-    if os_distro == 'fedora' or os_distro == "rhel":
+    if os_distro != 'ubuntu':
         pkg_directory = path.join(PMDK_PATH, 'rpm')
         for elem in listdir(pkg_directory):
             if '.src.rpm' in elem:
@@ -150,7 +149,7 @@ if __name__ == '__main__':
         PMDK_PATH = parse_argument('-r')
         get_package_version_and_system_architecture()
         os_distro = distro.id()
-        if os_distro == 'fedora' or os_distro == "rhel":
+        if os_distro != 'ubuntu':
             packages_path = path.join(PMDK_PATH, 'rpm', SYSTEM_ARCHITECTURE)
             pkgconfig_directory = '/usr/lib64/pkgconfig/'
             so_path = '/usr/lib64/'

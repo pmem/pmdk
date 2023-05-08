@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # push-image.sh - pushes the Docker image to $DOCKER_REPO.
@@ -34,6 +34,11 @@ if [[ -z "${DOCKER_REPO}" ]]; then
 	exit 1
 fi
 
+if [[ -z "$IMG_VER" ]]; then
+	echo "IMG_VER environment variable is not set"
+	exit 1
+fi
+
 if [[ -z "${GH_CR_USER}" || -z "${GH_CR_PAT}" ]]; then
 	echo "ERROR: variables GH_CR_USER=\"${GH_CR_USER}\" and GH_CR_PAT=\"${GH_CR_PAT}\"" \
 		"have to be set properly to allow login to the $DOCKER_REPO."
@@ -53,5 +58,6 @@ fi
 # Log in to $DOCKER_REPO
 echo "${GH_CR_PAT}" | docker login "${DOCKER_REPO}" -u="${GH_CR_USER}" --password-stdin
 
-# Push the image to $DOCKER_REPO
+echo "Push the image '${DOCKER_REPO}:${TAG}' to the $DOCKER_REPO."
 docker push ${DOCKER_REPO}:${TAG}
+echo "Image pushed."

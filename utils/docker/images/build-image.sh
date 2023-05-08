@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # build-image.sh <OS-VER> <ARCH> - prepares a Docker image with <OS>-based
@@ -20,8 +20,8 @@ function usage {
 	echo "Usage:"
 	echo "    build-image.sh <OS-VER> <ARCH>"
 	echo "where:"
-	echo "  <OS-VER> - can be for example 'ubuntu-19.10' provided "\
-		"a Dockerfile named 'Dockerfile.ubuntu-19.10' "\
+	echo "  <OS-VER> - can be for example 'ubuntu-22.04' provided "\
+		"a Dockerfile named 'Dockerfile.ubuntu-22.04' "\
 		"exists in the current directory and"
 	echo "  <ARCH> - is a CPU architecture, for example 'x86_64'"
 }
@@ -40,8 +40,9 @@ if [[ ! -f "Dockerfile.$OS_VER" ]]; then
 	exit 1
 fi
 
-if [[ -z "${DOCKER_REPO}" ]]; then
-	echo "Error: DOCKER_REPO environment variable is not set"
+if [[ -z "${DOCKER_REPO}" || -z "${IMG_VER}" ]]; then
+	echo "Error: DOCKER_REPO (${DOCKER_REPO}) or IMG_VER (${IMG_VER}) " \
+		"environment variables are not set."
 	exit 1
 fi
 
