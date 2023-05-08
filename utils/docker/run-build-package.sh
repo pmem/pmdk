@@ -26,7 +26,8 @@ echo "## Build PMDK once more (clobber from packaging process cleared out some r
 make -j$(nproc)
 
 echo "## Test built packages"
-python3 $SCRIPTSDIR/packages/test-build-packages.py -r $(pwd)
+[ "$NDCTL_ENABLE" == "n" ] && extra_params="--skip-daxio" || extra_params=""
+python3 $SCRIPTSDIR/packages/test-build-packages.py -r $(pwd) ${extra_params}
 
 echo "## Install packages"
 if [[ "$PACKAGE_MANAGER" == "dpkg" ]]; then
