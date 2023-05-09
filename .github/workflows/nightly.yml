@@ -30,10 +30,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        CONFIG: ["OS=debian OS_VER=11 FAULT_INJECTION=1 TEST_BUILD=debug",
+        CONFIG: ["OS=ubuntu OS_VER=22.04 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 NDCTL_ENABLE=n",
+                 "OS=ubuntu OS_VER=22.04 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++",
+                 "OS=debian OS_VER=11 FAULT_INJECTION=1 TEST_BUILD=debug",
                  "OS=debian OS_VER=11 FAULT_INJECTION=1 TEST_BUILD=nondebug PUSH_IMAGE=1",
                  "OS=opensuse-leap OS_VER=15 FAULT_INJECTION=1 TEST_BUILD=debug",
-                 "OS=opensuse-leap OS_VER=15 FAULT_INJECTION=1 TEST_BUILD=nondebug PUSH_IMAGE=1",
+                 "OS=opensuse-leap OS_VER=15 FAULT_INJECTION=1 TEST_BUILD=nondebug",
+                 "OS=opensuse-leap OS_VER=15 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 PUSH_IMAGE=1",
                  "OS=rockylinux OS_VER=8 TEST_BUILD=debug",
                  "OS=rockylinux OS_VER=8 TEST_BUILD=nondebug",
                  "OS=rockylinux OS_VER=8 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 PUSH_IMAGE=1",
