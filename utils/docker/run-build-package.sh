@@ -27,7 +27,7 @@ make -j$(nproc)
 
 echo "## Test built packages"
 [ "$NDCTL_ENABLE" == "n" ] && extra_params="--skip-daxio" || extra_params=""
-python3 $SCRIPTSDIR/packages/test-build-packages.py -r $(pwd) ${extra_params}
+python3 $SCRIPTSDIR/test_package/test-built-packages.py -r $(pwd) ${extra_params}
 
 echo "## Install packages"
 if [[ "$PACKAGE_MANAGER" == "dpkg" ]]; then
@@ -41,7 +41,7 @@ fi
 popd
 
 echo "## Test installed packages"
-python3 $SCRIPTSDIR/packages/test-packages-installation.py -r $(pwd)
+python3 $SCRIPTSDIR/test_package/test-packages-installation.py -r $(pwd)
 
 echo "## Compile and run standalone test"
 pushd $SCRIPTSDIR/test_package
