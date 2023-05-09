@@ -23,7 +23,7 @@ jobs:
       PMDK_CXX:       g++
       VALGRIND:       1
       SRC_CHECKERS:   0
-      CHECK_PKGS:     1
+      MAKE_PKG:       1
 
     steps:
       - name: Clone the git repo
