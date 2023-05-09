@@ -6,7 +6,6 @@
 !.clang-format
 !.travis.yml
 !.mailmap
-!.cstyleignore
 !.codecov.yml
 
 *~

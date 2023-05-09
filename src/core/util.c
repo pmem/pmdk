@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 /*
  * util.c -- very basic utilities
@@ -298,15 +298,7 @@ util_init(void)
 	if (Pagesize == 0)
 		Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
 
-#ifndef _WIN32
 	Mmap_align = Pagesize;
-#else
-	if (Mmap_align == 0) {
-		SYSTEM_INFO si;
-		GetSystemInfo(&si);
-		Mmap_align = si.dwAllocationGranularity;
-	}
-#endif
 
 #if ANY_VG_TOOL_ENABLED
 	_On_valgrind = RUNNING_ON_VALGRIND;
@@ -397,22 +389,11 @@ util_concat_str(const char *s1, const char *s2)
 struct tm *
 util_localtime(const time_t *timep, struct tm *tm)
 {
-#ifdef _WIN32
-	/* C11 has localtime_s(), but Microsoft's version reverses the args */
-	int err = localtime_s(tm, timep);
-	if (err) {
-		errno = err;
-		return NULL;
-	} else {
-		return tm;
-	}
-#else
 	int oerrno = errno;
 	tm = localtime_r(timep, tm);
 	if (tm != NULL)
 		errno = oerrno;
 	return tm;
-#endif
 }
 
 /*

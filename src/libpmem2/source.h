@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2021, Intel Corporation */
+/* Copyright 2021-2023, Intel Corporation */
 
 #ifndef PMEM2_SOURCE_H
 #define PMEM2_SOURCE_H
@@ -33,17 +33,12 @@ struct pmem2_source {
 		union {
 			/* PMEM2_SOURCE_ANON */
 			size_t size;
-#ifdef _WIN32
-			/* PMEM2_SOURCE_HANDLE */
-			HANDLE handle;
-#else
 			/* PMEM2_SOURCE_FD */
 			struct {
 				int fd;
 				dev_t st_rdev;
 				dev_t st_dev;
 			};
-#endif
 		};
 	} value;
 };

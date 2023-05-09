@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -48,26 +48,26 @@ extern "C" {
 
 typedef union {
 	long long align;
-	char padding[44]; /* linux: 40 windows: 44 */
+	char padding[44]; /* XXX linux: 40 windows: 44 */
 } os_mutex_t;
 
 typedef union {
 	long long align;
-	char padding[56]; /* linux: 56 windows: 13 */
+	char padding[56];
 } os_rwlock_t;
 
 typedef union {
 	long long align;
-	char padding[48]; /* linux: 48 windows: 12 */
+	char padding[48];
 } os_cond_t;
 
 typedef union {
 	long long align;
-	char padding[32]; /* linux: 8 windows: 32 */
+	char padding[32]; /* XXX linux: 8 windows: 32 */
 } os_thread_t;
 
 typedef union {
-	long long align;  /* linux: long windows: 8 FreeBSD: 12 */
+	long long align;  /* linux: long FreeBSD: 12 */
 	char padding[16]; /* 16 to be safe */
 } os_once_t;
 
@@ -77,12 +77,12 @@ typedef unsigned os_tls_key_t;
 
 typedef union {
 	long long align;
-	char padding[56];  /* linux: 56 windows: 8 */
+	char padding[56];
 } os_semaphore_t;
 
 typedef union {
 	long long align;
-	char padding[56];  /* linux: 56 windows: 8 */
+	char padding[56];
 } os_thread_attr_t;
 
 typedef union {
@@ -94,15 +94,14 @@ typedef union {
 #define cpu_set_t cpuset_t
 typedef uintptr_t os_spinlock_t;
 #else
-typedef volatile int os_spinlock_t; /* XXX: not implemented on windows */
+typedef volatile int os_spinlock_t;
 #endif
 
 void os_cpu_zero(os_cpu_set_t *set);
 void os_cpu_set(size_t cpu, os_cpu_set_t *set);
 
-#ifndef _WIN32
 #define _When_(...)
-#endif
+
 int os_once(os_once_t *o, void (*func)(void));
 
 int os_tls_key_create(os_tls_key_t *key, void (*destructor)(void *));

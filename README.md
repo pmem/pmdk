@@ -20,21 +20,17 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 1. [Libraries and Utilities](#libraries-and-utilities)
 2. [Getting Started](#getting-started)
 3. [Version Conventions](#version-conventions)
-4. [Pre-Built Packages for Windows](#pre-built-packages-for-windows)
-5. [Dependencies](#dependencies)
+4. [Dependencies](#dependencies)
 	* [Linux](#linux)
-	* [Windows](#windows)
 	* [FreeBSD](#freebsd)
-6. [Building PMDK on Linux or FreeBSD](#building-pmdk-on-linux-or-freebsd)
+5. [Building PMDK on Linux or FreeBSD](#building-pmdk-on-linux-or-freebsd)
 	* [Make Options](#make-options)
 	* [Testing Libraries](#testing-libraries-on-linux-and-freebsd)
 	* [Memory Management Tools](#memory-management-tools)
-7. [Building PMDK on Windows](#building-pmdk-on-windows)
-	* [Testing Libraries](#testing-libraries-on-windows)
-8. [Debugging](#debugging)
-9. [Experimental Packages](#experimental-packages)
+6. [Debugging](#debugging)
+7. [Experimental Packages](#experimental-packages)
 	* [Experimental support for 64-bit ARM](#experimental-support-for-64-bit-arm)
-10. [Contact Us](#contact-us)
+8. [Contact Us](#contact-us)
 
 ## Libraries and Utilities
 
@@ -79,18 +75,14 @@ Available Utilities:
 
 - [pmemcheck](https://pmem.io/2015/07/17/pmemcheck-basic.html): Use dynamic runtime analysis with an enhanced version of Valgrind for use with persistent memory.
 
-Currently these libraries only work on 64-bit Linux, Windows<sup>2</sup>, and 64-bit FreeBSD 11+<sup>3</sup>.
+Currently these libraries only work on 64-bit Linux and 64-bit FreeBSD 11+<sup>*</sup>.
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
 
 > NOTICE:
 Support for Windows and FreeBSD are deprecated since PMDK 1.13.0 release
 and will be removed in the PMDK 1.14.0 release.
 
-><sup>1</sup> Not supported on Windows.
->
-><sup>2</sup> PMDK for Windows is feature complete, but not yet considered production quality.
->
-><sup>3</sup> DAX is not yet supported in FreeBSD, so at this time PMDK is available as a technical preview release for development purposes.
+><sup>*</sup> DAX is not yet supported in FreeBSD, so at this time PMDK is available as a technical preview release for development purposes.
 
 ## Getting Started
 
@@ -109,33 +101,6 @@ Additionally, we recommend reading [Introduction to Programming with Persistent 
 - **Release Candidates** have a '-rc{version}' tag, e.g. `0.2-rc3`, meaning _Release Candidate 3 for version 0.2_
 - **Stable Releases** use a _major.minor_ tag like `0.2`
 
-## Pre-Built Packages for Windows
-
-> NOTICE:
-Support for Windows is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
-The recommended and easiest way to install PMDK on Windows is to use Microsoft vcpkg. Vcpkg is an open source tool and ecosystem created for library management.
-
-To install the latest PMDK release and link it to your Visual Studio solution you first need to clone and set up vcpkg on your machine as described on the [vcpkg github page](https://github.com/Microsoft/vcpkg) in **Quick Start** section.
-
-In brief:
-
-```
-	> git clone https://github.com/Microsoft/vcpkg
-	> cd vcpkg
-	> .\bootstrap-vcpkg.bat
-	> .\vcpkg integrate install
-	> .\vcpkg install pmdk:x64-windows
-```
-
-The last command can take a while - it is PMDK building and installation time.
-
-After a successful completion of all of the above steps, the libraries are ready
-to be used in Visual Studio and no additional configuration is required.
-Just open VS with your already existing project or create a new one
-(remember to use platform **x64**) and then include headers to project as you always do.
-
 ## Dependencies
 
 Required packages for each supported OS are listed below. It is important to note that some tests and example applications require additional packages, but they do not interrupt building if they are missing. An appropriate message is displayed instead. For details please read the DEPENDENCIES section in the appropriate README file
@@ -151,31 +116,19 @@ You will need to install the following required packages on the build system:
 
 * **autoconf**
 * **pkg-config**
-* **libndctl-devel** (v63 or later)<sup>1</sup>
+* **libndctl-devel** (v63 or later)
 * **libdaxctl-devel** (v63 or later)
 * **pandoc** (for documentation, required during install)
 
 The following packages are required only by selected PMDK components
 or features:
 
-><sup>1</sup> PMDK depends on libndctl to support RAS features. It is possible
+PMDK depends on libndctl to support RAS features. It is possible
 to disable this support by passing NDCTL_ENABLE=n to "make", but we strongly
 discourage users from doing that. Disabling NDCTL strips PMDK from ability to
 detect hardware failures, which may lead to silent data corruption.
 For information how to disable RAS at runtime for kernels prior to 5.0.4 please
 see https://github.com/pmem/pmdk/issues/4207.
-
-### Windows
-
-> NOTICE:
-Support for Windows is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
-* **MS Visual Studio 2022**
-* [Windows SDK 10.0.22000.0](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
-* **Windows, version >= 1803**
-* **perl** (e.g. [StrawberryPerl](http://strawberryperl.com/))
-* **PowerShell 5**
 
 ### FreeBSD
 
@@ -190,10 +143,10 @@ and will be removed in the PMDK 1.14.0 release.
 * **e2fsprogs-libuuid**
 * **gmake**
 * **libunwind**
-* **ncurses**<sup>4</sup>
+* **ncurses**<sup>*</sup>
 * **pkgconf**
 
-><sup>4</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
+><sup>*</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
 
 ## Building PMDK on Linux or FreeBSD
 
@@ -346,59 +299,6 @@ and UndefinedBehaviorSanitizer, run:
 ```
 	$ make SANITIZE=address,undefined clobber check
 ```
-
-## Building PMDK on Windows
-
-> NOTICE:
-Support for Windows is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
-Clone the PMDK tree and open the solution:
-```
-	> git clone https://github.com/pmem/pmdk
-	> cd pmdk/src
-	> devenv PMDK.sln
-```
-
-Select the desired configuration (Debug or Release) and build the solution
-(i.e. by pressing Ctrl-Shift-B).
-
-### Testing Libraries on Windows
-
-> NOTICE:
-Support for Windows is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
-Before running the tests, you may need to prepare a test configuration file (src/test/testconfig.ps1). Please see the available configuration settings in the example file [src/test/testconfig.ps1.example](src/test/testconfig.ps1.example).
-
-To **run the unit tests**, open the PowerShell console and type:
-```
-	> cd pmdk/src/test
-	> RUNTESTS.ps1
-```
-
-To run a specific **subset of tests**, run for example:
-```
-	> RUNTESTS.ps1 -b debug -t short
-```
-
-To run **just one test**, run for example:
-```
-	> RUNTESTS.ps1 -b debug -i pmem_is_pmem
-```
-
-To **modify the timeout**, run:
-```
-	> RUNTESTS.ps1 -o 3m
-```
-This will set the timeout to 3 minutes.
-
-To **display all the possible options**, run:
-```
-	> RUNTESTS.ps1 -h
-```
-
-Please refer to the **[src/test/README](src/test/README)** for more details on how to run different types of tests.
 
 ## Debugging
 

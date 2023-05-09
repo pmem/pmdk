@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * rand.c -- random utils
@@ -10,15 +10,9 @@
 #include <string.h>
 #include <assert.h>
 #include <unistd.h>
+#include <sys/syscall.h>
 
 #include "rand.h"
-
-#ifdef _WIN32
-#include <bcrypt.h>
-#include <process.h>
-#else
-#include <sys/syscall.h>
-#endif
 
 /*
  * hash64 -- a u64 -> u64 hash
@@ -87,12 +81,6 @@ randomize_r(rng_t *state, uint64_t seed)
 		if (syscall(SYS_getrandom, state, sizeof(rng_t), 0)
 			== sizeof(rng_t)) {
 			return; /* nofail, but ENOSYS on kernel < 3.16 */
-		}
-#elif _WIN32
-#pragma comment(lib, "Bcrypt.lib")
-		if (BCryptGenRandom(NULL, (PUCHAR)state, sizeof(rng_t),
-			BCRYPT_USE_SYSTEM_PREFERRED_RNG)) {
-			return;
 		}
 #endif
 		seed = (uint64_t)getpid();

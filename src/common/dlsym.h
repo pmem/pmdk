@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2021, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * dlsym.h -- dynamic linking utilities with library-specific implementation
@@ -10,7 +10,7 @@
 
 #include "out.h"
 
-#if defined(USE_LIBDL) && !defined(_WIN32)
+#if defined(USE_LIBDL)
 
 #include <dlfcn.h>
 

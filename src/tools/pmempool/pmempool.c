@@ -222,19 +222,6 @@ main(int argc, char *argv[])
 	int opt;
 	int option_index;
 	int ret = 0;
-#ifdef _WIN32
-	util_suppress_errmsg();
-	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-	for (int i = 0; i < argc; i++) {
-		argv[i] = util_toUTF8(wargv[i]);
-		if (argv[i] == NULL) {
-			for (i--; i >= 0; i--)
-				free(argv[i]);
-			outv_err("Error during arguments conversion\n");
-			return 1;
-		}
-	}
-#endif
 
 	common_init(PMEMPOOL_TOOL_LOG_PREFIX,
 			PMEMPOOL_TOOL_LOG_LEVEL_VAR,
@@ -278,10 +265,6 @@ end:
 
 	common_fini();
 
-#ifdef _WIN32
-	for (int i = argc; i > 0; i--)
-		free(argv[i - 1]);
-#endif
 	if (ret)
 		return 1;
 
