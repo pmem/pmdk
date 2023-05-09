@@ -11,16 +11,22 @@ To use playbooks it is required to install Ansible first. It must be done on com
 
 Commands:
 
-```ansible-playbook -i <target_platform_ip_address>, opensuse-setup.yml --extra-vars
- "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser"```
+```
+ansible-playbook -i <target_platform_ip_address>, opensuse-setup.yml --extra-vars
+ "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser"
+ ```
 
-```ansible-playbook -i <target_platform_ip_address>, rockylinux-setup.yml --extra-vars
- "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser"```
+```
+ansible-playbook -i <target_platform_ip_address>, rockylinux-setup.yml --extra-vars
+ "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser"
+ ```
 
 Those commands above will install the required packages to build PMDK tests.
 
-```ansible-playbook -i <target_platform_ip_address>, configure-pmem.yml --extra-vars
- "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser"```
+```
+ansible-playbook -i <target_platform_ip_address>, configure-pmem.yml --extra-vars
+ "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser"
+ ```
 
 This command will configure regions and namespaces on DIMMs.
 
@@ -29,8 +35,10 @@ NOTE:
 - If platform does not have DIMM's regions configured earlier you can add additional var for
  configureProvisioning.yml playbook: newRegions=true eg.
 
-```ansible-playbook -i <target_platform_ip_address>, configureProvisioning.yml --extra-vars
- "host=all ansible_user=root ansible_password=<password_for_root> newRegions=true testUser=pmdkuser"```
+```
+ansible-playbook -i <target_platform_ip_address>, configureProvisioning.yml --extra-vars
+ "host=all ansible_user=root ansible_password=<password_for_root> newRegions=true testUser=pmdkuser"
+ ```
 
 This will reboot the platform.
 
@@ -46,7 +54,10 @@ To run playbooks inside the platform please comment line:
 
 and uncomment
 
-` # - hosts: localhost` <br /> `#   connection: local`
+```
+# - hosts: localhost
+#   connection: local
+```
 
 and run with example command
 

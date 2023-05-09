@@ -32,7 +32,7 @@
         state: present
         name: PKG_CONFIG_PATH
         value: /usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig
-    
+
     - name: "Add permanent ld library path to the system"
       env:
         state: present
@@ -158,7 +158,7 @@
         state: present
         name: 'OS'
         value: 'opensuse/leap'
-    
+
     - name: "Set variable OS_VER"
       env:
         state: present
