@@ -1,6 +1,0 @@
-PMEMPOOLSET
-100G w:\mountpoint0\myfile.part0
-REPLICA
-100G w:\mountpoint1\mymirror0.part0
-REPLICA
-200G w:\mountpoint2\mymirror1.part0
