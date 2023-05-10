@@ -1,3 +1,6 @@
+# Run all tests (in python test framework) with 'force-enabled' valgrind.
+#
+# This workflow is run on 'self-hosted' runners.
 name: Valgrind python
 
 on:
@@ -23,17 +26,17 @@ jobs:
       WORKDIR: utils/gha-runners
 
     steps:
-        - name: Clone the git repo
-          uses: actions/checkout@v3
+      - name: Clone the git repo
+        uses: actions/checkout@v3
 
-        - name: Get system information
-          run: ./$WORKDIR/get-system-info.sh
+      - name: Get system information
+        run: ./$WORKDIR/get-system-info.sh
 
-        - name: Build
-          run: ./$WORKDIR/build-pmdk.sh
+      - name: Build
+        run: ./$WORKDIR/build-pmdk.sh
 
-        - name: Create testconfig file
-          run: ./$WORKDIR/create-testconfig.sh
+      - name: Create testconfig file
+        run: ./$WORKDIR/create-testconfig.sh
 
-        - name: Run tests
-          run: cd src/test/ && ./${{ matrix.config }}
+      - name: Run tests
+        run: cd src/test/ && ./${{ matrix.config }}

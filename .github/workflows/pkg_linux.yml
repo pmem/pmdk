@@ -1,3 +1,4 @@
+# Run extra checks for making package.
 name: PKG_linux
 
 on: [push, pull_request]
@@ -20,21 +21,19 @@ jobs:
       WORKDIR:        utils/docker
       PMDK_CC:        gcc
       PMDK_CXX:       g++
-      MAKE_PKG:       0
       VALGRIND:       1
       SRC_CHECKERS:   0
       CHECK_PKGS:     1
 
     steps:
+      - name: Clone the git repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-        - name: Clone the git repo
-          uses: actions/checkout@v2
-          with:
-            fetch-depth: 0
+      - name: Pull or rebuild the image
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
-        - name: Pull or rebuild the image
-          run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
-
-        # This step will create docker containers, build pmdk packages and test it.
-        - name: Build the CI and test packages
-          run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
+      # This step will create docker containers, build pmdk packages and test it.
+      - name: Build the CI and test packages
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
