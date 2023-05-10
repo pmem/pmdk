@@ -1,10 +1,12 @@
-
+# Run default OSes for each PR, push event or a new tag,
+# checks basic builds with various compilers and executes all sets of tests.
 name: PMDK
+
 on: [push, pull_request]
 
 env:
-    GITHUB_REPO: pmem/pmdk
-    DOCKER_REPO: ghcr.io/pmem/pmdk
+  GITHUB_REPO: pmem/pmdk
+  DOCKER_REPO: ghcr.io/pmem/pmdk
 
 jobs:
   linux:
@@ -15,13 +17,13 @@ jobs:
       GH_CR_USER:  ${{ secrets.GH_CR_USER }}
       GH_CR_PAT:   ${{ secrets.GH_CR_PAT }}
       DOC_UPDATE_GITHUB_TOKEN: ${{ secrets.DOC_UPDATE_GITHUB_TOKEN }}
-      HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
-      WORKDIR:        utils/docker
-      PMDK_CC:        gcc
-      PMDK_CXX:       g++
-      MAKE_PKG:       0
-      VALGRIND:       1
-      SRC_CHECKERS:   0
+      HOST_WORKDIR: /home/runner/work/pmdk/pmdk
+      WORKDIR:      utils/docker
+      PMDK_CC:      gcc
+      PMDK_CXX:     g++
+      MAKE_PKG:     0
+      VALGRIND:     1
+      SRC_CHECKERS: 0
     strategy:
       matrix:
         CONFIG: ["N=1 OS=ubuntu OS_VER=22.04 FAULT_INJECTION=1 TEST_BUILD=debug",
@@ -36,13 +38,13 @@ jobs:
                  "N=10 OS=ubuntu OS_VER=22.04 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug"
                 ]
     steps:
-       - name: Clone the git repo
-         uses: actions/checkout@v2
-         with:
-            fetch-depth: 50
+      - name: Clone the git repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 50
 
-       - name: Pull or rebuild the image
-         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
+      - name: Pull or rebuild the image
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
-       - name: Run the build
-         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
+      - name: Run the build
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2023, Intel Corporation
 #
 """Bad block utilities"""
 
@@ -106,6 +106,18 @@ class NdctlBB(tools.Ndctl, BBTool):
         if self.is_devdax(device):
             futils.run_command("sudo ndctl clear-errors {}".format(namespace),
                                "failed to clear bad blocks")
+            # The "sudo ndctl clear-errors" command resets permissions
+            # of the DAX block device and its resource files
+            # because it removes the old files and creates new ones
+            # with default permissions which interrupts further test execution.
+            # The following commands set permissions which should allow
+            # further test execution to work around this issue.
+            futils.run_command("sudo chmod a+rw {}".format(device),
+                               "failed to change permissions of a DAX device")
+            resources = "/sys/bus/nd/devices/ndbus*/region*/dax*/resource"
+            futils.run_command("sudo chmod a+r {}".format(resources),
+                               "failed to change permissions "
+                               "of DAX devices' resources")
         else:
             out = futils.run_command("mount | grep {}".format(device),
                                      "querying mount points failed")

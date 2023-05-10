@@ -1,3 +1,6 @@
+# Run short and medium tests (as defined in test frameworks).
+#
+# This workflow is run on 'self-hosted' runners.
 name: PMDK_runners
 
 on: [push, pull_request]
@@ -15,22 +18,17 @@ jobs:
       WORKDIR: utils/gha-runners
 
     steps:
+      - name: Clone the git repo
+        uses: actions/checkout@v3
 
-        - name: Clone the git repo
-          uses: actions/checkout@v2
+      - name: Get system information
+        run: ./$WORKDIR/get-system-info.sh
 
-        - name: Get system information
-          run: |
-            ./$WORKDIR/get-system-info.sh
+      - name: Build
+        run: ./$WORKDIR/build-pmdk.sh
 
-        - name: Build
-          run: |
-            ./$WORKDIR/build-pmdk.sh
+      - name: Create testconfig files
+        run: ./$WORKDIR/create-testconfig.sh
 
-        - name: Create testconfig files
-          run: |
-            ./$WORKDIR/create-testconfig.sh
-
-        - name: Run tests
-          run: |
-            make check
+      - name: Run tests
+        run: make check

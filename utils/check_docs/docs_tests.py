@@ -15,11 +15,8 @@ Tests check:
  command 'man function_name/macro_name'.
 
 Required argument:
-  -r <PMDK_path>    the PMDK library root path.
+  -r <PMDK_path>            the PMDK library root path.
   -i <PMDK_install_path>    PMDK library installation path.
-
-Optional argument:
-  --with-pmem2    the flag if libpmem2 is built.
 """
 
 import unittest
@@ -33,7 +30,7 @@ EXPRESSION_AT_THE_LINE_START = r'[\s]*([a-zA-Z_]+)[\\(\s]+'
 EXPRESSION_AFTER_DEFINE_PHRASE = r'[\s]*#define[\s]*([a-zA-Z_]+)[\\(\s]+'
 
 PMDK_LIBRARIES = ['libpmem', 'libpmemblk', 'libpmemlog', 'libpmemobj',
-                  'libpmempool', 'librpmem', 'libpmemset']
+                  'libpmempool', 'libpmem2']
 
 
 def get_exceptions(pmdk_path):
@@ -121,8 +118,6 @@ def get_functions_and_macros_from_doc(pmdk_path):
             # macros of PMDK library. 'pmemobj_action' is excluded, because
             # it is not a name of the function.
             if f.startswith('pmemobj_action'):
-                continue
-            if not 'libpmem2' in PMDK_LIBRARIES and f.startswith('pmem2'):
                 continue
             functions_and_macros_from_doc.append(f.split('.')[0])
     return functions_and_macros_from_doc
@@ -262,7 +257,6 @@ class TestDocumentation(unittest.TestCase):
 if __name__ == '__main__':
     doc_path = ''
     lib_path = ''
-    with_pmem2_opt = '--with-pmem2'
     if '-h' in sys.argv or '--help' in sys.argv:
         print(__doc__)
         unittest.main()
@@ -276,10 +270,6 @@ if __name__ == '__main__':
             print(__doc__)
             print(unittest.main.__doc__)
             exit(1)
-        if with_pmem2_opt in sys.argv:
-            PMDK_LIBRARIES.append('libpmem2')
-            index = sys.argv.index(with_pmem2_opt)
-            sys.argv.pop(index)
         unittest.main()
     else:
         print(__doc__)
