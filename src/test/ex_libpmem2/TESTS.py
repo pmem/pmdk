@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 import futils
 import testframework as t
@@ -83,6 +83,13 @@ class TEST5(EX_LIBPMEM2):
 
 
 @t.windows_exclude
+# This test case would require two VALGRIND_SET_CLEAN() calls
+# to be added to the "src/examples/libpmem2/ringbuf/ringbuf.c"
+# example (see https://github.com/pmem/pmdk/pull/5604)
+# in order to pass under pmemcheck, but examples
+# do not use valgrind macros on purpose (to avoid unnecessary
+# complication), so this test case just should not be run under pmemcheck.
+@t.require_valgrind_disabled('pmemcheck')
 class TEST6(EX_LIBPMEM2):
 
     def run(self, ctx):
