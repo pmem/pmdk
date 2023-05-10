@@ -1,3 +1,0 @@
-PMEMPOOLSET
-OPTION	SINGLEHDR	NOHDRS  # two options in a single line
-100G w:\mountpoint1\part0

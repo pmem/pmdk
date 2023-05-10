@@ -1,4 +1,0 @@
-<libpmem>: <$(N)> [win_mmap.c:$(N) mmap_unreserve] addr $(nW) len 8388608
-<libpmem>: <$(N)> [win_mmap.c:$(N) mmap_unreserve] freed reservation - addr: $(nW), size: 8388608
-<libpmem>: <$(N)> [win_mmap.c:$(N) mmap_unreserve] addr $(nW) len 44040192
-<libpmem>: <$(N)> [win_mmap.c:$(N) mmap_unreserve] freed reservation - addr: $(nW), size: 44040192
