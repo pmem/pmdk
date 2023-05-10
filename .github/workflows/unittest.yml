@@ -3,7 +3,7 @@
 # This workflow is run on 'self-hosted' runners.
 name: PMDK_runners
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   linux:
