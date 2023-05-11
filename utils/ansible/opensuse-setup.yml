@@ -4,11 +4,11 @@
 # This playbook is designed to install all required packages and configure openSUSE to execute tests.
 # Playbook description and how to use it is available in README.md file
 
-- hosts: "{{ host }}"
-# - hosts: localhost
-#   connection: local
+# - hosts: "{{ host }}"
+- hosts: localhost
+  connection: local
   vars:
-    testUser: pmdkuser
+    testUser: null
 
   tasks:
 
@@ -152,6 +152,7 @@
         sed -i 's/# %wheel/%wheel/g' /etc/sudoers
         groupadd wheel
         gpasswd wheel -a $USER
+      when: testUser != None
 
     - name: "Set variable OS"
       env:
