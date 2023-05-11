@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2023, Intel Corporation
 
-# This playbook is designed to install all required packages and configure Rocky Linux 9 to execute tests.
+# This playbook is designed to install all required packages and
+# configure Rocky Linux to execute tests.
 # Playbook description and how to use it is available in README.md file
 
-- hosts: "{{ host }}"
-# - hosts: localhost
-#   connection: local
+# - hosts: "{{ host }}"
+- hosts: localhost
+  connection: local
   vars:
-    testUser: pmdkuser
+    testUser: null
 
   tasks:
-
     - name: "Update kernel packages"
       package:
         name: "kernel.x86_64"
@@ -38,8 +38,13 @@
         - name: "Rocky - adding epel repository"
           shell: yum install epel-release -y
 
-        - name: "Rocky - enabling Power Tools"
+        - name: "Rocky 9 - enabling Power Tools"
           shell: dnf config-manager --enable crb
+          when: ansible_distribution_major_version == "9"
+
+        - name: "Rocky 8 - enabling Power Tools"
+          shell: dnf config-manager --enable powertools
+          when: ansible_distribution_major_version == "8"
 
     - name: "Install VALGRIND deps"
       package:
@@ -131,6 +136,7 @@
         echo $USERPASS | passwd $USER --stdin
         gpasswd wheel -a $USER
         echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+      when: testUser != none
 
     - name: "Set variable OS"
       env:
@@ -138,11 +144,19 @@
         name: 'OS'
         value: 'rockylinux/rockylinux'
 
-    - name: "Set variable OS_VER"
+    - name: "Set variable OS_VER (9)"
       env:
         state: present
         name: 'OS_VER'
         value: '9'
+      when: ansible_distribution_major_version == "9"
+    
+    - name: "Set variable OS_VER (8)"
+      env:
+        state: present
+        name: 'OS_VER'
+        value: '8'
+      when: ansible_distribution_major_version == "8"
 
     - name: "Set variable PACKAGE_MANAGER"
       env:

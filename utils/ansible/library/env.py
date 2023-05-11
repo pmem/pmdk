@@ -20,7 +20,7 @@ description:
        between reboots) and then execute 'source' command (in order to feed current session with exported variables).
 
     - ----
-    -  * file: the file under the care of this module, specified by 'path' parameter. By default it is a file in 
+    - * file: the file under the care of this module, specified by 'path' parameter. By default it is a file in
        /etc/profile.d/"
 
 options:
