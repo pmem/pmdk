@@ -4,5 +4,5 @@
 
 # file-exceptions.sh - filter out files not checked for copyright and license
 
-grep -v -E -e '/queue.h$' -e '/getopt.h$' -e '/getopt.c$' -e 'src/core/valgrind/' \
-	 -e '/testconfig\...$' -e'src/deps/miniasync/LICENSE'
+grep -v -E -e '/queue.h$' -e 'src/core/valgrind/' -e '/testconfig\...$' \
+	 -e'src/deps/miniasync/LICENSE'
