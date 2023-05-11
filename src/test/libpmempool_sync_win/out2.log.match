@@ -1,8 +1,0 @@
-libpmempool_sync_win$(nW)TEST2: START: libpmempool_sync_win$(nW)
- $(nW)libpmempool_sync_win$(nW) $(nW)poolset 32
-result: -1, errno: 22
-libpmempool_sync_win$(nW)TEST2: DONE
-libpmempool_sync_win$(nW)TEST2: START: libpmempool_sync_win$(nW)
- $(nW)libpmempool_sync_win$(nW) $(nW)poolset 1024
-result: -1, errno: 22
-libpmempool_sync_win$(nW)TEST2: DONE
