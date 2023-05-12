@@ -10,6 +10,7 @@
   connection: local
   vars:
     testUser: null
+    testUserPass: pmdkpass
 
   tasks:
     - name: "Update kernel packages"
@@ -131,7 +132,7 @@
       shell: |
         #!/usr/bin/env bash
         export USER={{ testUser }}
-        export USERPASS=pmdkpass
+        export USERPASS={{ testUserPass }}
         useradd -m $USER
         echo $USERPASS | passwd $USER --stdin
         gpasswd wheel -a $USER
