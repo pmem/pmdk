@@ -33,12 +33,13 @@
     - name: "Unmount namespaces if they exist"
       shell: sudo umount /dev/pmem* || true
 
-    - name: "Destroy current namespaces"
-      shell: |
-        sudo ndctl disable-namespace all
-        sudo ndctl destroy-namespace all
+    - name: "Disable current namespaces"
+      shell: sudo ndctl disable-namespace all || true
       register: namespaces
-      when: newRegions != 'true'
+
+    - name: "Destroy current namespaces"
+      shell: sudo ndctl destroy-namespace all || true
+      register: namespaces
 
     - debug: var=namespaces
 
