@@ -124,6 +124,7 @@
           - tar
           - which
           - xmlto
+          - jq
 
     - name: "Install ipmctl"
       package:

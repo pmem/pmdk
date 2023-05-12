@@ -119,6 +119,7 @@
           - tar
           - which
           - xmlto
+          - jq
 
     - name: "Install NDCTL deps"
       package:
