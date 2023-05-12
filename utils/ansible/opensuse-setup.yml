@@ -67,6 +67,7 @@
           - make
           - pkgconfig
           - systemd
+          - libndctl-devel
 
     - name: "Install benchmarks deps (optional)"
       package:
