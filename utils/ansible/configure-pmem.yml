@@ -38,6 +38,7 @@
         sudo ndctl disable-namespace all
         sudo ndctl destroy-namespace all
       register: namespaces
+      when: newRegions != 'true'
 
     - debug: var=namespaces
 
