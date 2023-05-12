@@ -6,19 +6,19 @@ The scripts in this directory allow you to set up an RockyLinux and OpenSuSe
 
 environment on a real HW and build a PMDK project in it.
 
-To use playbooks it is required to install Ansible first. It must be done on computer that will be
- used to execute script, not on target platform.
+To use playbooks it is required to install Ansible first. It must be done
+on computer that will be used to execute script, not on target platform.
 
 Commands:
 
 ```
 ansible-playbook -i <target_platform_ip_address>, opensuse-setup.yml --extra-vars
- "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser"
+ "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser testUserPass=pmdkpass"
  ```
 
 ```
 ansible-playbook -i <target_platform_ip_address>, rockylinux-setup.yml --extra-vars
- "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser"
+ "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser testUserPass=pmdkpass"
  ```
 
 Those commands above will install the required packages to build PMDK tests.
