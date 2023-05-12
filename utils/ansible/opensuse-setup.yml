@@ -133,6 +133,12 @@
           - libuuid-devel
           - systemd-devel
 
+    - name: "Install ipmctl"
+      package:
+        state: present
+        name:
+          - ipmctl
+
     - name: "Run the install-valgrind script with arguments"
       script: ../docker/images/install-valgrind.sh fedora
 
