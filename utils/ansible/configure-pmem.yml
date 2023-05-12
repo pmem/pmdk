@@ -42,6 +42,7 @@
       register: namespaces
 
     - debug: var=namespaces
+    - debug: var=newRegions
 
     - name: "Create new regions"
       block:
