@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017, Intel Corporation
+# Copyright 2023, Intel Corporation
 #
 #
 # obj_sync/config.sh -- test configuration
