@@ -22,6 +22,7 @@ jobs:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
         config: ['RUNTESTS -m force-enable obj_sync',
                  'RUNTESTS -p force-enable obj_sync',
+                 'RUNTESTS -p force-enable obj_tx_alloc_mt',
                  'RUNTESTS -d force-enable obj_sync',
                  'RUNTESTS -e force-enable obj_sync']
     env:
