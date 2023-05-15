@@ -2,7 +2,7 @@
 # checks basic builds with various compilers and executes all sets of tests.
 name: PMDK
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   GITHUB_REPO: pmem/pmdk

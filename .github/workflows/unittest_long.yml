@@ -4,6 +4,7 @@
 name: Long_run_tests
 
 on:
+  workflow_dispatch:
   schedule:
     - cron:  '5 0 * * 6'    # At 00:05 on Saturday.
 

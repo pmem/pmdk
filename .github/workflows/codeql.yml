@@ -3,7 +3,7 @@
 # This workflow does not use docker containers.
 name: CodeQL
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   GITHUB_REPO:  pmem/pmdk
