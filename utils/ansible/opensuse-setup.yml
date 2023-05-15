@@ -141,8 +141,8 @@
         name:
           - ipmctl
 
-    - name: "Run the install-valgrind script with arguments"
-      script: ../docker/images/install-valgrind.sh fedora
+    - name: "Install valgrind from source"
+      script: ../docker/images/install-valgrind.sh
 
     - name: "Run the install-libndctl script with arguments"
       script: ../docker/images/install-libndctl.sh tags/v70.1

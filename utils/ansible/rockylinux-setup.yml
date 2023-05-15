@@ -132,8 +132,8 @@
         name:
           - ipmctl
 
-    - name: "Run the install-valgrind script with arguments"
-      script: ../docker/images/install-valgrind.sh rockylinux
+    - name: "Install valgrind from source"
+      script: ../docker/images/install-valgrind.sh
 
     - name: "Add new user"
       shell: |
@@ -158,7 +158,7 @@
         name: 'OS_VER'
         value: '9'
       when: ansible_distribution_major_version == "9"
-    
+
     - name: "Set variable OS_VER (8)"
       env:
         state: present
