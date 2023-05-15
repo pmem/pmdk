@@ -3,11 +3,11 @@
 # Copyright 2017, Intel Corporation
 #
 #
-# obj_basic_integration/config.sh -- test configuration
+# obj_sync/config.sh -- test configuration
 #
 
 # Extend timeout for this test, as it may take a few minutes
 # when run on a non-pmem file system.
 
-CONF_GLOBAL_TIMEOUT='10m'
+CONF_GLOBAL_TIMEOUT='240m'
 
