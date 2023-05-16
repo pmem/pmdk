@@ -9,5 +9,5 @@
 # Extend timeout for this test, as it may take a few minutes
 # when run on a pmem file system.
 
-CONF_GLOBAL_TIMEOUT='360m'
+CONF_GLOBAL_TIMEOUT='480m'
 

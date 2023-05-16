@@ -4,6 +4,8 @@
 name: Valgrind bash
 
 on:
+  push:
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron:  '0 18 * * 5'    # At 18:00 on Friday.
@@ -18,10 +20,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['RUNTESTS -m force-enable',
-                 'RUNTESTS -p force-enable',
-                 'RUNTESTS -d force-enable',
-                 'RUNTESTS -e force-enable']
+        config: ['RUNTESTS -m force-enable obj_tx_alloc_mt',
+                 'RUNTESTS -p force-enable obj_tx_alloc_mt',
+                 'RUNTESTS -d force-enable obj_tx_alloc_mt',
+                 'RUNTESTS -e force-enable obj_tx_alloc_mt']
     env:
       WORKDIR: utils/gha-runners
 

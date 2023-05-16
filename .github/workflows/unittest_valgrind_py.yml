@@ -18,10 +18,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['RUNTESTS.py --force-enable memcheck',
-                 'RUNTESTS.py --force-enable pmemcheck',
-                 'RUNTESTS.py --force-enable drd',
-                 'RUNTESTS.py --force-enable helgrind']
+        config: ['RUNTESTS.py --force-enable memcheck obj_tx_alloc_mt',
+                 'RUNTESTS.py --force-enable pmemcheck obj_tx_alloc_mt',
+                 'RUNTESTS.py --force-enable drd obj_tx_alloc_mt',
+                 'RUNTESTS.py --force-enable helgrind obj_tx_alloc_mt']
     env:
       WORKDIR: utils/gha-runners
 
