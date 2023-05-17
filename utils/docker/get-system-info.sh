@@ -38,9 +38,9 @@ function system_info {
 	echo "**********list-enviroment**********"
 	env
 	echo "******list-build-system-versions*******"
-	gcc --version
-	clang --version
-	make --version
+	gcc --version 2>/dev/null || true
+	clang --version 2>/dev/null || true
+	make --version2>/dev/null || true
 }
 
 # Call the function above to print system info.
