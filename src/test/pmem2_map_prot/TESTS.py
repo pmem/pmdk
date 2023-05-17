@@ -72,6 +72,8 @@ class TEST6(PMEM2_MAP_PROT):
 
 
 @t.require_architectures('x86_64')
+# XXX disable test until https://github.com/pmem/pmdk/issues/5599 fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST7(PMEM2_MAP_PROT):
     """
     READ|EXEC protection on file opened in read|write|exec mode; test runs
