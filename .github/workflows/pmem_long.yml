@@ -1,7 +1,7 @@
 # Run tests of type 'long' (as defined in test frameworks).
 #
 # This workflow is run on 'self-hosted' runners.
-name: Long_run_tests
+name: PMEM long
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   linux:
-    name: long
+    name: PMEM_long
     if: github.repository == 'pmem/pmdk'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 960

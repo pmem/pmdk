@@ -1,5 +1,5 @@
 # Run the Bandit scanner for finding vulnerabilities in the python code.
-name: bandit
+name: Bandit
 
 on: [push, pull_request, workflow_dispatch]
 
