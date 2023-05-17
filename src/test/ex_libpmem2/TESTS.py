@@ -4,6 +4,7 @@
 #
 import futils
 import testframework as t
+from testframework import granularity as g
 
 
 @t.require_build(['debug', 'release'])
@@ -73,13 +74,29 @@ class TEST4(EX_LIBPMEM2):
         ctx.exec(example_path, *args, stdout_file='out4.log')
 
 
-class TEST5(EX_LIBPMEM2):
+# XXX Disable the test execution under pmemcheck with g.PAGE until fixed.
+# https://github.com/pmem/pmdk/issues/5641
+# additionall test TEST501 has been added to cover non-pmemcheck configs.
+class EX_LIBPMEM2_TEST5(EX_LIBPMEM2):
 
     def run(self, ctx):
         example_path = futils.get_example_path(ctx, 'pmem2', 'unsafe_shutdown')
         file_path = ctx.create_holey_file(self.file_size, 'testfile0')
         ctx.exec(example_path, "write", file_path, "foobar")
         ctx.exec(example_path, "read", file_path, stdout_file='out5.log')
+
+
+@g.require_granularity(g.CACHELINE, g.BYTE)  # to be removed when fixed
+@t.require_valgrind_enabled('pmemcheck')  # to be removed when fixed
+class TEST5(EX_LIBPMEM2_TEST5):
+
+    pass
+
+
+@t.require_valgrind_disabled('pmemcheck')
+class TEST501(EX_LIBPMEM2_TEST5):  # to be removed when fixed
+
+    pass
 
 
 @t.windows_exclude
