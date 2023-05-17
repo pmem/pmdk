@@ -50,6 +50,9 @@ jobs:
         with:
           fetch-depth: 50
 
+      - name: Get system information
+        run: ./$WORKDIR/get-system-info.sh
+
       - name: Pull or rebuild the image
         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh rebuild
 

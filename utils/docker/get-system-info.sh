@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022-2023, Intel Corporation
+# Copyright 2023, Intel Corporation
 
 #
 # get-system-info.sh - Script for printing system info
@@ -12,11 +12,6 @@ function system_info {
 	uname -r
 	echo "libndctl: $(pkg-config --modversion libndctl || echo 'libndctl not found')"
 	echo "valgrind: $(pkg-config --modversion valgrind || echo 'valgrind not found')"
-	echo "******************** memory-info *******************"
-	ipmctl show -dimm || true
-	ipmctl show -topology || true
-	echo "*************** list-existing-namespaces ***************"
-	ndctl list -M -N
 	echo "*************** installed-packages ***************"
 	# Instructions below will return some minor errors, as they are dependent on the Linux distribution.
 	zypper se --installed-only 2>/dev/null || true
@@ -42,15 +37,6 @@ function system_info {
 	dnf check-update 2>/dev/null || true
 	echo "**********list-enviroment**********"
 	env
-	echo "**********list-avaialble-pmem-devices**********"
-	ls -la /dev/dax*
-	ls -la /dev/pmem*
-	echo "**********list-nd-resources**********"
-	ls -la /sys/bus/nd/devices/ndbus*/region*/resource
-	ls -la /sys/bus/nd/devices/ndbus*/region*/dax*/resource
-	ls -la /sys/bus/nd/devices/ndbus*/region*/pfn*/resource
-	ls -la /sys/bus/nd/devices/ndbus*/region*/namespace*/resource
-	ls -la /sys/bus/nd/devices/region*/deep_flush
 	echo "******list-build-system-versions*******"
 	gcc --version
 	clang --version
