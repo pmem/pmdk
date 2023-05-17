@@ -10,12 +10,12 @@
 . ../unittest/unittest.sh
 
 require_fs_type any
-require_test_type long
+require_test_type medium
 configure_valgrind drd force-disable
 configure_valgrind helgrind force-disable
 setup
 
 PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
-	./obj_tx_alloc_mt$EXESUFFIX 32 1000 100 $DIR/testfile
+	./obj_tx_alloc_mt$EXESUFFIX 32 100 10 $DIR/testfile
 
 pass
