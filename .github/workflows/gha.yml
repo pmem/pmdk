@@ -30,9 +30,7 @@ jobs:
                  "N=2 OS=ubuntu OS_VER=22.04 FAULT_INJECTION=1 TEST_BUILD=nondebug UBSAN=1",
                  "N=3 OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug SRC_CHECKERS=1",
                  "N=4 OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug",
-                 "N=5 OS=fedora OS_VER=37    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug PUSH_IMAGE=1",
-                 "N=6 OS=fedora OS_VER=37    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1",
-                 "N=7 OS=ubuntu OS_VER=22.04 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug"
+                 "N=5 OS=ubuntu OS_VER=22.04 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug"
                 ]
     steps:
       - name: Clone the git repo

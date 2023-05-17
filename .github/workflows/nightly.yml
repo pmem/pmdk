@@ -43,6 +43,8 @@ jobs:
                  "OS=rockylinux OS_VER=9 TEST_BUILD=debug",
                  "OS=rockylinux OS_VER=9 TEST_BUILD=nondebug",
                  "OS=rockylinux OS_VER=9 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 PUSH_IMAGE=1"
+                 "OS=fedora OS_VER=37 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug PUSH_IMAGE=1",
+                 "OS=fedora OS_VER=37 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1",
                 ]
     steps:
       - name: Clone the git repo
