@@ -5,13 +5,6 @@ name: CodeQL
 
 on: [push, pull_request, workflow_dispatch]
 
-env:
-  GITHUB_REPO:  pmem/pmdk
-  HOST_WORKDIR: /home/runner/work/pmdk/pmdk
-  WORKDIR:      utils/gha-runners
-  PMDK_CC:      gcc
-  PMDK_CXX:     g++
-  
 jobs:
   analyze:
     name: Analyze
@@ -55,8 +48,8 @@ jobs:
         languages: ${{ matrix.language }}
 
     - name: Run the build
-      run: cd ${WORKDIR} && ./build-pmdk.sh
-        
+      run: make EXTRA_CFLAGS=-DUSE_VALGRIND test -j$(nproc)
+
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
       with:
