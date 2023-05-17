@@ -52,9 +52,9 @@ function system_info {
 	ls -la /sys/bus/nd/devices/ndbus*/region*/namespace*/resource
 	ls -la /sys/bus/nd/devices/region*/deep_flush
 	echo "******list-build-system-versions*******"
-	gcc --version
-	clang --version
-	make --version
+	gcc --version 2>/dev/null || true
+	clang --version 2>/dev/null || true
+	make --version 2>/dev/null || true
 }
 
 # Call the function above to print system info.
