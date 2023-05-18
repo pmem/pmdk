@@ -115,13 +115,13 @@ class Pmem2MemExt(t.Test):
         ret = tools.Tools(ctx.env, ctx.build).cpufd()
         self.check_arch(ctx.variant(), ret.returncode)
 
-# All tests with variant VARIANT_AVX512F are disabled under Valgrind
-# until the issue https://github.com/pmem/pmdk/issues/5640 is fixed.
-        if not sys.platform.startswith('win32'):
-            if ctx.valgrind is not None:
-                if ctx.valgrind.tool.name != "NONE":
-                    if ctx.variant() == VARIANT_AVX512F:
-                        raise futils.Skip("AVX512F unavailable under Valigrind")
+        # XXX all tests with VARIANT_AVX512F are disabled under Valgrind
+        # until the issue https://github.com/pmem/pmdk/issues/5640 is fixed.
+        # "win32" `if`` is related to unknown `is not None` by Windows Python
+        if not sys.platform.startswith('win32') and ctx.valgrind is not None:
+            if ctx.valgrind.tool.name != "NONE":
+                if ctx.variant() == VARIANT_AVX512F:
+                    raise futils.Skip("AVX512F unavailable under Valigrind")
 
     def check_arch(self, variant, available_arch):
         if variant == VARIANT_MOVDIR64B:
