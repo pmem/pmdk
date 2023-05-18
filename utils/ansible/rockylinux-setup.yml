@@ -135,6 +135,13 @@
     - name: "Install valgrind from source"
       script: ../docker/images/install-valgrind.sh
 
+    # Disable SELinux. Enabling skipping when SELinux fails to disable because this is not essential to run tests but it helps when disabled.
+    - name: Disable selinux - distribution other than Debian based
+      selinux:
+        state: disabled
+      ignore_errors: yes
+      when: ansible_facts['os_family'] != 'Debian'
+
     - name: "Add new user"
       shell: |
         #!/usr/bin/env bash
