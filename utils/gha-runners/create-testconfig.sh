@@ -19,7 +19,7 @@ PMEM_FS_DIR=${MOUNT_POINT}
 NON_PMEM_FS_DIR=${NON_PMEM_DIR}
 DEVICE_DAX_PATH=($(ndctl list -X | jq -r '.[].daxregion.devices[].chardev' | awk '$0="/dev/"$0' | paste -sd' '))
 KEEP_GOING=y
-TEST_TIMEOUT=120m
+TEST_TIMEOUT=3m
 ENABLE_SUDO_TESTS=y
 EOL
 
@@ -41,7 +41,7 @@ config = {
     'granularity': 'all',
     'fail_on_skip': False,
     'keep_going': True,
-    'timeout': '120m',
+    'timeout': '3m',
     'fs_dir_force_pmem': 0,
     'dump_lines': 30,
     'force_enable': None,
