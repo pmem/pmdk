@@ -14,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['make check',
-                  'make pycheck']
+        config: ['make -j$(nproc); make -j$(nproc) test; make check',
+                  'make -j$(nproc); make -j$(nproc) test; make pycheck']
     env:
       WORKDIR: utils/gha-runners
 
