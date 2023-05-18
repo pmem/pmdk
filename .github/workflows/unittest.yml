@@ -30,5 +30,8 @@ jobs:
       - name: Create testconfig files
         run: ./$WORKDIR/create-testconfig.sh
 
-      - name: Run tests
+      - name: Run tests (Bash)
         run: make check
+
+      - name: Run tests (Python)
+        run: cd src/test/ && ./RUNTESTS.py -t check
