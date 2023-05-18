@@ -14,6 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
+        config: ['make check',
+                  'make pycheck']
     env:
       WORKDIR: utils/gha-runners
 
@@ -30,8 +32,5 @@ jobs:
       - name: Create testconfig files
         run: ./$WORKDIR/create-testconfig.sh
 
-      - name: Run tests (Bash)
-        run: make check
-
-      - name: Run tests (Python)
-        run: cd src/test/ && ./RUNTESTS.py -t check
+      - name: Run tests
+        run: ${{ matrix.config }}
