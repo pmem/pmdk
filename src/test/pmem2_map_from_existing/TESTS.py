@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 #
 
 
@@ -17,16 +17,25 @@ class Pmem2_from_existing(t.Test):
         ctx.exec('pmem2_map_from_existing', self.test_case, filepath)
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5594 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST0(Pmem2_from_existing):
     """try to create two the same mappings"""
     test_case = "test_two_same_mappings"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5594 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST1(Pmem2_from_existing):
     """try to map which overlap bottom part of existing mapping"""
     test_case = "test_mapping_overlap_bottom"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5594 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST2(Pmem2_from_existing):
     """try to map which overlap upper part of existing mapping"""
     test_case = "test_mapping_overlap_upper"
