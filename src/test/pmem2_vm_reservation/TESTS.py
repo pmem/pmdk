@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2021, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 #
 
 import os
@@ -140,6 +140,9 @@ class TEST10(PMEM2_VM_RESERVATION):
     test_case = "test_vm_reserv_new_region_occupied_map_below"
 
 
+# XXX disable the test for 'pmemcheck', 'drd', 'helgrind', 'memcheck'
+# until https://github.com/pmem/pmdk/issues/5592 is fixed.
+@t.require_valgrind_disabled('pmemcheck', 'drd', 'helgrind', 'memcheck')
 class TEST11(PMEM2_VM_RESERVATION_DEVDAX):
     """
     DevDax create a reservation in the region overlapping lower half of
@@ -293,6 +296,9 @@ class TEST31(PMEM2_VM_RESERVATION_ASYNC):
     ops_per_thread = 1000
 
 
+# XXX disable the test for 'pmemcheck', 'drd', 'helgrind', 'memcheck'
+# until https://github.com/pmem/pmdk/issues/5592 is fixed.
+@t.require_valgrind_disabled('pmemcheck', 'drd', 'helgrind', 'memcheck')
 class TEST32(PMEM2_VM_RESERVATION_ASYNC_DEVDAX):
     """
     DevDax map and unmap asynchronously multiple times to the whole
