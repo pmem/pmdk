@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 import os
@@ -42,13 +42,18 @@ class PMEM2_MAP_DEVDAX(t.Test):
         else:
             ctx.exec('pmem2_map', self.test_case, dd.path)
 
-
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST0(PMEM2_MAP):
     """map a O_RDWR file"""
     test_case = "test_map_rdrw_file"
     with_size = False
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST1(PMEM2_MAP_DEVDAX):
     """DevDax map a O_RDWR file"""
     test_case = "test_map_rdrw_file"
@@ -67,11 +72,17 @@ class TEST3(PMEM2_MAP_DEVDAX):
     with_size = False
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST4(PMEM2_MAP):
     """map valid memory ranges"""
     test_case = "test_map_valid_ranges"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST5(PMEM2_MAP_DEVDAX):
     """DevDax map valid memory ranges"""
     test_case = "test_map_valid_ranges"
@@ -102,21 +113,33 @@ class TEST10(PMEM2_MAP):
     test_case = "test_map_invalid_fd"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST11(PMEM2_MAP):
     """unmap valid pmem2 mapping"""
     test_case = "test_unmap_valid"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST12(PMEM2_MAP_DEVDAX):
     """DevDax unmap valid pmem2 mapping"""
     test_case = "test_unmap_valid"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST13(PMEM2_MAP):
     """unmap a pmem2 mapping with an invalid length"""
     test_case = "test_unmap_zero_length"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST14(PMEM2_MAP_DEVDAX):
     """DevDax unmap a pmem2 mapping with an invalid length"""
     test_case = "test_unmap_zero_length"
@@ -124,11 +147,17 @@ class TEST14(PMEM2_MAP_DEVDAX):
 
 # UnmapViewOfFile does not care about the address alignment
 @t.windows_exclude
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST15(PMEM2_MAP):
     """unmap a pmem2 mapping with an unaligned address"""
     test_case = "test_unmap_unaligned_addr"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST16(PMEM2_MAP_DEVDAX):
     """DevDax unmap a pmem2 mapping with an unaligned address"""
     test_case = "test_unmap_unaligned_addr"
@@ -177,6 +206,9 @@ class TEST23(PMEM2_MAP):
     filesize = 0
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST24(PMEM2_MAP):
     """
     map a file with PMEM2_SHARED sharing, changes in the mapping are visible
@@ -186,6 +218,9 @@ class TEST24(PMEM2_MAP):
     with_size = False
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST25(PMEM2_MAP):
     """
     map a file with PMEM2_PRIVATE sharing, changes in the mapping are not
@@ -195,6 +230,9 @@ class TEST25(PMEM2_MAP):
     with_size = False
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST26(PMEM2_MAP):
     """
     map a file with PMEM2_PRIVATE sharing, changes in the mapping are not
@@ -204,6 +242,9 @@ class TEST26(PMEM2_MAP):
     with_size = False
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST27(PMEM2_MAP):
     """
     map O_RDONLY file with PMEM2_PRIVATE sharing
@@ -220,6 +261,9 @@ class TEST28(PMEM2_MAP_DEVDAX):
 
 @t.linux_only
 @t.require_architectures('x86_64')
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST29(PMEM2_MAP):
     """map alignment test for huge pages"""
     test_case = "test_map_huge_alignment"
@@ -228,6 +272,9 @@ class TEST29(PMEM2_MAP):
 
 @t.linux_only
 @t.require_architectures('x86_64')
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5600 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST30(PMEM2_MAP):
     """map alignment test for small pages"""
     test_case = "test_map_huge_alignment"
