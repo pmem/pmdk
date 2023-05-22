@@ -74,8 +74,9 @@ class TEST4(EX_LIBPMEM2):
         ctx.exec(example_path, *args, stdout_file='out4.log')
 
 
-# XXX Disable the test execution under pmemcheck with g.PAGE until fixed.
-# https://github.com/pmem/pmdk/issues/5641
+# XXX Disable the test execution under pmemcheck with g.PAGE and
+# g.CACHELINE until the issue
+# https://github.com/pmem/pmdk/issues/5641 is fixed.
 # additionall test TEST501 has been added to cover non-pmemcheck configs.
 class EX_LIBPMEM2_TEST5(EX_LIBPMEM2):
 
@@ -93,6 +94,10 @@ class TEST5(EX_LIBPMEM2_TEST5):
     pass
 
 
+# XXX Disable the test execution with 'memcheck' until the issue:
+# https://github.com/pmem/pmdk/issues/5635 is fixed.
+# additionall test TEST501 has been added to cover non-pmemcheck configs.
+@t.require_valgrind_disabled('memcheck', )  # to be removed when fixed
 @t.require_valgrind_disabled('pmemcheck')
 class TEST501(EX_LIBPMEM2_TEST5):  # to be removed when fixed
 
