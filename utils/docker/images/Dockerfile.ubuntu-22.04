@@ -69,6 +69,7 @@ ENV COVERITY_DEPS ruby gcc g++ wget
 
 # miscellaneous dependencies (mostly for CI)
 ENV MISC_DEPS "clang \
+	hub \
 	clang-format \
 	flake8 \
 	python3-pip \
