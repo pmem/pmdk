@@ -21,6 +21,7 @@ DEVICE_DAX_PATH=($(ndctl list -X | jq -r '.[].daxregion.devices[].chardev' | awk
 KEEP_GOING=y
 TEST_TIMEOUT=120m
 ENABLE_SUDO_TESTS=y
+TM=1
 EOL
 
 # Create config file for py tests.
