@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2021, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 
@@ -289,6 +289,9 @@ class TEST38(PMEM2_INTEGRATION):
     test_case = "test_unaligned_persist"
 
 
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5637 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST39(PMEM2_INTEGRATION):
     """compare normal map vs map_from_existing"""
     test_case = "test_map_from_existing"
@@ -300,6 +303,9 @@ class TES40(PMEM2_INTEGRATION):
 
 
 @t.windows_exclude
+# XXX disable the test for `memcheck'
+# until https://github.com/pmem/pmdk/issues/5637 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST41(PMEM2_INTEGRATION_DEV_DAXES):
     """compare normal map vs map_from_existing on devdax"""
     test_case = "test_map_from_existing"
