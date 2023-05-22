@@ -102,17 +102,19 @@ class TEST501(EX_LIBPMEM2_TEST5):  # to be removed when fixed
 @t.windows_exclude
 # XXX disable the test for `memcheck'
 # until https://github.com/pmem/pmdk/issues/5638 is fixed.
-@t.require_valgrind_disabled('memcheck')
+# @t.require_valgrind_disabled('memcheck')
 # XXX disable the test for `drd'
 # until https://github.com/pmem/pmdk/issues/5593 is fixed.
-@t.require_valgrind_disabled('drd')
+# @t.require_valgrind_disabled('drd')
 # This test case would require two VALGRIND_SET_CLEAN() calls
 # to be added to the "src/examples/libpmem2/ringbuf/ringbuf.c"
 # example (see https://github.com/pmem/pmdk/pull/5604)
 # in order to pass under pmemcheck, but examples
 # do not use valgrind macros on purpose (to avoid unnecessary
 # complication), so this test case just should not be run under pmemcheck.
-@t.require_valgrind_disabled('pmemcheck')
+# @t.require_valgrind_disabled('pmemcheck')
+# XXX _disabled() can be used only once.
+@t.require_valgrind_disabled('memcheck', 'drd', 'pmemcheck')
 class TEST6(EX_LIBPMEM2):
 
     def run(self, ctx):
