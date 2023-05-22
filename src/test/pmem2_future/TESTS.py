@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022, Intel Corporation
+# Copyright 2022-2023, Intel Corporation
 #
 import sys
 import testframework as t
@@ -72,21 +72,33 @@ class PMEM2_FUTURE(t.Test):
                             F"Got {len(matches)} instead.")
 
 
+# XXX disable the test for 'pmemcheck'
+# until https://github.com/pmem/pmdk/issues/5596 is fixed.
+@t.require_valgrind_disabled('pmemcheck')
 class TEST0(PMEM2_FUTURE):
     size = 64
     test_case = 'test_pmem2_future_mover'
 
 
+# XXX disable the test for 'pmemcheck'
+# until https://github.com/pmem/pmdk/issues/5596 is fixed.
+@t.require_valgrind_disabled('pmemcheck')
 class TEST1(PMEM2_FUTURE):
     size = 4096
     test_case = 'test_pmem2_future_mover'
 
 
+# XXX disable the test for 'pmemcheck'
+# until https://github.com/pmem/pmdk/issues/5596 is fixed.
+@t.require_valgrind_disabled('pmemcheck')
 class TEST2(PMEM2_FUTURE):
     size = 64
     test_case = 'test_pmem2_future_vdm'
 
 
+# XXX disable the test for 'pmemcheck'
+# until https://github.com/pmem/pmdk/issues/5596 is fixed.
+@t.require_valgrind_disabled('pmemcheck')
 class TEST3(PMEM2_FUTURE):
     size = 4096
     test_case = 'test_pmem2_future_vdm'
