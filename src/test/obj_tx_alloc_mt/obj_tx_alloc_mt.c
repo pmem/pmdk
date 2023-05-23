@@ -183,6 +183,7 @@ main(int argc, char *argv[])
 			util_cond_init(&a->cond);
 		}
 	}
+	pmemobj_persist(pop, r, sizeof(struct root));
 
 	/*
 	 * Reduce the number of lanes to a value smaller than the number of
