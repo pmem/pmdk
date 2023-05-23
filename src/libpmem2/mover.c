@@ -179,13 +179,13 @@ static struct vdm data_mover_vdm = {
 int
 mover_new(struct pmem2_map *map, struct vdm **vdm)
 {
-	LOG(3, "map %p, *vdm %p", map, vdm);
+	LOG(3, "map %p, vdm %p", map, vdm);
 	int ret;
 	struct data_mover *dms = pmem2_malloc(sizeof(*dms), &ret);
 	if (dms == NULL)
 		return ret;
 
-	LOG(3, "map %p, vdm %p", map, dms);
+	LOG(3, "vdm %p", dms);
 
 	dms->base = data_mover_vdm;
 	dms->map = map;
@@ -210,7 +210,7 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 void
 mover_delete(struct vdm *dms)
 {
-	LOG(3, "vdm %p", dms);
+	LOG(3, "dms %p", dms);
 	membuf_delete(((struct data_mover *)dms)->membuf);
 	Free((struct data_mover *)dms);
 }
