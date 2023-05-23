@@ -621,10 +621,11 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 			if (ret)
 				goto err_register_map;
 		}
-
-		if (!map->custom_vdm)
-			mover_delete(map->vdm);
 	}
+
+	if (!map->custom_vdm)
+		mover_delete(map->vdm);
+
 	Free(map);
 	*map_ptr = NULL;
 
