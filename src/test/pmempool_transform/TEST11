@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 #
 #
 # pmempool_transform/TEST11 -- test for transform with SINGLEHDR option
@@ -24,7 +24,7 @@ setup
 OFFSET=$(get_devdax_size 0)
 ROOT_SIZE=$[OFFSET + 1024]
 MAX_SIZE=$[PMEMOBJ_MAX_ALLOC_SIZE - 1024]
-require_max_devdax_size 0 $MAX_SIZE
+require_max_devdax_size $MAX_SIZE
 
 dax_device_zero
 

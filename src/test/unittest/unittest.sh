@@ -2440,15 +2440,21 @@ function require_free_space() {
 #
 # require_max_devdax_size -- checks that dev dax is smaller than requested
 #
-# usage: require_max_devdax_size <dev-dax-num> <max-size>
+# usage: require_max_devdax_size <max-size>
 #
 function require_max_devdax_size() {
-	cur_sz=$(get_devdax_size 0)
 	max_size=$2
-	if [ $cur_sz -ge $max_size ]; then
-		msg "$UNITTEST_NAME: SKIP: DevDAX $1 is too big for this test (max $2 required)"
-		exit 0
-	fi
+	local cnt=${#device_dax_path[@]}
+	local j=0
+
+	for (( i=j; i<cnt; i++ ))
+	do
+		cur_sz=$(get_devdax_size $i)
+		if [ $cur_sz -ge $max_size ]; then
+			msg "$UNITTEST_NAME: SKIP: DevDAX $i is too big for this test (max $2 required)"
+			exit 0
+		fi
+	done
 }
 
 #
