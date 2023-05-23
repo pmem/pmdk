@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2022, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * pmem2_mover.c -- pmem2 mover tests
@@ -113,6 +113,7 @@ test_mover_memmove_basic(const struct test_case *tc, int argc, char *argv[])
 	if (memcmp(data + string_size / 2, buffer_data, string_size))
 		UT_FATAL("data should be equal");
 
+	free(buffer_data);
 	pmem2_map_delete(&map);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
