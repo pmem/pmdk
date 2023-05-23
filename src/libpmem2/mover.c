@@ -210,7 +210,7 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 void
 mover_delete(struct vdm *dms)
 {
-	LOG(3, "vdm %p", dms);
+	LOG(3, "dms %p", dms);
 	membuf_delete(((struct data_mover *)dms)->membuf);
 	Free((struct data_mover *)dms);
 }
