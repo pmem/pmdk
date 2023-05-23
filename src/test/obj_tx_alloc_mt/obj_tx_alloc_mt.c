@@ -23,13 +23,8 @@ static unsigned Threads;
 static unsigned Ops_per_thread;
 static unsigned Tx_per_thread;
 
-struct root {
-	uint64_t offs[MAX_THREADS][MAX_OPS_PER_THREAD];
-};
-
 struct worker_args {
 	PMEMobjpool *pop;
-	struct root *r;
 	unsigned idx;
 };
 
@@ -160,18 +155,12 @@ main(int argc, char *argv[])
 			UT_FATAL("!pmemobj_open");
 	}
 
-	PMEMoid oid = pmemobj_root(pop, sizeof(struct root));
-	struct root *r = pmemobj_direct(oid);
-	UT_ASSERTne(r, NULL);
-
 	struct worker_args args[MAX_THREADS];
 
 	for (unsigned i = 0; i < Threads; ++i) {
 		args[i].pop = pop;
-		args[i].r = r;
 		args[i].idx = i;
 	}
-	pmemobj_persist(pop, r, sizeof(struct root));
 
 	/*
 	 * Reduce the number of lanes to a value smaller than the number of
