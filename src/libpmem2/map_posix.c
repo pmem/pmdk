@@ -621,12 +621,8 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 			if (ret)
 				goto err_register_map;
 		}
-
 	}
 
-	/*
-	 * Always delete automatically created mover.
-	 */
 	if (!map->custom_vdm)
 		mover_delete(map->vdm);
 
