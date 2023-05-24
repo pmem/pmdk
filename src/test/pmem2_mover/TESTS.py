@@ -87,25 +87,64 @@ class TEST5(PMEM2_MOVER_MT):
     test_case = "test_mover_memset_multithreaded"
 
 
-class TEST6(PMEM2_MOVER_MT):
+# XXX disable the test for 'pmemcheck' and 'BYTE' granurality
+# until https://github.com/pmem/pmdk/issues/5686 is fixed.
+class PMEM2_MOVER_MT_TEST6(PMEM2_MOVER_MT):
     test_type = t.Long
     thread_num = 16
     """verify pmem2 mover multi-threaded memcpy functionality (Long)"""
     test_case = "test_mover_memcpy_multithreaded"
 
 
-class TEST7(PMEM2_MOVER_MT):
+@g.require_granularity(g.PAGE, g.CACHELINE)
+class TEST6(PMEM2_MOVER_MT_TEST6):
+    pass
+
+
+@g.require_granularity(g.BYTE)
+@t.require_valgrind_disabled('pmemcheck')
+class TEST61(PMEM2_MOVER_MT_TEST6):
+    pass
+
+
+# XXX disable the test for 'pmemcheck' and 'BYTE' granurality
+# until https://github.com/pmem/pmdk/issues/5686 is fixed.
+class PMEM2_MOVER_MT_TEST7(PMEM2_MOVER_MT):
     test_type = t.Long
     thread_num = 16
     """verify pmem2 mover multi-threaded memmove functionality (Long)"""
     test_case = "test_mover_memmove_multithreaded"
 
 
-class TEST8(PMEM2_MOVER_MT):
+@g.require_granularity(g.PAGE, g.CACHELINE)
+class TEST7(PMEM2_MOVER_MT_TEST7):
+    pass
+
+
+@g.require_granularity(g.BYTE)
+@t.require_valgrind_disabled('pmemcheck')
+class TEST71(PMEM2_MOVER_MT_TEST7):
+    pass
+
+
+# XXX disable the test for 'pmemcheck' and 'BYTE' granurality
+# until https://github.com/pmem/pmdk/issues/5686 is fixed.
+class PMEM2_MOVER_MT_TEST8(PMEM2_MOVER_MT):
     test_type = t.Long
     thread_num = 16
     """verify pmem2 mover multi-threaded memset functionality (Long)"""
     test_case = "test_mover_memset_multithreaded"
+
+
+@g.require_granularity(g.PAGE, g.CACHELINE)
+class TEST8(PMEM2_MOVER_MT_TEST8):
+    pass
+
+
+@g.require_granularity(g.BYTE)
+@t.require_valgrind_disabled('pmemcheck')
+class TEST81(PMEM2_MOVER_MT_TEST8):
+    pass
 
 
 # XXX disable the test for 'pmemcheck'
