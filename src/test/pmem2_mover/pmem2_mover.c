@@ -163,6 +163,7 @@ test_mover_memset_basic(const struct test_case *tc, int argc, char *argv[])
 	if (memcmp(data, memset_result, array_size))
 		UT_FATAL("data should be equal");
 
+	free(memset_result);
 	pmem2_map_delete(&map);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
