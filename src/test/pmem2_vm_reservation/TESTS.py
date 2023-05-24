@@ -215,6 +215,9 @@ class TEST21(PMEM2_VM_RESERVATION):
     test_case = "test_vm_reserv_map_unmap_multiple_files"
 
 
+# XXX disable the test for 'pmemcheck', 'drd', 'helgrind', 'memcheck'
+# until https://github.com/pmem/pmdk/issues/5592 is fixed.
+@t.require_valgrind_disabled('pmemcheck', 'drd', 'helgrind', 'memcheck')
 class TEST22(PMEM2_VM_RESERVATION_DEVDAX):
     """
     DevDax map multiple files to a vm reservation, then
