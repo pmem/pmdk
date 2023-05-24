@@ -18,10 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['RUNTESTS.py --force-enable memcheck',
-                 'RUNTESTS.py --force-enable pmemcheck',
-                 'RUNTESTS.py --force-enable drd',
-                 'RUNTESTS.py --force-enable helgrind']
+        build: ['debug', 'release', 'static_debug', 'static_release']
+        config: ['memcheck', 'pmemcheck', 'drd', 'helgrind']
     env:
       WORKDIR: utils/gha-runners
 
@@ -39,4 +37,4 @@ jobs:
         run: ./$WORKDIR/create-testconfig.sh
 
       - name: Run tests
-        run: cd src/test/ && ./${{ matrix.config }}
+        run: cd src/test/ && ./RUNTESTS.py --force-enable ${{ matrix.config }} -b ${{ matrix.build }}
