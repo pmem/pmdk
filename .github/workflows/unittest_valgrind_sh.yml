@@ -17,9 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [[self-hosted, rhel],[self-hosted, opensuse]]
+        config: ['-d', '-p', '-m', '-e']
         build: ['debug', 'nondebug', 'static-debug', 'static-nondebug']
-        config: ['-m', '-p', '-d', '-e']
+        os: [[self-hosted, rhel],[self-hosted, opensuse]]
+
     env:
       WORKDIR: utils/gha-runners
 

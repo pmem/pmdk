@@ -17,9 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [[self-hosted, rhel],[self-hosted, opensuse]]
+        config: ['drd', 'pmemcheck', 'memcheck', 'helgrind']
         build: ['debug', 'release', 'static_debug', 'static_release']
-        config: ['memcheck', 'pmemcheck', 'drd', 'helgrind']
+        os: [[self-hosted, rhel],[self-hosted, opensuse]]
+
     env:
       WORKDIR: utils/gha-runners
 
