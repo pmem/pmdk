@@ -96,13 +96,18 @@ class PMEM2_MOVER_MT_TEST6(PMEM2_MOVER_MT):
     test_case = "test_mover_memcpy_multithreaded"
 
 
+# XXX disable the test for 'drd``
+# until https://github.com/pmem/pmdk/issues/5694 is fixed.
+@t.require_valgrind_disabled('drd')
 @g.require_granularity(g.PAGE, g.CACHELINE)
 class TEST6(PMEM2_MOVER_MT_TEST6):
     pass
 
 
+# XXX disable the test for 'drd``
+# until https://github.com/pmem/pmdk/issues/5694 is fixed.
+@t.require_valgrind_disabled('pmemcheck', 'drd')
 @g.require_granularity(g.BYTE)
-@t.require_valgrind_disabled('pmemcheck')
 class TEST61(PMEM2_MOVER_MT_TEST6):
     pass
 
@@ -116,13 +121,18 @@ class PMEM2_MOVER_MT_TEST7(PMEM2_MOVER_MT):
     test_case = "test_mover_memmove_multithreaded"
 
 
+# XXX disable the test for 'drd``
+# until https://github.com/pmem/pmdk/issues/5694 is fixed.
+@t.require_valgrind_disabled('drd')
 @g.require_granularity(g.PAGE, g.CACHELINE)
 class TEST7(PMEM2_MOVER_MT_TEST7):
     pass
 
 
+# XXX disable the test for 'drd``
+# until https://github.com/pmem/pmdk/issues/5694 is fixed.
+@t.require_valgrind_disabled('pmemcheck', 'drd')
 @g.require_granularity(g.BYTE)
-@t.require_valgrind_disabled('pmemcheck')
 class TEST71(PMEM2_MOVER_MT_TEST7):
     pass
 
@@ -136,13 +146,18 @@ class PMEM2_MOVER_MT_TEST8(PMEM2_MOVER_MT):
     test_case = "test_mover_memset_multithreaded"
 
 
+# XXX disable the test for 'drd``
+# until https://github.com/pmem/pmdk/issues/5694 is fixed.
+@t.require_valgrind_disabled('drd')
 @g.require_granularity(g.PAGE, g.CACHELINE)
 class TEST8(PMEM2_MOVER_MT_TEST8):
     pass
 
 
+# XXX disable the test for 'drd``
+# until https://github.com/pmem/pmdk/issues/5694 is fixed.
+@t.require_valgrind_disabled('pmemcheck', 'drd')
 @g.require_granularity(g.BYTE)
-@t.require_valgrind_disabled('pmemcheck')
 class TEST81(PMEM2_MOVER_MT_TEST8):
     pass
 
