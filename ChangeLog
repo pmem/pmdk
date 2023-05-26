@@ -1,6 +1,6 @@
-Thu May 25 2023 Oksana Sałyk <oksana.salyk@intel.com>
+Fri May 26 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
-	* Version 1.13.1-rc1
+	* Version 1.13.1-rc2
 
 	This release :
 	- Identifies and temporarily disables tests permanently or sporadically
@@ -13,7 +13,7 @@ Thu May 25 2023 Oksana Sałyk <oksana.salyk@intel.com>
 		- pmem2_map (#5600)
 		- pmem2_map_prot (#5599)
 		- pmem2_mem_ext (#5640)
-		- pmem2_mover (partially fixed) (#5595, #5686)
+		- pmem2_mover (partially fixed) (#5595, #5686, #5694)
 		- pmem2_vm_reservation (#5592)
 
 	- Fixes failing tests:
