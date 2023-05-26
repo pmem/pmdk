@@ -38,4 +38,4 @@ jobs:
         run: ./$WORKDIR/create-testconfig.sh
 
       - name: Run tests
-        run: cd src/test/ && ./$RUNTESTS -b ${{ matrix.build }} ${{ matrix.config }} force-enable
+        run: cd src/test/ && ./RUNTESTS -b ${{ matrix.build }} ${{ matrix.config }} force-enable
