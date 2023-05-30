@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * pmem2_map_from_existing.c -- pmem2_map_from_existing unittests
@@ -37,6 +37,7 @@ test_two_same_mappings(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(map2, NULL);
 
 	pmem2_map_delete(&map1);
+	pmem2_source_delete(&src);
 	CLOSE(fd);
 	return 1;
 }
@@ -69,6 +70,7 @@ test_mapping_overlap_bottom(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(map2, NULL);
 
 	pmem2_map_delete(&map1);
+	pmem2_source_delete(&src);
 	CLOSE(fd);
 	return 1;
 }
@@ -101,6 +103,7 @@ test_mapping_overlap_upper(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(map2, NULL);
 
 	pmem2_map_delete(&map1);
+	pmem2_source_delete(&src);
 	CLOSE(fd);
 	return 1;
 }

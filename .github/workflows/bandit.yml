@@ -1,7 +1,7 @@
 # Run the Bandit scanner for finding vulnerabilities in the python code.
 name: bandit
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   GITHUB_REPO:  pmem/pmdk

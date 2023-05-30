@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022, Intel Corporation
+# Copyright 2022-2023, Intel Corporation
 
 #
 # build-pmdk.sh - Script for building pmdk project
@@ -16,10 +16,10 @@ set -eo pipefail
 #
 function build_pmdk {
 	echo "********** make pmdk **********"
-	cd ${PMDK_PATH} && make clean
-	cd ${PMDK_PATH} && make EXTRA_CFLAGS=-DUSE_VALGRIND
+	cd ${PMDK_PATH} && make -j$(nproc) clean
+	cd ${PMDK_PATH} && make -j$(nproc) EXTRA_CFLAGS=-DUSE_VALGRIND
 	echo "********** make pmdk test **********"
-	cd ${PMDK_PATH}/ && make test
+	cd ${PMDK_PATH}/ && make -j$(nproc) test
 }
 
 build_pmdk

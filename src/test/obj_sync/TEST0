@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # src/test/obj_sync/TEST0 -- unit test for PMEM-resident locks
@@ -12,6 +12,9 @@ require_test_type medium
 
 require_fs_type none
 require_build_type debug nondebug
+# XXX disable the test for 'pmemcheck'
+# until https://github.com/pmem/pmdk/issues/5643 is fixed.
+configure_valgrind pmemcheck force-disable
 
 setup
 

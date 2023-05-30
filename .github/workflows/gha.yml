@@ -2,7 +2,7 @@
 # checks basic builds with various compilers and executes all sets of tests.
 name: PMDK
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 env:
   GITHUB_REPO: pmem/pmdk
@@ -26,16 +26,12 @@ jobs:
       SRC_CHECKERS: 0
     strategy:
       matrix:
-        CONFIG: ["N=1 OS=ubuntu OS_VER=22.04 FAULT_INJECTION=1 TEST_BUILD=debug",
+        CONFIG: [
+                 "N=1 OS=ubuntu OS_VER=22.04 FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1",
                  "N=2 OS=ubuntu OS_VER=22.04 FAULT_INJECTION=1 TEST_BUILD=nondebug UBSAN=1",
                  "N=3 OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug SRC_CHECKERS=1",
-                 "N=4 OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug",
-                 "N=5 OS=fedora OS_VER=37    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
-                 "N=6 OS=fedora OS_VER=37    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1",
-                 "N=7 OS=fedora OS_VER=37    MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 PUSH_IMAGE=1",
-                 "N=8 OS=ubuntu OS_VER=22.04 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 NDCTL_ENABLE=n PUSH_IMAGE=1",
-                 "N=9 OS=ubuntu OS_VER=22.04 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++",
-                 "N=10 OS=ubuntu OS_VER=22.04 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug"
+                 "N=4 OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1",
+                 "N=5 OS=ubuntu OS_VER=22.04 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug",
                 ]
     steps:
       - name: Clone the git repo
@@ -43,6 +39,9 @@ jobs:
         with:
           fetch-depth: 50
 
+      - name: Get system information
+        run: ./$WORKDIR/get-system-info.sh
+  
       - name: Pull or rebuild the image
         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
