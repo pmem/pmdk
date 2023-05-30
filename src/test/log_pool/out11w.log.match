@@ -1,4 +1,0 @@
-log_pool$(nW)TEST11w: START: log_pool$(nW)
- $(nW)log_pool$(nW) c $(nW)testset 0 0600
-$(nW)testset: file size $(N) usable space 41869312 mode 0600
-log_pool$(nW)TEST11w: DONE
