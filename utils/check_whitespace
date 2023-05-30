@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2022, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # check_whitespace -- scrub source tree for whitespace errors
