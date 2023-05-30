@@ -6,18 +6,18 @@
 # src/test/obj_sync/TEST6 -- unit test for PMEM-resident locks
 #
 
+# XXX disable the test for 'helgrind'
+# until https://github.com/pmem/pmdk/issues/5646 is fixed
+# by addind the prefix DISABLE_ to the script name.
+
 . ../unittest/unittest.sh
 
 require_test_type medium
 
 require_fs_type none
 require_build_type debug nondebug
-# XXX disable the test for 'drd' and 'helgrind'
-# until https://github.com/pmem/pmdk/issues/5646 is fixed.
-#require_valgrind 3.10
-#configure_valgrind helgrind force-enable
-configure_valgrind drd force-disable
-configure_valgrind helgrind force-disable
+require_valgrind 3.10
+configure_valgrind helgrind force-enable
 setup
 
 expect_normal_exit ./obj_sync$EXESUFFIX c 10 5
