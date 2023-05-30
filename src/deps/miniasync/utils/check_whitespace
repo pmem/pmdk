@@ -114,7 +114,7 @@ sub check_whitespace_with_exc {
 
 	$_ = basename($full);
 
-	return 0 unless /^(README.*|LICENSE.*|Makefile.*|CMakeLists.txt|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13s]|sh|map|cpp|hpp|inc|PS1|ps1|py|md|cmake))$/;
+	return 0 unless /^(README.*|LICENSE.*|Makefile.*|CMakeLists.txt|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13s]|sh|map|cpp|hpp|inc|py|md|cmake))$/;
 	return 0 if -z;
 
 	check_whitespace($full, $_);
