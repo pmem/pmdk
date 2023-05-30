@@ -2,7 +2,6 @@
 # It describes the configuration of the local machine where the local copy
 # of the source tree is being tested.
 testconfig.sh
-testconfig.ps1
 testconfig.py
 # ignore files generated during test runs (left around for analysis)
 *.log
