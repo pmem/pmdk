@@ -1,6 +1,6 @@
-Fri May 26 2023 Oksana Sałyk <oksana.salyk@intel.com>
+Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
-	* Version 1.13.1-rc2
+	* Version 1.13.1
 
 	This release :
 	- Identifies and temporarily disables tests permanently or sporadically
