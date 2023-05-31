@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2022, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 """Main script for unit tests execution.
 
@@ -132,9 +132,14 @@ class TestRunner:
         return ret
 
     def _test_failed(self, tc, ctx, fail):
-        self.msg.print('{}: {}FAILED{}\t({}/{})'
+        """Print message specific for failed test"""
+        if self.config.tm:
+            tm = '\t[{:06.3F} s]'.format(tc.elapsed)
+        else:
+            tm = ''
+        self.msg.print('{}: {}FAILED{}\t({}/{}) {}'
                        .format(tc, futils.Color.RED,
-                               futils.Color.END, tc.test_type, ctx))
+                               futils.Color.END, tc.test_type, ctx, tm))
         self.msg.print(fail)
 
         if not self.config.keep_going:
@@ -143,7 +148,7 @@ class TestRunner:
     def _test_passed(self, tc):
         """Print message specific for passed test"""
         if self.config.tm:
-            tm = '\t\t\t[{:06.3F} s]'.format(tc.elapsed)
+            tm = '\t[{:06.3F} s]'.format(tc.elapsed)
         else:
             tm = ''
 

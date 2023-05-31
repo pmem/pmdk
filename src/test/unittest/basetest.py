@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 """Base tests class and its functionalities.
 
@@ -179,6 +179,7 @@ class BaseTest(metaclass=_TestCase):
             self.check(c)
 
         except futils.Fail:
+            self.elapsed = (datetime.now() - start_time).total_seconds()
             self._on_fail()
             raise
 
@@ -191,6 +192,7 @@ class BaseTest(metaclass=_TestCase):
             msg = '{}: {}TIMEOUT{}\t({})'.format(self, futils.Color.RED,
                                                  futils.Color.END,
                                                  self.ctx)
+            self.elapsed = (datetime.now() - start_time).total_seconds()
             raise futils.Fail(msg)
 
         else:

@@ -17,11 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        config: ['-d', '-p', '-m', '-e']
+        build: ['debug', 'nondebug', 'static-debug', 'static-nondebug']
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['RUNTESTS -m force-enable',
-                 'RUNTESTS -p force-enable',
-                 'RUNTESTS -d force-enable',
-                 'RUNTESTS -e force-enable']
+
     env:
       WORKDIR: utils/gha-runners
 
@@ -39,4 +38,4 @@ jobs:
         run: ./$WORKDIR/create-testconfig.sh
 
       - name: Run tests
-        run: cd src/test/ && ./${{ matrix.config }}
+        run: cd src/test/ && ./RUNTESTS -b ${{ matrix.build }} ${{ matrix.config }} force-enable
