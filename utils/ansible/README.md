@@ -22,12 +22,11 @@ Use the commands below to setup PMDK software development environment:
 ansible-playbook -i <target_platform_ip_address>, opensuse-setup.yml --extra-vars
  "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser testUserPass=pmdkpass"
  ```
-
+or
 ```
 ansible-playbook -i <target_platform_ip_address>, rockylinux-setup.yml --extra-vars
  "host=all ansible_user=root ansible_password=<password_for_root_on_target> testUser=pmdkuser testUserPass=pmdkpass"
  ```
-
 
 Use the below commands to configure persistent memory on Intel servers
 (regions and namespaces on DIMMs) to be used for PMDK libraries tests execution.
@@ -73,7 +72,7 @@ and run with example command
 The sequence of commands below presents an example procedure how to setup
 a new server to be used as self-hosted GHA runner.
 ## System setup and configuration (assuming base OS is already installed)
-As root (for RockyLinux):
+### As root (for RockyLinux):
 ```
 dnf install git-core -y
 dnf install ansible-core -y
@@ -92,7 +91,7 @@ ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
 cd
 rm -rf pmdk
 ```
-As root (for OpenSuSe):
+### As root (for OpenSuSe):
 ```
 zypper install git-core -y
 zypper install ansible -y
@@ -113,7 +112,7 @@ rm -rf pmdk
 ```
 ## A self-hosted runner setup and configuration
 
-As pmdkuser (self hosted runner installation and condifuration):
+As pmdkuser (self hosted runner installation and configuration):
 ```
 mkdir actions-runner && cd actions-runner
 curl -o actions-runner-linux-x64-2.304.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.304.0/actions-runner-linux-x64-2.304.0.tar.gz
