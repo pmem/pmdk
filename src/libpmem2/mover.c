@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021-2022, Intel Corporation */
+/* Copyright 2021-2023, Intel Corporation */
 
 /*
  * mover.c -- default pmem2 data mover
@@ -12,6 +12,7 @@
 #include "out.h"
 #include "pmem2_utils.h"
 #include "util.h"
+#include "alloc.h"
 #include <inttypes.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -194,6 +195,7 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 		goto membuf_failed;
 	}
 
+	LOG(3, "dms %p", dms);
 	return 0;
 
 	membuf_failed:
@@ -207,8 +209,9 @@ mover_new(struct pmem2_map *map, struct vdm **vdm)
 void
 mover_delete(struct vdm *dms)
 {
+	LOG(3, "dms %p", dms);
 	membuf_delete(((struct data_mover *)dms)->membuf);
-	free((struct data_mover *)dms);
+	Free((struct data_mover *)dms);
 }
 
 /*

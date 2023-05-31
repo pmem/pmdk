@@ -55,6 +55,7 @@ ENV TESTS_DEPS "\
 	libunwind-devel \
 	ndctl \
 	openssh-server \
+	python3 \
 	strace"
 
 # packaging dependencies
@@ -70,12 +71,18 @@ ENV MISC_DEPS "\
 	lbzip2 \
 	man \
 	python3-flake8 \
+	python3-pip \
 	rsync \
 	shadow-utils \
 	sudo \
 	tar \
 	which \
 	xmlto"
+
+# python scripts dependencies
+ENV PYTHON_DEPS "\
+	distro \
+	xmlrunner"
 
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
@@ -91,6 +98,8 @@ RUN dnf update -y && dnf install -y \
 	$MISC_DEPS \
 	&& ./install-valgrind.sh fedora \
 	&& dnf clean all
+
+RUN pip3 install $PYTHON_DEPS
 
 # Add and switch user
 ENV USER pmdkuser

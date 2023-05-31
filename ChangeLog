@@ -1,3 +1,33 @@
+Fri May 26 2023 Oksana Sałyk <oksana.salyk@intel.com>
+
+	* Version 1.13.1-rc2
+
+	This release :
+	- Identifies and temporarily disables tests permanently or sporadically
+	failing in some configurations:
+		- ex_libpmem2 (#5593, #5635, #5638, #5641)
+		- obj_defrag_advanced (#5690)
+		- obj_sync (#5643, #5646)
+		- pmem2_future (#5596)
+		- pmem2_map (#5600)
+		- pmem2_map_prot (#5599)
+		- pmem2_mem_ext (#5640)
+		- pmem2_mover (partially fixed) (#5595, #5686, #5694)
+		- pmem2_vm_reservation (#5592)
+
+	- Fixes failing tests:
+		- obj_tx_alloc_mt (#5680)
+		- pmem2_map_from_existing (#5594)
+
+	- Temporarily disable pmem2_badblock test (#5650) due to missing infrastructure
+	(#5636, #5652)
+
+	Other changes and notable bug fixes:
+	- pmem2: fix valgrind instrumentation in pmem2_map_from_exisiting (#5605)
+	- pmem2: remove data_mover memory leak (#5681, #5637)
+	- test: update permissions of DAX devices after clearing bad blocks (#5611)
+	- test: disable avx512f tests (pmem2_mem_ext) under Valgrind (#5658)
+
 Wed Apr 26 2023 Łukasz Stolarczuk <lukasz.stolarczuk@intel.com>
 
 	* Version 1.13.0

@@ -4,6 +4,7 @@
 #
 import futils
 import testframework as t
+from testframework import granularity as g
 
 
 @t.require_build(['debug', 'release'])
@@ -73,7 +74,10 @@ class TEST4(EX_LIBPMEM2):
         ctx.exec(example_path, *args, stdout_file='out4.log')
 
 
-class TEST5(EX_LIBPMEM2):
+# XXX Disable the test execution under pmemcheck with g.PAGE until the issue
+# https://github.com/pmem/pmdk/issues/5641 is fixed.
+# additionall test TEST501 has been added to cover non-pmemcheck configs.
+class EX_LIBPMEM2_TEST5(EX_LIBPMEM2):
 
     def run(self, ctx):
         example_path = futils.get_example_path(ctx, 'pmem2', 'unsafe_shutdown')
@@ -82,14 +86,40 @@ class TEST5(EX_LIBPMEM2):
         ctx.exec(example_path, "read", file_path, stdout_file='out5.log')
 
 
+@g.require_granularity(g.CACHELINE, g.BYTE)  # to be removed when fixed
+@t.require_valgrind_enabled('pmemcheck')  # to be removed when fixed
+class TEST5(EX_LIBPMEM2_TEST5):
+
+    pass
+
+
+# XXX Disable the test execution with 'memcheck' until the issue:
+# https://github.com/pmem/pmdk/issues/5635 is fixed.
+# additionall test TEST501 has been added to cover non-pmemcheck configs.
+# @t.require_valgrind_disabled('memcheck')  # to be removed when fixed
+# @t.require_valgrind_disabled('pmemcheck')
+@t.require_valgrind_disabled('pmemcheck', 'memcheck')
+class TEST501(EX_LIBPMEM2_TEST5):  # to be removed when fixed
+
+    pass
+
+
 @t.windows_exclude
+# XXX disable the test for `memcheck' and 'helgrind'
+# until https://github.com/pmem/pmdk/issues/5638 is fixed.
+# @t.require_valgrind_disabled('memcheck', 'helgrind')
+# XXX disable the test for `drd'
+# until https://github.com/pmem/pmdk/issues/5593 is fixed.
+# @t.require_valgrind_disabled('drd')
 # This test case would require two VALGRIND_SET_CLEAN() calls
 # to be added to the "src/examples/libpmem2/ringbuf/ringbuf.c"
 # example (see https://github.com/pmem/pmdk/pull/5604)
 # in order to pass under pmemcheck, but examples
 # do not use valgrind macros on purpose (to avoid unnecessary
 # complication), so this test case just should not be run under pmemcheck.
-@t.require_valgrind_disabled('pmemcheck')
+# @t.require_valgrind_disabled('pmemcheck')
+# XXX _disabled() can be used only once.
+@t.require_valgrind_disabled('memcheck', 'drd', 'pmemcheck', 'helgrind')
 class TEST6(EX_LIBPMEM2):
 
     def run(self, ctx):
