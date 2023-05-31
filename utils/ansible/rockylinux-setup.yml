@@ -34,6 +34,8 @@
         name: PKG_CONFIG_PATH
         value: /usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig
 
+# For `ansible_distribution_*` variables see:
+# https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_conditionals.html#commonly-used-facts
     - name: "Rocky - adding additional repositories"
       block:
         - name: "Rocky - adding epel repository"
