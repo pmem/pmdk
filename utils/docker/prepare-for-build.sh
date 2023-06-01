@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2022, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # prepare-for-build.sh - is called inside a Docker container; prepares
@@ -21,5 +21,5 @@ fi
 # should be preserved
 KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}
 if [[ "$KEEP_TEST_CONFIG" == 0 ]]; then
-	./configure-tests.sh
+	./configure-tests.sh $@
 fi

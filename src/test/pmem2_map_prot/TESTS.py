@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 #
 
 import testframework as t
@@ -72,6 +72,8 @@ class TEST6(PMEM2_MAP_PROT):
 
 
 @t.require_architectures('x86_64')
+# XXX disable the test until https://github.com/pmem/pmdk/issues/5599 is fixed.
+@t.require_valgrind_disabled('memcheck')
 class TEST7(PMEM2_MAP_PROT):
     """
     READ|EXEC protection on file opened in read|write|exec mode; test runs

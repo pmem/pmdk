@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2023, Intel Corporation
 #
 
 import os
@@ -69,7 +69,8 @@ class PMEM2_BADBLOCK(t.Test):
         bbTool.clear_all(filepath)
 
 
-class TEST0(PMEM2_BADBLOCK_COUNT):
+# XXX - https://github.com/pmem/pmdk/issues/5636
+class DISABLE_TEST0(PMEM2_BADBLOCK_COUNT):
     """
     compares the number of bad blocks returned by pmem2 and ndctl on fsdax
     """
@@ -80,8 +81,9 @@ class TEST0(PMEM2_BADBLOCK_COUNT):
         self.run_test(ctx, filepath)
 
 
+# XXX - https://github.com/pmem/pmdk/issues/5636
 @t.require_devdax(t.DevDax('devdax1'))
-class TEST1(PMEM2_BADBLOCK_COUNT):
+class DISABLE_TEST1(PMEM2_BADBLOCK_COUNT):
     """
     compares the number of bad blocks returned by pmem2 and ndctl on devdax
     """
@@ -92,7 +94,8 @@ class TEST1(PMEM2_BADBLOCK_COUNT):
         self.run_test(ctx, ddpath)
 
 
-class TEST2(PMEM2_BADBLOCK):
+# XXX - https://github.com/pmem/pmdk/issues/5636
+class DISABLE_TEST2(PMEM2_BADBLOCK):
     """test mcsafe read operation with encountered badblock"""
     test_case = "test_pmem2_src_mcsafe_badblock_read"
 
@@ -101,7 +104,8 @@ class TEST2(PMEM2_BADBLOCK):
         self.run_test(ctx, filepath)
 
 
-class TEST3(PMEM2_BADBLOCK):
+# XXX - https://github.com/pmem/pmdk/issues/5636
+class DISABLE_TEST3(PMEM2_BADBLOCK):
     """test mcsafe write operation with encountered badblock"""
     test_case = "test_pmem2_src_mcsafe_badblock_write"
 
@@ -110,8 +114,9 @@ class TEST3(PMEM2_BADBLOCK):
         self.run_test(ctx, filepath)
 
 
+# XXX - https://github.com/pmem/pmdk/issues/5636
 @t.require_devdax(t.DevDax('devdax1'))
-class TEST4(PMEM2_BADBLOCK):
+class DISABLE_TEST4(PMEM2_BADBLOCK):
     """test mcsafe read operation with encountered badblock on devdax"""
     test_case = "test_pmem2_src_mcsafe_badblock_read"
 
@@ -120,8 +125,9 @@ class TEST4(PMEM2_BADBLOCK):
         self.run_test(ctx, ddpath)
 
 
+# XXX - https://github.com/pmem/pmdk/issues/5636
 @t.require_devdax(t.DevDax('devdax1'))
-class TEST5(PMEM2_BADBLOCK):
+class DISABLE_TEST5(PMEM2_BADBLOCK):
     """test mcsafe write operation with encountered badblock on devdax"""
     test_case = "test_pmem2_src_mcsafe_badblock_write"
 

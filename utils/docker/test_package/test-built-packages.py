@@ -10,8 +10,12 @@ Tests check:
 -if all required packages are built,
 -if built packages are consistent with names of libraries read from
  .so files and other elements (tools and "PMDK").
+
 Required arguments:
 -r <PMDK_path>    the PMDK library root path.
+
+Optional arguments:
+--skip-daxio      to be set if daxio was not built (e.g., if NDCTL_ENABLE was set to 'n')
 """
 
 from os import listdir, path, linesep
@@ -148,10 +152,12 @@ def find_missing_packages(packages_path, pmdk_path, pmdk_debuginfo_package_name)
         'pmempool': PACKAGES_INFO(basic=True, devel=False, debug=False,
                                   debuginfo=True, debug_debuginfo=False),
         'pmreorder': PACKAGES_INFO(basic=True, devel=False, debug=False,
-                                   debuginfo=False, debug_debuginfo=False),
-        'daxio': PACKAGES_INFO(basic=True, devel=False, debug=False,
-                               debuginfo=True, debug_debuginfo=False)
+                                   debuginfo=False, debug_debuginfo=False)
     }
+    if not skip_daxio:
+        tools['daxio'] = PACKAGES_INFO(basic=True, devel=False, debug=False,
+                                       debuginfo=True, debug_debuginfo=False)
+
     tools_packages = get_names_of_packages(tools)
     missing_tools_packages = [
         elem for elem in tools_packages if elem not in built_packages]
@@ -237,11 +243,17 @@ class TestBuildPackages(unittest.TestCase):
 
 if __name__ == '__main__':
     path_argument = '-r'
+    daxio_build_argument = "--skip-daxio"
+    skip_daxio = False
     if '-h' in sys.argv or '--help' in sys.argv:
         print(__doc__)
         unittest.main()
     elif path_argument in sys.argv:
         pmdk_path = parse_argument(path_argument)
+        if daxio_build_argument in sys.argv:
+            skip_daxio = True
+            index = sys.argv.index(daxio_build_argument)
+            sys.argv.pop(index)
         if pmdk_path:
             PMDK_VERSION, SYSTEM_ARCHITECTURE =\
                 get_package_version_and_system_architecture(pmdk_path)

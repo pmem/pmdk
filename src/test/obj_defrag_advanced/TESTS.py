@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 #
 
 import testframework as t
@@ -103,8 +103,12 @@ class TEST4(ObjDefragAdvancedMt):
     ncycles = 25
 
 
+# XXX disable the test for 'drd'
+# until https://github.com/pmem/pmdk/issues/5690 is fixed.
+# previousely the test has been disabled for other Valgrind options
 # This test last too long under helgrind/memcheck/pmemcheck
-@t.require_valgrind_disabled('helgrind', 'memcheck', 'pmemcheck')
+# @t.require_valgrind_disabled('helgrind', 'memcheck', 'pmemcheck')
+@t.require_valgrind_disabled('helgrind', 'memcheck', 'pmemcheck', 'drd')
 class TEST5(ObjDefragAdvancedMt):
 
     max_nodes = 256

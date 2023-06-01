@@ -18,8 +18,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['RUNTESTS -t long',
-                 'RUNTESTS.py -t long']
+        config: ['RUNTESTS -t long -b debug',
+                 'RUNTESTS -t long -b nondebug',
+                 'RUNTESTS -t long -b static-debug',
+                 'RUNTESTS -t long -b static-nondebug',
+                 'RUNTESTS.py -t long -b debug',
+                 'RUNTESTS.py -t long -b release',
+                 'RUNTESTS.py -t long -b static_debug',
+                 'RUNTESTS.py -t long -b static_release']
+
     env:
       WORKDIR: utils/gha-runners
 

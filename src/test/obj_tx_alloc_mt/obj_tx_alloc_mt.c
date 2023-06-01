@@ -23,20 +23,8 @@ static unsigned Threads;
 static unsigned Ops_per_thread;
 static unsigned Tx_per_thread;
 
-struct action {
-	struct pobj_action pact;
-	os_mutex_t lock;
-	os_cond_t cond;
-};
-
-struct root {
-	uint64_t offs[MAX_THREADS][MAX_OPS_PER_THREAD];
-	struct action actions[MAX_THREADS][MAX_OPS_PER_THREAD];
-};
-
 struct worker_args {
 	PMEMobjpool *pop;
-	struct root *r;
 	unsigned idx;
 };
 
@@ -167,21 +155,11 @@ main(int argc, char *argv[])
 			UT_FATAL("!pmemobj_open");
 	}
 
-	PMEMoid oid = pmemobj_root(pop, sizeof(struct root));
-	struct root *r = pmemobj_direct(oid);
-	UT_ASSERTne(r, NULL);
-
 	struct worker_args args[MAX_THREADS];
 
 	for (unsigned i = 0; i < Threads; ++i) {
 		args[i].pop = pop;
-		args[i].r = r;
 		args[i].idx = i;
-		for (unsigned j = 0; j < Ops_per_thread; ++j) {
-			struct action *a = &r->actions[i][j];
-			util_mutex_init(&a->lock);
-			util_cond_init(&a->cond);
-		}
 	}
 
 	/*
