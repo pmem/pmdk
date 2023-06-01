@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019-2021, Intel Corporation)
+[comment]: <> (Copyright 2019-2023, Intel Corporation)
 
 [comment]: <> (pmem2_source_size.3 -- man page for pmem2_source_size)
 
@@ -36,7 +36,7 @@ int pmem2_source_size(const struct pmem2_source *source, size_t *size);
 # DESCRIPTION #
 
 The **pmem2_source_size**() function retrieves the size of the file
-in bytes pointed by file descriptor or handle stored in the *source* and puts
+in bytes pointed by file descriptor stored in the *source* and puts
 it in *\*size*.
 
 This function is a portable replacement for OS-specific APIs.
@@ -55,11 +55,6 @@ The **pmem2_source_size**() can fail with the following errors:
 On all systems:
 
 * **PMEM2_E_INVALID_FILE_HANDLE** - source contains an invalid file handle.
-
-On Windows:
-
-* **PMEM2_E_INVALID_FILE_TYPE** - handle points to a resource that is not
-a regular file.
 
 On Linux:
 

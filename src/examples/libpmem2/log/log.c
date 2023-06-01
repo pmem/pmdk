@@ -127,7 +127,7 @@ log_init(struct log_ctx *ctx, const char *path)
 	struct pmem2_source *src;
 	ret = pmem2_source_from_fd(&src, ctx->fd);
 	if (ret) {
-		pmem2_perror("pmem2_config_set_fd");
+		pmem2_perror("pmem2_source_from_fd");
 		goto err_source;
 	}
 

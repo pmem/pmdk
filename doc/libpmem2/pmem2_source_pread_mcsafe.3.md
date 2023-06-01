@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2021-2022, Intel Corporation)
+[comment]: <> (Copyright 2021-2023, Intel Corporation)
 
 [comment]: <> (pmem2_source_pread_mcsafe.3 -- man page for libpmem2 machine safe read/write operations)
 
@@ -70,17 +70,14 @@ a possible bad block encountered.
 offset *offset* goes beyond the file length.
 
 * **PMEM2_E_SOURCE_TYPE_NOT_SUPPORTED** - read/write operation doesn't support
-provided source, only sources created with **pmem2_source_from_fd**(3) and
-**pmem2_source_from_handle**(3) are supported.
+provided source, only sources created with **pmem2_source_from_fd**(3) is supported.
 
 Those operations can also return all errors from the underlying **pread**(2),
-**pwrite**(2), **sigaction**(2) functions on POSIX systems and **ReadFile**(),
-**WriteFile**() functions on Windows.
+**pwrite**(2), **sigaction**(2) functions.
 
 # SEE ALSO #
 
 **pread**(2), **pwrite**(2), **ReadFile**(), **WriteFile**(),
 **pmem2_badblock_clear**(3), **pmem2_badblock_context_new**(3),
 **pmem2_badblock_next**(3), **pmem2_source_from_fd**(3),
-**pmem2_source_from_handle**(3),
 **libpmem2**(7) and **<https://pmem.io>**

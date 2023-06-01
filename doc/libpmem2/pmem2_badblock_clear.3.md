@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2023, Intel Corporation)
 
 [comment]: <> (pmem2_badblock_clear.3 -- man page for pmem2_badblock_clear)
 
@@ -45,8 +45,6 @@ It means that the **pmem2_badblock_clear**() function unmaps bad blocks
 and maps new, healthy, blocks in place of the bad ones.
 The new blocks are zeroed. The content of the bad blocks is lost.
 
-It is not supported on Windows.
-
 # RETURN VALUE #
 
 The **pmem2_badblock_clear**() function clears the given *\*bb* bad block
@@ -60,7 +58,7 @@ and returns 0 on success or a negative error code on failure.
 
 * **PMEM2_E_LENGTH_OUT_OF_RANGE** - bad block's length is greater than INT64_MAX
 
-* **PMEM2_E_NOSUPP** - on Windows or when the OS does not support this functionality
+* **PMEM2_E_NOSUPP** - when the OS does not support this functionality
 
 * **-errno** - set by failing **fallocate**(2), while deallocating bad blocks
 or allocating new blocks

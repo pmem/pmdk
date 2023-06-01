@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019-2020, Intel Corporation)
+[comment]: <> (Copyright 2019-2023, Intel Corporation)
 
 [comment]: <> (pmem2_map_delete.3 -- man page for libpmem2 pmem2_map_delete operation)
 
@@ -59,8 +59,7 @@ The **pmem2_map_delete**() can fail with the following errors:
 * **PMEM2_E_MAPPING_NOT_FOUND** - mapping was not found (it was already
 unmapped or pmem2_map state was corrupted)
 
-On systems other than Windows it can also return **-EINVAL** from the underlying
-**munmap**(2) function.
+* **-EINVAL** - from the underlying **munmap**(2) function.
 
 # SEE ALSO #
 

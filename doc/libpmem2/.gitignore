@@ -27,7 +27,6 @@ pmem2_source_alignment.3
 pmem2_source_from_fd.3
 pmem2_source_from_anon.3
 pmem2_source_get_fd.3
-pmem2_source_get_handle.3
 pmem2_source_numa_node.3
 pmem2_source_size.3
 pmem2_source_device_id.3
