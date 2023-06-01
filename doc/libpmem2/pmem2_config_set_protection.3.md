@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2023, Intel Corporation)
 
 [comment]: <> (pmem2_config_set_protection.3 -- man page for libpmem2 config API)
 
@@ -58,7 +58,7 @@ It is either PROT_NONE or the bitwise OR of one or more of the following flags:
 
 * **PMEM2_PROT_WRITE** - Pages may be written.
 
-* **PMEM2_PROT_NONE** - Pages may not be accessed. On Windows this flag is not supported.
+* **PMEM2_PROT_NONE** - Pages may not be accessed.
 
 # RETURN VALUE #
 

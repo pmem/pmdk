@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2023, Intel Corporation)
 
 [comment]: <> (pmem2_badblock_context_new.3 -- man page for)
 [comment]: <> (pmem2_badblock_context_new and pmem2_badblock_context_delete)
@@ -63,8 +63,6 @@ The **pmem2_badblock_context_delete**() function frees *\*bbctx* returned by
 **pmem2_badblock_context_new**() and sets *\*bbctx* to NULL. If *\*bbctx*
 is NULL, no operation is performed.
 
-It is not supported on Windows.
-
 # RETURN VALUE #
 
 The **pmem2_badblock_context_new**() function returns 0 on success
@@ -87,7 +85,7 @@ the given *src*.
 * **PMEM2_E_CANNOT_READ_BOUNDS** - cannot read offset or size of the namespace
 of the given *src*.
 
-* **PMEM2_E_NOSUPP** - on Windows or when the OS does not support this functionality
+* **PMEM2_E_NOSUPP** - when the OS does not support this functionality
 
 * **-ENOMEM** - out of memory
 

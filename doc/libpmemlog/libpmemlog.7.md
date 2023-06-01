@@ -29,10 +29,6 @@ header: "pmemlog API version 1.1"
 
 **libpmemlog** - persistent memory resident log file (DEPRECATED)
 
->NOTE:
-Support for Windows and FreeBSD deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
 # SYNOPSIS #
 
 ```c

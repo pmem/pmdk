@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * ut_pmem2_source.h -- utility helper functions for libpmem2 source tests
@@ -10,11 +10,11 @@
 
 #include "ut_fh.h"
 
-/* a pmem2_config_set_fd() that can't return NULL */
+/* a pmem2_source_from_fd() that can't return NULL */
 #define PMEM2_SOURCE_FROM_FD(src, fd)					\
 	ut_pmem2_source_from_fd(__FILE__, __LINE__, __func__, src, fd)
 
-/* a pmem2_config_set_fd() that can't return NULL */
+/* a pmem2_source_from_fh() that can't return NULL */
 #define PMEM2_SOURCE_FROM_FH(src, fh)					\
 	ut_pmem2_source_from_fh(__FILE__, __LINE__, __func__, src, fh)
 

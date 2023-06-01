@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2023, Intel Corporation)
 
 [comment]: <> (pmem2_config_new.3 -- man page for pmem2_config_new and pmem2_config_delete)
 
@@ -59,6 +59,5 @@ The **pmem2_config_delete**() function always returns 0.
 
 # SEE ALSO #
 
-**errno**(3), **pmem2_map_new**(3), **pmem2_config_set_handle**(3),
-**pmem2_config_set_fd**(3), **pmem2_config_get_file_size**(3),
+**errno**(3), **pmem2_map_new**(3), **pmem2_config_get_file_size**(3),
 **libpmem2**(7) and **<https://pmem.io>**

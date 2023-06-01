@@ -28,10 +28,6 @@ header: "pmem2 API version 1.0"
 
 **libpmem2** - persistent memory support library
 
->NOTE:
-Support for Windows and FreeBSD deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
 # SYNOPSIS #
 
 ```c
@@ -69,9 +65,9 @@ robust use of Persistent Memory. It relies on three core concepts:
 *struct pmem2_src source*, *struct pmem2_config config* and *struct pmem2_map map*:
 
 * *source* - an object describing the data source for mapping.
-The data source can be a file descriptor, a file handle, or an anonymous mapping.
+The data source can be a file descriptor or an anonymous mapping.
 APIs dedicated for creating *source* are: **pmem2_source_from_fd**(3),
- **pmem2_source_from_handle**(3), **pmem2_source_from_anon**(3).
+**pmem2_source_from_anon**(3).
 
 * *config* - an object containing parameters that are used to create a mapping from a *source*.
 The configuration structure must always be provided to create a mapping,
@@ -125,10 +121,9 @@ The way data reaches this protected domain differs based on the platform
 and storage device capabilities.
 
 Traditional block storage devices (SSD, HDD) must use system API calls such
-as `msync()`, `fsync()` on Linux, or `FlushFileBuffers()`,`FlushViewOfFile()`
-on Windows to write data reliably. Invoking these functions flushes the data
-to the medium with page granularity. In the **libpmem2** library, this type
-of flushing behavior is called **PMEM2_GRANULARITY_PAGE**.
+as `msync()`, `fsync()` to write data reliably. Invoking these functions
+flushes the data to the medium with page granularity. In the **libpmem2** library,
+this type of flushing behavior is called **PMEM2_GRANULARITY_PAGE**.
 
 In systems with persistent memory support, a *power-fail protected domain* may
 cover different sets of resources: either the memory controller or the memory
@@ -309,6 +304,6 @@ by the SNIA NVM Programming Technical Work Group:
 **pmem2_get_memmove_fn**(3), **pmem2_get_memset_fn**(3),
 **pmem2_get_persist_fn**(3),**pmem2_map_get_store_granularity**(3),
 **pmem2_map_new**(3), **pmem2_source_from_anon**(3),
-**pmem2_source_from_fd**(3), **pmem2_source_from_handle**(3),
-**libpmem2_unsafe_shutdown**(7), **libpmemblk**(7),
-**libpmemlog**(7), **libpmemobj**(7) and **<https://pmem.io>**
+**pmem2_source_from_fd**(3), **libpmem2_unsafe_shutdown**(7),
+**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
+and **<https://pmem.io>**
