@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019-2021, Intel Corporation)
+[comment]: <> (Copyright 2019-2023, Intel Corporation)
 
 [comment]: <> (pmem2_map_new.3 -- man page for libpmem2 pmem2_map_new operation)
 
@@ -83,7 +83,6 @@ of the file. The file is too small.
 * **PMEM2_E_SOURCE_EMPTY** - mapped file has size equal to 0.
 
 * **PMEM2_E_MAPPING_EXISTS** - if the object exists before the function call.
-For details please see **CreateFileMapping**() manual pages. (Windows only)
 
 * **PMEM2_E_OFFSET_UNALIGNED** - argument unaligned, offset is not a multiple of
 the alignment required for specific *\*source*. Please see

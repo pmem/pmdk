@@ -9,7 +9,7 @@ header: "pmempool API version 1.3"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2016-2023, Intel Corporation)
 
 [comment]: <> (libpmempool.7 -- man page for libpmempool)
 
@@ -25,10 +25,6 @@ header: "pmempool API version 1.3"
 # NAME #
 
 **libpmempool** - persistent memory pool management library
-
->NOTE:
-Support for Windows and FreeBSD deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
 
 # SYNOPSIS #
 

@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2023, Intel Corporation)
 
 [comment]: <> (pmem2_source_device_usc.3 -- man page for pmem2_source_device_usc)
 
@@ -53,27 +53,8 @@ and a negative error code is returned.
 
 The **pmem2_source_device_usc**() can fail with the following errors:
 
-On all systems:
-
 * **PMEM2_E_NOSUPP** - the underlying platform does not expose unsafe shutdown
 count information.
-
-On Windows:
-
-* -**errno** equivalent of return code set by failing
-**GetFinalPathNameByHandleW**(), while trying to resolve volume path from the
-file handle.
-
-* -**errno** set by failing **malloc**(3), while trying to allocate a buffer
-for storing volume path.
-
-* -**errno** equivalent of return code set by failing
-**CreateFileW**(), while trying to obtain a handle to the volume.
-
-* -**errno** equivalent of return code set by failing
-**DeviceIoControl**(), while trying to obtain  volume **USC** value.
-
-On Linux:
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file
 descriptor.

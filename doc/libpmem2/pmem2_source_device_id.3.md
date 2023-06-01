@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2023, Intel Corporation)
 
 [comment]: <> (pmem2_source_device_id.3 -- man page for pmem2_source_device_id)
 
@@ -60,29 +60,10 @@ and a negative error code is returned.
 
 The **pmem2_source_device_id**() can fail with the following errors:
 
-On all systems:
-
 * **PMEM2_E_BUFFER_TOO_SMALL** - the provided buffer of length *\*len* is too
 small to store the full identifier of the backing devices.
 * **PMEM2_E_NOSUPP** - the underlying platform does not expose hardware
 identification.
-
-On Windows:
-
-* -**errno** equivalent of return code set by failing
-**GetFinalPathNameByHandleW**(), while trying to resolve the volume path from the
-file handle.
-
-* -**errno** set by failing **malloc**(3), while trying to allocate a buffer
-for storing volume path.
-
-* -**errno** equivalent of return code set by failing
-**CreateFileW**(), while trying to obtain a handle to the volume.
-
-* -**errno** equivalent of return code set by failing
-**DeviceIoControl**(), while trying to obtain volume **USC** value.
-
-On Linux:
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file
 descriptor.

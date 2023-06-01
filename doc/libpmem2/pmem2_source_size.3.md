@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019-2021, Intel Corporation)
+[comment]: <> (Copyright 2019-2023, Intel Corporation)
 
 [comment]: <> (pmem2_source_size.3 -- man page for pmem2_source_size)
 
@@ -55,11 +55,6 @@ The **pmem2_source_size**() can fail with the following errors:
 On all systems:
 
 * **PMEM2_E_INVALID_FILE_HANDLE** - source contains an invalid file handle.
-
-On Windows:
-
-* **PMEM2_E_INVALID_FILE_TYPE** - handle points to a resource that is not
-a regular file.
 
 On Linux:
 

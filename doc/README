@@ -29,9 +29,6 @@ libpmempool -- persistent memory pool management library
 pmempool -- persistent memory pool management tool
 daxio -- perform I/O on Device DAX device
 
-NOTE: Support for Windows and FreeBSD are deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
 These man pages provide the API specification for the corresponding libraries
 and commands in this source tree, so any updates to one should be tested,
 reviewed, and committed with changes to the other.
@@ -46,13 +43,3 @@ The man(1) command may be used to format generated man pages for viewing
 in a terminal window (includes bold, underline, etc.), for example:
 	$ man generated/libpmem.7
 	$ man generated/pmemobj_create.3
-
-In addition, for testing purposes ../utils/md2man.sh will generate a
-preprocessed markdown file with the headers stripped off if the TESTOPTS
-variable is set. For example:
-
-	$ export TESTOPTS="-DWIN32 -UFREEBSD -UWEB"
-	$ ../utils/md2man.sh libpmemobj/libpmemobj.7.md x libpmemobj.7.win.md
-
-will generate a version of the libpmemobj.7 man page for Windows in markdown
-format. The resulting file may be viewed with a markdown-enabled browser.

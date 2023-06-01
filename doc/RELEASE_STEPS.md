@@ -89,9 +89,7 @@ Steps to make a package:
 ## 6. Later, for major/minor release
 - on the stable-$VER branch, bump the version of Docker images (`utils/docker/images/set-images-version.sh`) to $VER
 - once the pmem.github.io repository contains new documentation (thanks to `utils/docker/run-doc-update.sh` script run in CI),
-  add a new tag ("$VER") in files `data/releases_linux.yml` and `data/releases_windows.yml`, based on previous tags in these files
-<!-- to be updated with Windows removal -->
-- update the library version in [vcpkg](https://github.com/microsoft/vcpkg/blob/master/ports/pmdk) - file an issue to their maintainers
+  add a new tag ("$VER") in file `data/releases_linux.yml` based on previous tags in this file.
 
 ## 7. For curious readers
 

@@ -9,7 +9,7 @@ header: "pmem API version 1.1"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2019, Intel Corporation)
+[comment]: <> (Copyright 2017-2023, Intel Corporation)
 
 [comment]: <> (pmem_is_pmem.3 -- man page for libpmem persistence and mapping functions)
 
@@ -139,10 +139,10 @@ On success, **pmem_unmap**() returns 0. On error, it returns -1 and sets
 
 # NOTES #
 
-On Linux, **pmem_is_pmem**() returns true if the entire range
-was mapped directly from Device DAX (/dev/daxX.Y) without an intervening
-file system, or **MAP_SYNC** flag of **mmap(2)** is supported by the
-file system on Filesystem DAX.
+**pmem_is_pmem**() returns true if the entire range was mapped directly
+from Device DAX (/dev/daxX.Y) without an intervening file system,
+or **MAP_SYNC** flag of **mmap(2)** is supported by the file system
+on Filesystem DAX.
 
 # CAVEATS #
 
@@ -154,12 +154,6 @@ returns false, even if the queried range is entirely persistent memory.
 Not all file systems support **posix_fallocate**(3). _UW(pmem_map_file) will
 fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
 the underlying file system does not support **posix_fallocate**(3).
-
-_WINUX(=q= On Windows if **PMEM_FILE_CREATE** is specified without
-**PMEM_FILE_SPARSE** and the file exists, FILE_ATTRIBUTE_SPARSE_FILE and
-FILE_ATTRIBUTE_COMPRESSED will be removed if the file has any, to physically
-allocate space for the file. This is a workaround for _chsize() performance
-issues. =e=)
 
 # SEE ALSO #
 
