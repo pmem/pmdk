@@ -133,7 +133,7 @@ class TestRunner:
 
     def _test_failed(self, tc, ctx, fail):
         """Print message specific for failed test"""
-        if self.config.tm:
+        if self.config.tm and hasattr(tc, "elapsed"):
             tm = '\t[{:06.3F} s]'.format(tc.elapsed)
         else:
             tm = ''
