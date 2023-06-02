@@ -147,12 +147,14 @@
     - name: "Run the install-libndctl script with arguments"
       script: ../docker/images/install-libndctl.sh tags/v70.1
 
-    # Disable SELinux. Enabling skipping when SELinux fails to disable because this is not essential to run tests but it helps when disabled.
-    - name: Disable selinux - distribution other than Debian based
-      selinux:
-        state: disabled
+    # Disable AppArmor. Enabling skipping when AppArmor fails to disable because this is not essential to run tests but it helps when disabled.
+    - name: Disable AppArmor
+      service:
+        name: apparmor
+        state: stopped
+        enabled: no
       ignore_errors: yes
-      when: ansible_facts['os_family'] != 'Debian'
+      when: ansible_facts['os_family'] == 'Suse'
 
     - name: "Add new user"
       shell: |
