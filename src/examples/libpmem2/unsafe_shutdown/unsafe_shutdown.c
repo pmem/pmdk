@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * unsafe_shutdown.c -- unsafe shutdown example for the libpmem2
@@ -20,11 +20,7 @@
 
 #include <libpmem2.h>
 
-#ifndef _WIN32
 #include <unistd.h>
-#else
-#include <io.h>
-#endif
 
 #define DEVICE_ID_LEN			((size_t)512ULL)
 
