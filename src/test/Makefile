@@ -100,6 +100,7 @@ OBJ_TESTS = \
 	obj_pool_open_mt\
 	obj_recovery\
 	obj_recreate\
+	obj_reserve_mt\
 	obj_root\
 	obj_reorder_basic\
 	obj_strdup\
