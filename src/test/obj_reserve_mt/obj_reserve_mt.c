@@ -18,7 +18,6 @@
 #define CHUNKSIZE (1 << 18)
 #define CHUNKS_PER_THREAD 3
 
-static unsigned Threads;
 static unsigned Ops_per_thread;
 
 struct action {
@@ -127,9 +126,9 @@ action_mix_worker(void *arg)
 }
 
 static void
-actions_clear(PMEMobjpool *pop, struct root *r)
+actions_clear(PMEMobjpool *pop, struct root *r, unsigned threads)
 {
-	for (unsigned i = 0; i < Threads; ++i) {
+	for (unsigned i = 0; i < threads; ++i) {
 		for (unsigned j = 0; j < Ops_per_thread; ++j) {
 			struct action *a = &r->actions[i][j];
 			util_mutex_destroy(&a->lock);
@@ -154,7 +153,7 @@ main(int argc, char *argv[])
 
 	unsigned threads = ATOU(argv[1]);
 	if (threads > MAX_THREADS)
-		UT_FATAL("Threads %d > %d", Threads, MAX_THREADS);
+		UT_FATAL("Threads %d > %d", threads, MAX_THREADS);
 	Ops_per_thread = ATOU(argv[2]);
 	if (Ops_per_thread > MAX_OPS_PER_THREAD)
 		UT_FATAL("Ops per thread %d > %d", Ops_per_thread,
@@ -198,9 +197,9 @@ main(int argc, char *argv[])
 	}
 
 	run_workers(action_cancel_worker, threads, ut_args);
-	actions_clear(pop, r);
+	actions_clear(pop, r, threads);
 	run_workers(action_publish_worker, threads, ut_args);
-	actions_clear(pop, r);
+	actions_clear(pop, r, threads);
 	run_workers(action_mix_worker, threads, ut_args);
 
 	pmemobj_close(pop);
