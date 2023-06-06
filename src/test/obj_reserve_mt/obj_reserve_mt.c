@@ -9,6 +9,7 @@
 #include "file.h"
 #include "sys_util.h"
 #include "unittest.h"
+#include "ut_mt.h"
 
 #define MAX_THREADS 32
 #define MAX_OPS_PER_THREAD 1000
@@ -141,18 +142,6 @@ actions_clear(PMEMobjpool *pop, struct root *r)
 	}
 }
 
-static void
-run_worker(void *(worker_func)(void *arg), struct worker_args args[])
-{
-	os_thread_t t[MAX_THREADS];
-
-	for (unsigned i = 0; i < Threads; ++i)
-		THREAD_CREATE(&t[i], NULL, worker_func, &args[i]);
-
-	for (unsigned i = 0; i < Threads; ++i)
-		THREAD_JOIN(&t[i], NULL);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -193,6 +182,7 @@ main(int argc, char *argv[])
 	UT_ASSERTne(r, NULL);
 
 	struct worker_args args[MAX_THREADS];
+	void *ut_args[MAX_THREADS];
 
 	for (unsigned i = 0; i < Threads; ++i) {
 		args[i].pop = pop;
@@ -203,13 +193,14 @@ main(int argc, char *argv[])
 			util_mutex_init(&a->lock);
 			util_cond_init(&a->cond);
 		}
+		ut_args[i] = &args[i];
 	}
 
-	run_worker(action_cancel_worker, args);
+	run_workers(action_cancel_worker, Threads, ut_args);
 	actions_clear(pop, r);
-	run_worker(action_publish_worker, args);
+	run_workers(action_publish_worker, Threads, ut_args);
 	actions_clear(pop, r);
-	run_worker(action_mix_worker, args);
+	run_workers(action_mix_worker, Threads, ut_args);
 
 	pmemobj_close(pop);
 
