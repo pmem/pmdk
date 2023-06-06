@@ -27,9 +27,6 @@ header: "pmemobj API version 2.3"
 
 **libpmemobj** - persistent memory transactional object store
 
-NOTE: Support for FreeBSD is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
 # SYNOPSIS #
 
 ```c
