@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 
 	unsigned threads = ATOU(argv[1]);
 	if (threads > MAX_THREADS)
-		UT_FATAL("Threads %d > %d", Threads, MAX_THREADS);
+		UT_FATAL("Threads %d > %d", threads, MAX_THREADS);
 	Ops_per_thread = ATOU(argv[2]);
 	if (Ops_per_thread > MAX_OPS_PER_THREAD)
 		UT_FATAL("Ops per thread %d > %d", Ops_per_thread,
