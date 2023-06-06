@@ -251,7 +251,6 @@ class TEST28(PMEM2_MAP_DEVDAX):
     with_size = False
 
 
-@t.linux_only
 @t.require_architectures('x86_64')
 # XXX disable the test for `memcheck'
 # until https://github.com/pmem/pmdk/issues/5600 is fixed.
@@ -262,7 +261,6 @@ class TEST29(PMEM2_MAP):
     filesize = 16 * t.MiB
 
 
-@t.linux_only
 @t.require_architectures('x86_64')
 # XXX disable the test for `memcheck'
 # until https://github.com/pmem/pmdk/issues/5600 is fixed.

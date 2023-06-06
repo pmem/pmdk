@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2023, Intel Corporation
 #
 
 import testframework as t
@@ -41,6 +41,5 @@ class Pmem2USC(t.Test):
         ctx.env['UNITTEST_LOG_LEVEL'] = old_log_level
 
 
-@t.linux_only
 class TEST0(Pmem2USC):
     """check if pmem2 usc output is the same as ndctl/impctl output"""

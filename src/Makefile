@@ -70,8 +70,6 @@ SCOPEFILES = $(SCOPE_SRC_FILES) $(SCOPE_HDR_FILES)
 # include/lib*.h
 HEADERS =\
 	$(foreach f, $(wildcard\
-		freebsd/include/*.h\
-		freebsd/include/*/*.h\
 		include/lib*.h\
 		include/libpmemobj/*.h\
 		include/libpmem2/*.h\

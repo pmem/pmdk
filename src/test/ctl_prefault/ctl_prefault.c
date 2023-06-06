@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * ctl_prefault.c -- tests for the ctl entry points: prefault
@@ -17,11 +17,7 @@
 #define BSIZE 20
 #define LAYOUT "obj_ctl_prefault"
 
-#ifdef __FreeBSD__
-typedef char vec_t;
-#else
 typedef unsigned char vec_t;
-#endif
 
 typedef int (*fun)(void *, const char *, void *);
 

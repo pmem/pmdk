@@ -1,16 +1,12 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * pminvaders.c -- example usage of non-tx allocations
  */
 
 #include <stddef.h>
-#ifdef __FreeBSD__
-#include <ncurses/ncurses.h>	/* Need pkg, not system, version */
-#else
 #include <ncurses.h>
-#endif
 #include <unistd.h>
 #include <time.h>
 #include <stdlib.h>

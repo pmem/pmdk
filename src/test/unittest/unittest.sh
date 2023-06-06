@@ -165,28 +165,15 @@ DIR_SRC="../.."
 VALGRIND_SUPP="--suppressions=../ld.supp \
 	--suppressions=../memcheck-libunwind.supp \
 	--suppressions=../memcheck-ndctl.supp"
-if [ "$(uname -s)" = "FreeBSD" ]; then
-	DATE="gdate"
-	DD="gdd"
-	FALLOCATE="mkfile"
-	VM_OVERCOMMIT="[ $(sysctl vm.overcommit | awk '{print $2}') == 0 ]"
-	RM_ONEFS="-x"
-	STAT_MODE="-f%Lp"
-	STAT_PERM="-f%Sp"
-	STAT_SIZE="-f%z"
-	STRACE="truss"
-	VALGRIND_SUPP="$VALGRIND_SUPP --suppressions=../freebsd.supp"
-else
-	DATE="date"
-	DD="dd"
-	FALLOCATE="fallocate -l"
-	VM_OVERCOMMIT="[ $(cat /proc/sys/vm/overcommit_memory) != 2 ]"
-	RM_ONEFS="--one-file-system"
-	STAT_MODE="-c%a"
-	STAT_PERM="-c%A"
-	STAT_SIZE="-c%s"
-	STRACE="strace"
-fi
+DATE="date"
+DD="dd"
+FALLOCATE="fallocate -l"
+VM_OVERCOMMIT="[ $(cat /proc/sys/vm/overcommit_memory) != 2 ]"
+RM_ONEFS="--one-file-system"
+STAT_MODE="-c%a"
+STAT_PERM="-c%A"
+STAT_SIZE="-c%s"
+STRACE="strace"
 
 case "$BUILD"
 in
@@ -894,15 +881,6 @@ function require_no_superuser() {
 	local user_id=$(id -u)
 	[ "$user_id" != "0" ] && return
 	msg "$UNITTEST_NAME: SKIP required: run without superuser rights"
-	exit 0
-}
-
-#
-# require_no_freebsd -- Skip test on FreeBSD
-#
-function require_no_freebsd() {
-	[ "$(uname -s)" != "FreeBSD" ] && return
-	msg "$UNITTEST_NAME: SKIP: Not supported on FreeBSD"
 	exit 0
 }
 
