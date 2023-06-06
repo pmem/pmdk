@@ -14,10 +14,7 @@
 #include <limits.h>
 #include <sys/file.h>
 #include <sys/mman.h>
-
-#if !defined(__FreeBSD__)
 #include <sys/sysmacros.h>
-#endif
 
 #include "../libpmem2/config.h"
 #include "../libpmem2/pmem2_utils.h"

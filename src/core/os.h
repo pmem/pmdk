@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "errno_freebsd.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,26 +20,11 @@ extern "C" {
 #define OS_DIR_SEP_STR "/"
 
 /* madvise() */
-#ifdef __FreeBSD__
-#define os_madvise minherit
-#define MADV_DONTFORK INHERIT_NONE
-#else
 #define os_madvise madvise
-#endif
-
-/* dlopen() */
-#ifdef __FreeBSD__
-#define RTLD_DEEPBIND 0	/* XXX */
-#endif
 
 /* major(), minor() */
-#ifdef __FreeBSD__
-#define os_major (unsigned)major
-#define os_minor (unsigned)minor
-#else
 #define os_major major
 #define os_minor minor
-#endif
 
 struct iovec;
 

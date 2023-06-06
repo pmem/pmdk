@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 # src/common.inc -- common Makefile rules for PMDK
 #
@@ -321,20 +321,6 @@ endif
 export MINIASYNC_CFLAGS := -I$(TOP)/src/deps/miniasync/src/include/
 export MINIASYNC_LIBS := -lminiasync
 
-ifeq ($(OS_KERNEL_NAME),FreeBSD)
-
-GLIBC_CXXFLAGS=-D_GLIBCXX_USE_C99
-UNIX98_CFLAGS=
-OS_INCS=-I$(TOP)/src/freebsd/include -I/usr/local/include
-OS_LIBS=-L/usr/local/lib
-LIBDL=
-LIBUTIL=-lutil
-LIBUUID=-luuid
-LIBNDCTL=
-OS_DIMM=none
-
-else
-
 GLIBC_CXXFLAGS=
 UNIX98_CFLAGS=-D__USE_UNIX98
 OS_INCS=
@@ -375,5 +361,3 @@ export LIBNDCTL_CFLAGS
 export LIBNDCTL_LD_LIBRARY_PATHS
 export LIBNDCTL_LIBS
 export OS_DIMM_CFLAG
-
-endif
