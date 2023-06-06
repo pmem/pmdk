@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * pmem2_deep_flush.c -- unit test for pmem_deep_flush()
@@ -44,9 +44,7 @@
  */
 
 #include "source.h"
-#ifndef _WIN32
 #include <sys/sysmacros.h>
-#endif
 
 #include "mmap.h"
 #include "persist.h"
@@ -65,7 +63,6 @@ static enum pmem2_file_type *ftype_value;
 static int read_invalid = 0;
 static int deep_flush_not_needed = 0;
 
-#ifndef _WIN32
 #define MOCK_FD 999
 #define MOCK_REG_ID 888
 #define MOCK_BUS_DEVICE_PATH "/sys/bus/nd/devices/region888/deep_flush"
@@ -141,7 +138,6 @@ end:
 	return ret;
 }
 FUNC_MOCK_END
-#endif /* not _WIN32 */
 
 /*
  * mock_flush -- count flush calls in the test
@@ -207,13 +203,9 @@ map_init(struct pmem2_map *map)
 	 * validate behavior with address beyond mapping.
 	 */
 	map->addr = MALLOC(2 * length);
-#ifndef _WIN32
 	map->source.type = PMEM2_SOURCE_FD;
 	/* mocked device ID for device DAX */
 	map->source.value.st_rdev = MOCK_DEV_ID;
-#else
-	map->source.type = PMEM2_SOURCE_HANDLE;
-#endif
 	ftype_value = &map->source.value.ftype;
 }
 

@@ -1,26 +1,9 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * obj_list.c -- unit tests for list module
  */
-
-/*
- * XXX - On VC++, this file must be compiled as C++ to have __typeof__ defined.
- * However, the rest of the files (libpmemobj source) are still compiled as C.
- * To avoid issues with 'C' linkage the entire file is in 'extern "C"' block.
- */
-#if defined(__cplusplus) && defined(_MSC_VER)
-extern "C" {
-
-/*
- * XXX - Templates cannot be used with 'C' linkage, so for the purpose
- * of this test, we override template-based definition of __typeof__ with
- * a simple alias to decltype.
- */
-#define __typeof__(p) decltype(p)
-
-#endif
 
 #include "obj_list.h"
 
@@ -423,7 +406,3 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
-
-#if defined(__cplusplus) && defined(_MSC_VER)
-}
-#endif

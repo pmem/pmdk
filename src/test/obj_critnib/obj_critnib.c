@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * obj_critnib.c -- unit test for critnib hash table
@@ -76,19 +76,9 @@ test_insert_get_remove(void)
 }
 
 static uint64_t
-rnd15()
-{
-	return rand() & 0x7fff; /* Windows provides only 15 bits */
-}
-
-static uint64_t
 rnd64()
 {
-	return rnd15()
-		| rnd15() << 15
-		| rnd15() << 30
-		| rnd15() << 45
-		| rnd15() << 60;
+	return (uint64_t)rand() | (uint64_t)rand()  << 32;
 }
 
 static void

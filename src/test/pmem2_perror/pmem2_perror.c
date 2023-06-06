@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * pmem2_perror.c -- pmem2_perror unittests
@@ -94,13 +94,8 @@ test_fail_pmem2_syscall_simple(const struct test_case *tc,
 	struct pmem2_source src;
 	size_t size;
 
-#ifdef _WIN32
-	src.type = PMEM2_SOURCE_HANDLE;
-	src.value.handle = INVALID_HANDLE_VALUE;
-#else
 	src.type = PMEM2_SOURCE_FD;
 	src.value.fd = -1;
-#endif
 
 	/* "randomly" chosen function to be failed */
 	int ret = pmem2_source_size(&src, &size);
@@ -122,13 +117,8 @@ test_fail_pmem2_syscall_format(const struct test_case *tc,
 	struct pmem2_source src;
 	size_t size;
 
-#ifdef _WIN32
-	src.type = PMEM2_SOURCE_HANDLE;
-	src.value.handle = INVALID_HANDLE_VALUE;
-#else
 	src.type = PMEM2_SOURCE_FD;
 	src.value.fd = -1;
-#endif
 
 	/* "randomly" chosen function to be failed */
 	int ret = pmem2_source_size(&src, &size);
