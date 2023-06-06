@@ -3,5 +3,6 @@ obj_ctl_debug
 obj_mem
 obj_memcheck_register
 obj_pmalloc_mt
+obj_reserve_mt
 obj_ulog_size
 pmempool_create

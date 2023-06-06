@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2023, Intel Corporation
 
 #
-# src/test/obj_pmalloc_mt/TEST1 -- multithreaded allocator test
+# src/test/obj_reserve_mt/TEST1 -- multithreaded allocator test
 #	(medium non-helgrind/drd version)
 #
 
@@ -16,6 +16,6 @@ configure_valgrind helgrind force-disable
 setup
 
 PMEM_IS_PMEM_FORCE=1 expect_normal_exit\
-	./obj_pmalloc_mt$EXESUFFIX 32 1000 $DIR/testfile
+	./obj_reserve_mt$EXESUFFIX 32 1000 $DIR/testfile
 
 pass
