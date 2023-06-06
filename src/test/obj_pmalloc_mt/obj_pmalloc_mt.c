@@ -9,6 +9,7 @@
 #include "file.h"
 #include "obj.h"
 #include "unittest.h"
+#include "ut_mt.h"
 
 #define MAX_THREADS 32
 #define MAX_OPS_PER_THREAD 1000
@@ -19,7 +20,6 @@
 #define CHUNKSIZE (1 << 18)
 #define CHUNKS_PER_THREAD 3
 
-static unsigned Threads;
 static unsigned Ops_per_thread;
 
 struct root {
@@ -112,18 +112,6 @@ alloc_free_worker(void *arg)
 	return NULL;
 }
 
-static void
-run_worker(void *(worker_func)(void *arg), struct worker_args args[])
-{
-	os_thread_t t[MAX_THREADS];
-
-	for (unsigned i = 0; i < Threads; ++i)
-		THREAD_CREATE(&t[i], NULL, worker_func, &args[i]);
-
-	for (unsigned i = 0; i < Threads; ++i)
-		THREAD_JOIN(&t[i], NULL);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -134,8 +122,8 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 
-	Threads = ATOU(argv[1]);
-	if (Threads > MAX_THREADS)
+	unsigned threads = ATOU(argv[1]);
+	if (threads > MAX_THREADS)
 		UT_FATAL("Threads %d > %d", Threads, MAX_THREADS);
 	Ops_per_thread = ATOU(argv[2]);
 	if (Ops_per_thread > MAX_OPS_PER_THREAD)
@@ -165,18 +153,20 @@ main(int argc, char *argv[])
 	UT_ASSERTne(r, NULL);
 
 	struct worker_args args[MAX_THREADS];
+	void *ut_args[MAX_THREADS];
 
-	for (unsigned i = 0; i < Threads; ++i) {
+	for (unsigned i = 0; i < threads; ++i) {
 		args[i].pop = pop;
 		args[i].r = r;
 		args[i].idx = i;
+		ut_args[i] = &args[i];
 	}
 
-	run_worker(alloc_worker, args);
-	run_worker(realloc_worker, args);
-	run_worker(free_worker, args);
-	run_worker(mix_worker, args);
-	run_worker(alloc_free_worker, args);
+	run_workers(alloc_worker, threads, ut_args);
+	run_workers(realloc_worker, threads, ut_args);
+	run_workers(free_worker, threads, ut_args);
+	run_workers(mix_worker, threads, ut_args);
+	run_workers(alloc_free_worker, threads, ut_args);
 
 	pmemobj_close(pop);
 
