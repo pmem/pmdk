@@ -26,9 +26,6 @@ header: "pmempool API version 1.3"
 
 **libpmempool** - persistent memory pool management library
 
-NOTE: Support for FreeBSD is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
 # SYNOPSIS #
 
 ```c

@@ -48,12 +48,8 @@ If the function fails, the *\*alignment* variable is left unmodified and a negat
 
 The **pmem2_source_alignment**() can fail with the following errors:
 
-On all systems:
-
 * **PMEM2_E_INVALID_ALIGNMENT_VALUE** - operating system returned unexpected
 alignment value (eg. it is not a power of two).
-
-on Linux:
 
 * **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a character
 device other than Device DAX.
@@ -72,14 +68,6 @@ alignment.
 
 * -**errno** set by failing **strtoull**(3), while trying to determine
 Device DAX's alignment.
-
-On FreeBSD:
-
-* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,
-block device, pipe, socket, or character device.
-
-* -**errno** set by failing **fstat**(2), while trying to validate the file
-descriptor.
 
 # SEE ALSO #
 
