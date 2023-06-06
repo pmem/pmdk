@@ -18,7 +18,6 @@
 #define CHUNKSIZE (1 << 18)
 #define CHUNKS_PER_THREAD 3
 
-static unsigned Threads;
 static unsigned Ops_per_thread;
 
 struct action {
@@ -31,9 +30,10 @@ struct root {
 	struct action actions[MAX_THREADS][MAX_OPS_PER_THREAD];
 };
 
+static PMEMobjpool *Pop;
+static struct root *Root;
+
 struct worker_args {
-	PMEMobjpool *pop;
-	struct root *r;
 	unsigned idx;
 };
 
@@ -45,10 +45,10 @@ action_cancel_worker(void *arg)
 	PMEMoid oid;
 	for (unsigned i = 0; i < Ops_per_thread; ++i) {
 		unsigned arr_id = a->idx / 2;
-		struct action *act = &a->r->actions[arr_id][i];
+		struct action *act = &Root->actions[arr_id][i];
 		if (a->idx % 2 == 0) {
 			os_mutex_lock(&act->lock);
-			oid = pmemobj_reserve(a->pop,
+			oid = pmemobj_reserve(Pop,
 				&act->pact, ALLOC_SIZE, 0);
 			UT_ASSERT(!OID_IS_NULL(oid));
 			os_cond_signal(&act->cond);
@@ -57,7 +57,7 @@ action_cancel_worker(void *arg)
 			os_mutex_lock(&act->lock);
 			while (act->pact.heap.offset == 0)
 				os_cond_wait(&act->cond, &act->lock);
-			pmemobj_cancel(a->pop, &act->pact, 1);
+			pmemobj_cancel(Pop, &act->pact, 1);
 			os_mutex_unlock(&act->lock);
 		}
 	}
@@ -73,10 +73,10 @@ action_publish_worker(void *arg)
 	PMEMoid oid;
 	for (unsigned i = 0; i < Ops_per_thread; ++i) {
 		unsigned arr_id = a->idx / 2;
-		struct action *act = &a->r->actions[arr_id][i];
+		struct action *act = &Root->actions[arr_id][i];
 		if (a->idx % 2 == 0) {
 			os_mutex_lock(&act->lock);
-			oid = pmemobj_reserve(a->pop,
+			oid = pmemobj_reserve(Pop,
 				&act->pact, ALLOC_SIZE, 0);
 			UT_ASSERT(!OID_IS_NULL(oid));
 			os_cond_signal(&act->cond);
@@ -85,7 +85,7 @@ action_publish_worker(void *arg)
 			os_mutex_lock(&act->lock);
 			while (act->pact.heap.offset == 0)
 				os_cond_wait(&act->cond, &act->lock);
-			pmemobj_publish(a->pop, &act->pact, 1);
+			pmemobj_publish(Pop, &act->pact, 1);
 			os_mutex_unlock(&act->lock);
 		}
 	}
@@ -102,10 +102,10 @@ action_mix_worker(void *arg)
 	for (unsigned i = 0; i < Ops_per_thread; ++i) {
 		unsigned arr_id = a->idx / 2;
 		unsigned publish = i % 2;
-		struct action *act = &a->r->actions[arr_id][i];
+		struct action *act = &Root->actions[arr_id][i];
 		if (a->idx % 2 == 0) {
 			os_mutex_lock(&act->lock);
-			oid = pmemobj_reserve(a->pop,
+			oid = pmemobj_reserve(Pop,
 				&act->pact, ALLOC_SIZE, 0);
 			UT_ASSERT(!OID_IS_NULL(oid));
 			os_cond_signal(&act->cond);
@@ -115,21 +115,21 @@ action_mix_worker(void *arg)
 			while (act->pact.heap.offset == 0)
 				os_cond_wait(&act->cond, &act->lock);
 			if (publish)
-				pmemobj_publish(a->pop, &act->pact, 1);
+				pmemobj_publish(Pop, &act->pact, 1);
 			else
-				pmemobj_cancel(a->pop, &act->pact, 1);
+				pmemobj_cancel(Pop, &act->pact, 1);
 			os_mutex_unlock(&act->lock);
 		}
-		pmemobj_persist(a->pop, act, sizeof(*act));
+		pmemobj_persist(Pop, act, sizeof(*act));
 	}
 
 	return NULL;
 }
 
 static void
-actions_clear(PMEMobjpool *pop, struct root *r)
+actions_clear(PMEMobjpool *pop, struct root *r, unsigned threads)
 {
-	for (unsigned i = 0; i < Threads; ++i) {
+	for (unsigned i = 0; i < threads; ++i) {
 		for (unsigned j = 0; j < Ops_per_thread; ++j) {
 			struct action *a = &r->actions[i][j];
 			util_mutex_destroy(&a->lock);
@@ -150,11 +150,9 @@ main(int argc, char *argv[])
 	if (argc != 4)
 		UT_FATAL("usage: %s <threads> <ops/t> [file]", argv[0]);
 
-	PMEMobjpool *pop;
-
 	unsigned threads = ATOU(argv[1]);
 	if (threads > MAX_THREADS)
-		UT_FATAL("Threads %d > %d", Threads, MAX_THREADS);
+		UT_FATAL("Threads %d > %d", threads, MAX_THREADS);
 	Ops_per_thread = ATOU(argv[2]);
 	if (Ops_per_thread > MAX_OPS_PER_THREAD)
 		UT_FATAL("Ops per thread %d > %d", Ops_per_thread,
@@ -165,32 +163,30 @@ main(int argc, char *argv[])
 		UT_FATAL("!util_file_exists");
 
 	if (!exists) {
-		pop = pmemobj_create(argv[3], "TEST", (PMEMOBJ_MIN_POOL) +
+		Pop = pmemobj_create(argv[3], "TEST", (PMEMOBJ_MIN_POOL) +
 			(MAX_THREADS * CHUNKSIZE * CHUNKS_PER_THREAD),
 		0666);
 
-		if (pop == NULL)
+		if (Pop == NULL)
 			UT_FATAL("!pmemobj_create");
 	} else {
-		pop = pmemobj_open(argv[3], "TEST");
+		Pop = pmemobj_open(argv[3], "TEST");
 
-		if (pop == NULL)
+		if (Pop == NULL)
 			UT_FATAL("!pmemobj_open");
 	}
 
-	PMEMoid oid = pmemobj_root(pop, sizeof(struct root));
-	struct root *r = pmemobj_direct(oid);
-	UT_ASSERTne(r, NULL);
+	PMEMoid oid = pmemobj_root(Pop, sizeof(struct root));
+	Root = pmemobj_direct(oid);
+	UT_ASSERTne(Root, NULL);
 
 	struct worker_args args[MAX_THREADS];
 	void *ut_args[MAX_THREADS];
 
 	for (unsigned i = 0; i < threads; ++i) {
-		args[i].pop = pop;
-		args[i].r = r;
 		args[i].idx = i;
 		for (unsigned j = 0; j < Ops_per_thread; ++j) {
-			struct action *a = &r->actions[i][j];
+			struct action *a = &Root->actions[i][j];
 			util_mutex_init(&a->lock);
 			util_cond_init(&a->cond);
 		}
@@ -198,12 +194,12 @@ main(int argc, char *argv[])
 	}
 
 	run_workers(action_cancel_worker, threads, ut_args);
-	actions_clear(pop, r);
+	actions_clear(Pop, Root, threads);
 	run_workers(action_publish_worker, threads, ut_args);
-	actions_clear(pop, r);
+	actions_clear(Pop, Root, threads);
 	run_workers(action_mix_worker, threads, ut_args);
 
-	pmemobj_close(pop);
+	pmemobj_close(Pop);
 
 	DONE(NULL);
 }
