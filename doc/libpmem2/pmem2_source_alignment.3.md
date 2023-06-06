@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019-2020, Intel Corporation)
+[comment]: <> (Copyright 2019-2023, Intel Corporation)
 
 [comment]: <> (pmem2_source_alignment.3 -- man page for pmem2_source_alignment)
 
@@ -84,5 +84,5 @@ descriptor.
 # SEE ALSO #
 
 **errno**(3),  **fstat**(2), **realpath**(3), **read**(2), **strtoull**(3),
-**pmem2_config_new**(3), **pmem2_source_from_handle**(3),
-**pmem2_source_from_fd**(3), **libpmem2**(7) and **<https://pmem.io>**
+**pmem2_config_new**(3), **pmem2_source_from_fd**(3),
+**libpmem2**(7) and **<https://pmem.io>**

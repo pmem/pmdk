@@ -9,7 +9,7 @@ header: "pmemobj API version 2.3"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2022, Intel Corporation)
+[comment]: <> (Copyright 2017-2023, Intel Corporation)
 
 [comment]: <> (pmemobj_open.3 -- man page for most commonly used functions from libpmemobj library)
 
@@ -163,11 +163,6 @@ perform the consistency check due to other errors.
 
 Not all file systems support **posix_fallocate**(3). _UW(pmemobj_create) will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
-_WINUX(=q= On Windows if _UW(pmemobj_create) is called on an existing file
-with FILE_ATTRIBUTE_SPARSE_FILE and FILE_ATTRIBUTE_COMPRESSED set,
-they will be removed, to physically allocate space for the pool.
-This is a workaround for _chsize() performance issues. =e=)
 
 # SEE ALSO #
 

@@ -9,7 +9,7 @@ header: "pmemobj API version 2.3"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2020, Intel Corporation)
+[comment]: <> (Copyright 2016-2023, Intel Corporation)
 
 [comment]: <> (libpmemobj.7 -- man page for libpmemobj)
 
@@ -27,8 +27,7 @@ header: "pmemobj API version 2.3"
 
 **libpmemobj** - persistent memory transactional object store
 
->NOTE:
-Support for Windows and FreeBSD deprecated since PMDK 1.13.0 release
+NOTE: Support for FreeBSD is deprecated since PMDK 1.13.0 release
 and will be removed in the PMDK 1.14.0 release.
 
 # SYNOPSIS #

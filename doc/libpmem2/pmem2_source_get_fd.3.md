@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2023, Intel Corporation)
 
 [comment]: <> (pmem2_source_get_fd.3 -- man page for pmem2_source_get_fd
 
@@ -38,8 +38,6 @@ The **pmem2_source_get_fd**() function reads the file descriptor of
 *struct pmem2_source** object describing the data source and returns it
 by *fd* parameter.
 
-This function is Linux only, on Windows use **pmem2_source_get_handle**(3).
-
 # RETURN VALUE #
 
 The **pmem2_source_get_fd**() function returns 0 on success
@@ -55,4 +53,4 @@ support file descriptors, eg. anonymous data source.
 
 # SEE ALSO #
 
-**pmem2_source_get_handle**(3), **libpmem2**(7) and **<https://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**

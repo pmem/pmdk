@@ -9,7 +9,7 @@ header: "pmem2 API version 1.0"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2023, Intel Corporation)
 
 [comment]: <> (pmem2_source_numa_node.3 -- man page for pmem2_source_numa_node)
 
@@ -66,9 +66,9 @@ on Linux:
 This call requires **libndctl** to retrieve the numa information.
 It only works for sources that are actually located on persistent memory, i.e., devdax or fsdax.
 As anonymous sources are not backed by files on persistent memory, this method is not supported for them.
-It also does not work under Windows or systems without **libndctl**.
+It also does not work under systems without **libndctl**.
 
 # SEE ALSO #
 
-**errno**(3), **ndctl_new**(3), **pmem2_source_from_handle**(3),
-**pmem2_source_from_fd**(3), **libpmem2**(7), **libndctl**(7) and **<https://pmem.io>**
+**errno**(3), **ndctl_new**(3), **pmem2_source_from_fd**(3),
+**libpmem2**(7), **libndctl**(7) and **<https://pmem.io>**
