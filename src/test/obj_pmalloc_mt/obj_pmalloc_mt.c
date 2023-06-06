@@ -11,6 +11,7 @@
 #include "pmalloc.h"
 #include "sys_util.h"
 #include "unittest.h"
+#include "ut_mt.h"
 
 #define MAX_THREADS 32
 #define MAX_OPS_PER_THREAD 1000
@@ -115,18 +116,6 @@ alloc_free_worker(void *arg)
 	return NULL;
 }
 
-static void
-run_worker(void *(worker_func)(void *arg), struct worker_args args[])
-{
-	os_thread_t t[MAX_THREADS];
-
-	for (unsigned i = 0; i < Threads; ++i)
-		THREAD_CREATE(&t[i], NULL, worker_func, &args[i]);
-
-	for (unsigned i = 0; i < Threads; ++i)
-		THREAD_JOIN(&t[i], NULL);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -168,18 +157,20 @@ main(int argc, char *argv[])
 	UT_ASSERTne(r, NULL);
 
 	struct worker_args args[MAX_THREADS];
+	void *ut_args[MAX_THREADS];
 
 	for (unsigned i = 0; i < Threads; ++i) {
 		args[i].pop = pop;
 		args[i].r = r;
 		args[i].idx = i;
+		ut_args[i] = &args[i];
 	}
 
-	run_worker(alloc_worker, args);
-	run_worker(realloc_worker, args);
-	run_worker(free_worker, args);
-	run_worker(mix_worker, args);
-	run_worker(alloc_free_worker, args);
+	run_workers(alloc_worker, Threads, ut_args);
+	run_workers(realloc_worker, Threads, ut_args);
+	run_workers(free_worker, Threads, ut_args);
+	run_workers(mix_worker, Threads, ut_args);
+	run_workers(alloc_free_worker, Threads, ut_args);
 
 	pmemobj_close(pop);
 
