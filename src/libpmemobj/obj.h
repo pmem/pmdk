@@ -166,6 +166,12 @@ struct pmemobjpool {
 	 * XXX - pmdk/issues/5721
 	 * Locks are dynamically allocated on FreeBSD. Keep track so
 	 * we can free them on pmemobj_close.
+	 * Old documentation:
+	 * On FreeBSD, since all **pthread** locks are dynamically
+	 * allocated, while the lock object is still padded up to 64 bytes
+	 * for consistency with Linux, only the pointer to the lock is embedded in the
+	 * pmem-resident object. **libpmemobj**(7) transparently manages freeing of the
+	 * locks when the pool is closed.
 	 */
 	PMEMmutex_internal *mutex_head;
 	PMEMrwlock_internal *rwlock_head;
