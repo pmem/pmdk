@@ -53,9 +53,7 @@ categorize common    -e "^src/common/" \
 			-e ".gitattributes" \
 			-e ".gitignore" \
 			-e "^.mailmap\$" \
-			-e "^src/PMDK.sln\$" \
-			-e "Makefile\$" \
-			-e "^src/freebsd/"
+			-e "Makefile\$"
 
 echo
 echo "If the above list contains more than 1 entry, please consider splitting"
