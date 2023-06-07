@@ -152,11 +152,10 @@ _WINUX(,=q=
 
 # NOTES #
 
-For performance reasons, on Linux and FreeBSD the **pmemobj_direct**()
-function is inlined by default. To use the non-inlined variant of
-**pmemobj_direct**(), define **PMEMOBJ_DIRECT_NON_INLINE** prior
-to the *\#include* of **\<libpmemobj.h\>**, either with *\#define* or with
-the *\-D* option to the compiler.=e=)
+For performance reasons the **pmemobj_direct**() function is inlined by default.
+To use the non-inlined variant of **pmemobj_direct**(),
+define **PMEMOBJ_DIRECT_NON_INLINE** prior to the *\#include* of **\<libpmemobj.h\>**,
+either with *\#define* or with the *\-D* option to the compiler.=e=)
 
 # EXAMPLES #
 

@@ -52,11 +52,7 @@ and a negative error code is returned.
 
 The **pmem2_source_size**() can fail with the following errors:
 
-On all systems:
-
 * **PMEM2_E_INVALID_FILE_HANDLE** - source contains an invalid file handle.
-
-On Linux:
 
 * **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,
 block device, pipe, or socket.
@@ -81,14 +77,6 @@ size.
 
 * -**errno** set by failing **strtoull**(3), while trying to determine
 Device DAX's size.
-
-On FreeBSD:
-
-* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,
-block device, pipe, socket, or character device.
-
-* -**errno** set by failing **fstat**(2), while trying to validate the file
-descriptor.
 
 # SEE ALSO #
 

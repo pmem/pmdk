@@ -77,12 +77,6 @@ allocated with **pmemobj_zalloc**(3) or **pmemobj_tx_zalloc**(3) do not require
 another initialization step. For performance reasons, they are also padded up
 to 64 bytes (cache line size).
 
-On FreeBSD, since all **pthread** locks are dynamically
-allocated, while the lock object is still padded up to 64 bytes
-for consistency with Linux, only the pointer to the lock is embedded in the
-pmem-resident object. **libpmemobj**(7) transparently manages freeing of the
-locks when the pool is closed.
-
 The fundamental property of pmem-aware locks is their automatic
 reinitialization every time the persistent object store pool is opened. Thus,
 all the pmem-aware locks may be considered initialized (unlocked) immediately
