@@ -1,0 +1,117 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+#
+# Dockerfile - a 'recipe' for Docker to build an image of centos-based
+#              environment for building the PMDK project.
+#
+
+# Pull base image
+FROM docker.io/tgagor/centos:stream
+MAINTAINER tomasz.gromadzki@intel.com
+
+# Set required environment variables
+ENV OS centos
+ENV OS_VER stream
+ENV PACKAGE_MANAGER rpm
+ENV NOTTY 1
+
+# PMDK basic dependencies
+ENV BASE_DEPS "\
+	git \
+	daxctl-devel \
+	make \
+	cmake \
+	ndctl-devel \
+	pkg-config"
+
+# Valgrind dependencies
+ENV VALGRIND_DEPS "\
+	autoconf \
+	automake \
+	file \
+	findutils \
+	git"
+
+# benchmarks dependencies (optional)
+ENV BENCH_DEPS "\
+	glib2-devel"
+
+# examples dependencies (optional)
+ENV EXAMPLES_DEPS "\
+	fuse \
+	fuse-devel \
+	ncurses-devel \
+	libuv-devel"
+
+# documentation dependencies (optional)
+ENV DOC_DEPS "\
+	pandoc"
+
+# tests dependencies
+ENV TESTS_DEPS "\
+	bc \
+	gdb \
+	libunwind-devel \
+	ndctl \
+	openssh-server \
+	strace"
+
+# packaging dependencies
+ENV PACKAGING_DEPS "\
+	rpm-build \
+	rpm-build-libs \
+	rpmdevtools"
+
+# miscellaneous dependencies (mostly for CI)
+ENV MISC_DEPS "\
+	clang \
+	lbzip2 \
+	man \
+	passwd \
+	python3 \
+	python3-flake8 \
+	python3-pip \
+	rsync \
+	shadow-utils \
+	sudo \
+	tar \
+	which \
+	wget \
+	xmlto"
+
+# python scripts dependencies
+ENV PYTHON_DEPS "\
+	distro \
+	xmlrunner"
+
+RUN dnf update -y
+RUN dnf install -y epel-release
+RUN dnf install -y 'dnf-command(config-manager)'
+RUN dnf install -y dnf-plugins-core
+RUN dnf config-manager --set-enabled crb
+RUN dnf install -y \
+	$BASE_DEPS \
+	$VALGRIND_DEPS \
+	$BENCH_DEPS \
+	$EXAMPLES_DEPS \
+	$DOC_DEPS \
+	$TESTS_DEPS \
+	$PACKAGING_DEPS \
+	$MISC_DEPS \
+	&& dnf clean all
+
+RUN pip3 install $PYTHON_DEPS
+
+# Copy install valgrind script
+COPY install-valgrind.sh install-valgrind.sh
+RUN ./install-valgrind.sh centos
+
+# Add and switch user
+ENV USER pmdkuser
+ENV USERPASS pmdkpass
+RUN useradd -m $USER
+RUN echo $USERPASS | passwd $USER --stdin
+RUN gpasswd wheel -a $USER
+RUN echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+USER $USER

@@ -15,6 +15,7 @@ install_upstream_from_distro() {
     rockylinux) dnf install -y valgrind ;;
     fedora) dnf install -y valgrind ;;
     ubuntu) apt-get install -y --no-install-recommends valgrind ;;
+    centos) yum install -y valgrind ;;
     *) return 1 ;;
   esac
 }
