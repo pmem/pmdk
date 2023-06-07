@@ -432,7 +432,6 @@ util_file_create(const char *path, size_t size, size_t minsize)
 		goto err;
 	}
 
-	/* for windows we can't flock until after we fallocate */
 	if (os_flock(fd, OS_LOCK_EX | OS_LOCK_NB) < 0) {
 		ERR("!flock \"%s\"", path);
 		goto err;
