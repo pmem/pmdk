@@ -26,7 +26,7 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 	* [Memory Management Tools](#memory-management-tools)
 6. [Debugging](#debugging)
 7. [Experimental Packages](#experimental-packages)
-	* [Experimental support for 64-bit ARM](#experimental-support-for-64-bit-arm)
+	* [Experimental Support for 64-bit ARM](#experimental-support-for-64-bit-arm-and-risc-v)
 8. [Contact Us](#contact-us)
 
 ## Libraries and Utilities
@@ -284,12 +284,8 @@ If you want to build/install experimental packages run:
 
 ### Experimental Support for 64-bit ARM and RISC-V
 
-There is an initial support for 64-bit ARM and RISC-V processors provided.
-While PMDK's internal testsuite passes on DRAM-only systems, support for
-neither of these architectures has been validated on any persistent memory
-hardware, nor has the code received review from any person with professional
-knowledge of either of these platforms.
-
+There is initial support for 64-bit ARM and RISC-V processors provided.
+It is currently not validated nor maintained.
 Thus, these architectures should not be used in a production environment.
 
 ### PowerPC support
