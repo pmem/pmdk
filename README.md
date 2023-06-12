@@ -1,6 +1,5 @@
 # **PMDK: Persistent Memory Development Kit**
 
-[![Travis build status](https://travis-ci.org/pmem/pmdk.svg?branch=master)](https://travis-ci.org/pmem/pmdk)
 [![GHA build status](https://github.com/pmem/pmdk/workflows/PMDK/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions)
 [![Coverity Scan Build Status](https://img.shields.io/coverity/scan/3015.svg)](https://scan.coverity.com/projects/pmem-pmdk)
 [![Coverage Status](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
@@ -26,7 +25,8 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 	* [Memory Management Tools](#memory-management-tools)
 6. [Debugging](#debugging)
 7. [Experimental Packages](#experimental-packages)
-	* [Experimental support for 64-bit ARM](#experimental-support-for-64-bit-arm)
+	* [Experimental Support for 64-bit ARM](#experimental-support-for-64-bit-arm-and-risc-v)
+	* [Experimental Support for PowerPC](#experimental-support-for-powerpc)
 8. [Contact Us](#contact-us)
 
 ## Libraries and Utilities
@@ -284,18 +284,15 @@ If you want to build/install experimental packages run:
 
 ### Experimental Support for 64-bit ARM and RISC-V
 
-There is an initial support for 64-bit ARM and RISC-V processors provided.
-While PMDK's internal testsuite passes on DRAM-only systems, support for
-neither of these architectures has been validated on any persistent memory
-hardware, nor has the code received review from any person with professional
-knowledge of either of these platforms.
-
+There is initial support for 64-bit ARM and RISC-V processors provided.
+It is currently not validated nor maintained.
 Thus, these architectures should not be used in a production environment.
 
-### PowerPC support
+### Experimental Support for PowerPC
 
-PowerPC support is ppc64le only and includes all libraries. They should build
-and pass all tests.
+There is initial support for ppc64le processors provided.
+It is currently not validated nor maintained.
+Thus, this architecture should not be used in a production environment.
 
 The on-media pool layout is tightly attached to the page size
 of 64KiB used by default on ppc64le, so it is not interchangeable with
