@@ -10,7 +10,6 @@
 #include "alloc.h"
 #include "config.h"
 #include "map.h"
-#include "mover.h"
 #include "os.h"
 #include "os_thread.h"
 #include "persist.h"
@@ -270,13 +269,6 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 	pmem2_set_mem_fns(map);
 	map->source = *src;
 
-	/* XXX: there is no way to set custom vdm in this function */
-	ret = mover_new(map, &map->vdm);
-	if (ret) {
-		goto err_map;
-	}
-	map->custom_vdm = false;
-
 	/* fd should not be used after map */
 	map->source.value.fd = INVALID_FD;
 	ret = pmem2_register_mapping(map);
@@ -287,7 +279,7 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 				addr, len);
 			ret = PMEM2_E_MAP_EXISTS;
 		}
-		goto err_vdm;
+		goto err_map;
 	}
 
 	if (src->type == PMEM2_SOURCE_FD) {
@@ -297,8 +289,6 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 
 	*map_ptr = map;
 	return 0;
-err_vdm:
-	mover_delete(map->vdm);
 err_map:
 	Free(map);
 

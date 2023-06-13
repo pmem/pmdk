@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2022, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # Used to check whether all the commit messages in a pull request
@@ -25,11 +25,6 @@ if [[ $subject =~ ^Merge.* ]]; then
 fi
 
 if [[ $subject =~ ^Revert.* ]]; then
-	# skip
-	exit 0
-fi
-
-if [[ $body =~ "git-subtree-dir: src/deps/miniasync" ]]; then
 	# skip
 	exit 0
 fi

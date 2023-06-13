@@ -318,9 +318,6 @@ export USE_LIBUNWIND
 export LIBUNWIND_LIBS
 endif
 
-export MINIASYNC_CFLAGS := -I$(TOP)/src/deps/miniasync/src/include/
-export MINIASYNC_LIBS := -lminiasync
-
 GLIBC_CXXFLAGS=
 UNIX98_CFLAGS=-D__USE_UNIX98
 OS_INCS=

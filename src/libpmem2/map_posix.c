@@ -17,7 +17,6 @@
 #include "config.h"
 #include "file.h"
 #include "map.h"
-#include "mover.h"
 #include "out.h"
 #include "persist.h"
 #include "pmem2_utils.h"
@@ -511,26 +510,9 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	map->source = *src;
 	map->source.value.fd = INVALID_FD; /* fd should not be used after map */
 
-	map->custom_vdm = true;
-	struct vdm *vdm = cfg->vdm;
-
-	if (vdm == NULL) {
-		/*
-		 * user did not provide custom vdm,
-		 * so we have to use the fallback one.
-		 */
-		LOG(3, "using libpmem2 default async mover");
-		ret = mover_new(map, &vdm);
-		if (ret)
-			goto err_free_map_struct;
-		map->custom_vdm = false;
-	}
-
-	map->vdm = vdm;
 	ret = pmem2_register_mapping(map);
-
 	if (ret) {
-		goto err_free_vdm;
+		goto err_free_map_struct;
 	}
 
 	if (rsv) {
@@ -551,9 +533,6 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 err_unregister_map:
 	pmem2_unregister_mapping(map);
-err_free_vdm:
-	if (!map->custom_vdm)
-		mover_delete(map->vdm);
 err_free_map_struct:
 	Free(map);
 err_undo_mapping:
@@ -622,9 +601,6 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 				goto err_register_map;
 		}
 	}
-
-	if (!map->custom_vdm)
-		mover_delete(map->vdm);
 
 	Free(map);
 	*map_ptr = NULL;
