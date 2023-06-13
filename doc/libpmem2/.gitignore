@@ -22,7 +22,6 @@ pmem2_map_new.3
 pmem2_map_get_address.3
 pmem2_map_get_size.3
 pmem2_map_get_store_granularity.3
-pmem2_async.3
 pmem2_source_alignment.3
 pmem2_source_from_fd.3
 pmem2_source_from_anon.3
