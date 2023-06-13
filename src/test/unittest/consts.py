@@ -13,8 +13,6 @@ ROOTDIR = abspath(join(dirname(__file__), '..'))
 
 DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
 RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
-MINIASYNC_LIBDIR = abspath(join(ROOTDIR, '..', 'deps', 'miniasync',
-                           'build', 'out'))
 
 HEADER_SIZE = 4096
 

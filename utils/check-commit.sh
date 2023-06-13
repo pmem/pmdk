@@ -29,11 +29,6 @@ if [[ $subject =~ ^Revert.* ]]; then
 	exit 0
 fi
 
-if [[ $body =~ "git-subtree-dir: src/deps/miniasync" ]]; then
-	# skip
-	exit 0
-fi
-
 # valid area names
 AREAS="pmem\|pmem2\|log\|blk\|obj\|pool\|set\|test\|benchmark\|examples\|doc\|core\|common\|daxio\|pmreorder"
 

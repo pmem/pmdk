@@ -111,7 +111,6 @@ sub check_whitespace_with_exc {
 
 	return 0 if /^[.\/]*src\/common\/queue\.h/;
 	return 0 if /^[.\/]*src\/core\/valgrind\/.*\.h/;
-	return 0 if /^[.\/]*src\/deps\/miniasync\/src\/core\/valgrind\/.*\.h/;
 
 	$_ = basename($full);
 

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2022, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * libpmem2.h -- definitions of libpmem2 entry points
@@ -15,8 +15,5 @@
 #define LIBPMEM2_H 1
 
 #include <libpmem2/base.h>
-#ifdef PMEM2_USE_MINIASYNC
-#include <libpmem2/async.h>
-#endif
 
 #endif	/* libpmem2.h */
