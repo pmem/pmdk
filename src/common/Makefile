@@ -11,5 +11,5 @@ include pmemcommon.inc
 
 include ../Makefile.inc
 
-CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
+CFLAGS += $(LIBNDCTL_CFLAGS)
 CFLAGS += -DUSE_LIBDL

@@ -10,14 +10,14 @@ include $(TOP)/src/common.inc
 # core targets
 TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools libpmem2
 # make all targets
-ALL_TARGETS = $(TARGETS) common core deps
+ALL_TARGETS = $(TARGETS) common core
 # all available targets
-POSSIBLE_TARGETS = $(TARGETS) common core deps test\
+POSSIBLE_TARGETS = $(TARGETS) common core test\
 	examples benchmarks
 
-SCOPE_DIRS = $(TARGETS) common core deps
+SCOPE_DIRS = $(TARGETS) common core
 
-DEBUG_RELEASE_TARGETS = common core deps libpmem libpmemblk libpmemlog libpmemobj\
+DEBUG_RELEASE_TARGETS = common core libpmem libpmemblk libpmemlog libpmemobj\
 	libpmempool libpmem2
 RELEASE_TARGETS = tools
 

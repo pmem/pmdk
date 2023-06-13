@@ -15,8 +15,5 @@
 #define LIBPMEM2_H 1
 
 #include <libpmem2/base.h>
-#ifdef PMEM2_USE_MINIASYNC
-#include <libpmem2/async.h>
-#endif
 
 #endif	/* libpmem2.h */

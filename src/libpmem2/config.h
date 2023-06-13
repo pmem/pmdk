@@ -24,7 +24,6 @@ struct pmem2_config {
 	unsigned protection_flag;
 	struct pmem2_vm_reservation *reserv;
 	size_t reserv_offset;
-	struct vdm *vdm;
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);

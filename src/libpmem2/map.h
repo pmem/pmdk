@@ -12,7 +12,6 @@
 #include "libpmem2.h"
 #include "os.h"
 #include "source.h"
-#include "libminiasync/vdm.h"
 #include "vm_reservation.h"
 
 #ifdef __cplusplus
@@ -40,9 +39,6 @@ struct pmem2_map {
 
 	struct pmem2_source source;
 	struct pmem2_vm_reservation *reserv;
-
-	struct vdm *vdm;
-	bool custom_vdm;
 };
 
 enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem,
