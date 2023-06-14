@@ -34,6 +34,8 @@ jobs:
         CONFIG: [
                  "OS_VER=7 FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1",
                  "OS_VER=7 TEST_BUILD=nondebug",
+                 "OS_VER=7 TEST_BUILD=debug NDCTL_ENABLE=n",
+                 "OS_VER=7 TEST_BUILD=nondebug NDCTL_ENABLE=n",
                  "OS_VER=stream TEST_BUILD=debug SRC_CHECKERS=1",
                  "OS_VER=stream FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1",
                  "OS_VER=stream TEST_BUILD=nondebug",
