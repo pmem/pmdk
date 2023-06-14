@@ -276,17 +276,15 @@ written to *stderr*.
 
 # EXAMPLE #
 
-The following example uses **libpmem2** to flush changes made to raw,
+See <https://pmem.io/pmdk/libpmem2> for examples using the **libpmem2** API.
+
+The basic example uses **libpmem2** to flush changes made to raw,
 memory-mapped persistent memory.
 
 >WARNING:
 There is nothing transactional about the *persist* from **pmem2_get_persist_fn**(3)
 call in this example. Interrupting the program may result in a partial write to pmem.
 Use a transactional library such as **libpmemobj**(7) to avoid torn updates.
-
-The basic example can be found in the repository under path
-[src/examples/libpmem2/basic/basic.c](https://github.com/pmem/pmdk/blob/master/src/examples/libpmem2/basic/basic.c).
-It is described in detail [here](https://pmem.io/pmdk/libpmem2/).
 
 # ACKNOWLEDGEMENTS #
 
