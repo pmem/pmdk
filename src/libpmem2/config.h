@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2022, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * config.h -- internal definitions for pmem2_config
@@ -24,7 +24,6 @@ struct pmem2_config {
 	unsigned protection_flag;
 	struct pmem2_vm_reservation *reserv;
 	size_t reserv_offset;
-	struct vdm *vdm;
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);

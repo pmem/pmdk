@@ -23,5 +23,5 @@ include ../Makefile.inc
 # using pmemblk despite the deprecated state.
 CFLAGS += -Wno-deprecated-declarations
 
-CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
+CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += -pthread -lpmem $(LIBNDCTL_LIBS)

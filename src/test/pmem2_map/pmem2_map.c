@@ -11,7 +11,6 @@
 #include "pmem2_utils.h"
 #include "source.h"
 #include "map.h"
-#include "mover.h"
 #include "out.h"
 #include "pmem2.h"
 #include "unittest.h"
@@ -42,12 +41,6 @@ prepare_map(struct pmem2_map **map_ptr,
 
 	struct pmem2_map *map = malloc(sizeof(*map));
 	UT_ASSERTne(map, NULL);
-
-	struct vdm *vdm;
-	mover_new(map, &vdm);
-	UT_ASSERTne(map, NULL);
-	map->custom_vdm = true;
-	map->vdm = vdm;
 
 	UT_ASSERTeq(src->type, PMEM2_SOURCE_FD);
 	map->addr = mmap(NULL, cfg->length, proto, flags,

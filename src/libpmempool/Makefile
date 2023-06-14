@@ -53,7 +53,7 @@ include ../Makefile.inc
 # using pmemlog despite the deprecated state.
 CFLAGS += -Wno-deprecated-declarations
 
-CFLAGS += $(LIBNDCTL_CFLAGS) $(MINIASYNC_CFLAGS) -DPMEM2_USE_MINIASYNC=1
+CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL_LIBS)
 CFLAGS += -DUSE_LIBDL
 

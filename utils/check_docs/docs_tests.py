@@ -155,11 +155,9 @@ def check_completeness_of_extracted_functions_and_macros(pmdk_path, lib_path):
     functions_from_doc = get_functions_and_macros_from_doc(pmdk_path)
     macros = get_macros(pmdk_path)
     functions_from_so_files = get_functions_from_so_files(lib_path)
-    pmem2_async_group_name = 'pmem2_async'
     missing_functions_and_macros_in_doc = [
         item for item in functions_from_doc
-        if (item not in macros and item not in functions_from_so_files and
-            item not in pmem2_async_group_name)]
+        if (item not in macros and item not in functions_from_so_files)]
     return missing_functions_and_macros_in_doc
 
 
