@@ -22,13 +22,13 @@
 #
 # More detailed information about the ansible playbook and tests themselves can be found in:
 # utils/gha-runners/run-ras-linux.yml
-name: RAS_Linux
+name: PMEM RAS
 
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
   linux:
-    name: RAS_Linux
+    name: PMEM_RAS
     if: github.repository == 'pmem/pmdk'
     runs-on: ${{ matrix.os }}
     strategy:

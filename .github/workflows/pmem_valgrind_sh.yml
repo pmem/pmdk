@@ -1,24 +1,24 @@
-# Run all tests (in python test framework) with 'force-enabled' valgrind.
+# Run all tests (in bash test framework) with 'force-enabled' valgrind.
 #
 # This workflow is run on 'self-hosted' runners.
-name: Valgrind python
+name: PMEM Valgrind bash
 
 on:
   workflow_dispatch:
   schedule:
-    - cron:  '0 23 * * 6'    # At 23:00 on Saturday.
+    - cron:  '0 18 * * 5'    # At 18:00 on Friday.
 
 jobs:
   linux:
-    name: valgrind
+    name: PMEM_valgrind_sh
     if: github.repository == 'pmem/pmdk'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 4320 # wait max 3 days
     strategy:
       fail-fast: false
       matrix:
-        config: ['drd', 'pmemcheck', 'memcheck', 'helgrind']
-        build: ['debug', 'release', 'static_debug', 'static_release']
+        config: ['-d', '-p', '-m', '-e']
+        build: ['debug', 'nondebug', 'static-debug', 'static-nondebug']
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
 
     env:
@@ -38,4 +38,4 @@ jobs:
         run: ./$WORKDIR/create-testconfig.sh
 
       - name: Run tests
-        run: cd src/test/ && ./RUNTESTS.py --force-enable ${{ matrix.config }} -b ${{ matrix.build }}
+        run: cd src/test/ && ./RUNTESTS -b ${{ matrix.build }} ${{ matrix.config }} force-enable
