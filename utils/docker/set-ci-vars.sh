@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2023, Intel Corporation
 
 #
 # set-ci-vars.sh -- set CI variables common for both:
@@ -38,31 +38,7 @@ function get_commit_range_from_last_merge {
 
 COMMIT_RANGE_FROM_LAST_MERGE=$(get_commit_range_from_last_merge)
 
-if [ -n "$TRAVIS" ]; then
-	CI_COMMIT=$TRAVIS_COMMIT
-	CI_COMMIT_RANGE="${TRAVIS_COMMIT_RANGE/.../..}"
-	CI_BRANCH=$TRAVIS_BRANCH
-	CI_EVENT_TYPE=$TRAVIS_EVENT_TYPE
-	CI_REPO_SLUG=$TRAVIS_REPO_SLUG
-
-	# CI_COMMIT_RANGE is usually invalid for force pushes - fix it when used
-	# with non-upstream repository
-	if [ -n "$CI_COMMIT_RANGE" -a "$CI_REPO_SLUG" != "$GITHUB_REPO" ]; then
-		if ! git rev-list $CI_COMMIT_RANGE; then
-			CI_COMMIT_RANGE=$COMMIT_RANGE_FROM_LAST_MERGE
-		fi
-	fi
-
-	case "$TRAVIS_CPU_ARCH" in
-	"amd64")
-		CI_CPU_ARCH="x86_64"
-		;;
-	*)
-		CI_CPU_ARCH=$TRAVIS_CPU_ARCH
-		;;
-	esac
-
-elif [ -n "$GITHUB_ACTIONS" ]; then
+if [ -n "$GITHUB_ACTIONS" ]; then
 	CI_COMMIT=$GITHUB_SHA
 	CI_COMMIT_RANGE=$COMMIT_RANGE_FROM_LAST_MERGE
 	CI_BRANCH=$(echo $GITHUB_REF | cut -d'/' -f3)

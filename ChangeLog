@@ -1,8 +1,12 @@
+	* Unreleased *
+
+	This release :
+		- remove support for Travis bulids
+
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 1.13.1
 
-	This release :
 	- Identifies and temporarily disables tests permanently or sporadically
 	failing in some configurations:
 		- ex_libpmem2 (#5593, #5635, #5638, #5641)
