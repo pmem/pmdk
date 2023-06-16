@@ -50,22 +50,12 @@ if [[ "${CI_EVENT_TYPE}" != "push" || "${CI_REPO_SLUG}" != "${GITHUB_REPO}" ]]; 
 	echo "Skipping auto doc update"
 fi
 
-# Check if we are running on a CI (Travis or GitHub Actions)
-[ -n "$GITHUB_ACTIONS" -o -n "$TRAVIS" ] && CI_RUN="YES" || CI_RUN="NO"
+# Check if we are running on a CI (GitHub Actions)
+[ -n "$GITHUB_ACTIONS" ] && CI_RUN="YES" || CI_RUN="NO"
 
 # We have a blacklist only for ppc64le and aarch64 arch
 if [[ "$CI_CPU_ARCH" == ppc64le ]] ; then BLACKLIST_FILE=../../utils/docker/ppc64le.blacklist; fi
 if [[ "$CI_CPU_ARCH" == arm64 ]] ; then BLACKLIST_FILE=../../utils/docker/arm64.blacklist; fi
-
-# docker on travis + ppc64le runs inside an LXD container and for security
-# limits what can be done inside it, and as such, `docker run` fails with
-# > the input device is not a TTY
-# when using -t because of limited permissions to /dev imposed by LXD.
-if [[ -n "$TRAVIS" && "$CI_CPU_ARCH" == ppc64le ]] || [[ -n "$GITHUB_ACTIONS" ]]; then
-	TTY=''
-else
-	TTY='-t'
-fi
 
 WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
@@ -81,7 +71,7 @@ SCRIPTSDIR=$WORKDIR/utils/docker
 #   By default --tmpfs add nosuid,nodev,noexec to the mount flags, we don't
 #   want that and just to make sure we add the usually default rw,relatime just
 #   in case docker change the defaults.
-docker run --rm --name=$containerName -i $TTY \
+docker run --rm --name=$containerName -i \
 	--cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
 	$DNS_SETTING \
 	--env http_proxy=$http_proxy \
@@ -98,7 +88,6 @@ docker run --rm --name=$containerName -i $TTY \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env BUILD_PACKAGE_CHECK=$BUILD_PACKAGE_CHECK \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
-	--env TRAVIS=$TRAVIS \
 	--env CI_COMMIT_RANGE=$CI_COMMIT_RANGE \
 	--env CI_COMMIT=$CI_COMMIT \
 	--env CI_REPO_SLUG=$CI_REPO_SLUG \

@@ -35,7 +35,6 @@ popd
 # prepare flag for codecov report to differentiate builds
 flag=tests
 [ -n "${GITHUB_ACTIONS}" ] && flag=GHA
-[ -n "${TRAVIS}" ] && flag=Travis
 
 # validate codecov.yaml file
 cat "${WORKDIR}/.codecov.yml" | curl --data-binary @- https://codecov.io/validate
