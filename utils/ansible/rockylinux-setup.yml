@@ -5,9 +5,9 @@
 # configure Rocky Linux to execute tests.
 # Playbook description and how to use it is available in README.md file
 
-# - hosts: "{{ host }}"
-- hosts: localhost
-  connection: local
+- hosts: "{{ host }}"
+# - hosts: localhost
+#   connection: local
   vars:
     testUser: null
     testUserPass: pmdkpass

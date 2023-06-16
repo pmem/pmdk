@@ -19,9 +19,9 @@
 # sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
 #
 
-# - hosts: "{{ host }}"
-- hosts: localhost
-  connection: local
+- hosts: "{{ host }}"
+# - hosts: localhost
+#   connection: local
   vars:
     newRegions: false
     testUser: pmdkuser

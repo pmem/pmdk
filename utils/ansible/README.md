@@ -63,7 +63,7 @@ It can be used to perform a full memory cleanup as part of a reinitialization of
 the test environment.
 
 **Note** It is not required to re-create regions with the `newRegions=true`
-parameter in this case. 
+parameter in this case.
 ```sh
 export TARGET_IP= # ip of the platform
 export ROOT_PASSWORD= # password for root on target
@@ -73,7 +73,7 @@ ansible-playbook -i $TARGET_IP, configure-pmem.yml \
 ```
 
 # Provisioning from the target platform itself
-It is possible to run playbooks directly on the target platform. 
+It is possible to run playbooks directly on the target platform.
 To run playbooks inside the platform please comment out the line:
 ```
 - hosts: "{{ host }}"
@@ -85,9 +85,9 @@ uncomment the following two:
 ```
 and run commands as follows e.g.
 ```sh
-sudo ansible-playbook opensuse-setup.yml --extra-vars "testUser=pmdkuser"`
+sudo ansible-playbook ./opensuse-setup.yml --extra-vars "testUser=pmdkuser"`
 # or
-sudo ansible-playbook rockylinux-setup.yml --extra-vars "testUser=pmdkuser"`
+sudo ansible-playbook ./rockylinux-setup.yml --extra-vars "testUser=pmdkuser"`
 ```
 and next:
 ```sh
@@ -109,6 +109,10 @@ dnf install git-core -y
 dnf install ansible-core -y
 git clone https://github.com/pmem/pmdk.git
 cd pmdk/utils/ansible
+```
+Update playbooks as described [above](#provisioning-from-the-target-platform-itself).
+```
+# as root:
 ansible-playbook ./rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
 reboot
 # reboot shall be performed only if playbook requests to do it.
@@ -132,6 +136,10 @@ zypper install git-core -y
 zypper install ansible -y
 git clone https://github.com/pmem/pmdk.git
 cd pmdk/utils/ansible
+```
+Update playbooks as described [above](#provisioning-from-the-target-platform-itself).
+```
+# as root:
 ansible-playbook ./opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
 reboot
 # reboot shall be performed only if playbook requests to do it.
