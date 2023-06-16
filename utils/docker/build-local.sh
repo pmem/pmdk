@@ -70,8 +70,8 @@ if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_EN
 WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
-# Check if we are running on a CI (Travis or GitHub Actions)
-[ -n "$GITHUB_ACTIONS" -o -n "$TRAVIS" ] && CI_RUN="YES" || CI_RUN="NO"
+# Check if we are running on a CI (GitHub Actions)
+[ -n "$GITHUB_ACTIONS" ] && CI_RUN="YES" || CI_RUN="NO"
 
 echo Building ${OS}-${OS_VER}
 
