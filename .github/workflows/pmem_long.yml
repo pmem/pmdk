@@ -18,10 +18,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['RUNTESTS -t long -b debug',
-                 'RUNTESTS -t long -b nondebug',
-                 'RUNTESTS -t long -b static-debug',
-                 'RUNTESTS -t long -b static-nondebug',
+        config: ['RUNTESTS.sh -t long -b debug',
+                 'RUNTESTS.sh -t long -b nondebug',
+                 'RUNTESTS.sh -t long -b static-debug',
+                 'RUNTESTS.sh -t long -b static-nondebug',
                  'RUNTESTS.py -t long -b debug',
                  'RUNTESTS.py -t long -b release',
                  'RUNTESTS.py -t long -b static_debug',
