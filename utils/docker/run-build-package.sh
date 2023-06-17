@@ -66,7 +66,7 @@ make -j$(nproc)
 # Prepare test config once more. Now, with path to PMDK set in the OS
 # (rather than in the git tree) - for testing packages installed in the system.
 $SCRIPTSDIR/configure-tests.sh PKG
-./RUNTESTS -t check
+./RUNTESTS.sh -t check
 popd
 
 popd

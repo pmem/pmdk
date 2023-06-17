@@ -9,7 +9,7 @@ That file describes the local machine configuration (where to find persistent
 memory, for example) and must be created by hand in each repo as it makes no
 sense to check in that configuration description to the main repo.
 
-testconfig.sh.example provides more detail.  The script RUNTESTS, when run with
+testconfig.sh.example provides more detail.  The script RUNTESTS.sh, when run with
 no arguments, will run all unit tests through all the combinations of fs-types
 and build-types, running the "check" level test.
 
@@ -29,16 +29,16 @@ A testconfig.sh must exist to run these tests!
 	$ cp testconfig.sh.example testconfig.sh
 	$ ...edit testconfig.sh and modify as appropriate...
 
-Tests may be run using the RUNTESTS script:
-	$ RUNTESTS		(runs them all)
-	$ RUNTESTS testname	(runs just the named test)
+Tests may be run using the RUNTESTS.sh script:
+	$ RUNTESTS.sh		(runs them all)
+	$ RUNTESTS.sh testname	(runs just the named test)
 
 Each test script (named something like "TEST0") is potentially run multiple
 times with a different set of environment variables so run the test with
 different target file systems or different versions of the libraries.  To see
-how RUNTESTS will run a test, use the -n option.  For example:
+how RUNTESTS.sh will run a test, use the -n option.  For example:
 
-	$ RUNTESTS -n blk_nblock -s TEST0
+	$ RUNTESTS.sh -n blk_nblock -s TEST0
 	(in ./blk_nblock) TEST=check FS=none BUILD=debug ./TEST0
 	(in ./blk_nblock) TEST=check FS=none BUILD=nondebug ./TEST0
 	(in ./blk_nblock) TEST=check FS=none BUILD=static-debug ./TEST0
@@ -60,9 +60,9 @@ Notice how the TEST0 script is run repeatedly with different settings for
 the three environment variables TEST, FS, and BUILD, providing the test type,
 file system type, and build type to test.
 
-RUNTESTS takes options to limit what it runs.  The usage is:
+RUNTESTS.sh takes options to limit what it runs.  The usage is:
 
- RUNTESTS [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
+ RUNTESTS.sh [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 	    [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
 	    [[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] ||
 	      [ --force-enable memcheck|pmemcheck|helgrind|drd ]] [ -c ]
@@ -84,12 +84,12 @@ RUNTESTS takes options to limit what it runs.  The usage is:
 
 For example:
 
-	$ RUNTESTS -b debug blk_nblock -s TEST0
+	$ RUNTESTS.sh -b debug blk_nblock -s TEST0
 	blk_nblock/TEST0: SETUP (check/pmem/debug)
 	blk_nblock/TEST0: START: blk_nblock
 	blk_nblock/TEST0: PASS
 
-Since the "-b debug" option was given, the RUNTESTS run above only executes
+Since the "-b debug" option was given, the RUNTESTS.sh run above only executes
 the test for the debug version of the library and skips the other variants.
 
 Running the TEST* scripts directly is also common, especially when debugging
@@ -108,7 +108,7 @@ these defaults can be overridden on the command line:
 	$ TEST=check FS=any BUILD=nondebug ./TEST0
 
 The above example runs TEST0 with the nondebug library, just as using
-RUNTESTS with "-b nondebug" would from the parent directory.
+RUNTESTS.sh with "-b nondebug" would from the parent directory.
 
 In addition to overriding TEST, FS, and BUILD environment variables, the
 unit test framework also looks for several other variables:
@@ -139,7 +139,7 @@ up and checking tests.  Additionally, most unit tests build a local test
 program and call it from the TEST* scripts.
 
 In additional to TEST0, there can be as many TEST<num> scripts as desired, and
-RUNTESTS will execute them in numeric order for each of the test runs it
+RUNTESTS.sh will execute them in numeric order for each of the test runs it
 executes.
 
 There are two ways of setting test requirements:
