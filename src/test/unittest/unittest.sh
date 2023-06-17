@@ -1409,13 +1409,13 @@ function configure_valgrind() {
 		fi
 	else
 		if [ "$1" == "force-disable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
+			msg "$UNITTEST_NAME: SKIP RUNTESTS.sh script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
 			exit 0
 		elif [ "$CHECK_TYPE" != "$1" -a "$2" == "force-enable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
+			msg "$UNITTEST_NAME: SKIP RUNTESTS.sh script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
 			exit 0
 		elif [ "$CHECK_TYPE" == "$1" -a "$2" == "force-disable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
+			msg "$UNITTEST_NAME: SKIP RUNTESTS.sh script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
 			exit 0
 		fi
 		require_valgrind_tool $CHECK_TYPE $3
