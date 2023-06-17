@@ -447,17 +447,17 @@ do
 		shift 2
 		if [ "$checktype" != "none" ]; then
 			usage "cannot force-enable two test types at the same time"
-		else
-			case "$receivetype"
-			in
-			memcheck|pmemcheck|helgrind|drd)
-				;;
-			*)
-				usage "bad force-enable: $receivetype"
-				;;
-			esac
-			checktype=$receivetype
 		fi
+
+		case "$receivetype"
+		in
+		memcheck|pmemcheck|helgrind|drd)
+			;;
+		*)
+			usage "bad force-enable: $receivetype"
+			;;
+		esac
+		checktype=$receivetype
 		;;
 	-k)
 		skip_dir="$skip_dir $2"
@@ -519,12 +519,11 @@ do
 		auto)
 			;;
 		force-enable)
-			if [ "$checktype" != "none" ]
-			then
+			if [ "$checktype" != "none" ]; then
 				usage "cannot force-enable two test types at the same time"
-			else
-				checktype="memcheck"
 			fi
+
+			checktype="memcheck"
 			;;
 		*)
 			usage "bad memcheck: $receivetype"
@@ -539,12 +538,11 @@ do
 		auto)
 			;;
 		force-enable)
-			if [ "$checktype" != "none" ]
-			then
+			if [ "$checktype" != "none" ]; then
 				usage "cannot force-enable two test types at the same time"
-			else
-				checktype="pmemcheck"
 			fi
+
+			checktype="pmemcheck"
 			;;
 		*)
 			usage "bad pmemcheck: $receivetype"
@@ -559,12 +557,11 @@ do
 		auto)
 			;;
 		force-enable)
-			if [ "$checktype" != "none" ]
-			then
+			if [ "$checktype" != "none" ]; then
 				usage "cannot force-enable two test types at the same time"
-			else
-				checktype="helgrind"
 			fi
+			
+			checktype="helgrind"
 			;;
 		*)
 			usage "bad helgrind: $receivetype"
@@ -579,12 +576,11 @@ do
 		auto)
 			;;
 		force-enable)
-			if [ "$checktype" != "none" ]
-			then
+			if [ "$checktype" != "none" ]; then
 				usage "cannot force-enable two test types at the same time"
-			else
-				checktype="drd"
 			fi
+
+			checktype="drd"
 			;;
 		*)
 			usage "bad drd: $receivetype"
