@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # RUNTESTS -- setup the environment and run each test
@@ -15,8 +15,9 @@ usage()
 	cat >&2 <<EOF
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 		[ -o timeout ] [ -s test-file | -u test-sequence ] [-k skip-dir ]
-		[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
-		[tests...]
+		[[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] ||
+		[ --force-enable memcheck|pmemcheck|helgrind|drd ]]
+		[ -c ] [tests...]
 -h			print this help message
 -n			dry run
 -v			be verbose
@@ -52,6 +53,9 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			drd: auto (default, enable/disable based on test requirements),
 			force-enable (enable when test does not require drd, but
 			obey test's explicit drd disable)
+--force-enable		enable when test does not require given valgrind tool,
+			but obey test's explicit tool disable
+			Can not be use with -m, -p, -e, -d.
 -c			check pool files with pmempool check utility
 EOF
 	exit 1
@@ -429,7 +433,7 @@ fi
 #
 # command-line argument processing...
 #
-args=`getopt k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: $*`
+args=`getopt --unquoted --longoptions force-enable: k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -437,6 +441,23 @@ do
 	receivetype=auto
 	case "$arg"
 	in
+	--force-enable)
+		receivetype="$2"
+		shift 2
+		if [ "$checktype" != "none" ]; then
+			usage "cannot force-enable two test types at the same time"
+		else
+			case "$receivetype"
+			in
+			memcheck|pmemcheck|helgrind|drd)
+				;;
+			*)
+				usage "bad force-enable: $receivetype"
+				;;
+			esac
+			checktype=$receivetype
+		fi
+		;;
 	-k)
 		skip_dir="$skip_dir $2"
 		shift 2
