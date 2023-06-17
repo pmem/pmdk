@@ -20,8 +20,8 @@ jobs:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
         config: ['check TEST_BUILD=debug',
                  'check TEST_BUILD=nondebug',
-                 'check TEST_BUILD=static-debug',
-                 'check TEST_BUILD=static-nondebug',
+                 'check TEST_BUILD=static_debug',
+                 'check TEST_BUILD=static_nondebug',
                  'pycheck TEST_BUILD=debug',
                  'pycheck TEST_BUILD=nondebug',
                  'pycheck TEST_BUILD=static_debug',

@@ -48,7 +48,7 @@ class Static_Debug(Build):
     """Set this context for a static_debug build"""
 
     def __init__(self):
-        self.exesuffix = '.static-debug'
+        self.exesuffix = '.static_debug'
         self.libdir = c.DEBUG_LIBDIR
 
 
@@ -56,7 +56,7 @@ class Static_Nondebug(Build):
     """Set this context for a static_nondebug build"""
 
     def __init__(self):
-        self.exesuffix = '.static-nondebug'
+        self.exesuffix = '.static_nondebug'
         self.libdir = c.NONDEBUG_LIBDIR
 
 

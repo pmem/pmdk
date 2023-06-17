@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2022, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # src/test/pmem_movnt_align/TEST0 -- unit test for pmem_memcpy_persist
@@ -12,7 +12,7 @@ require_test_type medium
 require_x86_64
 
 require_fs_type pmem non-pmem
-require_build_type debug static-debug
+require_build_type debug static_debug
 
 setup
 

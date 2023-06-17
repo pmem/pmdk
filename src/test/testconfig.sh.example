@@ -77,7 +77,7 @@
 
 #
 # Overwrite available build types:
-# debug, nondebug, static-debug, static-nondebug, all (default)
+# debug, nondebug, static_debug, static_nondebug, all (default)
 #
 #TEST_BUILD=all
 

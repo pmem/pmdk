@@ -126,20 +126,20 @@ LIB_TOOLS="../../tools"
 # Paths to some useful tools
 [ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool/pmempool
 [ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio/daxio
-[ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
+[ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static_nondebug
 [ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
 [ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
-[ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+[ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static_nondebug
 [ "$PMREORDER" ] || PMREORDER=$LIB_TOOLS/pmreorder/pmreorder.py
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
 [ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
-[ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static-nondebug
+[ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static_nondebug
 [ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
-[ "$USC_PERMISSION" ] || USC_PERMISSION=$TOOLS/usc_permission_check/usc_permission_check.static-nondebug
-[ "$ANONYMOUS_MMAP" ] || ANONYMOUS_MMAP=$TOOLS/anonymous_mmap/anonymous_mmap.static-nondebug
+[ "$USC_PERMISSION" ] || USC_PERMISSION=$TOOLS/usc_permission_check/usc_permission_check.static_nondebug
+[ "$ANONYMOUS_MMAP" ] || ANONYMOUS_MMAP=$TOOLS/anonymous_mmap/anonymous_mmap.static_nondebug
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -176,14 +176,14 @@ STRACE="strace"
 
 case "$BUILD"
 in
-debug|static-debug)
+debug|static_debug)
 	if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
 		PMDK_LIB_PATH=../../debug
 	else
 		PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
 	fi
 	;;
-nondebug|static-nondebug)
+nondebug|static_nondebug)
 	if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
 		PMDK_LIB_PATH=../../nondebug
 	else
@@ -806,7 +806,7 @@ function check_pool() {
 		then
 			echo "$UNITTEST_NAME: checking consistency of pool ${1}"
 		fi
-		${PMEMPOOL}.static-nondebug check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
+		${PMEMPOOL}.static_nondebug check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
 	fi
 }
 
@@ -1095,7 +1095,7 @@ get_node_devdax_path() {
 dax_device_zero() {
 	for path in ${DEVICE_DAX_PATH[@]}
 	do
-		${PMEMPOOL}.static-debug rm -f $path
+		${PMEMPOOL}.static_debug rm -f $path
 	done
 }
 
@@ -1570,10 +1570,10 @@ function require_no_asan() {
 	nondebug)
 		require_no_asan_for ../../nondebug/libpmem.so
 		;;
-	static-debug)
+	static_debug)
 		require_no_asan_for ../../debug/libpmem.a
 		;;
-	static-nondebug)
+	static_nondebug)
 		require_no_asan_for ../../nondebug/libpmem.a
 		;;
 	esac
@@ -2077,7 +2077,7 @@ check_layout()
 #
 function dump_pool_info() {
 	# ignore selected header fields that differ by definition
-	${PMEMPOOL}.static-nondebug info $* | sed -e "/^UUID/,/^Checksum/d"
+	${PMEMPOOL}.static_nondebug info $* | sed -e "/^UUID/,/^Checksum/d"
 }
 
 #

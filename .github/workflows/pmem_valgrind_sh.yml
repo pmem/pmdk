@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         config: ['drd', 'pmemcheck', 'memcheck', 'helgrind']
-        build: ['debug', 'nondebug', 'static-debug', 'static-nondebug']
+        build: ['debug', 'nondebug', 'static_debug', 'static_nondebug']
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
 
     env:

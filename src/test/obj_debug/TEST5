@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 
 #
 # src/test/obj_debug/TEST5 -- unit test for debug features
@@ -9,7 +9,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_build_type debug static-debug
+require_build_type debug static_debug
 require_fs_type any
 
 FUNCS=17

@@ -93,9 +93,9 @@ BASH_COMP_FILES ?=
 BASH_COMP_DESTDIR = $(DESTDIR)$(bashcompdir)
 
 ifneq ($(DEBUG),1)
-TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
+TARGET_STATIC_NONDEBUG=$(TARGET).static_nondebug
 endif
-TARGET_STATIC_DEBUG=$(TARGET).static-debug
+TARGET_STATIC_DEBUG=$(TARGET).static_debug
 
 LIBSDIR=$(TOP)/src
 LIBSDIR_DEBUG=$(LIBSDIR)/debug

@@ -530,8 +530,8 @@ ifeq ($(COMPILE_LANG), cpp)
 LINKER=$(CXX)
 endif
 
-SUFFIX_STATIC_DEBUG=static-debug
-SUFFIX_STATIC_NONDEBUG=static-nondebug
+SUFFIX_STATIC_DEBUG=static_debug
+SUFFIX_STATIC_NONDEBUG=static_nondebug
 
 ifneq ($(TARGET),)
 #
