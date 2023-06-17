@@ -64,7 +64,8 @@ RUNTESTS takes options to limit what it runs.  The usage is:
 
  RUNTESTS [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 	    [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
-	    [ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
+	    [[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] ||
+	      [ --force-enable memcheck|pmemcheck|helgrind|drd ]] [ -c ]
 	    [tests...]
 
  Build types are: debug, nondebug, static-debug, static-nondebug, all (default)
