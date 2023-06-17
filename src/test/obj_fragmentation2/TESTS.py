@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 from os import path
@@ -10,7 +10,7 @@ from testframework import granularity as g
 
 
 @g.require_granularity(g.CACHELINE)
-@t.require_build('release')
+@t.require_build('nondebug')
 class Base(t.Test):
     test_type = t.Long
     seed = '12345'

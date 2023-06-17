@@ -23,9 +23,9 @@ jobs:
                  'RUNTESTS.sh -t long -b static-debug',
                  'RUNTESTS.sh -t long -b static-nondebug',
                  'RUNTESTS.py -t long -b debug',
-                 'RUNTESTS.py -t long -b release',
+                 'RUNTESTS.py -t long -b nondebug',
                  'RUNTESTS.py -t long -b static_debug',
-                 'RUNTESTS.py -t long -b static_release']
+                 'RUNTESTS.py -t long -b static_nondebug']
 
     env:
       WORKDIR: utils/gha-runners

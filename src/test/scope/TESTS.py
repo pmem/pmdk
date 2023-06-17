@@ -60,7 +60,7 @@ class Common(t.Test):
 
     def run(self, ctx):
         static = False
-        if str(self.ctx.build) in ['debug', 'release']:
+        if str(self.ctx.build) in ['debug', 'nondebug']:
             lib = '{}.so.1'.format(self.checked_lib)
         else:
             static = True

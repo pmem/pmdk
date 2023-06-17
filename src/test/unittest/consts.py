@@ -12,7 +12,7 @@ LIBS_LIST = ('pmem', 'pmem2', 'pmemobj', 'pmemlog', 'pmempool')
 ROOTDIR = abspath(join(dirname(__file__), '..'))
 
 DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
-RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
+NONDEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
 HEADER_SIZE = 4096
 

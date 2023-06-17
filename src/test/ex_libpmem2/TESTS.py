@@ -7,7 +7,7 @@ import testframework as t
 from testframework import granularity as g
 
 
-@t.require_build(['debug', 'release'])
+@t.require_build(['debug', 'nondebug'])
 class EX_LIBPMEM2(t.Test):
     test_type = t.Medium
     file_size = 1 * t.MiB

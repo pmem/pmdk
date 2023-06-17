@@ -35,12 +35,12 @@ class Debug(Build):
         self.env = {'LD_LIBRARY_PATH': self.libdir}
 
 
-class Release(Build):
-    """Set this context for a release build"""
+class NonDebug(Build):
+    """Set this context for a nondebug build"""
     is_preferred = True
 
     def __init__(self):
-        self.libdir = c.RELEASE_LIBDIR
+        self.libdir = c.NONDEBUG_LIBDIR
         self.env = {'LD_LIBRARY_PATH': self.libdir}
 
 
@@ -52,12 +52,12 @@ class Static_Debug(Build):
         self.libdir = c.DEBUG_LIBDIR
 
 
-class Static_Release(Build):
-    """Set this context for a static_release build"""
+class Static_Nondebug(Build):
+    """Set this context for a static_nondebug build"""
 
     def __init__(self):
         self.exesuffix = '.static-nondebug'
-        self.libdir = c.RELEASE_LIBDIR
+        self.libdir = c.NONDEBUG_LIBDIR
 
 
 def require_build(build, **kwargs):

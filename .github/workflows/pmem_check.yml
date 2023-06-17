@@ -23,9 +23,9 @@ jobs:
                  'check TEST_BUILD=static-debug',
                  'check TEST_BUILD=static-nondebug',
                  'pycheck TEST_BUILD=debug',
-                 'pycheck TEST_BUILD=release',
+                 'pycheck TEST_BUILD=nondebug',
                  'pycheck TEST_BUILD=static_debug',
-                 'pycheck TEST_BUILD=static_release']
+                 'pycheck TEST_BUILD=static_nondebug']
     env:
       WORKDIR: utils/gha-runners
 
