@@ -365,7 +365,7 @@ memcheck-summary-leaks:
 
 check:
 	@[ -z "$(BLACKLIST_TESTS)" ] || echo "Blacklisted tests: $(BLACKLIST_TESTS)"
-	@./RUNTESTS $(RUNTEST_OPTIONS) $(LOCAL_TESTS)
+	@./RUNTESTS.sh $(RUNTEST_OPTIONS) $(LOCAL_TESTS)
 	$(MAKE)
 	@echo "No failures."
 
