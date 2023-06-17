@@ -629,10 +629,10 @@ $(TSTCHECKSPY):
 	@cd .. && ./RUNTESTS.py $(subst nondebug,release,$(RUNTEST_OPTIONS)) -u $(shell echo $@ | sed 's/^py\/[^0-9]*\([0-9]*\)$$/\1/') -- ${TST}
 
 $(TSTCHECKS): sync-test
-	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS) -s $@
+	@cd .. && ./RUNTESTS.sh ${TST} $(RUNTEST_OPTIONS) -s $@
 
 check: sync-test
-	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS)
+	@cd .. && ./RUNTESTS.sh ${TST} $(RUNTEST_OPTIONS)
 
 pcheck: export NOTTY=1
 

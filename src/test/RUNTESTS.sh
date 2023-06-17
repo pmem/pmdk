@@ -3,7 +3,7 @@
 # Copyright 2014-2023, Intel Corporation
 
 #
-# RUNTESTS -- setup the environment and run each test
+# RUNTESTS.sh -- setup the environment and run each test
 #
 
 #
@@ -80,13 +80,13 @@ runtest_local() {
 	elif [ "$use_timeout" -a "$testtype" = "check" ]
 	then
 		# set timeout for "check" tests
-		[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$RUNTEST_DIR) \
+		[ "$verbose" ] && echo "RUNTESTS.sh: Running: (in ./$RUNTEST_DIR) \
 			$RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
 		CMD_STR="$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS timeout \
 			--foreground $killopt $RUNTEST_TIMEOUT ./$RUNTEST_SCRIPT"
 		eval "$CMD_STR"
 	else
-		[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$RUNTEST_DIR) $params ./$script"
+		[ "$verbose" ] && echo "RUNTESTS.sh: Running: (in ./$RUNTEST_DIR) $params ./$script"
 		CMD_STR="$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
 		eval "$CMD_STR"
 	fi
@@ -96,7 +96,7 @@ runtest_local() {
 	[ $retval = 124 -o $retval = 137 ] && errmsg='timed out'
 	[ $retval != 0 ] && {
 		[ -t 2 ] && command -v tput >/dev/null && errmsg="$(tput setaf 1)$errmsg$(tput sgr0)"
-		echo "RUNTESTS: stopping: $RUNTEST_DIR/$RUNTEST_SCRIPT $errmsg, $RUNTEST_PARAMS" >&2
+		echo "RUNTESTS.sh: stopping: $RUNTEST_DIR/$RUNTEST_SCRIPT $errmsg, $RUNTEST_PARAMS" >&2
 		if [ "$keep_going" == "y" ]; then
 			keep_going_exit_code=1
 			keep_going_skip=y
@@ -322,7 +322,7 @@ runtest() {
 
 				if [ "$KEEP_GOING" == "y" ] && [ "$CLEAN_FAILED" == "y" ]; then
 					# temporary file used for sharing data
-					# between RUNTESTS and tests processes
+					# between RUNTESTS.sh and tests processes
 					temp_loc=$(mktemp /tmp/data-location.XXXXXXXX)
 					export TEMP_LOC=$temp_loc
 				fi
@@ -341,7 +341,7 @@ runtest() {
 
 [ -f testconfig.sh ] || {
 	cat >&2 <<EOF
-RUNTESTS: stopping because no testconfig.sh is found.
+RUNTESTS.sh: stopping because no testconfig.sh is found.
 		  to create one:
 			   cp testconfig.sh.example testconfig.sh
 		  and edit testconfig.sh to describe the local machine configuration.
@@ -681,7 +681,7 @@ fi
 if [ "$1" ]; then
 	for test in $*
 	do
-		[ -d "$test" ] || echo "RUNTESTS: Test does not exist: $test"
+		[ -d "$test" ] || echo "RUNTESTS.sh: Test does not exist: $test"
 		[ -f "$test/TEST0" ] && runtest $test
 	done
 else
@@ -690,7 +690,7 @@ else
 	do
 		testdir=`dirname $testfile0`
 		if [[ "$skip_dir" =~ "$testdir" ]]; then
-			echo "RUNTESTS: Skipping: $testdir"
+			echo "RUNTESTS.sh: Skipping: $testdir"
 			continue
 		fi
 		runtest $testdir
