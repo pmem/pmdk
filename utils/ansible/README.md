@@ -25,8 +25,8 @@ sudo apt install ansible-core
 ## Provisioning the target platform
 Use the command below to setup the PMDK software development environment:
 ```sh
-export TARGET_IP= # ip of the platform
-export ROOT_PASSWORD= # password for root on target
+export TARGET_IP= # ip of the target
+export ROOT_PASSWORD= # a password of root on the target
 export SETUP_SCRIPT= # opensuse-setup.yml or rockylinux-setup.yml
 
 ansible-playbook -i $TARGET_IP, $SETUP_SCRIPT \
@@ -40,14 +40,14 @@ ansible-playbook -i $TARGET_IP, $SETUP_SCRIPT \
 Use the below command to configure persistent memory on Intel servers to be
 used for PMDK libraries tests execution.
 ```sh
-export TARGET_IP= # ip of the platform
-export ROOT_PASSWORD= # password for root on target
+export TARGET_IP= # ip of the target
+export ROOT_PASSWORD= # a password of root on the target
 ansible-playbook -i $TARGET_IP, configure-pmem.yml \
   --extra-vars "host=all ansible_user=root ansible_password=$ROOT_PASSWORD \
   newRegions=true testUser=pmdkuser"
 ```
-The script creates new region and set of namespace, regardles what configuration
-has already been available on the target platform.
+The script creates a new region and set of namespaces regardless of the
+configuration already available on the target platform.
 
 **Note**: Every time when new region is created (`newRegions=true`) the playbook
 will reboot the target platform.
@@ -62,11 +62,11 @@ The following command will delete all existing namespaces and create new ones.
 It can be used to perform a full memory cleanup as part of a reinitialization of
 the test environment.
 
-**Note** It is not required to re-create regions with the `newRegions=true`
+**Note**: It is NOT required to re-create regions with the `newRegions=true`
 parameter in this case.
 ```sh
-export TARGET_IP= # ip of the platform
-export ROOT_PASSWORD= # password for root on target
+export TARGET_IP= # ip of the target
+export ROOT_PASSWORD= # a password of root on the target
 ansible-playbook -i $TARGET_IP, configure-pmem.yml \
   --extra-vars "host=all ansible_user=root ansible_password=$ROOT_PASSWORD \
   testUser=pmdkuser"
@@ -85,16 +85,20 @@ uncomment the following two:
 ```
 and run commands as follows e.g.
 ```sh
-sudo ansible-playbook ./opensuse-setup.yml --extra-vars "testUser=pmdkuser"`
-# or
-sudo ansible-playbook ./rockylinux-setup.yml --extra-vars "testUser=pmdkuser"`
-```
-and next:
-```sh
-sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions=true"
+export SETUP_SCRIPT= # opensuse-setup.yml or rockylinux-setup.yml
+sudo ansible-playbook $SETUP_SCRIPT --extra-vars "testUser=pmdkuser"
 ```
 **Note**: If a reboot is necessary, as described above, perform it manually and
-rerun the playbook in question.
+rerun the playbook withot  in question.
+
+And next:
+```sh
+sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions=true"
+# you will have to perform a reboot manually 
+reboot 
+# and re-run the playbook without newRegions=true to finalize the setup 
+sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
+```
 
 # Example - GitHub self-hosted runner setup
 The sequence of commands below presents an example procedure for how to setup
@@ -110,21 +114,22 @@ dnf install ansible-core -y
 git clone https://github.com/pmem/pmdk.git
 cd pmdk/utils/ansible
 ```
-Update playbooks as described [above](#provisioning-from-the-target-platform-itself).
+Update playbooks to be used directly on the target as described [above](#provisioning-from-the-target-platform-itself)
+and execute:
 ```
 # as root:
 ansible-playbook ./rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+# reboot shall be performed only if the playbook requests to do it.
 reboot
-# reboot shall be performed only if playbook requests to do it.
-...
+# ...
 cd pmdk/utils/ansible
 ansible-playbook ./rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
 ansible-playbook ./configure-pmem.yml --extra-vars "newRegions=true"
 reboot
-...
+# ...
 cd pmdk/utils/ansible
-ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
 # note - no newRegions=true when running the playbook after the reboot
+ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
 cd
 rm -rf pmdk
 ```
@@ -137,21 +142,22 @@ zypper install ansible -y
 git clone https://github.com/pmem/pmdk.git
 cd pmdk/utils/ansible
 ```
-Update playbooks as described [above](#provisioning-from-the-target-platform-itself).
+Update playbooks to be used directly on the target as described [above](#provisioning-from-the-target-platform-itself)
+and execute:
 ```
 # as root:
 ansible-playbook ./opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+# reboot shall be performed only if the playbook requests to do it.
 reboot
-# reboot shall be performed only if playbook requests to do it.
-...
+# ...
 cd pmdk/utils/ansible
 ansible-playbook ./opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
 ansible-playbook ./configure-pmem.yml --extra-vars "newRegions=true"
 reboot
-...
+# ...
 cd pmdk/utils/ansible
-ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
 # note - no newRegions=true when running the playbook after the reboot
+ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
 cd
 rm -rf pmdk
 ```
