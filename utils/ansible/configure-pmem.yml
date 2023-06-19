@@ -1,19 +1,23 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2023, Intel Corporation
 
-# This playbook is designed to configure regions and namespaces on DIMMs so user can execute
-# tests later. Playbook usage is described in README.md file.
-# Steps below are divided into 3 parts: removing previous namespaces (if existed), creating new regions
-# (if requested by the user) and creating namespaces on that regions.
+# This playbook is designed to configure regions and namespaces on DIMMs
+# so users can execute tests later. Playbook usage is described in
+# the README.md file.
+# The steps below are divided into 3 parts: removing previous namespaces
+# (if existed), creating new regions (if requested by the user)
+# and creating namespaces on that regions.
 #
-# Shell script implemented in this playbook for namespace creation will create 9 DAX namespaces with aligned sizes
-# to fit first region and 1 FSDAX namespace to fit second region. It is assumed that system contains 2 interleaved regions
-# beforehand. Setting "newRegions" to "true" will do that.
+# Shell script implemented in this playbook for namespace creation
+# will create 9 DAX namespaces with aligned sizes to fit the first region
+# and 1 FSDAX namespace to fit the second region.
+# It is assumed that system contains 2 interleaved regions beforehand.
+# Setting "newRegions" to "true" will do that.
 #
-# Below examples how to use this file:
+# Below are examples of how to use this file:
 #
-# 1) setup PMem for the first time:
-# sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions == 'true'"
+# 1) setup PMem for the first time (establish regions):
+# sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions='true'"
 #
 # 2) setup PMem if it already has been initialized before:
 # sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
@@ -42,7 +46,6 @@
       register: namespaces
 
     - debug: var=namespaces
-    - debug: var=newRegions
 
     - name: "Create new regions"
       block:
