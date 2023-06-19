@@ -3,7 +3,8 @@
 
 # This playbook is designed to install all required packages and
 # configure Rocky Linux to execute tests.
-# Playbook description and how to use it is available in README.md file
+# The playbook description and how to use it are available
+# in the README.md file.
 
 - hosts: "{{ host }}"
 # - hosts: localhost
@@ -49,7 +50,7 @@
           shell: dnf config-manager --enable powertools
           when: ansible_distribution_major_version == "8"
 
-    - name: "Install VALGRIND deps"
+    - name: "Install Valgrind dependencies"
       package:
         state: present
         name:
@@ -59,7 +60,7 @@
           - findutils
           - git
 
-    - name: "Install PMDK base deps"
+    - name: "Install PMDK base dependencies"
       package:
         state: present
         name:
@@ -71,13 +72,13 @@
           - passwd
           - pkgconfig
 
-    - name: "Install benchmarks deps (optional)"
+    - name: "Install benchmarks dependencies (optional)"
       package:
         state: present
         name:
           - glib2-devel
 
-    - name: "Install examples deps (optional)"
+    - name: "Install examples dependencies (optional)"
       package:
         state: present
         name:
@@ -86,13 +87,13 @@
           - ncurses-devel
           - libuv-devel
 
-    - name: "Install documentation deps (optional)"
+    - name: "Install documentation dependencies (optional)"
       package:
         state: present
         name:
           - pandoc
 
-    - name: "Install tests deps"
+    - name: "Install tests dependencies"
       package:
         state: present
         name:
@@ -103,7 +104,7 @@
           - openssh-server
           - strace
 
-    - name: "Install packaging deps"
+    - name: "Install packaging dependencies"
       package:
         state: present
         name:
@@ -111,7 +112,7 @@
           - rpm-build-libs
           - rpmdevtools
 
-    - name: "Install miscellaneous deps"
+    - name: "Install miscellaneous dependencies"
       package:
         state: present
         name:
@@ -137,7 +138,10 @@
     - name: "Install valgrind from source"
       script: ../docker/images/install-valgrind.sh
 
-    # Disable SELinux. Enabling skipping when SELinux fails to disable because this is not essential to run tests but it helps when disabled.
+    # Disable SELinux. 
+    # SELinux may block proper GHA runner installation and startup.
+    # !=`Debian` condition is inherited from the original version of 
+    # the ansible playbook that has been created for many OSes.
     - name: Disable selinux - distribution other than Debian based
       selinux:
         state: disabled

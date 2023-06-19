@@ -2,7 +2,8 @@
 # Copyright 2023, Intel Corporation
 
 # This playbook is designed to install all required packages and configure openSUSE to execute tests.
-# Playbook description and how to use it is available in README.md file
+# The playbook description and how to use it are available
+# in the README.md file.
 
 - hosts: "{{ host }}"
 # - hosts: localhost
@@ -46,7 +47,7 @@
         repo: 'http://download.opensuse.org/distribution/leap/15.4/repo/oss'
         state: present
 
-    - name: "Install VALGRIND deps"
+    - name: "Install Valgrind dependencies"
       package:
         state: present
         name:
@@ -56,7 +57,7 @@
           - findutils
           - git
 
-    - name: "Install PMDK base deps"
+    - name: "Install PMDK base dependencies"
       package:
         state: present
         name:
@@ -69,13 +70,13 @@
           - systemd
           - libndctl-devel
 
-    - name: "Install benchmarks deps (optional)"
+    - name: "Install benchmarks dependencies (optional)"
       package:
         state: present
         name:
           - glib2-devel
 
-    - name: "Install examples deps (optional)"
+    - name: "Install examples dependencies (optional)"
       package:
         state: present
         name:
@@ -84,13 +85,13 @@
           - ncurses-devel
           - libuv-devel
 
-    - name: "Install documentation deps (optional)"
+    - name: "Install documentation dependencies (optional)"
       package:
         state: present
         name:
           - pandoc
 
-    - name: "Install tests deps"
+    - name: "Install tests dependencies"
       package:
         state: present
         name:
@@ -99,14 +100,14 @@
           - libunwind-devel
           - strace
 
-    - name: "Install packaging deps"
+    - name: "Install packaging dependencies"
       package:
         state: present
         name:
           - rpm-build
           - rpmdevtools
 
-    - name: "Install miscellaneous deps"
+    - name: "Install miscellaneous dependencies"
       package:
         state: present
         name:
@@ -122,7 +123,7 @@
           - xmlto
           - jq
 
-    - name: "Install NDCTL deps"
+    - name: "Install NDCTL dependencies"
       package:
         state: present
         name:
@@ -147,7 +148,8 @@
     - name: "Run the install-libndctl script with arguments"
       script: ../docker/images/install-libndctl.sh tags/v70.1
 
-    # Disable AppArmor. Enabling skipping when AppArmor fails to disable because this is not essential to run tests but it helps when disabled.
+    # Disable AppArmor. 
+    # AppArmor may block proper GHA runner installation and startup.
     - name: Disable AppArmor
       service:
         name: apparmor
