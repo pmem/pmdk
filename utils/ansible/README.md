@@ -174,3 +174,18 @@ tmux
 ./run.cmd
 ```
 Close session leaving the tmux session in the background (`CTRL+b d`).
+
+# Installing a GitHub Action runner using Ansible palybook
+The command below setup a new server, with persistent memory and CI environment
+already installed, to be used as a self-hosted GHA.
+
+```sh
+export TARGET_IP= # ip of the target
+export ROOT_PASSWORD= # a password of root on the target
+export GHA_TOKEN= # GitHub token generated for new self-hosted runner
+export HOST_NAME= # Host name that will be visible on GitHub (e.g.) `hostname`
+export LABELS= #rhel or opensuse
+ansible-playbook -i $TARGET_IP, configure-selfhosted-runner.yml --extra-vars
+  "host=all ansible_user=root ansible_password=$ROOT_PASSWORD testUser=pmdkuser \
+  runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN"
+```

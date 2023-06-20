@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This playbook is designed to add runner to GHA on pmem/pmdk.
+# Below examples how to use this file:
+# 1) locally
+# export LABELS= #rhel or opensuse
+# sudo ansible-playbook ./configure-selfhosted-runner.yml --extra-vars
+# "testUser=pmdkuser runner_name=name labels=$LABELS vars_gha=env1,env2 token=gha_token"
+# For a playbok to be used on local server please
+# a) comment the first command: # -hosts: "{{ host }}"
+# b) uncomment next two lines:
+# - hosts: localhost
+#   connection: local
+# 2) remote
+# export LABELS= #rhel or opensuse
+# ansible-playbook -i <target_platform_ip_address>, configure-selfhosted-runner.yml
+# --extra-vars "host=all ansible_user=root ansible_password=<password_for_root_on_target> \
+# testUser=pmdkuser runner_name=name labels=$LABELS vars_gha=env1,env2 token=gha_token"
+#
+# Runner package version may be changed by: --extra-vars package_url=<url_to_package.tar.gz>
+
+- hosts: "{{ host }}"
+#- hosts: localhost
+#  connection: local
+  vars:
+    testUser: pmdkuser
+    package_url: https://github.com/actions/runner/releases/download/v2.304.0/actions-runner-linux-x64-2.304.0.tar.gz
+    runner_folder: /home/{{ testUser }}/actions-runner
+    repo_url: https://github.com/pmem/pmdk
+    vars_list: "{{ vars_gha.split(',') }}"
+
+  tasks:
+    - name: "Create a runner folder"
+      file:
+        path: '{{ runner_folder }}'
+        state: directory
+        force: yes
+
+    - name: "Download and extract the installer"
+      unarchive:
+        src: '{{ package_url }}'
+        dest: '{{ runner_folder }}'
+        remote_src: yes
+
+    - name: "Change owner to {{ testUser }}"
+      shell: |
+        chown -R {{ testUser }} {{ runner_folder }}
+    - name: "Add runner to GHA"
+      shell: |
+        cd {{ runner_folder }}
+        ./config.sh --url {{ repo_url }} --token {{ token }} --name {{ runner_name }} --labels {{ labels }} --runnergroup Default --work _work
+      become: yes
+      become_user: '{{ testUser }}'
+
+    - name: "Install runner service"
+      shell: |
+        cd {{ runner_folder }}
+        ./svc.sh install {{ testUser }}
+    - name: "Insert variables into runsvc.sh file"
+      lineinfile:
+        path: "{{ runner_folder }}/runsvc.sh"
+        line: "export {{ item }}"
+        insertbefore: "insert anything to setup env when running as a service"
+      loop: "{{ vars_list }}"
+
+    - name: "Enable and restart runner service"
+      shell: |
+        systemctl enable actions.runner.pmem-pmdk.{{ runner_name }}.service
+        systemctl restart actions.runner.pmem-pmdk.{{ runner_name }}.service
