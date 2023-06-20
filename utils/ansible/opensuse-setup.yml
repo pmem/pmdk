@@ -1,0 +1,201 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This playbook is designed to install all required packages and configure
+# OpenSUSE to execute tests.
+# The playbook description and how to use it are available in the README.md file.
+
+- hosts: "{{ host }}"
+# - hosts: localhost
+#   connection: local
+  vars:
+    testUser: null
+    testUserPass: pmdkpass
+
+  tasks:
+
+    - name: "Update kernel packages"
+      package:
+        name: "kernel-default"
+        state: latest
+      register: isUpdated
+
+    - name: "Update OS packages"
+      package:
+        name: "*"
+        state: latest
+
+    - name: "Reboot platform to apply updates"
+      reboot:
+      when: isUpdated.changed
+
+    - name: "Add permanent pkg config variable to the system"
+      env:
+        state: present
+        name: PKG_CONFIG_PATH
+        value: /usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig
+
+    - name: "Add permanent ld library path to the system"
+      env:
+        state: present
+        name: LD_LIBRARY_PATH
+        value: /usr/lib64:/usr/lib
+
+    - name: "Add openSUSE Leap 15.4 Oss repo"
+      zypper_repository:
+        name: oss
+        repo: 'http://download.opensuse.org/distribution/leap/15.4/repo/oss'
+        state: present
+
+    - name: "Install Valgrind dependencies"
+      package:
+        state: present
+        name:
+          - autoconf
+          - automake
+          - file
+          - findutils
+          - git
+
+    - name: "Install PMDK base dependencies"
+      package:
+        state: present
+        name:
+          - cmake
+          - gcc
+          - gcc-c++
+          - git
+          - make
+          - pkgconfig
+          - systemd
+          - libndctl-devel
+
+    - name: "Install benchmarks dependencies (optional)"
+      package:
+        state: present
+        name:
+          - glib2-devel
+
+    - name: "Install examples dependencies (optional)"
+      package:
+        state: present
+        name:
+          - fuse
+          - fuse-devel
+          - ncurses-devel
+          - libuv-devel
+
+    - name: "Install documentation dependencies (optional)"
+      package:
+        state: present
+        name:
+          - pandoc
+
+    - name: "Install tests dependencies"
+      package:
+        state: present
+        name:
+          - bc
+          - gdb
+          - libunwind-devel
+          - strace
+
+    - name: "Install packaging dependencies"
+      package:
+        state: present
+        name:
+          - rpm-build
+          - rpmdevtools
+
+    - name: "Install miscellaneous dependencies"
+      package:
+        state: present
+        name:
+          - clang
+          - hub
+          - lbzip2
+          - man
+          - python3-flake8
+          - rsync
+          - sudo
+          - tar
+          - which
+          - xmlto
+          - jq
+
+    - name: "Install ndctl dependencies"
+      package:
+        state: present
+        name:
+          - bash-completion-devel
+          - keyutils-devel
+          - libjson-c-devel
+          - libkmod-devel
+          - libtool
+          - libudev-devel
+          - libuuid-devel
+          - systemd-devel
+
+    - name: "Install ipmctl"
+      package:
+        state: present
+        name:
+          - ipmctl
+
+    - name: "Install valgrind from source"
+      script: ../docker/images/install-valgrind.sh
+
+    - name: "Run the install-libndctl script with arguments"
+      script: ../docker/images/install-libndctl.sh tags/v70.1
+
+    # Disable AppArmor. 
+    # AppArmor may block proper GHA runner installation and startup.
+    # ==`Suse` condition is inherited from the original version of 
+    # the ansible playbook that has been created for many OSes.
+    - name: Disable AppArmor
+      service:
+        name: apparmor
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+      when: ansible_facts['os_family'] == 'Suse'
+
+    - name: "Add new user"
+      shell: |
+        #!/usr/bin/env bash
+        export USER={{ testUser }}
+        export USERPASS={{ testUserPass }}
+        useradd -m $USER
+        export PFILE=./password
+        echo $USERPASS > $PFILE
+        echo $USERPASS >> $PFILE
+        passwd $USER < $PFILE
+        rm -f $PFILE
+        sed -i 's/# %wheel/%wheel/g' /etc/sudoers
+        groupadd wheel
+        gpasswd wheel -a $USER
+      when: testUser != None
+
+    - name: "Set variable OS"
+      env:
+        state: present
+        name: 'OS'
+        value: 'opensuse/leap'
+
+    - name: "Set variable OS_VER"
+      env:
+        state: present
+        name: 'OS_VER'
+        value: '15'
+
+    - name: "Set variable PACKAGE_MANAGER"
+      env:
+        state: present
+        name: 'PACKAGE_MANAGER'
+        value: 'rpm'
+
+    - name: "Set variable NOTTY"
+      env:
+        state: present
+        name: 'NOTTY'
+        value: '1'

@@ -1,0 +1,192 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This playbook is designed to install all required packages and
+# configure Rocky Linux to execute tests.
+# The playbook description and how to use it are available
+# in the README.md file.
+
+- hosts: "{{ host }}"
+# - hosts: localhost
+#   connection: local
+  vars:
+    testUser: null
+    testUserPass: pmdkpass
+
+  tasks:
+    - name: "Update kernel packages"
+      package:
+        name: "kernel.x86_64"
+        state: latest
+      register: isUpdated
+
+    - name: "Update OS packages"
+      package:
+        name: "*"
+        state: latest
+
+    - name: "Reboot platform to apply updates"
+      reboot:
+      when: isUpdated.changed
+
+    - name: "Add permanent pkg config variable to the system"
+      env:
+        state: present
+        name: PKG_CONFIG_PATH
+        value: /usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig
+
+# For `ansible_distribution_*` variables see:
+# https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_conditionals.html#commonly-used-facts
+    - name: "Rocky - adding additional repositories"
+      block:
+        - name: "Rocky - adding epel repository"
+          shell: yum install epel-release -y
+
+        - name: "Rocky 9 - enabling Power Tools"
+          shell: dnf config-manager --enable crb
+          when: ansible_distribution_major_version == "9"
+
+        - name: "Rocky 8 - enabling Power Tools"
+          shell: dnf config-manager --enable powertools
+          when: ansible_distribution_major_version == "8"
+
+    - name: "Install Valgrind dependencies"
+      package:
+        state: present
+        name:
+          - autoconf
+          - automake
+          - file
+          - findutils
+          - git
+
+    - name: "Install PMDK base dependencies"
+      package:
+        state: present
+        name:
+          - cmake
+          - git
+          - daxctl-devel
+          - make
+          - ndctl-devel
+          - passwd
+          - pkgconfig
+
+    - name: "Install benchmarks dependencies (optional)"
+      package:
+        state: present
+        name:
+          - glib2-devel
+
+    - name: "Install examples dependencies (optional)"
+      package:
+        state: present
+        name:
+          - fuse
+          - fuse-devel
+          - ncurses-devel
+          - libuv-devel
+
+    - name: "Install documentation dependencies (optional)"
+      package:
+        state: present
+        name:
+          - pandoc
+
+    - name: "Install tests dependencies"
+      package:
+        state: present
+        name:
+          - bc
+          - gdb
+          - libunwind-devel
+          - ndctl
+          - openssh-server
+          - strace
+
+    - name: "Install packaging dependencies"
+      package:
+        state: present
+        name:
+          - rpm-build
+          - rpm-build-libs
+          - rpmdevtools
+
+    - name: "Install miscellaneous dependencies"
+      package:
+        state: present
+        name:
+          - clang
+          - lbzip2
+          - man
+          - python3
+          - python3-flake8
+          - rsync
+          - shadow-utils
+          - sudo
+          - tar
+          - which
+          - xmlto
+          - jq
+
+    - name: "Install ipmctl"
+      package:
+        state: present
+        name:
+          - ipmctl
+
+    - name: "Install valgrind from source"
+      script: ../docker/images/install-valgrind.sh
+
+    # Disable SELinux. 
+    # SELinux may block proper GHA runner installation and startup.
+    # !=`Debian` condition is inherited from the original version of 
+    # the ansible playbook that has been created for many OSes.
+    - name: Disable selinux - distribution other than Debian based
+      selinux:
+        state: disabled
+      ignore_errors: yes
+      when: ansible_facts['os_family'] != 'Debian'
+
+    - name: "Add new user"
+      shell: |
+        #!/usr/bin/env bash
+        export USER={{ testUser }}
+        export USERPASS={{ testUserPass }}
+        useradd -m $USER
+        echo $USERPASS | passwd $USER --stdin
+        gpasswd wheel -a $USER
+        echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+      when: testUser != none
+
+    - name: "Set variable OS"
+      env:
+        state: present
+        name: 'OS'
+        value: 'rockylinux/rockylinux'
+
+    - name: "Set variable OS_VER (9)"
+      env:
+        state: present
+        name: 'OS_VER'
+        value: '9'
+      when: ansible_distribution_major_version == "9"
+
+    - name: "Set variable OS_VER (8)"
+      env:
+        state: present
+        name: 'OS_VER'
+        value: '8'
+      when: ansible_distribution_major_version == "8"
+
+    - name: "Set variable PACKAGE_MANAGER"
+      env:
+        state: present
+        name: 'PACKAGE_MANAGER'
+        value: 'rpm'
+
+    - name: "Set variable NOTTY"
+      env:
+        state: present
+        name: 'NOTTY'
+        value: '1'

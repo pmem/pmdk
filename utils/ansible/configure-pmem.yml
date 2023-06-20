@@ -1,0 +1,140 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This playbook is designed to configure regions and namespaces on DIMMs
+# so users can execute tests later. Playbook usage is described in
+# the README.md file.
+# The steps below are divided into 3 parts: removing previous namespaces
+# (if existed), creating new regions (if requested by the user)
+# and creating namespaces on that regions.
+#
+# Shell script implemented in this playbook for namespace creation
+# will create 9 DAX namespaces with aligned sizes to fit the first region
+# and 1 FSDAX namespace to fit the second region.
+# It is assumed that system contains 2 interleaved regions beforehand.
+# Setting "newRegions" to "true" will do that.
+#
+# Below are examples of how to use this file:
+#
+# 1) setup PMem for the first time (establish regions):
+# sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions='true'"
+#
+# 2) setup PMem if it already has been initialized before:
+# sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
+#
+
+- hosts: "{{ host }}"
+# - hosts: localhost
+#   connection: local
+  vars:
+    newRegions: false
+    testUser: pmdkuser
+
+  tasks:
+    - name: "Test if ndctl is installed"
+      shell: which ndctl
+
+    - name: "Unmount namespaces if they exist"
+      shell: sudo umount /dev/pmem* || true
+
+    - name: "Disable current namespaces"
+      shell: sudo ndctl disable-namespace all || true
+      register: namespaces
+
+    - name: "Destroy current namespaces"
+      shell: sudo ndctl destroy-namespace all || true
+      register: namespaces
+
+    - debug: var=namespaces
+
+    - name: "Create new regions"
+      block:
+      - name: "Test if ipmctl is installed"
+        shell: which ipmctl
+
+      - name: "Create goal in AppDirectInterleaved mode"
+        shell: ipmctl create -f -goal
+
+      - name: "Reboot machine in order to apply new AppDirectInterleaved goal"
+        reboot:
+      when: newRegions == 'true'
+
+    - name: "Create new namespace configuration"
+      shell: |
+        #!/usr/bin/env bash
+        DEV_DAX_R=0x0000
+        FS_DAX_R=0x0001
+        MOUNT_POINT="/mnt/pmem0"
+
+        function check_alignment() {
+          local size=$1
+          local interleave_width=$(sudo ipmctl show -dimm -socket 1 | grep "0x1" | wc -l)
+          local size_alignment=$(expr $size % $interleave_width)
+
+          if [ "$size_alignment" -gt "0" ]; then
+            size=$(expr $size - $size_alignment + $interleave_width)
+          fi
+
+          echo "${size}G"
+        }
+
+        function create_devdax() {
+          local align=$1
+          local size=$2
+          local size_option="-s $size"
+
+          if [ -z "$size" ]; then
+            size_option=""
+          fi
+
+          local cmd="sudo ndctl create-namespace --mode devdax -a ${align} ${size_option} -r ${DEV_DAX_R} -f"
+          result=$(${cmd})
+          if [ $? -ne 0 ]; then
+            exit 1;
+          fi
+        }
+
+        function create_fsdax() {
+          local cmd="sudo ndctl create-namespace --mode fsdax -r ${FS_DAX_R} -f"
+          result=$(${cmd})
+          if [ $? -ne 0 ]; then
+            exit 1;
+          fi
+          jq -r '.blockdev' <<< $result
+        }
+
+        BIG_NS_SIZE=$(check_alignment 55)
+        SMALL_NS_SIZE=$(check_alignment 4)
+
+        create_devdax 4k $SMALL_NS_SIZE
+        create_devdax 4k $SMALL_NS_SIZE
+        create_devdax 2m $SMALL_NS_SIZE
+        create_devdax 2m $SMALL_NS_SIZE
+        create_devdax 4k $BIG_NS_SIZE
+        create_devdax 4k $BIG_NS_SIZE
+        create_devdax 2m $BIG_NS_SIZE
+        create_devdax 2m $BIG_NS_SIZE
+        create_devdax 2m $SMALL_NS_SIZE
+
+        pmem_name=$(create_fsdax)
+
+        if [ ! -d "${MOUNT_POINT}" ]; then
+          sudo mkdir ${MOUNT_POINT}
+        fi
+      register: script
+
+    - debug: var=script
+
+    - name: "Create new namespace configuration"
+      shell: |
+        sudo mkfs.ext4 -F /dev/${pmem_name}
+        sudo mount -o dax /dev/${pmem_name} ${MOUNT_POINT}
+        sudo chown -R {{ testUser }} ${MOUNT_POINT}
+
+        sudo chmod 777 /dev/dax* || true
+        sudo chmod a+rw /sys/bus/nd/devices/region*/deep_flush
+        sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/resource
+        sudo chmod +r  /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+      register: script
+
+    - debug: var=script
