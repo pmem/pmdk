@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This playbook is designed to add a new self-hosted runner to pmem/pmdk.
+# Examples below show how to use this file:
+# 1) remote
+# export TARGET_IP= # ip of the target
+# export ROOT_PASSWORD= # a password of root on the target
+# export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
+# export HOST_NAME= # host's name that will be visible on GitHub
+# export LABELS= #rhel or opensuse
+# export VARS_GHA= # e.g. proxy settings: http_proxy=http://proxy-dmz.XXX.com:911,https_proxy=http://proxy-dmz.XXX.com:912
+# ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars \
+#  "host=all ansible_user=root ansible_password=$ROOT_PASSWORD testUser=pmdkuser \
+#  runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
+#
+# 2) locally
+# For a playbook to be used on a local server please:
+# a) comment the first command: # -hosts: "{{ host }}"
+# b) uncomment the next two lines:
+# - hosts: localhost
+#   connection: local
+#
+# export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
+# export HOST_NAME= # Host name that will be visible on GitHub (e.g. `hostname`)
+# export LABELS= #rhel or opensuse
+# export VARS_GHA=http_proxy=http://proxy-dmz.XXX.com:911,https_proxy=http://proxy-dmz.XXX.com:912
+# ansible-playbook configure-self-hosted-runner.yml --extra-vars \
+# "runner_name=$HOST_NAME labels=$LABELS vars_gha=env1,env2 token=$GHA_TOKEN"
+#
+
+#
+# Runner package version may be changed by: --extra-vars package_url=<url_to_package.tar.gz>
+
+- hosts: "{{ host }}"
+#- hosts: localhost
+#  connection: local
+  vars:
+    testUser: pmdkuser
+    package_url: https://github.com/actions/runner/releases/download/v2.304.0/actions-runner-linux-x64-2.304.0.tar.gz
+    runner_folder: /home/{{ testUser }}/actions-runner
+    repo_url: https://github.com/pmem/pmdk
+    vars_list: "{{ vars_gha.split(',') }}"
+
+  tasks:
+    - name: "Create a runner folder"
+      file:
+        path: '{{ runner_folder }}'
+        state: directory
+        force: yes
+
+    - name: "Download and extract the installer"
+      unarchive:
+        src: '{{ package_url }}'
+        dest: '{{ runner_folder }}'
+        remote_src: yes
+
+    - name: "Change owner to {{ testUser }}"
+      shell: chown -R {{ testUser }} {{ runner_folder }}
+
+    - name: "Add runner to GHA"
+      shell: |
+        cd {{ runner_folder }}
+        ./config.sh --url {{ repo_url }} --token {{ token }} --name {{ runner_name }} --labels {{ labels }} --runnergroup Default --work _work
+      become: yes
+      become_user: '{{ testUser }}'
+
+    - name: "Install runner service"
+      shell: |
+        cd {{ runner_folder }}
+        ./svc.sh install {{ testUser }}
+      become: true
+      become_user: root
+
+    - name: "Insert variables into runsvc.sh file"
+      lineinfile:
+        path: "{{ runner_folder }}/runsvc.sh"
+        line: "export {{ item }}"
+        insertbefore: "insert anything to setup env when running as a service"
+      loop: "{{ vars_list }}"
+
+    - name: "Enable and restart runner service"
+      shell: |
+        systemctl enable actions.runner.pmem-pmdk.{{ runner_name }}.service
+        systemctl restart actions.runner.pmem-pmdk.{{ runner_name }}.service
+      become: true
+      become_user: root
