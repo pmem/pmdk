@@ -11,8 +11,6 @@
 #include <stdbool.h>
 
 #include "queue.h"
-#include "log.h"
-#include "blk.h"
 #include "libpmemobj.h"
 #include "lane.h"
 #include "ulog.h"
@@ -24,18 +22,14 @@
 #include "heap_layout.h"
 #include "tx.h"
 #include "heap.h"
-#include "btt_layout.h"
 #include "page_size.h"
 
 #define COUNT_OF(x) (sizeof(x) / sizeof(0[x]))
 
 #define OPT_SHIFT 12
 #define OPT_MASK (~((1 << OPT_SHIFT) - 1))
-#define OPT_LOG (1 << (PMEM_POOL_TYPE_LOG + OPT_SHIFT)) /* deprecated */
-#define OPT_BLK (1 << (PMEM_POOL_TYPE_BLK + OPT_SHIFT)) /* deprecated */
 #define OPT_OBJ (1 << (PMEM_POOL_TYPE_OBJ + OPT_SHIFT))
-#define OPT_BTT (1 << (PMEM_POOL_TYPE_BTT + OPT_SHIFT)) /* deprecated */
-#define OPT_ALL (OPT_LOG | OPT_BLK | OPT_OBJ | OPT_BTT)
+#define OPT_ALL (OPT_OBJ)
 
 #define OPT_REQ_SHIFT	8
 #define OPT_REQ_MASK	((1 << OPT_REQ_SHIFT) - 1)
@@ -85,11 +79,10 @@
  * pmem_pool_type_t -- pool types
  */
 typedef enum {
-	PMEM_POOL_TYPE_LOG	= 0x01, /* deprecated */
-	PMEM_POOL_TYPE_BLK	= 0x02, /* deprecated */
+	PMEM_POOL_TYPE_RESERVED1 = 0x01, /* deprecated type LOG */
+	PMEM_POOL_TYPE_RESERVED2 = 0x02, /* deprecated type BLK */
 	PMEM_POOL_TYPE_OBJ	= 0x04,
-	PMEM_POOL_TYPE_BTT	= 0x08, /* deprecated */
-	PMEM_POOL_TYPE_ALL	= 0x0f,
+	PMEM_POOL_TYPE_RESERVED3 = 0x08, /* deprecated type BTT */
 	PMEM_POOL_TYPE_UNKNOWN	= 0x80,
 } pmem_pool_type_t;
 
@@ -114,10 +107,7 @@ struct pmem_pool_params {
 	int is_poolset;
 	int is_part;
 	int is_checksum_ok;
-	union {
-		struct {
-			uint64_t bsize;
-		} blk;
+	union { /* XXX to be fixed later */
 		struct {
 			char layout[PMEMOBJ_MAX_LAYOUT];
 		} obj;
@@ -173,7 +163,6 @@ void util_options_free(struct options *opts);
 int util_options_verify(const struct options *opts, pmem_pool_type_t type);
 int util_options_getopt(int argc, char *argv[], const char *optstr,
 		const struct options *opts);
-pmem_pool_type_t util_get_pool_type_second_page(const void *pool_base_addr);
 int util_parse_mode(const char *str, mode_t *mode);
 int util_parse_ranges(const char *str, struct ranges *rangesp,
 		struct range entire);

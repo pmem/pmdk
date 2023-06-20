@@ -126,7 +126,7 @@ _pmempool()
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 	cmds=$(_pmempool_get_cmds)
 	cmds_all="$cmds help"
-	opts_pool_types="blk log obj"
+	opts_pool_types="obj"
 	cmd=$(_pmempool_get_cmd "${COMP_WORDS[1]}" "$cmds_all")
 
 	if [[ ${cur} == -* ]]
@@ -150,7 +150,7 @@ _pmempool()
 	elif [[ $cmd == create ]]
 	then
 		case "${COMP_WORDS[@]}" in
-			*blk*|*log*|*obj*|*--inherit*)
+			*obj*|*--inherit*)
 				;;
 			*)
 				_pmempool_gen "$opts_pool_types" "$cur"
