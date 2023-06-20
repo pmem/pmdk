@@ -23,8 +23,6 @@
 
 #include "set.h"
 #include "output.h"
-#include "libpmemblk.h"
-#include "libpmemlog.h"
 #include "libpmempool.h"
 
 #define DEFAULT_MODE	0664
@@ -42,9 +40,7 @@ struct pmempool_create {
 	struct pmem_pool_params inherit_params;
 	char *str_size;
 	char *str_mode;
-	char *str_bsize;
 	uint64_t csize;
-	int write_btt_layout;
 	int force;
 	char *layout;
 	struct options *opts;
@@ -61,9 +57,7 @@ static const struct pmempool_create pmempool_create_default = {
 	.inherit_fname	= NULL,
 	.max_size	= 0,
 	.str_type	= NULL,
-	.str_bsize	= NULL,
 	.csize		= 0,
-	.write_btt_layout = 0,
 	.force		= 0,
 	.layout		= NULL,
 	.clearbadblocks	= 0,
@@ -79,7 +73,6 @@ static const struct pmempool_create pmempool_create_default = {
  */
 static const char * const help_str =
 "Create pmem pool of specified size, type and name\n"
-"NOTE: pmem blk and log pools are deprecated\n"
 "\n"
 "Common options:\n"
 "  -s, --size  <size>   size of pool\n"
@@ -90,9 +83,6 @@ static const char * const help_str =
 "  -f, --force          remove the pool first\n"
 "  -v, --verbose        increase verbosity level\n"
 "  -h, --help           display this help and exit\n"
-"\n"
-"Options for PMEMBLK: (DEPRECATED)\n"
-"  -w, --write-layout force writing the BTT layout\n"
 "\n"
 "Options for PMEMOBJ:\n"
 "  -l, --layout <name>  layout name stored in pool's header\n"
@@ -110,7 +100,6 @@ static const struct option long_options[] = {
 	{"max-size",	no_argument,		NULL,	'M' | OPT_ALL},
 	{"inherit",	required_argument,	NULL,	'i' | OPT_ALL},
 	{"mode",	required_argument,	NULL,	'm' | OPT_ALL},
-	{"write-layout", no_argument,		NULL,	'w' | OPT_BLK},
 	{"layout",	required_argument,	NULL,	'l' | OPT_OBJ},
 	{"force",	no_argument,		NULL,	'f' | OPT_ALL},
 	{"clear-bad-blocks", no_argument,		NULL,	'b' | OPT_ALL},
@@ -123,8 +112,7 @@ static const struct option long_options[] = {
 static void
 print_usage(const char *appname)
 {
-	printf("NOTE: pmem blk and log pools are deprecated\n");
-	printf("Usage: %s create [<args>] <blk|log|obj> [<bsize>] <file>\n",
+	printf("Usage: %s create [<args>] obj <file>\n",
 			appname);
 }
 
@@ -134,7 +122,6 @@ print_usage(const char *appname)
 static void
 print_version(const char *appname)
 {
-	printf("NOTE: pmem blk and log pools are deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 
@@ -163,57 +150,6 @@ pmempool_create_obj(struct pmempool_create *pcp)
 	}
 
 	pmemobj_close(pop);
-
-	return 0;
-}
-
-/*
- * pmempool_create_blk (DEPRECATED) -- create pmem blk pool
- */
-static int
-pmempool_create_blk(struct pmempool_create *pcp)
-{
-	ASSERTne(pcp->params.blk.bsize, 0);
-
-	int ret = 0;
-
-	PMEMblkpool *pbp = pmemblk_create(pcp->fname, pcp->params.blk.bsize,
-			pcp->params.size, pcp->params.mode);
-	if (!pbp) {
-		outv_err("'%s' -- %s\n", pcp->fname, pmemblk_errormsg());
-		return -1;
-	}
-
-	if (pcp->write_btt_layout) {
-		outv(1, "Writing BTT layout using block %d.\n",
-				pcp->write_btt_layout);
-
-		if (pmemblk_set_error(pbp, 0) || pmemblk_set_zero(pbp, 0)) {
-			outv_err("writing BTT layout to block 0 failed\n");
-			ret = -1;
-		}
-	}
-
-	pmemblk_close(pbp);
-
-	return ret;
-}
-
-/*
- * pmempool_create_log (DEPRECATED) -- create pmem log pool
- */
-static int
-pmempool_create_log(struct pmempool_create *pcp)
-{
-	PMEMlogpool *plp = pmemlog_create(pcp->fname,
-					pcp->params.size, pcp->params.mode);
-
-	if (!plp) {
-		outv_err("'%s' -- %s\n", pcp->fname, pmemlog_errormsg());
-		return -1;
-	}
-
-	pmemlog_close(plp);
 
 	return 0;
 }
@@ -253,10 +189,6 @@ print_pool_params(struct pmem_pool_params *params)
 	outv(1, "\tsize  : %s\n", out_get_size_str(params->size, 2));
 	outv(1, "\tmode  : 0%o\n", params->mode);
 	switch (params->type) {
-	case PMEM_POOL_TYPE_BLK: /* deprecated */
-		outv(1, "\tbsize : %s\n",
-			out_get_size_str(params->blk.bsize, 0));
-		break;
 	case PMEM_POOL_TYPE_OBJ:
 		outv(1, "\tlayout: '%s'\n", params->obj.layout);
 		break;
@@ -339,9 +271,6 @@ pmempool_create_parse_args(struct pmempool_create *pcp, const char *appname,
 		case 'i':
 			pcp->inherit_fname = optarg;
 			break;
-		case 'w':
-			pcp->write_btt_layout = 1;
-			break;
 		case 'l':
 			pcp->layout = optarg;
 			break;
@@ -357,11 +286,10 @@ pmempool_create_parse_args(struct pmempool_create *pcp, const char *appname,
 		}
 	}
 
-	/* check for <type>, <bsize> and <file> strings */
+	/* check for <type> and <file> strings */
 	if (optind + 2 < argc) {
 		pcp->str_type = argv[optind];
-		pcp->str_bsize = argv[optind + 1];
-		pcp->fname = argv[optind + 2];
+		pcp->fname = argv[optind + 1];
 	} else if (optind + 1 < argc) {
 		pcp->str_type = argv[optind];
 		pcp->fname = argv[optind + 1];
@@ -462,20 +390,6 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 			return -1;
 		}
 
-		if (PMEM_POOL_TYPE_BLK == pc.params.type) { /* deprecated */
-			if (pc.str_bsize == NULL) {
-				outv_err("blk pool requires <bsize> "
-					"argument\n");
-				return -1;
-			}
-			if (util_parse_size(pc.str_bsize,
-					(size_t *)&pc.params.blk.bsize)) {
-				outv_err("cannot parse '%s' as block size\n",
-						pc.str_bsize);
-				return -1;
-			}
-		}
-
 		if (PMEM_POOL_TYPE_OBJ == pc.params.type && pc.layout != NULL) {
 			size_t max_layout = PMEMOBJ_MAX_LAYOUT;
 
@@ -500,13 +414,6 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 
 	if (util_options_verify(pc.opts, pc.params.type))
 		return -1;
-
-	if (pc.params.type != PMEM_POOL_TYPE_BLK && pc.str_bsize != NULL) {
-		outv_err("invalid option specified for %s pool type"
-				" -- block size\n",
-			out_get_pool_type_str(pc.params.type));
-		return -1;
-	}
 
 	if (is_poolset) {
 		if (pc.params.size) {
@@ -534,11 +441,6 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 		if (!pc.str_mode)
 			pc.params.mode = pc.inherit_params.mode;
 		switch (pc.params.type) {
-		case PMEM_POOL_TYPE_BLK: /* deprecated */
-			if (!pc.str_bsize)
-				pc.params.blk.bsize =
-					pc.inherit_params.blk.bsize;
-			break;
 		case PMEM_POOL_TYPE_OBJ:
 			if (!pc.layout) {
 				memcpy(pc.params.obj.layout,
@@ -617,12 +519,6 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 	}
 
 	switch (pc.params.type) {
-	case PMEM_POOL_TYPE_BLK: /* deprecated */
-		ret = pmempool_create_blk(&pc);
-		break;
-	case PMEM_POOL_TYPE_LOG: /* deprecated */
-		ret = pmempool_create_log(&pc);
-		break;
 	case PMEM_POOL_TYPE_OBJ:
 		ret = pmempool_create_obj(&pc);
 		break;
