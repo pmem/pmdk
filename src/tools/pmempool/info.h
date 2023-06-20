@@ -7,11 +7,6 @@
 
 #include "vec.h"
 
-#define BLK_DEPR_STR "Libpmemblk is deprecated."
-#define LOG_DEPR_STR "Libpmemlog is deprecated."
-#define PMEMBLK_DEPR_ATTR __attribute__((deprecated(BLK_DEPR_STR)))
-#define PMEMLOG_DEPR_ATTR __attribute__((deprecated(LOG_DEPR_STR)))
-
 /*
  * Verbose levels used in application:
  *
@@ -61,17 +56,6 @@ struct pmempool_info_args {
 	int vhdrdump;		/* verbosity level for headers hexdump */
 	int vstats;		/* verbosity level for statistics */
 	struct {
-		size_t walk;		/* data chunk size */
-	} log; /* deprecated */
-	struct {
-		int vmap;	/* verbosity level for BTT Map */
-		int vflog;	/* verbosity level for BTT FLOG */
-		int vbackup;	/* verbosity level for BTT Info backup */
-		bool skip_zeros; /* skip blocks marked with zero flag */
-		bool skip_error; /* skip blocks marked with error flag */
-		bool skip_no_flag; /* skip blocks not marked with any flag */
-	} blk; /* deprecated */
-	struct {
 		int vlanes;		/* verbosity level for lanes */
 		int vroot;
 		int vobjects;
@@ -90,16 +74,6 @@ struct pmempool_info_args {
 		struct ranges zone_ranges;
 		struct ranges chunk_ranges;
 	} obj;
-};
-
-/*
- * pmem_blk_stats -- structure with statistics for pmemblk (DEPRECATED)
- */
-struct pmem_blk_stats {
-	uint32_t total;		/* number of processed blocks */
-	uint32_t zeros;		/* number of blocks marked by zero flag */
-	uint32_t errors;	/* number of blocks marked by error flag */
-	uint32_t noflag;	/* number of blocks not marked with any flag */
 };
 
 struct pmem_obj_class_stats {
@@ -147,9 +121,6 @@ struct pmem_info {
 	pmem_pool_type_t type;
 	struct pmem_pool_params params;
 	struct {
-		struct pmem_blk_stats stats;
-	} blk; /* deprecated */
-	struct {
 		struct pmemobjpool *pop;
 		struct palloc_heap *heap;
 		struct alloc_class_collection *alloc_classes;
@@ -165,7 +136,4 @@ void pmempool_info_help(const char *appname);
 
 int pmempool_info_read(struct pmem_info *pip, void *buff,
 		size_t nbytes, uint64_t off);
-PMEMBLK_DEPR_ATTR int pmempool_info_blk(struct pmem_info *pip);
-PMEMLOG_DEPR_ATTR int pmempool_info_log(struct pmem_info *pip);
 int pmempool_info_obj(struct pmem_info *pip);
-PMEMBLK_DEPR_ATTR int pmempool_info_btt(struct pmem_info *pip);
