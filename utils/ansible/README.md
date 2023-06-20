@@ -3,7 +3,8 @@
 This is utils/ansible/README.md.
 
 The scripts in this directory allow you to set up a RockyLinux and OpenSUSE
-environment on a real hardware and build a PMDK project on it.
+environment on a real hardware to be able build a PMDK project on it or use the
+node as a self-hosted runner for pmem/pmdk repository.
 
 # Installing Ansible
 To use playbooks it is required to install Ansible first. It must be done
@@ -72,6 +73,29 @@ ansible-playbook -i $TARGET_IP, configure-pmem.yml \
   testUser=pmdkuser"
 ```
 
+# Installing a GitHub Action self-hosted runner using Ansible palybook
+The sequence of commands below setup a new server, with persistent memory and
+a CI environment already installed, to be used as a self-hosted runner in
+the pmem/pmdk repository.
+
+```sh
+export TARGET_IP= # ip of the target
+export ROOT_PASSWORD= # a password of root on the target
+export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
+export HOST_NAME= # host's name that will be visible on GitHub
+export LABELS= # rhel or opensuse
+export VARS_GHA= # e.g. proxy settings: http_proxy=http://proxy-dmz.XXX.com:911,https_proxy=http://proxy-dmz.XXX.com:912
+ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars
+  "host=all ansible_user=root ansible_password=$ROOT_PASSWORD testUser=pmdkuser \
+  runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
+```
+**Note**: To obtain a token for a new self hosted runer visit
+[Create self-hosted runner](https://gib.com/pmem/pmdk/settings/actions/runners/new)
+.
+
+**Note**: In case of any problems, please refer to
+[Adding self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/adding-self-hosted-runners) documentation.
+
 # Provisioning from the target platform itself
 It is possible to run playbooks directly on the target platform.
 To run playbooks inside the platform please comment out the line:
@@ -116,20 +140,27 @@ cd pmdk/utils/ansible
 ```
 Update playbooks to be used directly on the target as described [above](#provisioning-from-the-target-platform-itself)
 and execute:
-```
+```sh
 # as root:
-ansible-playbook ./rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
 # reboot shall be performed only if the playbook requests to do it.
 reboot
 # ...
 cd pmdk/utils/ansible
-ansible-playbook ./rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
-ansible-playbook ./configure-pmem.yml --extra-vars "newRegions=true"
+ansible-playbook rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
 reboot
 # ...
 cd pmdk/utils/ansible
 # note - no newRegions=true when running the playbook after the reboot
-ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
+ansible-playbook configure-pmem.yml --extra-vars "testUser=pmdkuser"
+
+export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
+export HOST_NAME=`hostname`
+export LABELS= rhel
+export VARS_GHA=http_proxy=http://proxy-dmz.XXX.com:911,https_proxy=http://proxy-dmz.XXX.com:912
+ansible-playbook configure-self-hosted-runner.yml -extra-vars \
+"testUser=pmdkuser runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 cd
 rm -rf pmdk
 ```
@@ -144,7 +175,7 @@ cd pmdk/utils/ansible
 ```
 Update playbooks to be used directly on the target as described [above](#provisioning-from-the-target-platform-itself)
 and execute:
-```
+```sh
 # as root:
 ansible-playbook ./opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
 # reboot shall be performed only if the playbook requests to do it.
@@ -158,19 +189,14 @@ reboot
 cd pmdk/utils/ansible
 # note - no newRegions=true when running the playbook after the reboot
 ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
+
+export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
+export HOST_NAME=`hostname`
+export LABELS= opensuse
+export VARS_GHA=http_proxy=http://proxy-dmz.XXX.com:911,https_proxy=http://proxy-dmz.XXX.com:912
+ansible-playbook configure-self-hosted-runner.yml -extra-vars \
+"testUser=pmdkuser runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 cd
 rm -rf pmdk
 ```
 
-## Installing and setting up a GitHub Actions runner
-Installation and configuration of a self-hosted runner (as pmdkuser):
-```sh
-mkdir actions-runner && cd actions-runner
-curl -o actions-runner-linux-x64-2.304.0.tar.gz -L \
-https://github.com/actions/runner/releases/download/v2.304.0/actions-runner-linux-x64-2.304.0.tar.gz
-tar xzf ./actions-runner-linux-x64-2.304.0.tar.gz
-./config.cmd --url https://github.com/pmem/pmdk --token T_O_K_E_N__F_R_O_M__G_I_T_H_U_B
-tmux
-./run.cmd
-```
-Close session leaving the tmux session in the background (`CTRL+b d`).
