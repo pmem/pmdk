@@ -94,9 +94,9 @@ rerun the playbook withot  in question.
 And next:
 ```sh
 sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions=true"
-# you will have to perform a reboot manually 
-reboot 
-# and re-run the playbook without newRegions=true to finalize the setup 
+# you will have to perform a reboot manually
+reboot
+# and re-run the playbook without newRegions=true to finalize the setup
 sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
 ```
 
