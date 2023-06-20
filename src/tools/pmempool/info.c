@@ -57,17 +57,6 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 	.vdata		= VERBOSE_SILENT,
 	.vhdrdump	= VERBOSE_SILENT,
 	.vstats		= VERBOSE_SILENT,
-	.log		= { /* deprecated */
-		.walk		= 0,
-	},
-	.blk		= { /* deprecated */
-		.vmap		= VERBOSE_SILENT,
-		.vflog		= VERBOSE_SILENT,
-		.vbackup	= VERBOSE_SILENT,
-		.skip_zeros	= false,
-		.skip_error	= false,
-		.skip_no_flag	= false,
-	},
 	.obj		= {
 		.vlanes		= VERBOSE_SILENT,
 		.vroot		= VERBOSE_SILENT,
@@ -99,13 +88,6 @@ static const struct option long_options[] = {
 	{"stats",	no_argument,		NULL, 's' | OPT_ALL},
 	{"range",	required_argument,	NULL, 'r' | OPT_ALL},
 	{"bad-blocks",	required_argument,	NULL, 'k' | OPT_ALL},
-	{"walk",	required_argument,	NULL, 'w' | OPT_LOG},
-	{"skip-zeros",	no_argument,		NULL, 'z' | OPT_BLK | OPT_BTT},
-	{"skip-error",	no_argument,		NULL, 'e' | OPT_BLK | OPT_BTT},
-	{"skip-no-flag", no_argument,		NULL, 'u' | OPT_BLK | OPT_BTT},
-	{"map",		no_argument,		NULL, 'm' | OPT_BLK | OPT_BTT},
-	{"flog",	no_argument,		NULL, 'g' | OPT_BLK | OPT_BTT},
-	{"backup",	no_argument,		NULL, 'B' | OPT_BLK | OPT_BTT},
 	{"lanes",	no_argument,		NULL, 'l' | OPT_OBJ},
 	{"recovery",	no_argument,		NULL, 'R' | OPT_OBJ},
 	{"section",	required_argument,	NULL, 'S' | OPT_OBJ},
@@ -125,31 +107,6 @@ static const struct option long_options[] = {
 };
 
 static const struct option_requirement option_requirements[] = {
-	{
-		.opt	= 'r',
-		.type	= PMEM_POOL_TYPE_LOG,
-		.req	= OPT_REQ0('d')
-	},
-	{
-		.opt	= 'r',
-		.type	= PMEM_POOL_TYPE_BLK | PMEM_POOL_TYPE_BTT,
-		.req	= OPT_REQ0('d') | OPT_REQ1('m')
-	},
-	{
-		.opt	= 'z',
-		.type	= PMEM_POOL_TYPE_BLK | PMEM_POOL_TYPE_BTT,
-		.req	= OPT_REQ0('d') | OPT_REQ1('m')
-	},
-	{
-		.opt	= 'e',
-		.type	= PMEM_POOL_TYPE_BLK | PMEM_POOL_TYPE_BTT,
-		.req	= OPT_REQ0('d') | OPT_REQ1('m')
-	},
-	{
-		.opt	= 'u',
-		.type	= PMEM_POOL_TYPE_BLK | PMEM_POOL_TYPE_BTT,
-		.req	= OPT_REQ0('d') | OPT_REQ1('m')
-	},
 	{
 		.opt	= 'r',
 		.type	= PMEM_POOL_TYPE_OBJ,
@@ -224,30 +181,18 @@ static const struct option_requirement option_requirements[] = {
  */
 static const char * const help_str =
 "Show information about pmem pool from specified file.\n"
-"NOTE: pmem blk and log pools are deprecated\n"
 "\n"
 "Common options:\n"
 "  -h, --help                      Print this help and exit.\n"
 "  -V, --version                   Print version and exit.\n"
 "  -v, --verbose                   Increase verbisity level.\n"
-"  -f, --force blk|log|obj|btt     Force parsing a pool of specified type.\n"
+"  -f, --force obj                 Force parsing a pool of specified type.\n"
 "  -n, --human                     Print sizes in human readable format.\n"
 "  -x, --headers-hex               Hexdump all headers.\n"
 "  -d, --data                      Dump log data and blocks.\n"
 "  -s, --stats                     Print statistics.\n"
 "  -r, --range <range>             Range of blocks/chunks/objects.\n"
 "  -k, --bad-blocks=<yes|no>       Print bad blocks.\n"
-"\n"
-"Options for PMEMLOG: (DEPRECATED)\n"
-"  -w, --walk <size>               Chunk size.\n"
-"\n"
-"Options for PMEMBLK: (DEPRECATED)\n"
-"  -m, --map                       Print BTT Map entries.\n"
-"  -g, --flog                      Print BTT FLOG entries.\n"
-"  -B, --backup                    Print BTT Info header backup.\n"
-"  -z, --skip-zeros                Skip blocks marked with zero flag.\n"
-"  -e, --skip-error                Skip blocks marked with error flag.\n"
-"  -u, --skip-no-flag              Skip blocks not marked with any flag.\n"
 "\n"
 "Options for PMEMOBJ:\n"
 "  -l, --lanes [<range>]           Print lanes from specified range.\n"
@@ -291,7 +236,6 @@ print_usage(const char *appname)
 static void
 print_version(const char *appname)
 {
-	printf("NOTE: pmem blk and log pools are deprecated\n");
 	printf("%s %s\n", appname, SRCVERSION);
 }
 
@@ -364,15 +308,6 @@ parse_args(const char *appname, int argc, char *argv[],
 				return -1;
 			}
 			break;
-		case 'e':
-			argsp->blk.skip_error = true;
-			break;
-		case 'z':
-			argsp->blk.skip_zeros = true;
-			break;
-		case 'u':
-			argsp->blk.skip_no_flag = true;
-			break;
 		case 'r':
 			if (util_parse_ranges(optarg, rangesp,
 					ENTIRE_UINT64)) {
@@ -388,28 +323,11 @@ parse_args(const char *appname, int argc, char *argv[],
 		case 'd':
 			argsp->vdata = VERBOSE_DEFAULT;
 			break;
-		case 'm':
-			argsp->blk.vmap = VERBOSE_DEFAULT;
-			break;
-		case 'g':
-			argsp->blk.vflog = VERBOSE_DEFAULT;
-			break;
-		case 'B':
-			argsp->blk.vbackup = VERBOSE_DEFAULT;
-			break;
 		case 'x':
 			argsp->vhdrdump = VERBOSE_DEFAULT;
 			break;
 		case 's':
 			argsp->vstats = VERBOSE_DEFAULT;
-			break;
-		case 'w':
-			argsp->log.walk = (size_t)atoll(optarg);
-			if (argsp->log.walk == 0) {
-				outv_err("'%s' -- invalid chunk size\n",
-					optarg);
-				return -1;
-			}
 			break;
 		case 'l':
 			argsp->obj.vlanes = VERBOSE_DEFAULT;
@@ -853,19 +771,17 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 				pip->args.badblocks = PRINT_BAD_BLOCKS_NO;
 		}
 
-		if (pip->type != PMEM_POOL_TYPE_BTT) {
-			struct pool_set *ps = pip->pfile->poolset;
-			for (unsigned r = 0; r < ps->nreplicas; ++r) {
-				if (mprotect(ps->replica[r]->part[0].addr,
-					ps->replica[r]->repsize,
-					PROT_READ) < 0) {
-					outv_err(
-					"%s: failed to change pool protection",
-					pip->pfile->fname);
+		struct pool_set *ps = pip->pfile->poolset;
+		for (unsigned r = 0; r < ps->nreplicas; ++r) {
+			if (mprotect(ps->replica[r]->part[0].addr,
+				ps->replica[r]->repsize,
+				PROT_READ) < 0) {
+				outv_err(
+				"%s: failed to change pool protection",
+				pip->pfile->fname);
 
-					ret = -1;
-					goto out_close;
-				}
+				ret = -1;
+				goto out_close;
 			}
 		}
 
@@ -893,24 +809,21 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 			}
 		}
 
-		/* hdr info is not present in btt device */
-		if (pip->type != PMEM_POOL_TYPE_BTT) {
-			if (pip->params.is_poolset &&
-					pmempool_info_poolset(pip,
-							VERBOSE_DEFAULT)) {
-				ret = -1;
-				goto out_close;
-			}
-			if (!pip->params.is_poolset &&
-					pmempool_info_part(pip, UNDEF_REPLICA,
-						UNDEF_PART, VERBOSE_DEFAULT)) {
-				ret = -1;
-				goto out_close;
-			}
-			if (pmempool_info_pool_hdr(pip, VERBOSE_DEFAULT)) {
-				ret = -1;
-				goto out_close;
-			}
+		if (pip->params.is_poolset &&
+				pmempool_info_poolset(pip,
+						VERBOSE_DEFAULT)) {
+			ret = -1;
+			goto out_close;
+		}
+		if (!pip->params.is_poolset &&
+				pmempool_info_part(pip, UNDEF_REPLICA,
+					UNDEF_PART, VERBOSE_DEFAULT)) {
+			ret = -1;
+			goto out_close;
+		}
+		if (pmempool_info_pool_hdr(pip, VERBOSE_DEFAULT)) {
+			ret = -1;
+			goto out_close;
 		}
 
 		if (pip->params.is_part) {
@@ -919,17 +832,8 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		}
 
 		switch (pip->type) {
-		case PMEM_POOL_TYPE_LOG:
-			ret = pmempool_info_log(pip);
-			break;
-		case PMEM_POOL_TYPE_BLK:
-			ret = pmempool_info_blk(pip);
-			break;
 		case PMEM_POOL_TYPE_OBJ:
 			ret = pmempool_info_obj(pip);
-			break;
-		case PMEM_POOL_TYPE_BTT:
-			ret = pmempool_info_btt(pip);
 			break;
 		case PMEM_POOL_TYPE_UNKNOWN:
 		default:
