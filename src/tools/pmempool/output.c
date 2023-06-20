@@ -513,50 +513,14 @@ out_get_checksum(void *addr, size_t len, uint64_t *csump, size_t skip_off)
 }
 
 /*
- * out_get_btt_map_entry -- return BTT map entry with flags strings (DEPRECATED)
- */
-const char *
-out_get_btt_map_entry(uint32_t map)
-{
-	static char str_buff[STR_MAX] = {0, };
-
-	int is_init = (map & ~BTT_MAP_ENTRY_LBA_MASK) == 0;
-	int is_zero = (map & ~BTT_MAP_ENTRY_LBA_MASK) ==
-		BTT_MAP_ENTRY_ZERO;
-	int is_error = (map & ~BTT_MAP_ENTRY_LBA_MASK) ==
-		BTT_MAP_ENTRY_ERROR;
-	int is_normal = (map & ~BTT_MAP_ENTRY_LBA_MASK) ==
-		BTT_MAP_ENTRY_NORMAL;
-
-	uint32_t lba = map & BTT_MAP_ENTRY_LBA_MASK;
-
-	int ret = util_snprintf(str_buff, STR_MAX, "0x%08x state: %s", lba,
-			is_init ? "init" :
-			is_zero ? "zero" :
-			is_error ? "error" :
-			is_normal ? "normal" : "unknown");
-
-	if (ret < 0)
-		return "";
-
-	return str_buff;
-}
-
-/*
  * out_get_pool_type_str -- get pool type string
  */
 const char *
 out_get_pool_type_str(pmem_pool_type_t type)
 {
 	switch (type) {
-	case PMEM_POOL_TYPE_LOG: /* deprecated */
-		return "log";
-	case PMEM_POOL_TYPE_BLK: /* deprecated */
-		return "blk";
 	case PMEM_POOL_TYPE_OBJ:
 		return "obj";
-	case PMEM_POOL_TYPE_BTT: /* deprecated */
-		return "btt";
 	default:
 		return "unknown";
 	}
@@ -569,10 +533,6 @@ const char *
 out_get_pool_signature(pmem_pool_type_t type)
 {
 	switch (type) {
-	case PMEM_POOL_TYPE_LOG: /* deprecated */
-		return LOG_HDR_SIG;
-	case PMEM_POOL_TYPE_BLK: /* deprecated */
-		return BLK_HDR_SIG;
 	case PMEM_POOL_TYPE_OBJ:
 		return OBJ_HDR_SIG;
 	default:
