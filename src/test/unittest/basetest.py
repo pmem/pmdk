@@ -165,6 +165,7 @@ class BaseTest(metaclass=_TestCase):
 
         try:
             # pre-execution cleanup
+            start_time = datetime.now()
             self.ctx.clean()
             self.clean()
 

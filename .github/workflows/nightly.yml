@@ -2,8 +2,6 @@
 name: Nightly
 
 on:
-  push:
-  pull_request:
   workflow_dispatch:
   schedule:
     # run this job at 00:00 UTC every other day
@@ -31,6 +29,7 @@ jobs:
     name: Linux
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         CONFIG: [
                  "OS=ubuntu OS_VER=22.04 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 NDCTL_ENABLE=n",

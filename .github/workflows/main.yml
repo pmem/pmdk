@@ -25,6 +25,7 @@ jobs:
       VALGRIND:     1
       SRC_CHECKERS: 0
     strategy:
+      fail-fast: false
       matrix:
         CONFIG: [
                  "N=1 OS=ubuntu OS_VER=22.04 FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1",

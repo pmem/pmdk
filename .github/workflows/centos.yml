@@ -3,7 +3,7 @@
 # CentOS 7 is maintain in PMDK project as it is required for DAOS.
 name: CentOS
 
-on: 
+on:
   push:
   pull_request:
   workflow_dispatch:
@@ -30,6 +30,7 @@ jobs:
       SRC_CHECKERS: 0
       OS:           centos
     strategy:
+      fail-fast: false
       matrix:
         CONFIG: [
                  "OS_VER=7 FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1",
