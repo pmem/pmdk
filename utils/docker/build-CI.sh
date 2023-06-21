@@ -121,7 +121,6 @@ docker run --rm --name=$containerName -i $TTY \
 	--env BLACKLIST_FILE=$BLACKLIST_FILE \
 	--env BANDIT=$BANDIT \
 	$ndctl_enable \
-	--tmpfs /tmp:rw,relatime,suid,dev,exec,size=6G \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
 	-w $SCRIPTSDIR \

@@ -2,6 +2,8 @@
 name: Nightly
 
 on:
+  push:
+  pull_request:
   workflow_dispatch:
   schedule:
     # run this job at 00:00 UTC every other day
