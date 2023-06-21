@@ -27,7 +27,7 @@ make -j$(nproc) test
 echo ""
 echo "## Running make pcheck"
 # do not change -j1 to -j$(nproc) in case of tests (make check/pycheck)
-make -j1 pcheck TEST_BUILD=$TEST_BUILD
+make -j1 check TEST_BUILD=$TEST_BUILD
 echo ""
 echo "## Running make pycheck"
 # do not change -j1 to -j$(nproc) in case of tests (make check/pycheck)
