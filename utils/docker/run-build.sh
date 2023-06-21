@@ -19,13 +19,13 @@ if [ "$SRC_CHECKERS" != "0" ]; then
 	make -j$(nproc) cstyle
 fi
 
-echo "## Running make"
-make -j$(nproc)
-echo ""
+# echo "## Running make"
+# make -j$(nproc)
+# echo ""
 echo "## Running make test"
 make -j$(nproc) test
 echo ""
-echo "## Running make pcheck"
+echo "## Running make check"
 # do not change -j1 to -j$(nproc) in case of tests (make check/pycheck)
 make -j1 check TEST_BUILD=$TEST_BUILD
 echo ""
