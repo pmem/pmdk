@@ -1,14 +1,12 @@
 libpmempool_api$(nW)TEST13: START: libpmempool_test$(nW)
- $(nW)libpmempool_test$(nW) -s 0 $(nW)
+ $(nW)libpmempool_test$(nW) -s 0 -t obj $(nW)
 Error: Invalid argument
 libpmempool_api$(nW)TEST13: DONE
 libpmempool_api$(nW)TEST13: START: libpmempool_test$(nW)
- $(nW)libpmempool_test$(nW) -s 999999 $(nW)
+ $(nW)libpmempool_test$(nW) -s 999999 -t obj $(nW)
 checking shutdown state
 shutdown state correct
 checking pool header
 pool header correct
-checking pmemlog header
-pmemlog header correct
 status = consistent
 libpmempool_api$(nW)TEST13: DONE

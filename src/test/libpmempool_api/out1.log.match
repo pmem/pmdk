@@ -1,10 +1,8 @@
 libpmempool_api$(nW)TEST1: START: libpmempool_test$(nW)
- $(nW)libpmempool_test$(nW) -d 0 -a 1 -r 1 $(*)
+ $(nW)libpmempool_test$(nW) -d 0 -a 1 -r 1 -t obj $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
 pool header correct
-checking pmemlog header
-pmemlog header correct
 status = consistent
 libpmempool_api$(nW)TEST1: DONE
