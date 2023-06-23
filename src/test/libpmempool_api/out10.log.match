@@ -12,9 +12,6 @@ checking shutdown state
 shutdown state correct
 checking pool header
 incorrect pool header
-pool_hdr.major is not valid
-setting pool_hdr.major to 0x1
-checking pmemlog header
-pmemlog header correct
-status = repaired
+the repair of pmemobj pools is not supported
+status = cannot repair
 libpmempool_api$(nW)TEST10: DONE
