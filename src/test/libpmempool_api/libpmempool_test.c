@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 	struct pmempool_check_args_1_0 args = {
 		.path		= NULL,
 		.backup_path	= NULL,
-		.pool_type	= PMEMPOOL_POOL_TYPE_LOG,
+		.pool_type	= PMEMPOOL_POOL_TYPE_DETECT,
 		.flags		= PMEMPOOL_CHECK_FORMAT_STR |
 			PMEMPOOL_CHECK_REPAIR | PMEMPOOL_CHECK_VERBOSE
 	};
