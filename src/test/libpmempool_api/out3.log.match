@@ -1,4 +1,4 @@
 libpmempool_api$(nW)TEST3: START: libpmempool_test$(nW)
- $(nW)libpmempool_test$(nW) -d 1 -a 0 -r 0 $(nW)
+ $(nW)libpmempool_test$(nW) -d 1 -a 0 -r 0 -t obj $(nW)
 Error: Invalid argument
 libpmempool_api$(nW)TEST3: DONE
