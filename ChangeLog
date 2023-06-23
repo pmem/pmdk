@@ -1,7 +1,7 @@
 	* Unreleased *
 
 	This release:
-	- ...
+	- removes libpmempool API tests (partially)
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
 

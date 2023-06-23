@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 #
 #
 # libpmempool_api/TEST9 -- test for checking API
@@ -20,26 +20,19 @@ LOG_TEMP=out${UNITTEST_NUM}_part.log
 rm -f $LOG && touch $LOG
 rm -f $LOG_TEMP && touch $LOG_TEMP
 
-declare -A pool_args=(["log"]="log"
-	["blk"]="blk 512")
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL >> $LOG_TEMP
+$PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
+check_file $POOL
 
-for field in log blk;
-do
-	echo "Pool type: ${field} Params: ${pool_args["$field"]}" >> $LOG_TEMP
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create\
-		${pool_args["$field"]} $POOL >> $LOG_TEMP
-	$PMEMSPOIL $POOL "pool_hdr.major=7" >> $LOG_TEMP
-	check_file $POOL
+cp $POOL ${POOL}_copy >> $LOG_TEMP
+expect_normal_exit ./libpmempool_test$EXESUFFIX\
+	-d 1 -r 1 -y 1 $POOL >> $LOG
+cat $LOG >> $LOG_TEMP
+cmp $POOL ${POOL}_copy >> $LOG_TEMP || true
 
-	cp $POOL ${POOL}_copy >> $LOG_TEMP
-	expect_normal_exit ./libpmempool_test$EXESUFFIX\
-		-d 1 -r 1 -y 1 -t ${field} $POOL >> $LOG
-	cat $LOG >> $LOG_TEMP
-	cmp $POOL ${POOL}_copy >> $LOG_TEMP || true
+rm -f $POOL
+rm -f ${POOL}_copy
 
-	rm -f $POOL
-	rm -f ${POOL}_copy
-done
 mv $LOG_TEMP $LOG
 
 check
