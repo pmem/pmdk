@@ -1,5 +1,3 @@
-remove write-protected file '$(nW)pool.log' ? [Y/n] n
-remove write-protected file '$(nW)pool.blk' ? [Y/n] n
 remove write-protected file '$(nW)pool.obj' ? [Y/n] n
 remove write-protected file '$(nW)pool.part1' ? [Y/n] y
 removed '$(nW)pool.part1'
@@ -9,8 +7,6 @@ remove write-protected file '$(nW)rep.part1' ? [Y/n] y
 removed '$(nW)rep.part1'
 remove write-protected file '$(nW)rep.part2' ? [Y/n] y
 removed '$(nW)rep.part2'
-removed '$(nW)pool.log'
-removed '$(nW)pool.blk'
 removed '$(nW)pool.obj'
 removed '$(nW)pool.part1'
 removed '$(nW)pool.part2'
