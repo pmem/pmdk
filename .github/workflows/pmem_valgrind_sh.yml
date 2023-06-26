@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config: ['-d', '-p', '-m', '-e']
+        config: ['drd', 'pmemcheck', 'memcheck', 'helgrind']
         build: ['debug', 'nondebug', 'static-debug', 'static-nondebug']
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
 
@@ -38,4 +38,4 @@ jobs:
         run: ./$WORKDIR/create-testconfig.sh
 
       - name: Run tests
-        run: cd src/test/ && ./RUNTESTS -b ${{ matrix.build }} ${{ matrix.config }} force-enable
+        run: cd src/test/ && ./RUNTESTS.sh --force-enable ${{ matrix.config }} -b ${{ matrix.build }}

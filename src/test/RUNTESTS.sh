@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2022, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
-# RUNTESTS -- setup the environment and run each test
+# RUNTESTS.sh -- setup the environment and run each test
 #
 
 #
@@ -15,8 +15,9 @@ usage()
 	cat >&2 <<EOF
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 		[ -o timeout ] [ -s test-file | -u test-sequence ] [-k skip-dir ]
-		[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
-		[tests...]
+		[[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] ||
+		[ --force-enable memcheck|pmemcheck|helgrind|drd ]]
+		[ -c ] [tests...]
 -h			print this help message
 -n			dry run
 -v			be verbose
@@ -52,6 +53,10 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			drd: auto (default, enable/disable based on test requirements),
 			force-enable (enable when test does not require drd, but
 			obey test's explicit drd disable)
+--force-enable memcheck|pmemcheck|helgrind|drd
+			allows to force the use of a specific valgrind tool,
+			but skips tests where the tool is explicitly disabled
+			Can not be use with -m, -p, -e, -d.
 -c			check pool files with pmempool check utility
 EOF
 	exit 1
@@ -75,13 +80,13 @@ runtest_local() {
 	elif [ "$use_timeout" -a "$testtype" = "check" ]
 	then
 		# set timeout for "check" tests
-		[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$RUNTEST_DIR) \
+		[ "$verbose" ] && echo "RUNTESTS.sh: Running: (in ./$RUNTEST_DIR) \
 			$RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
 		CMD_STR="$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS timeout \
 			--foreground $killopt $RUNTEST_TIMEOUT ./$RUNTEST_SCRIPT"
 		eval "$CMD_STR"
 	else
-		[ "$verbose" ] && echo "RUNTESTS: Running: (in ./$RUNTEST_DIR) $params ./$script"
+		[ "$verbose" ] && echo "RUNTESTS.sh: Running: (in ./$RUNTEST_DIR) $params ./$script"
 		CMD_STR="$RUNTEST_EXTRA VERBOSE=$verbose $RUNTEST_PARAMS ./$RUNTEST_SCRIPT"
 		eval "$CMD_STR"
 	fi
@@ -91,7 +96,7 @@ runtest_local() {
 	[ $retval = 124 -o $retval = 137 ] && errmsg='timed out'
 	[ $retval != 0 ] && {
 		[ -t 2 ] && command -v tput >/dev/null && errmsg="$(tput setaf 1)$errmsg$(tput sgr0)"
-		echo "RUNTESTS: stopping: $RUNTEST_DIR/$RUNTEST_SCRIPT $errmsg, $RUNTEST_PARAMS" >&2
+		echo "RUNTESTS.sh: stopping: $RUNTEST_DIR/$RUNTEST_SCRIPT $errmsg, $RUNTEST_PARAMS" >&2
 		if [ "$keep_going" == "y" ]; then
 			keep_going_exit_code=1
 			keep_going_skip=y
@@ -317,7 +322,7 @@ runtest() {
 
 				if [ "$KEEP_GOING" == "y" ] && [ "$CLEAN_FAILED" == "y" ]; then
 					# temporary file used for sharing data
-					# between RUNTESTS and tests processes
+					# between RUNTESTS.sh and tests processes
 					temp_loc=$(mktemp /tmp/data-location.XXXXXXXX)
 					export TEMP_LOC=$temp_loc
 				fi
@@ -336,7 +341,7 @@ runtest() {
 
 [ -f testconfig.sh ] || {
 	cat >&2 <<EOF
-RUNTESTS: stopping because no testconfig.sh is found.
+RUNTESTS.sh: stopping because no testconfig.sh is found.
 		  to create one:
 			   cp testconfig.sh.example testconfig.sh
 		  and edit testconfig.sh to describe the local machine configuration.
@@ -429,7 +434,7 @@ fi
 #
 # command-line argument processing...
 #
-args=`getopt k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: $*`
+args=`getopt --unquoted --longoptions force-enable: k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -437,6 +442,23 @@ do
 	receivetype=auto
 	case "$arg"
 	in
+	--force-enable)
+		receivetype="$2"
+		shift 2
+		if [ "$checktype" != "none" ]; then
+			usage "cannot force-enable two test types at the same time"
+		fi
+
+		case "$receivetype"
+		in
+		memcheck|pmemcheck|helgrind|drd)
+			;;
+		*)
+			usage "bad force-enable: $receivetype"
+			;;
+		esac
+		checktype=$receivetype
+		;;
 	-k)
 		skip_dir="$skip_dir $2"
 		shift 2
@@ -497,12 +519,11 @@ do
 		auto)
 			;;
 		force-enable)
-			if [ "$checktype" != "none" ]
-			then
+			if [ "$checktype" != "none" ]; then
 				usage "cannot force-enable two test types at the same time"
-			else
-				checktype="memcheck"
 			fi
+
+			checktype="memcheck"
 			;;
 		*)
 			usage "bad memcheck: $receivetype"
@@ -517,12 +538,11 @@ do
 		auto)
 			;;
 		force-enable)
-			if [ "$checktype" != "none" ]
-			then
+			if [ "$checktype" != "none" ]; then
 				usage "cannot force-enable two test types at the same time"
-			else
-				checktype="pmemcheck"
 			fi
+
+			checktype="pmemcheck"
 			;;
 		*)
 			usage "bad pmemcheck: $receivetype"
@@ -537,12 +557,11 @@ do
 		auto)
 			;;
 		force-enable)
-			if [ "$checktype" != "none" ]
-			then
+			if [ "$checktype" != "none" ]; then
 				usage "cannot force-enable two test types at the same time"
-			else
-				checktype="helgrind"
 			fi
+
+			checktype="helgrind"
 			;;
 		*)
 			usage "bad helgrind: $receivetype"
@@ -557,12 +576,11 @@ do
 		auto)
 			;;
 		force-enable)
-			if [ "$checktype" != "none" ]
-			then
+			if [ "$checktype" != "none" ]; then
 				usage "cannot force-enable two test types at the same time"
-			else
-				checktype="drd"
 			fi
+
+			checktype="drd"
 			;;
 		*)
 			usage "bad drd: $receivetype"
@@ -659,7 +677,7 @@ fi
 if [ "$1" ]; then
 	for test in $*
 	do
-		[ -d "$test" ] || echo "RUNTESTS: Test does not exist: $test"
+		[ -d "$test" ] || echo "RUNTESTS.sh: Test does not exist: $test"
 		[ -f "$test/TEST0" ] && runtest $test
 	done
 else
@@ -668,7 +686,7 @@ else
 	do
 		testdir=`dirname $testfile0`
 		if [[ "$skip_dir" =~ "$testdir" ]]; then
-			echo "RUNTESTS: Skipping: $testdir"
+			echo "RUNTESTS.sh: Skipping: $testdir"
 			continue
 		fi
 		runtest $testdir
