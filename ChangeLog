@@ -2,6 +2,7 @@
 
 	This release:
 	- removes libpmempool tests that use log/blk/btt pool types
+	- removes pmempool tests that use log/blk/btt pool types
 	- ...
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 #
 # pmempool_rm/TEST0 -- test for pmempool rm
@@ -15,22 +15,18 @@ setup
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
-# Create pmemlog, pmemblk and pmemobj pools
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $DIR/pool.log
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $DIR/pool.blk
+# Create a pmemobj pool
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
 
-# Create poolset with replica
+# Create a poolset with replica
 create_poolset $DIR/pool.set 32M:$DIR/pool.part1:z 32M:$DIR/pool.part2:z\
 	R 32M:$DIR/rep.part1 32M:$DIR/rep.part2
 
 # Create pmemobj pools from the poolset
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.set
 
-# Check if all pools and poolset exist
+# Check if all pools and the poolset exist
 check_files\
-	$DIR/pool.log\
-	$DIR/pool.blk\
 	$DIR/pool.obj\
 	$DIR/pool.set\
 	$DIR/pool.part1\
@@ -40,28 +36,24 @@ check_files\
 
 # Remove all pool files without the poolset
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -sv\
-	$DIR/pool.log\
-	$DIR/pool.blk\
 	$DIR/pool.obj\
 	$DIR/pool.set >> $LOG
 
 # Check if all pool files don't exist
 check_no_files\
-	$DIR/pool.log\
-	$DIR/pool.blk\
 	$DIR/pool.obj\
 	$DIR/pool.part1\
 	$DIR/pool.part2\
 	$DIR/rep.part1\
 	$DIR/rep.part2
 
-# Pool set file must exist
+# The pool set file must exist
 check_file $DIR/pool.set
 
 # Create pmemobj pools from the poolset
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.set
 
-# Remove all pool files and poolset
+# Remove all the pool files and the poolset
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -v $DIR/pool.set >> $LOG
 
 # Check if all pool files don't exist
@@ -71,7 +63,7 @@ check_no_files\
 	$DIR/rep.part1\
 	$DIR/rep.part2
 
-# Check if poolset file exists
+# Check if the poolset file exists
 check_file $DIR/pool.set
 
 check
