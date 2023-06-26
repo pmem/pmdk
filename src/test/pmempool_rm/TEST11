@@ -16,9 +16,7 @@ setup
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
-# Create pmemlog, pmemblk and pmemobj pools
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -m400 log $DIR/pool.log
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -m440 blk 512 $DIR/pool.blk
+# Create pmemobj pool
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -m444 obj $DIR/pool.obj
 
 # Create poolset with replica
@@ -27,8 +25,6 @@ create_poolset $DIR/pool.set 32M:$DIR/pool.part1:z 32M:$DIR/pool.part2:z\
 
 # Check if pools exists
 check_files\
-	$DIR/pool.log\
-	$DIR/pool.blk\
 	$DIR/pool.obj\
 	$DIR/pool.set\
 	$DIR/pool.part1\
@@ -38,12 +34,8 @@ check_files\
 
 # Try to remove all files in interactive mode
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -il\
-	$DIR/pool.log\
-	$DIR/pool.blk\
 	$DIR/pool.obj\
 	$DIR/pool.set >> $LOG 2>&1 <<EOF
-No
-no
 N
 n
 Yes
@@ -53,8 +45,6 @@ y
 EOF
 
 check_files\
-	$DIR/pool.log\
-	$DIR/pool.blk\
 	$DIR/pool.obj\
 	$DIR/pool.part1\
 
@@ -66,27 +56,20 @@ check_no_files\
 
 # Test if behavior is proper when we type improper input
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -il\
-	$DIR/pool.log\
-	$DIR/pool.blk\
 	$DIR/pool.obj\
 	$DIR/pool.part1 >> $LOG 2>&1 <<EOF
 fsdfdsf
 nope
-yes
 bla
-Yes
 xd
 
 N
 EOF
 
 check_no_files\
-	$DIR/pool.log\
-	$DIR/pool.blk\
 	$DIR/pool.obj
 
 check_files\
 	$DIR/pool.part1
 
 pass
-

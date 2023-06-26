@@ -4,7 +4,7 @@ type                     : regular file
 size                     : $(nW)
 
 POOL Header:
-Signature                : PMEMBLK
+Signature                : PMEMOBJ
 Major                    : $(*)
 Mandatory features       : $(*)
 Not mandatory features   : $(*)
@@ -23,11 +23,14 @@ $(OPT)Machine                  : AMD X86-64
 $(OPT)Machine                  : Aarch64
 $(OPT)Machine                  : RISCV
 $(OPX)Machine                  : PPC64
-Last shutdown            : clean
+Last shutdown            : dirty
 Checksum                 : $(*) [OK]
 
-PMEM BLK Header:
-Block size               : $(*)
-Is zeroed                : $(*)
-
-<No BTT layout>
+PMEM OBJ Header:
+Layout                   : pmempool$(*)
+Lanes offset             : $(*)
+Number of lanes          : $(*)
+Heap offset              : $(*)
+Heap size                : $(*)
+Checksum                 : $(*) [OK]
+Root offset              : $(*)

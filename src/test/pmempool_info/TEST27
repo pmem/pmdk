@@ -18,7 +18,7 @@ POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL >> $LOG
 
 check
