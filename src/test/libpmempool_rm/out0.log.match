@@ -3,9 +3,8 @@ libpmempool_rm/TEST0: START: libpmempool_rm$(nW)
 libpmempool_rm/TEST0: DONE
 libpmempool_rm/TEST0: START: libpmempool_rm$(nW)
  $(nW)libpmempool_rm$(nW) $(*)
-$(nW)pool.blk: removing file failed: No such file or directory
-$(nW)pool.log: removing file failed: No such file or directory
-$(nW)pool.obj: removing file failed: No such file or directory
+$(nW)pool1.obj: removing file failed: No such file or directory
+$(nW)pool2.obj: removing file failed: No such file or directory
 libpmempool_rm/TEST0: DONE
 libpmempool_rm/TEST0: START: libpmempool_rm$(nW)
  $(nW)libpmempool_rm$(nW) -f $(*)
