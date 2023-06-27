@@ -127,7 +127,6 @@ LIB_TOOLS="../../tools"
 [ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool/pmempool
 [ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio/daxio
 [ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
-[ "$BTTCREATE" ] || BTTCREATE=$TOOLS/bttcreate/bttcreate.static-nondebug
 [ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
 [ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
@@ -1938,15 +1937,6 @@ SIG_LEN=8
 LAYOUT_OFFSET=$(getconf PAGE_SIZE)
 LAYOUT_LEN=1024
 
-# Length of arena's signature
-ARENA_SIG_LEN=16
-
-# Signature of BTT Arena
-ARENA_SIG="BTT_ARENA_INFO"
-
-# Offset to first arena
-ARENA_OFF=$(($(getconf PAGE_SIZE) * 2))
-
 #
 # check_file -- check if file exists and print error message if not
 #
@@ -2082,20 +2072,6 @@ check_layout()
 	if [[ $layout != $file_layout ]]
 	then
 		fatal "error: layout doesn't match ${file_layout} != ${layout}"
-	fi
-}
-
-#
-# check_arena -- check if file contains specified arena signature
-#
-check_arena()
-{
-	local file=$1
-	local sig=$($DD if=$file bs=1 skip=$ARENA_OFF count=$ARENA_SIG_LEN 2>/dev/null | tr -d \\0)
-
-	if [[ $sig != $ARENA_SIG ]]
-	then
-		fatal "error: can't find arena signature"
 	fi
 }
 

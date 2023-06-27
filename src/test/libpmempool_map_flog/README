@@ -1,6 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/libpmempool_map_flog/README.
-
-This directory contains a unit test for libpmempool check in context of
-map and flog defects.

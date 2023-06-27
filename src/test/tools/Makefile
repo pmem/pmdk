@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2022, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # src/test/tools/Makefile -- build unit test helpers
@@ -15,7 +15,6 @@ DIRS = \
        pmemalloc\
        pmemobjcli\
        pmemdetect\
-       bttcreate\
        gran_detecto\
        ddmap\
        cmpmap\
