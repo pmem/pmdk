@@ -12,7 +12,6 @@
 
 #define OBJ_STR "obj"
 #define BLK_STR "blk"
-#define LOG_STR "log"
 
 #define BSIZE 20
 #define LAYOUT "obj_ctl_prefault"
@@ -129,38 +128,9 @@ test_blk(const char *path, int open)
 
 	UT_OUT("%ld", resident_pages);
 }
-/*
- * test_log -- open/create PMEMlogpool
- */
-static void
-test_log(const char *path, int open)
-{
-	PMEMlogpool *plp;
-
-	/*
-	 * To test prefaulting, pool must have size at least equal to 2 pages.
-	 * If 2MB huge pages are used this is at least 4MB.
-	 */
-	size_t pool_size = 2 * PMEMLOG_MIN_POOL;
-
-	if (open) {
-		if ((plp = pmemlog_open(path)) == NULL)
-			UT_FATAL("!pmemlog_open: %s", path);
-	} else {
-		if ((plp = pmemlog_create(path, pool_size,
-				S_IWUSR | S_IRUSR)) == NULL)
-			UT_FATAL("!pmemlog_create: %s", path);
-	}
-
-	size_t resident_pages = count_resident_pages(plp, pool_size);
-
-	pmemlog_close(plp);
-
-	UT_OUT("%ld", resident_pages);
-}
 
 #define USAGE() do {\
-	UT_FATAL("usage: %s file-name type(obj/blk/log) prefault(0/1/2) "\
+	UT_FATAL("usage: %s file-name type(obj/blk) prefault(0/1/2) "\
 			"open(0/1)", argv[0]);\
 } while (0)
 
@@ -185,10 +155,6 @@ main(int argc, char *argv[])
 		prefault_fun(prefault, (fun)pmemblk_ctl_get,
 				(fun)pmemblk_ctl_set);
 		test_blk(path, open);
-	} else if (strcmp(type, LOG_STR) == 0) {
-		prefault_fun(prefault, (fun)pmemlog_ctl_get,
-				(fun)pmemlog_ctl_set);
-		test_log(path, open);
 	} else
 		USAGE();
 

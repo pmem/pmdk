@@ -1,4 +1,0 @@
-log_pool$(nW)TEST27: START: log_pool$(nW)
- $(nW)log_pool$(nW) o $(nW)testset
-$(nW)testset: pmemlog_open: Success
-log_pool$(nW)TEST27: DONE

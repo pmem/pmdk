@@ -14,11 +14,3 @@ compat_incompat_features/TEST3: START: compat_incompat_features
  $(nW)pool_open$(nW) blk $(nW)pool.set
 compat_incompat_features/TEST3: START: compat_incompat_features
  $(nW)pool_open$(nW) blk $(nW)pool.set
-compat_incompat_features/TEST3: START: compat_incompat_features
- $(nW)pool_open$(nW) log $(nW)pool.set
-compat_incompat_features/TEST3: START: compat_incompat_features
- $(nW)pool_open$(nW) log $(nW)pool.set
-compat_incompat_features/TEST3: START: compat_incompat_features
- $(nW)pool_open$(nW) log $(nW)pool.set
-compat_incompat_features/TEST3: START: compat_incompat_features
- $(nW)pool_open$(nW) log $(nW)pool.set
