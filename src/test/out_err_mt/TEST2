@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 #
 
 #
@@ -19,12 +19,10 @@ configure_valgrind helgrind force-enable
 setup
 
 unset PMEM_LOG_LEVEL
-unset PMEMLOG_LOG_LEVEL
 unset PMEMBLK_LOG_LEVEL
 unset PMEMOBJ_LOG_LEVEL
 
 unset PMEM_LOG_FILE
-unset PMEMLOG_LOG_FILE
 unset PMEMBLK_LOG_FILE
 unset PMEMOBJ_LOG_FILE
 

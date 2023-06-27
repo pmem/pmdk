@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2018, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 /*
- * pool_open.c -- a tool for verifying that an obj/blk/log pool opens correctly
+ * pool_open.c -- a tool for verifying that an obj/blk pool opens correctly
  *
- * usage: pool_open <path> <obj|blk|log> <layout>
+ * usage: pool_open <path> <obj|blk> <layout>
  */
 #include "unittest.h"
 
@@ -13,7 +13,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "compat_incompat_features");
 	if (argc < 3)
-		UT_FATAL("usage: %s <obj|blk|log> <path>", argv[0]);
+		UT_FATAL("usage: %s <obj|blk> <path>", argv[0]);
 
 	char *type = argv[1];
 	char *path = argv[2];
@@ -34,16 +34,8 @@ main(int argc, char *argv[])
 			UT_OUT("%s: pmemblk_open succeeded", path);
 			pmemblk_close(pop);
 		}
-	} else if (strcmp(type, "log") == 0) {
-		PMEMlogpool *pop = pmemlog_open(path);
-		if (pop == NULL) {
-			UT_FATAL("!%s: pmemlog_open failed", path);
-		} else {
-			UT_OUT("%s: pmemlog_open succeeded", path);
-			pmemlog_close(pop);
-		}
 	} else {
-		UT_FATAL("usage: %s <obj|blk|log> <path>", argv[0]);
+		UT_FATAL("usage: %s <obj|blk> <path>", argv[0]);
 	}
 
 	DONE(NULL);

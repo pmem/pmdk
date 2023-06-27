@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2023, Intel Corporation */
 
 /*
  * ctl_cow.c -- unit tests for copy on write feature which check
@@ -88,26 +88,6 @@ test_blk(const char *path)
 }
 
 static void
-test_log(const char *path)
-{
-	PMEMlogpool *plp = pmemlog_open(path);
-
-	if (plp == NULL)
-		UT_FATAL("!cannot open %s", path);
-
-	char buf[] = "pmemlog test";
-	char buf_2[] = "pmemlog test 2";
-
-	if (pmemlog_append(plp, buf, strlen(buf)) < 0)
-		UT_FATAL("cannot append to %s", path);
-
-	if (pmemlog_append(plp, buf_2, strlen(buf_2)) < 0)
-		UT_FATAL("cannot append to %s", path);
-
-	pmemlog_close(plp);
-}
-
-static void
 test_dax(const char *path)
 {
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
@@ -124,7 +104,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "ctl_cow");
 
 	if (argc < 3)
-		UT_FATAL("usage: %s filename obj|log|blk|dax", argv[0]);
+		UT_FATAL("usage: %s filename obj|blk|dax", argv[0]);
 
 	const char *path = argv[1];
 	const char *action = argv[2];
@@ -134,9 +114,6 @@ main(int argc, char *argv[])
 
 	} else if (strcmp(action, "blk") == 0) {
 		test_blk(path);
-
-	} else if (strcmp(action, "log") == 0) {
-		test_log(path);
 
 	} else if (strcmp(action, "dax") == 0) {
 		test_dax(path);

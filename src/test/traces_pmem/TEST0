@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # src/test/traces_pmem/TEST0 -- unit test traces for libraries pmem
@@ -19,8 +19,6 @@ export PMEM_LOG_LEVEL=4
 export PMEM_LOG_FILE=./trace_pmem$UNITTEST_NUM.log
 export PMEMBLK_LOG_LEVEL=4
 export PMEMBLK_LOG_FILE=./trace_pmemblk$UNITTEST_NUM.log
-export PMEMLOG_LOG_LEVEL=4
-export PMEMLOG_LOG_FILE=./trace_pmemlog$UNITTEST_NUM.log
 export PMEMOBJ_LOG_LEVEL=4
 export PMEMOBJ_LOG_FILE=./trace_pmemobj$UNITTEST_NUM.log
 
@@ -31,7 +29,6 @@ expect_normal_exit ./traces_pmem$EXESUFFIX
 # machines configurations), hence comparison of only first 3 lines.
 head -n 3 $PMEM_LOG_FILE > ./trace_pmem_head$UNITTEST_NUM.log
 head -n 3 $PMEMBLK_LOG_FILE > ./trace_pmemblk_head$UNITTEST_NUM.log
-head -n 3 $PMEMLOG_LOG_FILE > ./trace_pmemlog_head$UNITTEST_NUM.log
 head -n 3 $PMEMOBJ_LOG_FILE > ./trace_pmemobj_head$UNITTEST_NUM.log
 
 check

@@ -6,7 +6,3 @@
 {$(nW) main} compat_incompat_features/TEST3: Error: $(nW)pool.set: pmemblk_open failed: Invalid argument
 {$(nW) main} compat_incompat_features/TEST3: Error: $(nW)pool.set: pmemblk_open failed: Invalid argument
 {$(nW) main} compat_incompat_features/TEST3: Error: $(nW)pool.set: pmemblk_open failed: Invalid argument
-{$(nW) main} compat_incompat_features/TEST3: Error: $(nW)pool.set: pmemlog_open failed: Invalid argument
-{$(nW) main} compat_incompat_features/TEST3: Error: $(nW)pool.set: pmemlog_open failed: Invalid argument
-{$(nW) main} compat_incompat_features/TEST3: Error: $(nW)pool.set: pmemlog_open failed: Invalid argument
-{$(nW) main} compat_incompat_features/TEST3: Error: $(nW)pool.set: pmemlog_open failed: Invalid argument
