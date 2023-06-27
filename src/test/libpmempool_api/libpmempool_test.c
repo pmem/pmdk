@@ -118,8 +118,6 @@ main(int argc, char *argv[])
 				args.pool_type = PMEMPOOL_POOL_TYPE_LOG;
 			} else if (strcmp(optarg, "obj") == 0) {
 				args.pool_type = PMEMPOOL_POOL_TYPE_OBJ;
-			} else if (strcmp(optarg, "btt") == 0) {
-				args.pool_type = PMEMPOOL_POOL_TYPE_BTT;
 			} else {
 				args.pool_type =
 					(uint32_t)strtoul(optarg, NULL, 0);

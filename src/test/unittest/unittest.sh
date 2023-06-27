@@ -127,7 +127,6 @@ LIB_TOOLS="../../tools"
 [ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool/pmempool
 [ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio/daxio
 [ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
-[ "$BTTCREATE" ] || BTTCREATE=$TOOLS/bttcreate/bttcreate.static-nondebug
 [ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
 [ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
@@ -1940,9 +1939,6 @@ LAYOUT_LEN=1024
 
 # Length of arena's signature
 ARENA_SIG_LEN=16
-
-# Signature of BTT Arena
-ARENA_SIG="BTT_ARENA_INFO"
 
 # Offset to first arena
 ARENA_OFF=$(($(getconf PAGE_SIZE) * 2))
