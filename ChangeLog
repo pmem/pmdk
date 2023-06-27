@@ -1,3 +1,8 @@
+	* Unreleased *
+
+	This release :
+	- remove libpmemlog tests and examples
+
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 1.13.1
