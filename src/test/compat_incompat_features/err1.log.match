@@ -2,5 +2,3 @@
 {$(nW) main} compat_incompat_features/TEST1: Error: $(nW)pool.set: pmemobj_open failed: Invalid argument
 {$(nW) main} compat_incompat_features/TEST1: Error: $(nW)pool.set: pmemblk_open failed: Invalid argument
 {$(nW) main} compat_incompat_features/TEST1: Error: $(nW)pool.set: pmemblk_open failed: Invalid argument
-{$(nW) main} compat_incompat_features/TEST1: Error: $(nW)pool.set: pmemlog_open failed: Invalid argument
-{$(nW) main} compat_incompat_features/TEST1: Error: $(nW)pool.set: pmemlog_open failed: Invalid argument

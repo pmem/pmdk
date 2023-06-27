@@ -14,7 +14,6 @@
 
 #include "common.h"
 #include "output.h"
-#include <libpmemlog.h>
 #include <libpmemblk.h>
 #include "mmap.h"
 #include "queue.h"
@@ -46,35 +45,6 @@ print_usage(char *appname)
 	printf("<blockno>:w:<string>  - write <string> to <blockno> block\n");
 	printf("<blockno>:z           - set zero flag on <blockno> block\n");
 	printf("<blockno>:z           - set error flag on <blockno> block\n");
-}
-
-/*
- * pmemwrite_log -- write data to pmemlog pool file
- */
-static int
-pmemwrite_log(struct pmemwrite *pwp)
-{
-	PMEMlogpool *plp = pmemlog_open(pwp->fname);
-
-	if (!plp) {
-		warn("%s", pwp->fname);
-		return -1;
-	}
-
-	int i;
-	int ret = 0;
-	for (i = 0; i < pwp->nargs; i++) {
-		size_t len = strlen(pwp->args[i]);
-		if (pmemlog_append(plp, pwp->args[i], len)) {
-			warn("%s", pwp->fname);
-			ret = -1;
-			break;
-		}
-	}
-
-	pmemlog_close(plp);
-
-	return ret;
 }
 
 /*
@@ -210,9 +180,6 @@ main(int argc, char *argv[])
 	switch (params.type) {
 	case PMEM_POOL_TYPE_BLK:
 		ret = pmemwrite_blk(&pmemwrite);
-		break;
-	case PMEM_POOL_TYPE_LOG:
-		ret = pmemwrite_log(&pmemwrite);
 		break;
 	default:
 		ret = 1;

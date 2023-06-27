@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 #
 # compat_incompat_features/common.sh -- common stuff for compat/incompat feature
@@ -18,13 +18,12 @@ rm -f $ERR_TEMP && touch $ERR_TEMP
 LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET=$DIR/pool.set
 
-POOL_TYPES=(obj blk log)
+POOL_TYPES=(obj blk)
 
 # pmempool create arguments:
 declare -A create_args
 create_args[obj]="obj $POOLSET"
 create_args[blk]="blk 512 $POOLSET"
-create_args[log]="log $POOLSET"
 
 # Known compat flags:
 
