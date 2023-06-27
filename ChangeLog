@@ -8,6 +8,7 @@
 	- removes btt support from pmemspoil
 	- removes libpmemlog tests and examples
 	- removes log/blk/btt support from pmempool
+	- removes log/blk support from pmemwrite
 	- ...
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
