@@ -16,6 +16,7 @@
 #include "output.h"
 #include <libpmemlog.h>
 #include <libpmemblk.h>
+#include <libpmemobj.h>
 #include "mmap.h"
 #include "queue.h"
 
@@ -167,6 +168,39 @@ nomem:
 	return ret;
 }
 
+/*
+ * pmemwrite_obj -- write data to pmemobj pool file
+ */
+static int
+pmemwrite_obj(struct pmemwrite *pwp)
+{
+	PMEMobjpool *pop = pmemobj_open(pwp->fname, NULL);
+
+	if (!pop) {
+		warn("%s", pwp->fname);
+		return -1;
+	}
+
+	int i;
+	int ret = 0;
+	for (i = 0; i < pwp->nargs; i++) {
+		size_t len = strlen(pwp->args[i]);
+		PMEMoid oid;
+		if (pmemobj_alloc(pop, &oid, len, 0, NULL, NULL)) {
+			warn("%s", pwp->fname);
+			ret = -1;
+			break;
+		}
+		void *dest = pmemobj_direct(oid);
+
+		(void) pmemobj_memcpy_persist(pop, dest, pwp->args[i], len);
+	}
+
+	pmemobj_close(pop);
+
+	return ret;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -213,6 +247,9 @@ main(int argc, char *argv[])
 		break;
 	case PMEM_POOL_TYPE_LOG:
 		ret = pmemwrite_log(&pmemwrite);
+		break;
+	case PMEM_POOL_TYPE_OBJ:
+		ret = pmemwrite_obj(&pmemwrite);
 		break;
 	default:
 		ret = 1;

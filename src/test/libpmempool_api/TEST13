@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 #
 #
 # libpmempool_api/TEST13 -- test for checking API
@@ -20,7 +20,7 @@ LOG_TEMP=out${UNITTEST_NUM}_part.log
 rm -f $LOG && touch $LOG
 rm -f $LOG_TEMP && touch $LOG_TEMP
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
 
 expect_normal_exit ./libpmempool_test$EXESUFFIX -s 0 $POOL >> $LOG
 cat $LOG >> $LOG_TEMP
