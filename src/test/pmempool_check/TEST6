@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 #
 # pmempool_check/TEST6 -- test for checking pools
@@ -25,26 +25,8 @@ rm -f $LOG && touch $LOG
 create_poolset $POOLSET 32M:$DIR/pool.part1:z 32M:$DIR/pool.part2
 check_file $POOLSET
 
-echo "PMEMLOG: pool_hdr" >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
-check_files $POOLS
-$PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART1 >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART2 >> $LOG
-
-echo "PMEMLOG: pmemlog" >> $LOG
-rm -f $POOLS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
-check_files $POOLS
-$PMEMSPOIL -v $POOLSET pmemlog.start_offset=0 pmemlog.end_offset=0 >> $LOG
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART1 >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check $POOL_PART2 >> $LOG
-
-echo "PMEMBLK: pool_hdr" >> $LOG
-rm -f $POOLS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
+echo "PMEMOBJ: pool_hdr" >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
 check_files $POOLS
 $PMEMSPOIL -v $POOLSET pool_hdr.signature=ERROR >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG

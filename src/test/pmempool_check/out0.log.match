@@ -1,15 +1,6 @@
-PMEMLOG: consistent
-PMEMBLK: consistent
-PMEMLOG: pool_hdr
-$(nW): spoil: pool_hdr.signature=$(*)
-incorrect pool header
-$(nW): not consistent
-PMEMLOG: pmemlog
-$(nW): spoil: pmemlog.start_offset=$(*)
-$(nW): spoil: pmemlog.end_offset=$(*)
-invalid pmemlog.start_offset: 0x0
-$(nW): not consistent
-PMEMBLK: pool_hdr
+PMEMOBJ: consistent
+PMEMOBJ: consistent
+PMEMOBJ: pool_hdr
 $(nW): spoil: pool_hdr.signature=$(*)
 incorrect pool header
 $(nW): not consistent

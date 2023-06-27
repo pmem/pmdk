@@ -5,22 +5,13 @@ checking shutdown state
 shutdown state correct
 checking pool header
 incorrect pool header
-invalid pool_hdr.uuid
-setting pool_hdr.uuid to $(nW)
-checking pmemblk header
-pmemblk header correct
-checking BTT Info headers
-BTT Layout not written
-$(nW)file.pool: repaired
+the repair of pmemobj pools is not supported
+$(nW)file.pool: cannot repair
 checking shutdown state
 shutdown state correct
 checking pool header
-pool header correct
-checking pmemblk header
-pmemblk header correct
-checking BTT Info headers
-BTT Layout not written
-$(nW)file.pool: consistent
+incorrect pool header
+$(nW)file.pool: not consistent
 $(nW)file.pool: spoil: pool_hdr.prev_part_uuid=ERROR_PREV
 $(nW)file.pool: spoil: pool_hdr.next_part_uuid=ERROR_NEXT
 incorrect pool header
@@ -29,39 +20,19 @@ checking shutdown state
 shutdown state correct
 checking pool header
 incorrect pool header
-the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
-invalid pool_hdr.uuid
+the repair of pmemobj pools is not supported
 $(nW)file.pool: cannot repair
 checking shutdown state
 shutdown state correct
 checking pool header
 incorrect pool header
-invalid pool_hdr.uuid
-setting pool_hdr.uuid to $(*)
-invalid pool_hdr.next_part_uuid
-invalid pool_hdr.prev_part_uuid
-invalid pool_hdr.next_repl_uuid
-invalid pool_hdr.prev_repl_uuid
-setting pool_hdr.next_part_uuid to $(*)
-setting pool_hdr.prev_part_uuid to $(*)
-setting pool_hdr.next_repl_uuid to $(*)
-setting pool_hdr.prev_repl_uuid to $(*)
-invalid pool_hdr.checksum
-setting pool_hdr.checksum to $(*)
-checking pmemblk header
-pmemblk header correct
-checking BTT Info headers
-BTT Layout not written
-$(nW)file.pool: repaired
+the repair of pmemobj pools is not supported
+$(nW)file.pool: cannot repair
 checking shutdown state
 shutdown state correct
 checking pool header
-pool header correct
-checking pmemblk header
-pmemblk header correct
-checking BTT Info headers
-BTT Layout not written
-$(nW)file.pool: consistent
+incorrect pool header
+$(nW)file.pool: not consistent
 $(nW)file.pool: spoil: pool_hdr.prev_part_uuid=ERROR_PREV
 $(nW)file.pool: spoil: pool_hdr.next_part_uuid=ERROR_NEXT
 $(nW)file.pool: spoil: pool_hdr.prev_repl_uuid=ERROR_RPREV
@@ -72,36 +43,16 @@ checking shutdown state
 shutdown state correct
 checking pool header
 incorrect pool header
-the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
-invalid pool_hdr.uuid
+the repair of pmemobj pools is not supported
 $(nW)file.pool: cannot repair
 checking shutdown state
 shutdown state correct
 checking pool header
 incorrect pool header
-invalid pool_hdr.uuid
-setting pool_hdr.uuid to $(*)
-invalid pool_hdr.next_part_uuid
-invalid pool_hdr.prev_part_uuid
-invalid pool_hdr.next_repl_uuid
-invalid pool_hdr.prev_repl_uuid
-setting pool_hdr.next_part_uuid to $(*)
-setting pool_hdr.prev_part_uuid to $(*)
-setting pool_hdr.next_repl_uuid to $(*)
-setting pool_hdr.prev_repl_uuid to $(*)
-invalid pool_hdr.checksum
-setting pool_hdr.checksum to $(*)
-checking pmemblk header
-pmemblk header correct
-checking BTT Info headers
-BTT Layout not written
-$(nW)file.pool: repaired
+the repair of pmemobj pools is not supported
+$(nW)file.pool: cannot repair
 checking shutdown state
 shutdown state correct
 checking pool header
-pool header correct
-checking pmemblk header
-pmemblk header correct
-checking BTT Info headers
-BTT Layout not written
-$(nW)file.pool: consistent
+incorrect pool header
+$(nW)file.pool: not consistent

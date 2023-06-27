@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 #
 # pmempool_check/TEST17 -- test for limit checksum generation to check run with
@@ -22,7 +22,7 @@ LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
 create_poolset $POOLSET 20M:$POOL_P1:z 20M:$POOL_P2:z
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
 
 $PMEMSPOIL -v $POOL_P1 pool_hdr.checksum=0x0 >> $LOG
 
@@ -33,8 +33,8 @@ $PMEMSPOIL -v $POOL_P1 pool_hdr.uuid=ERROR >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vry $POOLSET >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -avry $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -avry $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 check
 

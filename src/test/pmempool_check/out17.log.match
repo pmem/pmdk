@@ -3,31 +3,18 @@ checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
-replica 0 part 1: checking pool header
-replica 0 part 1: pool header correct
-replica 0 part 0: the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
-replica 0 part 0: invalid pool_hdr.checksum
+the repair of pmemobj pools is not supported
 $(nW)pool.set: cannot repair
 $(nW)pool.p1: spoil: pool_hdr.uuid=$(nW)
 checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
-replica 0 part 1: checking pool header
-replica 0 part 1: pool header correct
-replica 0 part 0: invalid pool_hdr.uuid
-replica 0 part 0: setting pool_hdr.uuid to $(nW)
-replica 0 part 0: the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
-replica 0 part 0: invalid pool_hdr.checksum
+the repair of pmemobj pools is not supported
 $(nW)pool.set: cannot repair
 checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
-replica 0 part 1: checking pool header
-replica 0 part 1: pool header correct
-replica 0 part 0: invalid pool_hdr.checksum
-replica 0 part 0: setting pool_hdr.checksum to $(nW)
-checking pmemlog header
-pmemlog header correct
-$(nW)pool.set: repaired
+the repair of pmemobj pools is not supported
+$(nW)pool.set: cannot repair
