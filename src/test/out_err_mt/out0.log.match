@@ -3,43 +3,31 @@ out_err_mt$(nW)TEST0: START: out_err_mt$(nW)
 start
 PMEM: 
 PMEMOBJ: 
-PMEMLOG: 
 PMEMBLK: 
 PMEMPOOL: 
 version check
 PMEM: libpmem major version mismatch (need 10000, found $(N))
 PMEMOBJ: libpmemobj major version mismatch (need 10001, found $(N))
-PMEMLOG: libpmemlog major version mismatch (need 10002, found $(N))
 PMEMBLK: libpmemblk major version mismatch (need 10003, found $(N))
 PMEMPOOL: libpmempool major version mismatch (need 10006, found $(N))
 pmem_msync
 PMEM: msync: $(S)
 PMEMOBJ: libpmemobj major version mismatch (need 10001, found $(N))
-PMEMLOG: libpmemlog major version mismatch (need 10002, found $(N))
 PMEMBLK: libpmemblk major version mismatch (need 10003, found $(N))
 PMEMPOOL: libpmempool major version mismatch (need 10006, found $(N))
 pmemobj_alloc
 PMEM: msync: $(S)
 PMEMOBJ: allocation with size 0
-PMEMLOG: libpmemlog major version mismatch (need 10002, found $(N))
-PMEMBLK: libpmemblk major version mismatch (need 10003, found $(N))
-PMEMPOOL: libpmempool major version mismatch (need 10006, found $(N))
-pmemlog_append
-PMEM: msync: $(S)
-PMEMOBJ: allocation with size 0
-PMEMLOG: pmemlog_append: No space left on device
 PMEMBLK: libpmemblk major version mismatch (need 10003, found $(N))
 PMEMPOOL: libpmempool major version mismatch (need 10006, found $(N))
 pmemblk_set_error
 PMEM: msync: $(S)
 PMEMOBJ: allocation with size 0
-PMEMLOG: pmemlog_append: No space left on device
 PMEMBLK: lba out of range (nlba $(N))
 PMEMPOOL: libpmempool major version mismatch (need 10006, found $(N))
 pmempool_check_init
 PMEM: msync: $(S)
 PMEMOBJ: allocation with size 0
-PMEMLOG: pmemlog_append: No space left on device
 PMEMBLK: lba out of range (nlba $(N))
 PMEMPOOL: provided args_size is not supported
 out_err_mt$(nW)TEST0: DONE

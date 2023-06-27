@@ -1,3 +1,0 @@
-<libpmemlog>: <$(N)> [out.c:$(N) $(*)] pid $(N): program: $(*)
-<libpmemlog>: <$(N)> [out.c:$(N) $(*)] libpmemlog version $(N).$(N)
-<libpmemlog>: <$(N)> [out.c:$(N) $(*)] src version: $(*)

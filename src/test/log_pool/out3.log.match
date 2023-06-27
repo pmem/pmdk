@@ -1,4 +1,0 @@
-log_pool$(nW)TEST3: START: log_pool$(nW)
- $(nW)log_pool$(nW) c $(nW)testfile 20 0600
-$(nW)testfile: pmemlog_create: File exists
-log_pool$(nW)TEST3: DONE

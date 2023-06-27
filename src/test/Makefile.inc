@@ -21,7 +21,6 @@ EXAMPLES_DIR=$(TOP)/src/examples
 EX_LIBPMEM=$(EXAMPLES_DIR)/libpmem
 EX_LIBPMEM2=$(EXAMPLES_DIR)/libpmem2
 EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
-EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
 EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
 EX_PMREORDER=$(EXAMPLES_DIR)/pmreorder
 
@@ -52,13 +51,6 @@ LIBPMEM=y
 DYNAMIC_LIBS += -lpmemblk
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemblk.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemblk.a
-endif
-
-ifeq ($(LIBPMEMLOG), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmemlog
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemlog.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemlog.a
 endif
 
 ifeq ($(LIBPMEMOBJ), y)

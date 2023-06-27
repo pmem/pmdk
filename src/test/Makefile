@@ -24,14 +24,6 @@ BLK_TESTS = \
 	blk_rw\
 	blk_rw_mt
 
-LOG_TESTS = \
-	log_basic\
-	log_include\
-	log_pool\
-	log_pool_lock\
-	log_recovery\
-	log_walker
-
 OBJ_DEPS = \
 	obj_list
 
@@ -237,7 +229,6 @@ EXAMPLES_TESTS = \
 	ex_libpmem\
 	ex_libpmem2\
 	ex_libpmemblk\
-	ex_libpmemlog\
 	ex_libpmemobj\
 	ex_linkedlist\
 	ex_pmreorder
@@ -271,7 +262,6 @@ PMREORDER_TESTS = \
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
-	$(LOG_TESTS)\
 	$(OTHER_TESTS)\
 	$(PMEM_TESTS)\
 	$(PMEM2_TESTS)\

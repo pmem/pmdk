@@ -1,5 +1,0 @@
-log_basic$(nW)TEST5: START: log_basic
- $(nW)log_basic$(nW) $(nW)testset1 c n l h
-$(OPT)usable size: 2088960
-$(OPX)usable size: 1966080
-log_basic$(nW)TEST5: DONE
