@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 #
 # pmempool_check/TEST23 -- test for checking pools with device dax under
@@ -30,19 +30,10 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
-
-#remove the pools in the poolset while preserving the file itself
+# remove the pools in the poolset while preserving the file itself
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -s $POOLSET
-#verify that the poolset still exists
+# verify that the poolset still exists
 check_files $POOLSET
-
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 check
 

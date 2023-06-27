@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 #
 #
 # pmempool_check/TEST16 -- test for checking and fixing pool files crtime
@@ -21,7 +21,7 @@ LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
 create_poolset $POOLSET 20M:$POOL_P1:z 20M:$POOL_P2:z
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
 
 TIME=$($DATE +"%s")
 let "FUTURE_TIME=$TIME+60*60"
@@ -32,8 +32,8 @@ touch -mt $PAST_TIME $POOL_P1
 
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vry $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -vrya $POOLSET >> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vrya $POOLSET >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 check
 
