@@ -1,5 +1,0 @@
-log_pool$(nW)TEST1: START: log_pool$(nW)
- $(nW)log_pool$(nW) c $(nW)testfile 0 0600
-$(OPT)$(nW)testfile: file size 41943040 usable space 41934848 mode 0600
-$(OPX)$(nW)testfile: file size 41943040 usable space 41811968 mode 0600
-log_pool$(nW)TEST1: DONE
