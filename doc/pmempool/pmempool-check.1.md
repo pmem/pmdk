@@ -29,11 +29,6 @@ header: "pmem Tools version 1.4"
 $ pmempool check [<options>] <file>
 ```
 
-# NOTE #
-
-> NOTICE:
-The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
-
 # DESCRIPTION #
 
 The **pmempool** invoked with *check* command checks consistency of a given pool file.
@@ -50,7 +45,8 @@ pool file using **-b** option or just print what would be fixed
 without modifying original pool using **-N** option.
 
 > NOTE:
-Currently, checking the consistency of a *pmemobj* pool is **not** supported.
+Currently, checking the consistency of a *pmemobj* pool is limited and
+no *repair* and *advanced* option are supported.
 
 ##### Available options: #####
 
@@ -95,26 +91,11 @@ Display help message and exit.
 # EXAMPLE #
 
 ```
-$ pmempool check pool.bin
+$ pmempool check pool.obj
 ```
 
-Check consistency of "pool.bin" pool file
-
-```
-$ pmempool check --repair --backup pool.bin.backup pool.bin
-```
-
-Check consistency of "pool.bin" pool file, create backup and repair
-if necessary.
-
-```
-$ pmempool check -rvN pool.bin
-```
-
-Check consistency of "pool.bin" pool file, print what would be repaired with
-increased verbosity level.
+Check consistency of "pool.obj" pool file
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7), **libpmempool**(7) and **<https://pmem.io>**
+**pmempool**(1), **libpmemobj**(7), **libpmempool**(7) and **<https://pmem.io>**
