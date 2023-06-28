@@ -9,7 +9,6 @@ OBJS = set_funcs.o
 
 LIBPMEM=y
 LIBPMEMOBJ=y
-LIBPMEMBLK=y
 
 include ../Makefile.inc
 

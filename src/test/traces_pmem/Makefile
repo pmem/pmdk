@@ -8,7 +8,6 @@ TARGET = traces_pmem
 OBJS = traces_pmem.o
 
 LIBPMEM=y
-LIBPMEMBLK=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 #
 # pmempool_create/TEST2 -- test for creating pools of specified size
@@ -18,12 +18,6 @@ POOL=$DIR/file.pool
 SIZE=$(((1024 + 512) * 1024 * 1024))
 
 require_free_space $SIZE
-
-# PMEMBLK
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -s $SIZE blk 512 $POOL
-check_file $POOL
-check_signature PMEMBLK $POOL
-check_size $SIZE $POOL
 
 # PMEMLOG
 rm -f $POOL

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 #
 
 #
@@ -15,8 +15,7 @@ disable_eatmydata
 
 setup
 
-expect_normal_exit ./out_err_mt$EXESUFFIX \
-	$DIR/testfile1 $DIR/testfile2 $DIR/testfile3 $DIR/testfile4 $DIR
+expect_normal_exit ./out_err_mt$EXESUFFIX $DIR/testfile1
 
 check
 

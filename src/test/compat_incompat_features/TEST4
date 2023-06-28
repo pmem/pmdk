@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 #
 # compat_incompat_features/TEST4 -- test for compat/incompat feature flags
@@ -23,29 +23,27 @@ create_poolset $POOLSET \
 	20M:$DIR/part0:x \
 	20M:$DIR/part1:x
 
-for type in ${POOL_TYPES[@]}; do
-	# Create poolset
-	expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET >> $LOG_TEMP
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create ${create_args[$type]} \
-		>> $LOG_TEMP
+# Create poolset
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX create ${create_args[obj]} \
+	>> $LOG_TEMP
 
-	# Clear POOL_FEAT_SINGLEHDR incompat flag in header
-	set_incompat $DIR/part0 0 >> $LOG_TEMP
+# Clear POOL_FEAT_SINGLEHDR incompat flag in header
+set_incompat $DIR/part0 0 >> $LOG_TEMP
+
+# Check if pool fails to open
+expect_abnormal_exit ./pool_open$EXESUFFIX $POOLSET 2>&1
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
+
+for flag in ${UNKNOWN_INCOMPAT[@]}; do
+	# Set compat/incompat flags in headers
+	set_incompat $DIR/part0 $flag >> $LOG_TEMP
 
 	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
+	expect_abnormal_exit ./pool_open$EXESUFFIX $POOLSET 2>&1
 	cat $LOG >> $LOG_TEMP
 	cat $ERR >> $ERR_TEMP
-
-	for flag in ${UNKNOWN_INCOMPAT[@]}; do
-		# Set compat/incompat flags in headers
-		set_incompat $DIR/part0 $flag >> $LOG_TEMP
-
-		# Check if pool fails to open
-		expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-		cat $LOG >> $LOG_TEMP
-		cat $ERR >> $ERR_TEMP
-	done
 done
 
 mv $LOG_TEMP $LOG
