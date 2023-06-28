@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2023, Intel Corporation
 #
 #
 # pmempool_sync/TEST26 -- test for checking pmempool sync;
@@ -46,20 +46,6 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP 2>&1
 
 # Remove poolset
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
-
-# Create pmemlog poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
-cat $LOG >> $LOG_TEMP
-
-# Synchronize healthy pool set - should fail as there are no replicas
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP 2>&1
-
-# Corrupt metadata in primary replica, leave incorrect checksum
-expect_normal_exit $PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=0000000000000000\
-	>> $LOG_TEMP
-
-# Synchronize broken pool set - should fail as there are no other replicas
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP 2>&1
 
 mv $LOG_TEMP $LOG
 check

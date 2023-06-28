@@ -1,5 +1,3 @@
-removed '$(nW)pool.log'
-removed '$(nW)pool.blk'
 removed '$(nW)pool.obj'
 removed '$(nW)pool.part1'
 removed '$(nW)pool.part2'
