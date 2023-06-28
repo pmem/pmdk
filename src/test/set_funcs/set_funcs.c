@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * set_funcs.c -- unit test for pmem*_set_funcs()
@@ -14,7 +14,6 @@
 
 #define OBJ 0
 #define BLK 1
-#define LOG 2
 
 static struct counters {
 	int mallocs;
@@ -140,38 +139,6 @@ blk_strdup(const char *s)
 	return test_strdup(s);
 }
 
-static void *
-log_malloc(size_t size)
-{
-	cnt[LOG].mallocs++;
-	return test_malloc(size);
-}
-
-static void
-log_free(void *ptr)
-{
-	if (ptr)
-		cnt[LOG].frees++;
-	test_free(ptr);
-}
-
-static void *
-log_realloc(void *ptr, size_t size)
-{
-	if (ptr == NULL)
-		cnt[LOG].reallocs_null++;
-	else
-		cnt[LOG].reallocs++;
-	return test_realloc(ptr, size);
-}
-
-static char *
-log_strdup(const char *s)
-{
-	cnt[LOG].strdups++;
-	return test_strdup(s);
-}
-
 /*
  * There are a few allocations made at first call to pmemobj_open() or
  * pmemobj_create().  They are related to some global structures
@@ -282,48 +249,6 @@ test_blk(const char *path)
 	UNLINK(path);
 }
 
-static void
-test_log(const char *path)
-{
-	pmemlog_set_funcs(log_malloc, log_free, log_realloc, log_strdup);
-
-	/*
-	 * Generate ERR() call, that calls malloc() once,
-	 * but only when it is called for the first time
-	 * (free() is called in the destructor of the library).
-	 */
-	pmemlog_create(EXISTING_FILE, NON_ZERO_POOL_SIZE, 0);
-
-	memset(cnt, 0, sizeof(cnt));
-
-	PMEMlogpool *log = pmemlog_create(path, PMEMLOG_MIN_POOL, 0600);
-
-	pmemlog_close(log);
-
-	UT_OUT("log_mallocs: %d", cnt[LOG].mallocs);
-	UT_OUT("log_frees: %d", cnt[LOG].frees);
-	UT_OUT("log_reallocs: %d", cnt[LOG].reallocs);
-	UT_OUT("log_reallocs_null: %d", cnt[LOG].reallocs_null);
-	UT_OUT("log_strdups: %d", cnt[LOG].strdups);
-
-	if (cnt[LOG].mallocs == 0 || cnt[LOG].frees == 0)
-		UT_FATAL("LOG mallocs: %d, frees: %d", cnt[LOG].mallocs,
-				cnt[LOG].frees);
-
-	for (int i = 0; i < 5; ++i) {
-		if (i == LOG)
-			continue;
-		if (cnt[i].mallocs || cnt[i].frees)
-			UT_FATAL("LOG allocation used %d functions", i);
-	}
-
-	if (cnt[LOG].mallocs + cnt[LOG].strdups + cnt[LOG].reallocs_null
-					!= cnt[LOG].frees)
-		UT_FATAL("LOG memory leak");
-
-	UNLINK(path);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -334,7 +259,6 @@ main(int argc, char *argv[])
 
 	test_obj(argv[1]);
 	test_blk(argv[1]);
-	test_log(argv[1]);
 
 	DONE(NULL);
 }

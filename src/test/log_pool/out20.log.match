@@ -1,4 +1,0 @@
-log_pool$(nW)TEST20: START: log_pool$(nW)
- $(nW)log_pool$(nW) o $(nW)testfile
-$(nW)testfile: pmemlog_open: No such file or directory
-log_pool$(nW)TEST20: DONE
