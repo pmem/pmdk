@@ -10,10 +10,6 @@
 #include <sys/resource.h>
 #include "unittest.h"
 
-#define OBJ_STR "obj"
-#define BLK_STR "blk"
-
-#define BSIZE 20
 #define LAYOUT "obj_ctl_prefault"
 
 typedef unsigned char vec_t;
@@ -106,28 +102,6 @@ test_obj(const char *path, int open)
 
 	UT_OUT("%ld", resident_pages);
 }
-/*
- * test_blk -- open/create PMEMblkpool
- */
-static void
-test_blk(const char *path, int open)
-{
-	PMEMblkpool *pbp;
-	if (open) {
-		if ((pbp = pmemblk_open(path, BSIZE)) == NULL)
-			UT_FATAL("!pmemblk_open: %s", path);
-	} else {
-		if ((pbp = pmemblk_create(path, BSIZE, PMEMBLK_MIN_POOL,
-			S_IWUSR | S_IRUSR)) == NULL)
-			UT_FATAL("!pmemblk_create: %s", path);
-	}
-
-	size_t resident_pages = count_resident_pages(pbp, PMEMBLK_MIN_POOL);
-
-	pmemblk_close(pbp);
-
-	UT_OUT("%ld", resident_pages);
-}
 
 #define USAGE() do {\
 	UT_FATAL("usage: %s file-name type(obj/blk) prefault(0/1/2) "\
@@ -139,24 +113,15 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "ctl_prefault");
 
-	if (argc != 5)
+	if (argc != 4)
 		USAGE();
 
-	char *type = argv[1];
-	const char *path = argv[2];
-	int prefault = atoi(argv[3]);
-	int open = atoi(argv[4]);
+	const char *path = argv[1];
+	int prefault = atoi(argv[2]);
+	int open = atoi(argv[3]);
 
-	if (strcmp(type, OBJ_STR) == 0) {
-		prefault_fun(prefault, (fun)pmemobj_ctl_get,
-				(fun)pmemobj_ctl_set);
-		test_obj(path, open);
-	} else if (strcmp(type, BLK_STR) == 0) {
-		prefault_fun(prefault, (fun)pmemblk_ctl_get,
-				(fun)pmemblk_ctl_set);
-		test_blk(path, open);
-	} else
-		USAGE();
+	prefault_fun(prefault, (fun)pmemobj_ctl_get, (fun)pmemobj_ctl_set);
+	test_obj(path, open);
 
 	DONE(NULL);
 }

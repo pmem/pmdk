@@ -1,16 +1,8 @@
 compat_incompat_features/TEST4: START: compat_incompat_features
- $(nW)pool_open$(nW) obj $(nW)pool.set
+ $(nW)pool_open$(nW) $(nW)pool.set
 compat_incompat_features/TEST4: START: compat_incompat_features
- $(nW)pool_open$(nW) obj $(nW)pool.set
+ $(nW)pool_open$(nW) $(nW)pool.set
 compat_incompat_features/TEST4: START: compat_incompat_features
- $(nW)pool_open$(nW) obj $(nW)pool.set
+ $(nW)pool_open$(nW) $(nW)pool.set
 compat_incompat_features/TEST4: START: compat_incompat_features
- $(nW)pool_open$(nW) obj $(nW)pool.set
-compat_incompat_features/TEST4: START: compat_incompat_features
- $(nW)pool_open$(nW) blk $(nW)pool.set
-compat_incompat_features/TEST4: START: compat_incompat_features
- $(nW)pool_open$(nW) blk $(nW)pool.set
-compat_incompat_features/TEST4: START: compat_incompat_features
- $(nW)pool_open$(nW) blk $(nW)pool.set
-compat_incompat_features/TEST4: START: compat_incompat_features
- $(nW)pool_open$(nW) blk $(nW)pool.set
+ $(nW)pool_open$(nW) $(nW)pool.set

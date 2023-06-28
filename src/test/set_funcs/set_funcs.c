@@ -13,7 +13,6 @@
 #define EXTRA sizeof(GUARD)
 
 #define OBJ 0
-#define BLK 1
 
 static struct counters {
 	int mallocs;
@@ -107,38 +106,6 @@ obj_strdup(const char *s)
 	return test_strdup(s);
 }
 
-static void *
-blk_malloc(size_t size)
-{
-	cnt[BLK].mallocs++;
-	return test_malloc(size);
-}
-
-static void
-blk_free(void *ptr)
-{
-	if (ptr)
-		cnt[BLK].frees++;
-	test_free(ptr);
-}
-
-static void *
-blk_realloc(void *ptr, size_t size)
-{
-	if (ptr == NULL)
-		cnt[BLK].reallocs_null++;
-	else
-		cnt[BLK].reallocs++;
-	return test_realloc(ptr, size);
-}
-
-static char *
-blk_strdup(const char *s)
-{
-	cnt[BLK].strdups++;
-	return test_strdup(s);
-}
-
 /*
  * There are a few allocations made at first call to pmemobj_open() or
  * pmemobj_create().  They are related to some global structures
@@ -207,48 +174,6 @@ test_obj(const char *path)
 	UNLINK(path);
 }
 
-static void
-test_blk(const char *path)
-{
-	pmemblk_set_funcs(blk_malloc, blk_free, blk_realloc, blk_strdup);
-
-	/*
-	 * Generate ERR() call, that calls malloc() once,
-	 * but only when it is called for the first time
-	 * (free() is called in the destructor of the library).
-	 */
-	pmemblk_create(EXISTING_FILE,  0, NON_ZERO_POOL_SIZE, 0);
-
-	memset(cnt, 0, sizeof(cnt));
-
-	PMEMblkpool *blk = pmemblk_create(path, 512, PMEMBLK_MIN_POOL, 0600);
-
-	pmemblk_close(blk);
-
-	UT_OUT("blk_mallocs: %d", cnt[BLK].mallocs);
-	UT_OUT("blk_frees: %d", cnt[BLK].frees);
-	UT_OUT("blk_reallocs: %d", cnt[BLK].reallocs);
-	UT_OUT("blk_reallocs_null: %d", cnt[BLK].reallocs_null);
-	UT_OUT("blk_strdups: %d", cnt[BLK].strdups);
-
-	if (cnt[BLK].mallocs == 0 || cnt[BLK].frees == 0)
-		UT_FATAL("BLK mallocs: %d, frees: %d", cnt[BLK].mallocs,
-				cnt[BLK].frees);
-
-	for (int i = 0; i < 5; ++i) {
-		if (i == BLK)
-			continue;
-		if (cnt[i].mallocs || cnt[i].frees)
-			UT_FATAL("BLK allocation used %d functions", i);
-	}
-
-	if (cnt[BLK].mallocs + cnt[BLK].strdups + cnt[BLK].reallocs_null
-					!= cnt[BLK].frees)
-		UT_FATAL("BLK memory leak");
-
-	UNLINK(path);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -258,7 +183,6 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s file dir", argv[0]);
 
 	test_obj(argv[1]);
-	test_blk(argv[1]);
 
 	DONE(NULL);
 }

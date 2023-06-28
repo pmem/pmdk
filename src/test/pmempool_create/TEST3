@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 #
 # pmempool_create/TEST3 -- test for inheriting pools
@@ -16,16 +16,6 @@ setup
 
 POOL=$DIR/file.pool
 INHERIT=$DIR/inherit.pool
-
-# PMEMBLK
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
-check_file $POOL
-check_signature PMEMBLK $POOL
-SIZE=$(get_size $POOL)
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
-check_file $INHERIT
-check_signature PMEMBLK $INHERIT
-check_size $SIZE $INHERIT
 
 # PMEMLOG
 rm -f $POOL

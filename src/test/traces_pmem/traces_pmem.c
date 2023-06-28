@@ -14,8 +14,6 @@ main(int argc, char *argv[])
 
 	UT_ASSERT(!pmem_check_version(PMEM_MAJOR_VERSION,
 				PMEM_MINOR_VERSION));
-	UT_ASSERT(!pmemblk_check_version(PMEMBLK_MAJOR_VERSION,
-				PMEMBLK_MINOR_VERSION));
 	UT_ASSERT(!pmemobj_check_version(PMEMOBJ_MAJOR_VERSION,
 				PMEMOBJ_MINOR_VERSION));
 
