@@ -20,7 +20,6 @@ print_errors(const char *msg)
 	UT_OUT("%s", msg);
 	UT_OUT("PMEM: %s", pmem_errormsg());
 	UT_OUT("PMEMOBJ: %s", pmemobj_errormsg());
-	UT_OUT("PMEMBLK: %s", pmemblk_errormsg());
 	UT_OUT("PMEMPOOL: %s", pmempool_errormsg());
 }
 
@@ -45,13 +44,6 @@ check_errors(unsigned ver)
 	UT_ASSERTeq(err_need, ver);
 	UT_ASSERTeq(err_found, PMEMOBJ_MAJOR_VERSION);
 
-	ret = sscanf(pmemblk_errormsg(),
-		"libpmemblk major version mismatch (need %d, found %d)",
-		&err_need, &err_found);
-	UT_ASSERTeq(ret, 2);
-	UT_ASSERTeq(err_need, ver);
-	UT_ASSERTeq(err_found, PMEMBLK_MAJOR_VERSION);
-
 	ret = sscanf(pmempool_errormsg(),
 		"libpmempool major version mismatch (need %d, found %d)",
 		&err_need, &err_found);
@@ -67,7 +59,6 @@ do_test(void *arg)
 
 	pmem_check_version(ver, 0);
 	pmemobj_check_version(ver, 0);
-	pmemblk_check_version(ver, 0);
 	pmempool_check_version(ver, 0);
 	check_errors(ver);
 
@@ -94,7 +85,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "out_err_mt");
 
-	if (argc != 6)
+	if (argc != 2)
 		UT_FATAL("usage: %s file1 file2 file3 file4 dir",
 				argv[0]);
 
@@ -102,14 +93,11 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop = pmemobj_create(argv[1], "test",
 		PMEMOBJ_MIN_POOL, 0666);
-	PMEMblkpool *pbp = pmemblk_create(argv[3],
-		128, PMEMBLK_MIN_POOL, 0666);
 
 	util_init();
 
 	pmem_check_version(10000, 0);
 	pmemobj_check_version(10001, 0);
-	pmemblk_check_version(10003, 0);
 	pmempool_check_version(10006, 0);
 	print_errors("version check");
 
@@ -129,14 +117,9 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, -1);
 	print_errors("pmemobj_alloc");
 
-	size_t nblock = pmemblk_nblock(pbp);
-	pmemblk_set_error(pbp, (long long)nblock + 1);
-	print_errors("pmemblk_set_error");
-
 	run_mt_test(do_test);
 
 	pmemobj_close(pop);
-	pmemblk_close(pbp);
 
 	PMEMpoolcheck *ppc;
 	struct pmempool_check_args args = {NULL, };

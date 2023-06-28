@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 #
 # pmempool_check/TEST20 -- test for checking pools with device dax under
@@ -31,3 +31,5 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 pass
+
+check

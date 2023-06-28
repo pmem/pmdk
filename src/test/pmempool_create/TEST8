@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 #
 # pmempool_create/TEST8 -- test for pmempool create command with poolset
@@ -35,12 +35,6 @@ create_poolset $POOLREP 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z\
 	O SINGLEHDR
 
 check_file $POOLREP
-
-# PMEMBLK
-rm -f $POOLS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
-check_files $POOLS
-check_signatures PMEMBLK $POOL1
 
 # PMEMLOG
 rm -f $POOLS

@@ -9,7 +9,6 @@ TARGET = pool_open
 OBJS = pool_open.o
 
 LIBPMEMOBJ=y
-LIBPMEMBLK=y
 USE_PMEMSPOIL=y
 
 include ../Makefile.inc

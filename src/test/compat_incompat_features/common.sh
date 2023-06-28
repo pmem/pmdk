@@ -18,12 +18,11 @@ rm -f $ERR_TEMP && touch $ERR_TEMP
 LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET=$DIR/pool.set
 
-POOL_TYPES=(obj blk)
+POOL_TYPES=(obj)
 
 # pmempool create arguments:
 declare -A create_args
 create_args[obj]="obj $POOLSET"
-create_args[blk]="blk 512 $POOLSET"
 
 # Known compat flags:
 

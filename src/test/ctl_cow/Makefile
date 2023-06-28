@@ -7,7 +7,6 @@
 TARGET = ctl_cow
 OBJS = ctl_cow.o
 
-LIBPMEMBLK=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc

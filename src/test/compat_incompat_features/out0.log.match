@@ -1,32 +1,16 @@
 compat_incompat_features/TEST0: START: compat_incompat_features
- $(nW)pool_open$(nW) obj $(nW)
+ $(nW)pool_open$(nW) $(nW)
 $(nW)pool.set: pmemobj_open succeeded
 compat_incompat_features/TEST0: DONE
 compat_incompat_features/TEST0: START: compat_incompat_features
- $(nW)pool_open$(nW) obj $(nW)
+ $(nW)pool_open$(nW) $(nW)
 $(nW)pool.set: pmemobj_open succeeded
 compat_incompat_features/TEST0: DONE
 compat_incompat_features/TEST0: START: compat_incompat_features
- $(nW)pool_open$(nW) obj $(nW)
+ $(nW)pool_open$(nW) $(nW)
 $(nW)pool.set: pmemobj_open succeeded
 compat_incompat_features/TEST0: DONE
 compat_incompat_features/TEST0: START: compat_incompat_features
- $(nW)pool_open$(nW) obj $(nW)
+ $(nW)pool_open$(nW) $(nW)
 $(nW)pool.set: pmemobj_open succeeded
-compat_incompat_features/TEST0: DONE
-compat_incompat_features/TEST0: START: compat_incompat_features
- $(nW)pool_open$(nW) blk $(nW)
-$(nW)pool.set: pmemblk_open succeeded
-compat_incompat_features/TEST0: DONE
-compat_incompat_features/TEST0: START: compat_incompat_features
- $(nW)pool_open$(nW) blk $(nW)
-$(nW)pool.set: pmemblk_open succeeded
-compat_incompat_features/TEST0: DONE
-compat_incompat_features/TEST0: START: compat_incompat_features
- $(nW)pool_open$(nW) blk $(nW)
-$(nW)pool.set: pmemblk_open succeeded
-compat_incompat_features/TEST0: DONE
-compat_incompat_features/TEST0: START: compat_incompat_features
- $(nW)pool_open$(nW) blk $(nW)
-$(nW)pool.set: pmemblk_open succeeded
 compat_incompat_features/TEST0: DONE

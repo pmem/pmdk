@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2023, Intel Corporation
 
 . ../unittest/unittest.sh
 
@@ -13,21 +13,21 @@ setup
 require_native_fallocate $DIR/testfile1
 
 # create, don't prefault
-expect_normal_exit ./ctl_prefault$EXESUFFIX obj $DIR/testfile1 0 0
+expect_normal_exit ./ctl_prefault$EXESUFFIX $DIR/testfile1 0 0
 pagefault_create_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`
 
 # open, don't prefault
-expect_normal_exit ./ctl_prefault$EXESUFFIX obj $DIR/testfile1 0 1
+expect_normal_exit ./ctl_prefault$EXESUFFIX $DIR/testfile1 0 1
 pagefault_open_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`
 
 rm -f $DIR/testfile1
 
 # create, prefault
-expect_normal_exit ./ctl_prefault$EXESUFFIX obj $DIR/testfile1 2 0
+expect_normal_exit ./ctl_prefault$EXESUFFIX $DIR/testfile1 2 0
 pagefault_create_prefault=`cat out$UNITTEST_NUM.log | sed -n '3p'`
 
 # open, prefault
-expect_normal_exit ./ctl_prefault$EXESUFFIX obj $DIR/testfile1 1 1
+expect_normal_exit ./ctl_prefault$EXESUFFIX $DIR/testfile1 1 1
 pagefault_open_prefault=`cat out$UNITTEST_NUM.log | sed -n '3p'`
 
 rm -f $DIR/testfile1

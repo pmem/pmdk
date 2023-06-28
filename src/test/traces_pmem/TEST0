@@ -17,8 +17,6 @@ setup
 
 export PMEM_LOG_LEVEL=4
 export PMEM_LOG_FILE=./trace_pmem$UNITTEST_NUM.log
-export PMEMBLK_LOG_LEVEL=4
-export PMEMBLK_LOG_FILE=./trace_pmemblk$UNITTEST_NUM.log
 export PMEMOBJ_LOG_LEVEL=4
 export PMEMOBJ_LOG_FILE=./trace_pmemobj$UNITTEST_NUM.log
 
@@ -28,7 +26,6 @@ expect_normal_exit ./traces_pmem$EXESUFFIX
 # string format. We can't rely on full output (because of different
 # machines configurations), hence comparison of only first 3 lines.
 head -n 3 $PMEM_LOG_FILE > ./trace_pmem_head$UNITTEST_NUM.log
-head -n 3 $PMEMBLK_LOG_FILE > ./trace_pmemblk_head$UNITTEST_NUM.log
 head -n 3 $PMEMOBJ_LOG_FILE > ./trace_pmemobj_head$UNITTEST_NUM.log
 
 check

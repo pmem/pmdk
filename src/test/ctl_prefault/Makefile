@@ -7,7 +7,6 @@
 TARGET = ctl_prefault
 OBJS = ctl_prefault.o
 
-LIBPMEMBLK=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
