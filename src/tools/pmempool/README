@@ -136,44 +136,12 @@ All features are described below.
    them in more human-readable formats with appropriate units
    (e.g. 4k, 8M, 16G).
 
-** Features for *log* pool type (DEPRECATED)
-
- * By default pmempool with *info* command displays the pool header, log pool
-   type specific header and statistics. It is possible to print data in
-   hexadecimal format by passing appropriate command line option.
-
- * It is possible to walk through the usable data using fixed data chunk size.
-   This feature uses similar approach as pmemlog_walk() function. For details
-   please refer to libpmemlog(7).
-
-** Features for *blk* pool type (DEPRECATED)
-
- * By default pmempool with *info* command displays the pool header, blk pool
-   type specific header, BTT Info header and statistics.
-
- * It is possible to print more headers and internal data by passing specific
-   command line options. It is possible to print the following sections:
-   BTT Map entries, BTT FLOG, BTT Info backup and data blocks.
-
- * It is possible to print specific range of blocks in both absolute or relative
-   manner (e.g. display blocks from 10 to 1000, display 10 blocks starting from
-   block number 1000)
-
- * By default when displaying data blocks all blocks are displayed. However it
-   is possible to skip blocks marked with zero or error flags, or to skip blocks
-   which are not marked by any flag. Skipping blocks has impact on blocks ranges
-   (e.g. display 10 blocks marked with error flag in the range from 0 to 10000)
-
 2.2. check
 ----------
 
 The pmempool invoked with *check* command checks existing pool's consistency.
 If the pool is consistent pmempool exits with exit code 0. Otherwise nonzero
 error code is returned and appropriate message is displayed.
-
-In addition it may also try to fix some common known errors upon explicit demand
-of user. In this case a pool file will be opened in read-write mode so the user
-should be aware of modifications made by pmempool application.
 
 Below is the description of available features:
 
@@ -227,12 +195,6 @@ Below is the description of available features:
 
  * By default data is dumped to standard output. However it is possible to
    specify a file name to dump data into.
-
- * In case of pmem blk pool type it is possible to set range of blocks in either
-   absolute or relative manner. (DEPRECATED)
-
- * In case of pmem log pool type it is possible to set size of chunk and range
-   of chunks to dump in either absolute or relative manner. (DEPRECATED)
 
 2.5. rm
 -------

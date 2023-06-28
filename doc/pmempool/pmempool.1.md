@@ -31,11 +31,6 @@ header: "pmem Tools version 1.4"
 $ pmempool [--help] [--version] <command> [<args>]
 ```
 
-# NOTE #
-
-> NOTICE:
-The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
-
 # DESCRIPTION #
 
 The **pmempool** is a management tool for *Persistent Memory* pool files
@@ -98,8 +93,8 @@ In order to get more information about specific *command* you can use **pmempool
 
 The debug logs are available only in the debug version of the tool,
 which is not provided by binary packages, but can be built from sources.
-The **pmempool.static-debug** binary blob can be found
-in the 'src/tools/pmempool/' subdirectory.
+The **pmempool.static-debug** binary can be found in the 'src/tools/pmempool/'
+subdirectory.
 
 + **PMEMPOOL_TOOL_LOG_LEVEL**
 
@@ -130,5 +125,4 @@ If **PMEMPOOL_TOOL_LOG_FILE** is not set, output is written to *stderr*.
 
 # SEE ALSO #
 
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<https://pmem.io>**
+**libpmempool**(7) and **<https://pmem.io>**
