@@ -26,28 +26,20 @@ header: "pmem Tools version 1.4"
 # SYNOPSIS #
 
 ```
-$ pmempool create [<options>] [<type>] [<bsize>] <file>
+$ pmempool create [<options>] [<type>] <file>
 ```
 
 # NOTE #
 
-> NOTICE:
-The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
-
 # DESCRIPTION #
 
 The **pmempool** invoked with *create* command creates a pool file
-of specified type. Depending on a pool type it is possible to provide more properties of pool.
+of specified type.
 
-Valid pool types are: **blk**, **log** and **obj** which stands for
-*pmemblk*, *pmemlog* and *pmemobj* pools respectively. By default
-the pool file is created with *minimum* allowed size for specified
-pool type. The minimum sizes for **blk**, **log** and **obj** pool
-types are **PMEMBLK_MIN_POOL**, **PMEMLOG_MIN_POOL** and **PMEMOBJ_MIN_POOL**
-respectively. See **libpmemblk**(7), **libpmemlog**(7)
-and **libpmemobj**(7) for details.
-
-For *pmemblk* pool type block size *\<bsize\>* is a required argument.
+The only valid pool types is: **obj** which stands for *pmemobj* pool.
+By default the pool file is created with *minimum* allowed size for specified
+pool type. The minimum sizes for **obj** pool type is **PMEMOBJ_MIN_POOL**.
+See **libpmemobj**(7) for details.
 
 In order to set custom size of pool use **-s** option, or use **-M** option
 to create a pool of maximum available size on underlying file system.
@@ -93,18 +85,6 @@ Increase verbosity level.
 
 Display help message and exit.
 
-##### Options for PMEMBLK: #####
-
-By default when creating a pmem **blk** pool, the **BTT** layout is *not*
-written until the first *write operation* of block entry is performed.
-Using **-w** option you can force writing the **BTT** layout by writing
-zero data to specified block number. By default the *write operation*
-is performed to block number 0. Please refer to **libpmemblk**(7) for details.
-
-`-w, --write-layout`
-
-Force writing the **BTT** layout by performing *write operation* to block number zero.
-
 ##### Options for PMEMOBJ: #####
 
 By default when creating a pmem **obj** pool, the layout name provided to
@@ -118,22 +98,15 @@ Layout name of the **pmemobj** pool.
 # EXAMPLE #
 
 ```
-$ pmempool create blk 512 pool.blk
+$ pmempool create obj pool.obj
 ```
-
-Create a blk pool file of minimum allowed size and block size 512 bytes
-
-```
-$ pmempool create log -M pool.log
-```
-
-Create a log pool file of maximum allowed size
+Create a obj pool file of minimum allowed size
 
 ```
-$ pmempool create blk --size=4G --write-layout 1K pool.blk
+$ pmempool create obj -M pool.obj
 ```
 
-Create a blk pool file of size 4G, block size 1K and write the BTT layout
+Create a obj pool file of maximum allowed size
 
 ```
 $ pmempool create --layout my_layout obj pool.obj
@@ -142,12 +115,11 @@ $ pmempool create --layout my_layout obj pool.obj
 Create an obj pool file of minimum allowed size and layout "my_layout"
 
 ```
-$ pmempool create --inherit=pool.log new_pool.log
+$ pmempool create --inherit=pool.obj new_pool.obj
 ```
 
-Create a pool file based on pool.log file
+Create a pool file based on pool.obj file
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<https://pmem.io>**
+**pmempool**(1), **libpmemobj**(7) and **<https://pmem.io>**

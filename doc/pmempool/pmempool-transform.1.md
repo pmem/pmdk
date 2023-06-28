@@ -29,11 +29,6 @@ header: "pmem Tools version 1.4"
 pmempool transform [options] <poolset_file_src> <poolset_file_dst>
 ```
 
-# NOTE #
-
-> NOTICE:
-The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
-
 # DESCRIPTION #
 
 The **pmempool transform** command modifies internal structure of a pool set
@@ -73,16 +68,16 @@ utilized for storing internal metadata of the pool part files.=e=)
 
 `-d, --dry-run`
 
-: Enable dry run mode. In this mode no changes are applied, only check for
+Enable dry run mode. In this mode no changes are applied, only check for
 viability of the operation is performed.
 
 `-v, --verbose`
 
-: Increase verbosity level.
+Increase verbosity level.
 
 `-h, --help`
 
-: Display help message and exit.
+Display help message and exit.
 
 # EXAMPLES #
 
@@ -151,5 +146,4 @@ unchanged and the size of the pool is still 60M.
 
 # SEE ALSO #
 
-**pmempool(1)**, **libpmemblk(7)**, **libpmemlog(7)**,
-**libpmempool(7)** and **<https://pmem.io>**
+**pmempool(1)**, **libpmemobj(7)**, **libpmempool(7)** and **<https://pmem.io>**
