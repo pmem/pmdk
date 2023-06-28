@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 #
 # magic/TEST0 -- test for magic file script
@@ -24,14 +24,6 @@ POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
 MAGIC=../../../utils/pmdk.magic
 rm -f $LOG && touch $LOG
-
-rm -f $POOL
-expect_normal_exit $PMEMPOOL create blk 512 $POOL
-expect_normal_exit file -m $MAGIC $POOL >> $LOG
-
-rm -f $POOL
-expect_normal_exit $PMEMPOOL create log $POOL
-expect_normal_exit file -m $MAGIC $POOL >> $LOG
 
 rm -f $POOL
 expect_normal_exit $PMEMPOOL create obj $POOL
