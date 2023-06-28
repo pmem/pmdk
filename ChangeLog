@@ -4,6 +4,8 @@
 	- removes libpmempool tests that use log/blk/btt pool types
 	- removes pmempool tests that use log/blk/btt pool types
 	- removes other misc tests using pmempool with log/blk/btt pool types
+	- removes btt specific test and related btt tests tools
+	- removes btt support from pmemspoil
 	- ...
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>

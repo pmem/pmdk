@@ -1,9 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/bttdevice/README.
-
-This directory contains a unit test for tools that use btt device.
-
-The tests in this directory verify the creation of btt pool,
-support for corrupting the pool in pmemspoil tool and analyzing
-the pool by pmempool info.
