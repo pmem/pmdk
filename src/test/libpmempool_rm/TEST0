@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 #
 #
-# libpmempool_rm/TEST0 -- test for pmempool_rm with single-file pools
+# libpmempool_rm/TEST0 -- test for pmempool_rm with single-file pool
 #
 
 . ../unittest/unittest.sh
@@ -16,21 +16,19 @@ setup
 
 enable_log_append
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $DIR/pool.blk
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $DIR/pool.log
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
-check_files $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
+check_files $DIR/pool.obj
 
-# this should remove all the pool files
-expect_normal_exit ./libpmempool_rm$EXESUFFIX $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
+# this should remove the pool file
+expect_normal_exit ./libpmempool_rm$EXESUFFIX $DIR/pool.obj
 
-# check if all pool files are removed
-check_no_files $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
+# check if the file is removed
+check_no_files $DIR/pool.obj
 
-# this should report errors for all files
-expect_normal_exit ./libpmempool_rm$EXESUFFIX $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
+# this should report errors
+expect_normal_exit ./libpmempool_rm$EXESUFFIX $DIR/pool.obj
 # this should ignore all errors
-expect_normal_exit ./libpmempool_rm$EXESUFFIX -f $DIR/pool.blk $DIR/pool.log $DIR/pool.obj
+expect_normal_exit ./libpmempool_rm$EXESUFFIX -f $DIR/pool.obj
 
 check
 
