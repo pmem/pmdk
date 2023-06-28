@@ -36,7 +36,6 @@ containerName=pmdk-${OS}-${OS_VER}
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; fi
-if [[ $BANDIT -eq 1 ]] ; then command="./run-bandit.sh"; fi
 if [[ "$COVERITY" -eq 1 ]]; then command="./run-coverity.sh"; fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
@@ -108,7 +107,6 @@ docker run --rm --name=$containerName -i \
 	--env CI_RUN=$CI_RUN \
 	--env SRC_CHECKERS=$SRC_CHECKERS \
 	--env BLACKLIST_FILE=$BLACKLIST_FILE \
-	--env BANDIT=$BANDIT \
 	$ndctl_enable \
 	--tmpfs /tmp:rw,relatime,suid,dev,exec,size=6G \
 	-v $HOST_WORKDIR:$WORKDIR \
