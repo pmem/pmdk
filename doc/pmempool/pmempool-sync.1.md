@@ -5,7 +5,7 @@ description: ""
 disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
 aliases: ["pmempool-sync.1.html"]
 title: "pmempool | PMDK"
-header: "pmem Tools version 1.4"
+header: "pmem Tools version 1.5"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
@@ -16,7 +16,6 @@ header: "pmem Tools version 1.4"
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -31,11 +30,6 @@ pmempool sync [options] <poolset_file>
 
 NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
-
-# NOTE #
-
-> NOTICE:
-The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 
@@ -58,7 +52,7 @@ be opened are recreated.=e=)
 
 `-b, --bad-blocks`
 
-: Fix bad blocks - it causes creating or reading special recovery files.
+Fix bad blocks - it causes creating or reading special recovery files.
 When bad blocks are detected, special recovery files have to be created
 in order to fix them safely. A separate recovery file is created for each part
 of the pool. The recovery files are created in the same directory
@@ -67,8 +61,8 @@ where the poolset file is located using the following name pattern:
 These recovery files are automatically removed if the sync operation finishes
 successfully.
 
-	If the last sync operation was interrupted and not finished correctly
-(eg. the application crashed) and the bad blocks fixing procedure was
+If the last sync operation was interrupted and not finished correctly
+(e.g. the application crashed) and the bad blocks fixing procedure was
 in progress, the bad block recovery files may be left over. In such case
 bad blocks might have been cleared and zeroed, but the correct data from these
 blocks was not recovered (not copied from a healthy replica), so the recovery
@@ -79,24 +73,23 @@ bad blocks using the left-over bad block recovery files (the bad blocks
 will be read from the saved recovery files). Pmempool will delete the recovery
 files automatically at the end of the sync operation.
 
-	Using this option may have limitations depending on the operating system.
+Using this option may have limitations depending on the operating system.
 For details see description of the CHECK_BAD_BLOCKS feature
 in **pmempool-feature**(1).
 
 `-d, --dry-run`
 
-: Enable dry run mode. In this mode no changes are applied, only check for
+Enable dry run mode. In this mode no changes are applied, only check for
 viability of synchronization.
 
 `-v, --verbose`
 
-: Increase verbosity level.
+Increase verbosity level.
 
 `-h, --help`
 
-: Display help message and exit.
+Display help message and exit.
 
 # SEE ALSO #
 
-**pmempool(1)**, **libpmemblk(7)**, **libpmemlog(7)**,
-**libpmempool(7)** and **<https://pmem.io>**
+**pmempool(1)**, **libpmempool(7)** and **<https://pmem.io>**

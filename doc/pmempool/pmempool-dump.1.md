@@ -5,7 +5,7 @@ description: ""
 disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
 aliases: ["pmempool-dump.1.html"]
 title: "pmempool | PMDK"
-header: "pmem Tools version 1.4"
+header: "pmem Tools version 1.5"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
@@ -16,8 +16,6 @@ header: "pmem Tools version 1.4"
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[RANGE](#range)<br />
-[EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -33,7 +31,12 @@ $ pmempool dump [<options>] <file>
 # NOTE #
 
 > NOTICE:
-The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
+
+The **obj** pool type is not supported by the dump command.
+
+> NOTICE:
+
+The dump command is left only for backward compatibility.
 
 # DESCRIPTION #
 
@@ -45,7 +48,7 @@ By default the output format is hexadecimal.
 By default data is dumped to standard output. It is possible to dump data to other
 file by specifying **-o** option. In this case data will be appended to this file.
 
-Using **-r** option you can specify number of blocks/bytes/data chunks using
+Using **-r** option you can specify number of data chunks using
 special text format. See **RANGE** section for details.
 
 ##### Available options: #####
@@ -53,15 +56,6 @@ special text format. See **RANGE** section for details.
 `-b, --binary`
 
 Dump data in binary format.
-
-`-r, --range <range>`
-
-Range of pool file to dump. This may be number of blocks for **blk** pool
-type or either number of bytes or number of data chunks for **log** pool type.
-
-`-c, --chunk <size>`
-
-Size of chunk for **log** pool type. See **pmemlog_walk**(3) in **libpmemlog**(7) for details.
 
 `-o, --output <file>`
 
@@ -94,28 +88,6 @@ All blocks/bytes/data chunks starting from *\<first\>* will be dumped.
 
 Only *\<number\>* block/byte/data chunk will be dumped.
 
-# EXAMPLE #
-
-```
-$ pmempool dump pool.bin
-```
-
-Dump user data from pool.bin file to standard output
-
-```
-$ pmempool dump -o output.bin -r1,10-100 pool_blk.bin
-```
-
-Dump block number 1 and blocks from 10 to 100 from pool_blk.bin
-containing pmem blk pool to output.bin file
-
-```
-$ pmempool dump -r 1K-2K pool.bin
-```
-
-Dump data form 1K to 2K from pool.bin file.
-
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<https://pmem.io>**
+**pmempool**(1), **libpmemobj**(7) and **<https://pmem.io>**

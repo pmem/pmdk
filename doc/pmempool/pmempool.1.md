@@ -5,7 +5,7 @@ description: ""
 disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
 aliases: ["pmempool.1.html"]
 title: "pmempool | PMDK"
-header: "pmem Tools version 1.4"
+header: "pmem Tools version 1.5"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
@@ -30,11 +30,6 @@ header: "pmem Tools version 1.4"
 ```
 $ pmempool [--help] [--version] <command> [<args>]
 ```
-
-# NOTE #
-
-> NOTICE:
-The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 
@@ -98,8 +93,8 @@ In order to get more information about specific *command* you can use **pmempool
 
 The debug logs are available only in the debug version of the tool,
 which is not provided by binary packages, but can be built from sources.
-The **pmempool.static_debug** binary blob can be found
-in the 'src/tools/pmempool/' subdirectory.
+The **pmempool.static-debug** binary can be found in the 'src/tools/pmempool/'
+subdirectory.
 
 + **PMEMPOOL_TOOL_LOG_LEVEL**
 
@@ -130,5 +125,4 @@ If **PMEMPOOL_TOOL_LOG_FILE** is not set, output is written to *stderr*.
 
 # SEE ALSO #
 
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<https://pmem.io>**
+**libpmempool**(7) and **<https://pmem.io>**
