@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 #
 # pmempool_info/TEST16 -- test for info command
@@ -39,14 +39,6 @@ rm -f $POOLREP
 create_poolset $POOLREP 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z\
 	R 32M:$REPL1:z 32M:$REPL2:z 32M:$REPL3:z
 check_file $POOLREP
-
-rm -f $POOLS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
-
-rm -f $POOLS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
 
 rm -f $POOLS $REPS
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLREP

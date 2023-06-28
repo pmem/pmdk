@@ -1027,23 +1027,6 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 }
 
 /*
- * pmemspoil_process_bttdevice -- process btt device fields
- */
-static int
-pmemspoil_process_bttdevice(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, void *arg)
-{
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS(arena,
-			pmemspoil_get_arena_offset(psp, PROCESS_INDEX,
-					ALIGN_UP(sizeof(struct pool_hdr),
-					BTT_ALIGNMENT)),
-			UINT32_MAX, uint64_t);
-	} PROCESS_END
-	return PROCESS_RET;
-}
-
-/*
  * pmemspoil_process_pmemlog -- process pmemlog fields
  */
 static int
@@ -1232,7 +1215,6 @@ pmemspoil_process(struct pmemspoil *psp,
 		PROCESS(pmemlog, NULL, 1, void *);
 		PROCESS(pmemblk, NULL, 1, void *);
 		PROCESS(pmemobj, NULL, 1, void *);
-		PROCESS(bttdevice, NULL, 1, void *);
 	} PROCESS_END
 
 	return PROCESS_RET;

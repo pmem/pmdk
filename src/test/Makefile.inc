@@ -650,13 +650,6 @@ ifeq ($(USE_PMEMSPOIL), y)
 all: $(TOOLS)/pmemspoil/pmemspoil
 endif
 
-$(TOOLS)/bttcreate/bttcreate:
-	$(MAKE) -C $(TOOLS)/bttcreate all
-
-ifeq ($(USE_BTTCREATE), y)
-all: $(TOOLS)/bttcreate/bttcreate
-endif
-
 $(TOOLS)/pmemwrite/pmemwrite:
 	$(MAKE) -C $(TOOLS)/pmemwrite all
 
