@@ -22,13 +22,8 @@ rm -f $LOG && touch $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
 expect_normal_exit $PMEMWRITE$EXESUFFIX $POOL TEST
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX dump -b -o $LOG $POOL 2> $ERR
-cat $ERR >> $LOG
-rm $ERR
-echo >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX dump -b $POOL >> $LOG 2> $ERR
-cat $ERR >> $LOG
-rm $ERR
-echo >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX dump $POOL >> $LOG 2> $ERR
 
 check
 

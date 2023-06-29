@@ -1,2 +1,1 @@
-NOTE: pmem blk and log pools are deprecated
 Usage: pmempool help <command>

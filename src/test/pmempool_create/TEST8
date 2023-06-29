@@ -36,12 +36,6 @@ create_poolset $POOLREP 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z\
 
 check_file $POOLREP
 
-# PMEMLOG
-rm -f $POOLS
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
-check_files $POOLS
-check_signatures PMEMLOG $POOL1
-
 # PMEMOBJ
 rm -f $POOLS
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME$SUFFIX obj $POOLSET
