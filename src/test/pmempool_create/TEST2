@@ -19,13 +19,6 @@ SIZE=$(((1024 + 512) * 1024 * 1024))
 
 require_free_space $SIZE
 
-# PMEMLOG
-rm -f $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -s $SIZE log $POOL
-check_file $POOL
-check_signature PMEMLOG $POOL
-check_size $SIZE $POOL
-
 #PMEMOBJ
 rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -s $SIZE obj $POOL

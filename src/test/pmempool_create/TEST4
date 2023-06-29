@@ -16,13 +16,6 @@ setup
 
 POOL=$DIR/file.pool
 
-# PMEMLOG
-rm -f $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0555 log $POOL
-check_file $POOL
-check_signature PMEMLOG $POOL
-check_mode 555 $POOL
-
 # PMEMOBJ
 rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -m 0556 --layout=LAYOUT_NAME$SUFFIX obj $POOL
