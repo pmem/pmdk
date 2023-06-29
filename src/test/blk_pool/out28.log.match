@@ -1,4 +1,0 @@
-blk_pool$(nW)TEST28: START: blk_pool$(nW)
- $(nW)blk_pool$(nW) o $(nW)testfile 300
-$(nW)testfile: pmemblk_open: Success
-blk_pool$(nW)TEST28: DONE

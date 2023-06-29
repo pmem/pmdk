@@ -2,9 +2,9 @@
 /* Copyright 2017-2023, Intel Corporation */
 
 /*
- * pool_open.c -- a tool for verifying that an obj/blk pool opens correctly
+ * pool_open.c -- a tool for verifying that an obj pool opens correctly
  *
- * usage: pool_open <path> <obj|blk> <layout>
+ * usage: pool_open <path> <layout>
  */
 #include "unittest.h"
 

@@ -57,7 +57,6 @@
 
 #include <libpmem.h>
 #include <libpmem2.h>
-#include <libpmemblk.h>
 #include <libpmemobj.h>
 #include <libpmempool.h>
 

@@ -23,7 +23,6 @@ contain index of specified structure if there is more than one in a pool file.
 The pmemspoil supports the following structures:
 	- pool_hdr		- see util.h for details
 	- pmemlog		- see log.h for details
-	- pmemblk		- see blk.h for details
 	- arena			- specify arena index
 
 Examples:

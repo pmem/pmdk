@@ -1,24 +1,4 @@
 libpmempool_backup/TEST7: START: libpmempool_test$(nW)
- $(nW)libpmempool_test$(nW) -b $(nW)pool.blk_backup -t blk -r 1 $(nW)pool.blk
-destination of the backup already exists. Do you want to overwrite it?
-checking shutdown state
-shutdown state correct
-checking pool header
-pool header correct
-checking pmemblk header
-pmemblk header correct
-checking BTT Info headers
-arena 0: BTT Info header checksum correct
-checking BTT Map and Flog
-arena 0: checking BTT Map and Flog
-status = consistent
-libpmempool_backup/TEST7: DONE
-libpmempool_backup/TEST7: START: libpmempool_test$(nW)
- $(nW)libpmempool_test$(nW) -b $(nW)pool.blk_backup -t blk -r 1 $(nW)pool.blk
-destination of the backup does not match the size of the source pool file: $(nW)pool.blk_backup
-status = fatal
-libpmempool_backup/TEST7: DONE
-libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.log_backup -t log -r 1 $(nW)pool.log
 destination of the backup already exists. Do you want to overwrite it?
 checking shutdown state
