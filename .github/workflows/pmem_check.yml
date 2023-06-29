@@ -3,7 +3,11 @@
 # This workflow is run on 'self-hosted' runners.
 name: PMEM check
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  workflow_dispatch:
+  schedule:
+    # run this job every 8 hours
+    - cron:  '0 */8 * * *'
 
 jobs:
   linux:
