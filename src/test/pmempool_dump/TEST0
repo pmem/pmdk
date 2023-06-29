@@ -29,6 +29,10 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX dump -b $POOL >> $LOG 2> $ERR
 cat $ERR >> $LOG
 rm $ERR
 echo >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX dump $POOL >> $LOG 2> $ERR
+cat $ERR >> $LOG
+rm $ERR
+echo >> $LOG
 
 check
 
