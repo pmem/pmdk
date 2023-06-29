@@ -17,11 +17,6 @@ OUT_TEMP=out${UNITTEST_NUM}_temp.log
 DIFF=diff${UNITTEST_NUM}.log
 rm -f $LOG $DIFF $OUT_TEMP && touch $LOG $DIFF $OUT_TEMP
 
-# params for log and obj pools
-POOL_TYPES=( obj )
-POOL_CREATE_PARAMS=( "--layout test_layout" )
-POOL_CHECK_PARAMS=( "-soOaAbZH -l -C" )
-
 # create_poolset_variation -- create one from the tested poolset variation
 #    usage: create_poolset_variation <variation-id> [<suffix>]
 #
@@ -85,16 +80,15 @@ function create_poolset_variation() {
 #
 # backup_and_compare -- perform backup and compare backup result with original
 # if compare parameters are provided
-#    usage: backup_and_compare <poolset> <type> [<compare-params>]
+#    usage: backup_and_compare <poolset> [<compare-params>]
 #
 function backup_and_compare () {
 	local poolset=$1
-	local type=$2
-	shift 2
+	shift 1
 
 	# backup
 	expect_normal_exit ../libpmempool_api/libpmempool_test$EXESUFFIX \
-		-b $poolset$BACKUP -t $type -r 1 $poolset
+		-b $poolset$BACKUP -t obj -r 1 $poolset
 	cat $OUT >> $OUT_TEMP
 
 	# compare
