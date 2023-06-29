@@ -1,4 +1,0 @@
-blk_pool$(nW)TEST1: START: blk_pool$(nW)
- $(nW)blk_pool$(nW) c $(nW)testfile 4096 0 0600
-$(nW)testfile: file size 41943040 usable blocks 9965 mode 0600
-blk_pool$(nW)TEST1: DONE

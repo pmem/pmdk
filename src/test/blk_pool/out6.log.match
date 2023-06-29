@@ -1,4 +1,0 @@
-blk_pool$(nW)TEST6: START: blk_pool$(nW)
- $(nW)blk_pool$(nW) c $(nW)testfile 0 0 0640
-$(nW)testfile: pmemblk_create: Invalid argument
-blk_pool$(nW)TEST6: DONE

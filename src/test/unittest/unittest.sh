@@ -285,8 +285,6 @@ fi
 #
 export PMEM_LOG_LEVEL=3
 export PMEM_LOG_FILE=pmem$UNITTEST_NUM.log
-export PMEMBLK_LOG_LEVEL=3
-export PMEMBLK_LOG_FILE=pmemblk$UNITTEST_NUM.log
 export PMEMLOG_LOG_LEVEL=3
 export PMEMLOG_LOG_FILE=pmemlog$UNITTEST_NUM.log
 export PMEMOBJ_LOG_LEVEL=3
@@ -1845,7 +1843,6 @@ function setup() {
 		lock_devdax
 	fi
 
-	export PMEMBLK_CONF="fallocate.at_create=0;"
 	export PMEMOBJ_CONF="fallocate.at_create=0;"
 	export PMEMLOG_CONF="fallocate.at_create=0;"
 }

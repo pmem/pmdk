@@ -1,4 +1,0 @@
-blk_pool$(nW)TEST5: START: blk_pool$(nW)
- $(nW)blk_pool$(nW) c $(nW)testfile 4096 20 0640
-$(nW)testfile: pmemblk_create: No such file or directory
-blk_pool$(nW)TEST5: DONE

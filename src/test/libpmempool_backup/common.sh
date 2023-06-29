@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 #
 #
 # libpmempool_backup/common.sh -- functions for libpmempool_backup unittest
@@ -17,10 +17,10 @@ OUT_TEMP=out${UNITTEST_NUM}_temp.log
 DIFF=diff${UNITTEST_NUM}.log
 rm -f $LOG $DIFF $OUT_TEMP && touch $LOG $DIFF $OUT_TEMP
 
-# params for blk, log and obj pools
-POOL_TYPES=( blk log obj )
-POOL_CREATE_PARAMS=( "--write-layout 512" "" "--layout test_layout" )
-POOL_CHECK_PARAMS=( "-smgB" "-s" "-soOaAbZH -l -C" )
+# params for log and obj pools
+POOL_TYPES=( log obj )
+POOL_CREATE_PARAMS=( "" "--layout test_layout" )
+POOL_CHECK_PARAMS=( "-s" "-soOaAbZH -l -C" )
 POOL_OBJ=2
 
 # create_poolset_variation -- create one from the tested poolset variation

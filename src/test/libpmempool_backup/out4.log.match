@@ -1,10 +1,4 @@
 libpmempool_backup$(nW)TEST4: START: libpmempool_test$(nW)
- $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
-number of part files in the backup poolset must match number of part files in the source poolset
-unable to backup poolset
-status = fatal
-libpmempool_backup$(nW)TEST4: DONE
-libpmempool_backup$(nW)TEST4: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
 number of part files in the backup poolset must match number of part files in the source poolset
 unable to backup poolset

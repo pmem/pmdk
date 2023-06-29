@@ -104,8 +104,7 @@ test_obj(const char *path, int open)
 }
 
 #define USAGE() do {\
-	UT_FATAL("usage: %s file-name type(obj/blk) prefault(0/1/2) "\
-			"open(0/1)", argv[0]);\
+	UT_FATAL("usage: %s file-name prefault(0/1/2) open(0/1)", argv[0]);\
 } while (0)
 
 int
