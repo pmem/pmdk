@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2023, Intel Corporation
 #
 #
 # libpmempool_backup/TEST7 -- test backup to pool which already exists
@@ -16,25 +16,22 @@ setup
 
 . ./common.sh
 
-for (( i=0; i<${#POOL_TYPES[@]}; i++ ));
-do
-	backup_cleanup
+backup_cleanup
 
-	POOLFILE=$DIR/pool.${POOL_TYPES[$i]}
-	rm -f $POOLFILE
+POOLFILE=$DIR/pool.obj
+rm -f $POOLFILE
 
-	# create source poolset
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create ${POOL_TYPES[$i]} \
-		"${POOL_CREATE_PARAMS[$i]}" --size 20M $POOLFILE
+# create source poolset
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj \
+	"--layout test_layout" --size 20M $POOLFILE
 
-	# create backup pool file
-	truncate -s 20M $POOLFILE$BACKUP
-	backup_and_compare $POOLFILE ${POOL_TYPES[$i]}
+# create backup pool file
+truncate -s 20M $POOLFILE$BACKUP
+backup_and_compare $POOLFILE obj
 
-	# create too small backup pool file
-	truncate -s 10M $POOLFILE$BACKUP
-	backup_and_compare $POOLFILE ${POOL_TYPES[$i]}
-done
+# create too small backup pool file
+truncate -s 10M $POOLFILE$BACKUP
+backup_and_compare $POOLFILE obj
 
 mv $OUT_TEMP $OUT
 

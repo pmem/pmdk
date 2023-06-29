@@ -24,7 +24,6 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX xxx &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX "xxx" &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX "\"text.txt;ls\"" &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX rm "\"-rf\"" &>> $LOG
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX info rm * &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX info . &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX info "\"./test.txt;ls\"" &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX create obj rm * &>> $LOG
