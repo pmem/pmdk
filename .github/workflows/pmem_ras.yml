@@ -24,7 +24,11 @@
 # utils/gha-runners/run-ras-linux.yml
 name: PMEM RAS
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  workflow_dispatch:
+  schedule:
+    # run this job every 8 hours
+    - cron:  '0 */8 * * *'
 
 jobs:
   linux:
