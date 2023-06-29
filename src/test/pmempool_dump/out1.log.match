@@ -1,2 +1,4 @@
-00000000  54 45 53 54                                       |TEST            |
-00000000  54 45 53 54                                       |TEST            |
+error: $(nW)/file.pool: PMEMOBJ pool not supported
+
+error: $(nW)/file.pool: PMEMOBJ pool not supported
+
