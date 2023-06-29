@@ -65,29 +65,6 @@ test_obj(const char *path)
 }
 
 static void
-test_blk(const char *path)
-{
-	PMEMblkpool *pbp = pmemblk_open(path, 512);
-
-	if (pbp == NULL)
-		UT_FATAL("!cannot open %s", path);
-
-	char x[512] = "Test blk x";
-	char y[512] = "Test blk y";
-
-	if (pmemblk_write(pbp, &x, 1) < 0)
-		UT_FATAL("cannot write to %s", path);
-
-	if (pmemblk_write(pbp, &y, 2) < 0)
-		UT_FATAL("cannot write to %s", path);
-
-	if (pmemblk_set_zero(pbp, 2) < 0)
-		UT_FATAL("cannot write to %s", path);
-
-	pmemblk_close(pbp);
-}
-
-static void
 test_dax(const char *path)
 {
 	PMEMobjpool *pop = pmemobj_open(path, NULL);
@@ -104,16 +81,13 @@ main(int argc, char *argv[])
 	START(argc, argv, "ctl_cow");
 
 	if (argc < 3)
-		UT_FATAL("usage: %s filename obj|blk|dax", argv[0]);
+		UT_FATAL("usage: %s filename obj|dax", argv[0]);
 
 	const char *path = argv[1];
 	const char *action = argv[2];
 
 	if (strcmp(action, "obj") == 0) {
 		test_obj(path);
-
-	} else if (strcmp(action, "blk") == 0) {
-		test_blk(path);
 
 	} else if (strcmp(action, "dax") == 0) {
 		test_dax(path);

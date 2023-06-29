@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 #
 # compat_incompat_features/TEST1 -- test for compat/incompat feature flags
@@ -22,28 +22,26 @@ create_poolset $POOLSET \
 	20M:$DIR/part0:x \
 	20M:$DIR/part1:x
 
-for type in ${POOL_TYPES[@]}; do
-	# Create poolset
-	expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET >> $LOG_TEMP
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create ${create_args[$type]} \
-		>> $LOG_TEMP
+# Create poolset
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX create ${create_args[obj]} \
+	>> $LOG_TEMP
 
-	# Set compat flag in part 0 header
-	set_compat $DIR/part0 ${UNKNOWN_COMPAT[0]} >> $LOG_TEMP
+# Set compat flag in part 0 header
+set_compat $DIR/part0 ${UNKNOWN_COMPAT[0]} >> $LOG_TEMP
 
-	# Check if pool opens
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
+# Check if pool opens
+expect_abnormal_exit ./pool_open$EXESUFFIX $POOLSET 2>&1
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
 
-	# Set compat flag in part 1 headers
-	set_compat $DIR/part1 ${UNKNOWN_COMPAT[1]} >> $LOG_TEMP
+# Set compat flag in part 1 headers
+set_compat $DIR/part1 ${UNKNOWN_COMPAT[1]} >> $LOG_TEMP
 
-	# Check if pool opens
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
-done
+# Check if pool opens
+expect_abnormal_exit ./pool_open$EXESUFFIX $POOLSET 2>&1
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
 
 mv $LOG_TEMP $LOG
 mv $ERR_TEMP $ERR

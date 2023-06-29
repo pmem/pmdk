@@ -12,30 +12,17 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "compat_incompat_features");
-	if (argc < 3)
-		UT_FATAL("usage: %s <obj|blk> <path>", argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: %s <path>", argv[0]);
 
-	char *type = argv[1];
-	char *path = argv[2];
+	char *path = argv[1];
 
-	if (strcmp(type, "obj") == 0) {
-		PMEMobjpool *pop = pmemobj_open(path, "");
-		if (pop == NULL) {
-			UT_FATAL("!%s: pmemobj_open failed", path);
-		} else {
-			UT_OUT("%s: pmemobj_open succeeded", path);
-			pmemobj_close(pop);
-		}
-	} else if (strcmp(type, "blk") == 0) {
-		PMEMblkpool *pop = pmemblk_open(path, 0);
-		if (pop == NULL) {
-			UT_FATAL("!%s: pmemblk_open failed", path);
-		} else {
-			UT_OUT("%s: pmemblk_open succeeded", path);
-			pmemblk_close(pop);
-		}
+	PMEMobjpool *pop = pmemobj_open(path, "");
+	if (pop == NULL) {
+		UT_FATAL("!%s: pmemobj_open failed", path);
 	} else {
-		UT_FATAL("usage: %s <obj|blk> <path>", argv[0]);
+		UT_OUT("%s: pmemobj_open succeeded", path);
+		pmemobj_close(pop);
 	}
 
 	DONE(NULL);

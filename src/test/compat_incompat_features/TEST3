@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 #
 #
 # compat_incompat_features/TEST3 -- test for compat/incompat feature flags
@@ -22,45 +22,43 @@ create_poolset $POOLSET \
 	20M:$DIR/part0:x \
 	20M:$DIR/part1:x
 
-for type in ${POOL_TYPES[@]}; do
-	# Create poolset
-	expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET >> $LOG_TEMP
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create ${create_args[$type]} \
-		>> $LOG_TEMP
+# Create poolset
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX create ${create_args[obj]} \
+	>> $LOG_TEMP
 
-	# Set compat/incompat flags in headers
-	set_incompat $DIR/part0 $POOL_FEAT_SINGLEHDR >> $LOG_TEMP
+# Set compat/incompat flags in headers
+set_incompat $DIR/part0 $POOL_FEAT_SINGLEHDR >> $LOG_TEMP
 
-	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
+# Check if pool fails to open
+expect_abnormal_exit ./pool_open$EXESUFFIX $POOLSET 2>&1
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
 
-	# Set compat/incompat flags in headers
-	set_incompat $DIR/part0 0 >> $LOG_TEMP
-	set_incompat $DIR/part1 $POOL_FEAT_SINGLEHDR >> $LOG_TEMP
+# Set compat/incompat flags in headers
+set_incompat $DIR/part0 0 >> $LOG_TEMP
+set_incompat $DIR/part1 $POOL_FEAT_SINGLEHDR >> $LOG_TEMP
 
-	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
+# Check if pool fails to open
+expect_abnormal_exit ./pool_open$EXESUFFIX $POOLSET 2>&1
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
 
-	# Set compat/incompat flags in headers
-	set_incompat $DIR/part0 ${UNKNOWN_INCOMPAT[0]} >> $LOG_TEMP
+# Set compat/incompat flags in headers
+set_incompat $DIR/part0 ${UNKNOWN_INCOMPAT[0]} >> $LOG_TEMP
 
-	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
+# Check if pool fails to open
+expect_abnormal_exit ./pool_open$EXESUFFIX $POOLSET 2>&1
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
 
-	# Set compat/incompat flags in headers
-	set_incompat $DIR/part1 ${UNKNOWN_INCOMPAT[1]} >> $LOG_TEMP
+# Set compat/incompat flags in headers
+set_incompat $DIR/part1 ${UNKNOWN_INCOMPAT[1]} >> $LOG_TEMP
 
-	# Check if pool fails to open
-	expect_abnormal_exit ./pool_open$EXESUFFIX $type $POOLSET 2>&1
-	cat $LOG >> $LOG_TEMP
-	cat $ERR >> $ERR_TEMP
-done
+# Check if pool fails to open
+expect_abnormal_exit ./pool_open$EXESUFFIX $POOLSET 2>&1
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
 
 mv $LOG_TEMP $LOG
 mv $ERR_TEMP $ERR
