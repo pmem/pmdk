@@ -10,7 +10,6 @@
 
 require_test_type medium
 require_fs_type pmem non-pmem
-
 setup
 
 POOL=$DIR/file.pool
@@ -28,6 +27,7 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX info rm * &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX info . &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX info "\"./test.txt;ls\"" &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX create obj rm * &>> $LOG
+
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX create "$$&&%%" &>> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX info 'file && ls' &>> $LOG
 

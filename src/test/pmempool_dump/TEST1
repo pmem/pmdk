@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 #
 #
 # pmempool_dump/TEST1 -- test for dump command
@@ -16,12 +16,19 @@ setup
 
 POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
+ERR=err${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
 expect_normal_exit $PMEMWRITE$EXESUFFIX $POOL TEST
-expect_normal_exit $PMEMPOOL$EXESUFFIX dump -o $LOG $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX dump $POOL >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX dump -o $LOG $POOL 2> $ERR
+cat $ERR >> $LOG
+rm $ERR
+echo >> $LOG
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX dump $POOL >> $LOG 2> $ERR
+cat $ERR >> $LOG
+rm $ERR
+echo >> $LOG
 
 check
 

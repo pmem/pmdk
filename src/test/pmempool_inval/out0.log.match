@@ -6,7 +6,6 @@ Usage: pmempool rm [<args>] <files>
 rm: No such file or directory
 .: Is a directory
 ./test.txt;ls: No such file or directory
-error: invalid option specified for obj pool type -- block size
-NOTE: pmem blk and log pools are deprecated
-Usage: pmempool create [<args>] <blk|log|obj> [<bsize>] <file>
+Usage: pmempool create [<args>] [obj] <file>
+Usage: pmempool create [<args>] [obj] <file>
 file: No such file or directory
