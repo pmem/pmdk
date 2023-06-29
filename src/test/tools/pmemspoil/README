@@ -22,11 +22,3 @@ contain index of specified structure if there is more than one in a pool file.
 
 The pmemspoil supports the following structures:
 	- pool_hdr		- see util.h for details
-	- pmemlog		- see log.h for details
-	- arena			- specify arena index
-
-Examples:
-
-In order to change pool_hdr's signature and start offset of pmemlog pool:
-	$ pmemspoil /path/to/file pool_hdr.signature=ERROR\
-				pmemlog.start_offset=0x0
