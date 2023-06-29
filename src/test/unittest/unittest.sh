@@ -285,8 +285,6 @@ fi
 #
 export PMEM_LOG_LEVEL=3
 export PMEM_LOG_FILE=pmem$UNITTEST_NUM.log
-export PMEMLOG_LOG_LEVEL=3
-export PMEMLOG_LOG_FILE=pmemlog$UNITTEST_NUM.log
 export PMEMOBJ_LOG_LEVEL=3
 export PMEMOBJ_LOG_FILE=pmemobj$UNITTEST_NUM.log
 export PMEMPOOL_LOG_LEVEL=3
@@ -1844,7 +1842,6 @@ function setup() {
 	fi
 
 	export PMEMOBJ_CONF="fallocate.at_create=0;"
-	export PMEMLOG_CONF="fallocate.at_create=0;"
 }
 
 #
