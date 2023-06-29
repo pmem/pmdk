@@ -18,10 +18,10 @@ DIFF=diff${UNITTEST_NUM}.log
 rm -f $LOG $DIFF $OUT_TEMP && touch $LOG $DIFF $OUT_TEMP
 
 # params for log and obj pools
-POOL_TYPES=( log obj )
-POOL_CREATE_PARAMS=( "" "--layout test_layout" )
-POOL_CHECK_PARAMS=( "-s" "-soOaAbZH -l -C" )
-POOL_OBJ=2
+POOL_TYPES=( obj )
+POOL_CREATE_PARAMS=( "--layout test_layout" )
+POOL_CHECK_PARAMS=( "-soOaAbZH -l -C" )
+
 
 # create_poolset_variation -- create one from the tested poolset variation
 #    usage: create_poolset_variation <variation-id> [<suffix>]
