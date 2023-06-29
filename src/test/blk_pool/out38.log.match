@@ -1,4 +1,0 @@
-blk_pool$(nW)TEST38: START: blk_pool
- $(nW)blk_pool$(nW) c $(nW)testset 100 0 0640
-$(nW)testset: file size $(N) usable blocks 80592 mode 0666
-blk_pool$(nW)TEST38: DONE

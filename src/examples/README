@@ -18,10 +18,6 @@ libpmem(7) -- low-level persistent memory support
     Example programs are in the libpmem directory.
     More documentation: https://pmem.io/pmdk/libpmem
 
-libpmemblk(7) -- pmem-resident arrays of blocks
-    Example programs are in the libpmemblk directory.
-    More documentation: https://pmem.io/pmdk/libpmemblk
-
 libpmemlog(7) -- pmem-resident log files
     Example programs are in the libpmemlog directory.
     More documentation: https://pmem.io/pmdk/libpmemlog

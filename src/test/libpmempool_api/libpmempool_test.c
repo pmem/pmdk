@@ -112,9 +112,7 @@ main(int argc, char *argv[])
 	while ((opt = getopt(argc, argv, "t:r:d:a:y:s:b:")) != -1) {
 		switch (opt) {
 		case 't':
-			if (strcmp(optarg, "blk") == 0) {
-				args.pool_type = PMEMPOOL_POOL_TYPE_BLK;
-			} else if (strcmp(optarg, "log") == 0) {
+			if (strcmp(optarg, "log") == 0) {
 				args.pool_type = PMEMPOOL_POOL_TYPE_LOG;
 			} else if (strcmp(optarg, "obj") == 0) {
 				args.pool_type = PMEMPOOL_POOL_TYPE_OBJ;

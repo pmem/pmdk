@@ -10,8 +10,3 @@ OBJS = ctl_cow.o
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-# Libpmemblk is deprecated.
-# This flag allows to build tests, examples and benchmarks
-# using pmemblk despite the deprecated state.
-CFLAGS += -Wno-deprecated-declarations

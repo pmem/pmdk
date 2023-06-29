@@ -1,4 +1,0 @@
-blk_recovery$(nW)TEST0: START: blk_recovery
- $(nW)blk_recovery$(nW) 4096 $(nW)testfile1
-$(nW)testfile1: consistent
-blk_recovery$(nW)TEST0: DONE
