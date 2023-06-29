@@ -25,7 +25,6 @@
 #include <libpmem.h>
 #include "common.h"
 #include "output.h"
-#include "btt.h"
 #include "set.h"
 #include "util.h"
 
@@ -740,31 +739,6 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 }
 
 /*
- * pmemspoil_process_pmemlog -- process pmemlog fields
- */
-static int
-pmemspoil_process_pmemlog(struct pmemspoil *psp,
-		struct pmemspoil_list *pfp, void *arg)
-{
-	struct pmemlog pmemlog;
-	if (pmemspoil_read(psp, &pmemlog, sizeof(pmemlog), 0))
-		return -1;
-
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD_LE(&pmemlog, start_offset, uint64_t);
-		PROCESS_FIELD_LE(&pmemlog, end_offset, uint64_t);
-		PROCESS_FIELD_LE(&pmemlog, write_offset, uint64_t);
-	} PROCESS_END
-
-	if (PROCESS_STATE == PROCESS_STATE_FIELD) {
-		if (pmemspoil_write(psp, &pmemlog, sizeof(pmemlog), 0))
-			return -1;
-	}
-
-	return PROCESS_RET;
-}
-
-/*
  * pmemspoil_process_run -- process pmemobj chunk as run
  */
 static int
@@ -925,7 +899,6 @@ pmemspoil_process(struct pmemspoil *psp,
 {
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS(pool_hdr, NULL, 1, void *);
-		PROCESS(pmemlog, NULL, 1, void *);
 		PROCESS(pmemobj, NULL, 1, void *);
 	} PROCESS_END
 
