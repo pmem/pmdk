@@ -17,18 +17,6 @@ setup
 POOL=$DIR/file.pool
 INHERIT=$DIR/inherit.pool
 
-# PMEMLOG
-rm -f $POOL
-rm -f $INHERIT
-expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
-check_file $POOL
-check_signature PMEMLOG $POOL
-SIZE=$(get_size $POOL)
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --inherit $POOL $INHERIT
-check_file $INHERIT
-check_signature PMEMLOG $INHERIT
-check_size $SIZE $INHERIT
-
 # PMEMOBJ
 rm -f $POOL
 rm -f $INHERIT

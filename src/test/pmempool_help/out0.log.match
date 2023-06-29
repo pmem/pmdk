@@ -1,8 +1,6 @@
 usage: pmempool [--version] [--help] <command> [<args>]
-NOTE: pmem blk and log pools are deprecated
 pmempool $(*)
 usage: pmempool [--version] [--help] <command> [<args>]
-NOTE: pmem blk and log pools are deprecated
 pmempool $(*)
 
 $(*)
