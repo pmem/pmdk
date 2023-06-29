@@ -79,11 +79,6 @@ class TEST2(Common):
     checked_lib = 'libpmem'
 
 
-class TEST4(Common):
-    """Check scope of libpmemblk library (*nix)"""
-    checked_lib = 'libpmemblk'
-
-
 class TEST5(Common):
     """Check scope of libpmemobj library (*nix)"""
     checked_lib = 'libpmemobj'

@@ -1,4 +1,0 @@
-blk_pool$(nW)TEST24: START: blk_pool$(nW)
- $(nW)blk_pool$(nW) o $(nW)testfile 1024
-$(nW)testfile: pmemblk_open: Invalid argument
-blk_pool$(nW)TEST24: DONE

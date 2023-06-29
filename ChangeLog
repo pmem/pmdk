@@ -7,7 +7,7 @@
 	- removes btt specific test and related btt tests tools
 	- removes btt support from pmemspoil
 	- removes libpmemlog tests and examples
-	- removes libpmemblk tests (partially)
+	- removes libpmemblk tests and examples
 	- ...
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>

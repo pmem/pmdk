@@ -1,10 +1,4 @@
 libpmempool_backup$(nW)TEST3: START: libpmempool_test$(nW)
- $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
-backup to a poolset with multiple replicas is not supported
-unable to backup poolset
-status = fatal
-libpmempool_backup$(nW)TEST3: DONE
-libpmempool_backup$(nW)TEST3: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
 backup to a poolset with multiple replicas is not supported
 unable to backup poolset
