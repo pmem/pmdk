@@ -1,13 +1,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2021, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # examples/libpmemobj/Makefile -- build the libpmemobj examples
 #
 PROGS = manpage btree pi lists setjmp buffons_needle_problem
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart\
-	linkedlist list_map slab_allocator queue
+DIRS = pminvaders string_store string_store_tx string_store_tx_type hashmap \
+	tree_map pmemobjfs map libart linkedlist list_map slab_allocator queue
 
 LIBS = -lpmemobj -lpmem -pthread -lm -pthread
 

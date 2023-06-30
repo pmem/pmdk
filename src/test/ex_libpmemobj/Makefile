@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # src/test/ex_libpmemobj/Makefile -- build ex_libpmemobj unittest
@@ -21,12 +21,7 @@ EXAMPLES=$(EX_LIBPMEMOBJ)/pi \
 	$(EX_LIBPMEMOBJ)/string_store_tx/writer \
 	$(EX_LIBPMEMOBJ)/string_store_tx/reader \
 	$(EX_LIBPMEMOBJ)/string_store_tx_type/writer \
-	$(EX_LIBPMEMOBJ)/string_store_tx_type/reader \
-	$(EX_LIBPMEMOBJ)/pmemblk/obj_pmemblk \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_minimal \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_simple \
-	$(EX_LIBPMEMOBJ)/pmemlog/obj_pmemlog_macros
+	$(EX_LIBPMEMOBJ)/string_store_tx_type/reader
 
 ifeq ($(NCURSES),y)
 EXAMPLES += $(EX_LIBPMEMOBJ)/pminvaders/pminvaders
