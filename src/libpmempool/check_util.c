@@ -625,13 +625,3 @@ check_get_uuid_str(uuid_t uuid)
 	}
 	return uuid_str;
 }
-
-/*
- * pmempool_check_insert_arena -- insert arena to list
- */
-void
-check_insert_arena(PMEMpoolcheck *ppc, struct arena *arenap)
-{
-	PMDK_TAILQ_INSERT_TAIL(&ppc->pool->arenas, arenap, next);
-	ppc->pool->narenas++;
-}

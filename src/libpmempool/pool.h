@@ -15,9 +15,6 @@
 
 #include "queue.h"
 #include "set.h"
-#include "log.h"
-#include "blk.h"
-#include "btt_layout.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,13 +25,9 @@ extern "C" {
 
 enum pool_type {
 	POOL_TYPE_UNKNOWN	= (1 << 0),
-	POOL_TYPE_LOG		= (1 << 1), /* deprecated */
-	POOL_TYPE_BLK		= (1 << 2), /* deprecated */
 	POOL_TYPE_OBJ		= (1 << 3),
-	POOL_TYPE_BTT		= (1 << 4), /* deprecated */
 
-	POOL_TYPE_ANY		= POOL_TYPE_UNKNOWN | POOL_TYPE_LOG |
-		POOL_TYPE_BLK | POOL_TYPE_OBJ | POOL_TYPE_BTT,
+	POOL_TYPE_ANY		= POOL_TYPE_UNKNOWN | POOL_TYPE_OBJ,
 };
 
 struct pool_params {
@@ -48,9 +41,6 @@ struct pool_params {
 	int is_dev_dax;
 	int is_pmem;
 	union {
-		struct {
-			uint64_t bsize;
-		} blk;
 		struct {
 			char layout[PMEMOBJ_MAX_LAYOUT];
 		} obj;
@@ -69,7 +59,6 @@ struct pool_set_file {
 
 struct arena {
 	PMDK_TAILQ_ENTRY(arena) next;
-	struct btt_info btt_info;
 	uint32_t id;
 	bool valid;
 	bool zeroed;
@@ -83,20 +72,9 @@ struct arena {
 struct pool_data {
 	struct pool_params params;
 	struct pool_set_file *set_file;
-	int blk_no_layout;
 	union {
 		struct pool_hdr pool;
-		struct pmemlog log;
-		struct pmemblk blk;
 	} hdr;
-	enum {
-		UUID_NOP = 0,
-		UUID_FROM_BTT,
-		UUID_NOT_FROM_BTT,
-	} uuid_op;
-	struct arena bttc;
-	PMDK_TAILQ_HEAD(arenashead, arena) arenas;
-	uint32_t narenas;
 };
 
 struct pool_data *pool_data_alloc(PMEMpoolcheck *ppc);
@@ -113,7 +91,6 @@ int pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 int pool_copy(struct pool_data *pool, const char *dst_path, int overwrite);
 int pool_set_part_copy(struct pool_set_part *dpart,
 	struct pool_set_part *spart, int overwrite);
-int pool_memset(struct pool_data *pool, uint64_t off, int c, size_t count);
 
 unsigned pool_set_files_count(struct pool_set_file *file);
 int pool_set_file_map_headers(struct pool_set_file *file, int rdonly, int prv);
@@ -124,14 +101,6 @@ enum pool_type pool_hdr_get_type(const struct pool_hdr *hdrp);
 enum pool_type pool_set_type(struct pool_set *set);
 const char *pool_get_pool_type_str(enum pool_type type);
 
-int pool_btt_info_valid(struct btt_info *infop);
-
-int pool_blk_get_first_valid_arena(struct pool_data *pool,
-	struct arena *arenap);
-int pool_blk_bsize_valid(uint32_t bsize, uint64_t fsize);
-uint64_t pool_next_arena_offset(struct pool_data *pool, uint64_t header_offset);
-uint64_t pool_get_first_valid_btt(struct pool_data *pool,
-	struct btt_info *infop, uint64_t offset, bool *zeroed);
 size_t pool_get_min_size(enum pool_type);
 
 #if FAULT_INJECTION
