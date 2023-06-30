@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2021, Intel Corporation */
+/* Copyright 2016-2023, Intel Corporation */
 
 /*
  * check_pool_hdr.c -- pool header check
@@ -34,7 +34,6 @@ enum question {
 	Q_CRTIME,
 	Q_CHECKSUM,
 	Q_POOLSET_UUID_SET,
-	Q_POOLSET_UUID_FROM_BTT_INFO,
 	Q_POOLSET_UUID_REGENERATE,
 	Q_UUID_SET,
 	Q_UUID_REGENERATE,
@@ -45,18 +44,6 @@ enum question {
 };
 
 /*
- * pool_hdr_possible_type -- (internal) return possible type of pool
- */
-static enum pool_type
-pool_hdr_possible_type(PMEMpoolcheck *ppc)
-{
-	if (pool_blk_get_first_valid_arena(ppc->pool, &ppc->pool->bttc))
-		return POOL_TYPE_BLK;
-
-	return POOL_TYPE_UNKNOWN;
-}
-
-/*
  * pool_hdr_valid -- (internal) return true if pool header is valid
  */
 static int
@@ -65,23 +52,6 @@ pool_hdr_valid(struct pool_hdr *hdrp)
 	return !util_is_zeroed((void *)hdrp, sizeof(*hdrp)) &&
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0,
 			POOL_HDR_CSUM_END_OFF(hdrp));
-}
-
-/*
- * pool_supported -- (internal) check if pool type is supported
- */
-static int
-pool_supported(enum pool_type type)
-{
-	switch (type) {
-	case POOL_TYPE_LOG:
-		return 1;
-	case POOL_TYPE_BLK:
-		return 1;
-	case POOL_TYPE_OBJ:
-	default:
-		return 0;
-	}
 }
 
 /*
@@ -130,20 +100,14 @@ pool_hdr_preliminary_check(PMEMpoolcheck *ppc, location *loc)
 	ASSERT(CHECK_IS(ppc, REPAIR));
 
 	if (ppc->pool->params.type == POOL_TYPE_UNKNOWN) {
-		ppc->pool->params.type = pool_hdr_possible_type(ppc);
-		if (ppc->pool->params.type == POOL_TYPE_UNKNOWN) {
-			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-			return CHECK_ERR(ppc, "cannot determine pool type");
-		}
-	}
-
-	if (!pool_supported(ppc->pool->params.type)) {
 		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
-		return CHECK_ERR(ppc, "the repair of %s pools is not supported",
-			pool_get_pool_type_str(ppc->pool->params.type));
+		return CHECK_ERR(ppc, "cannot determine pool type");
 	}
 
-	return 0;
+	/* there is no pool type which supports repair as of now */
+	ppc->result = CHECK_RESULT_CANNOT_REPAIR;
+	return CHECK_ERR(ppc, "the repair of %s pools is not supported",
+		pool_get_pool_type_str(ppc->pool->params.type));
 }
 
 /*
@@ -375,18 +339,6 @@ pool_hdr_poolset_uuid_find(PMEMpoolcheck *ppc, location *loc)
 	if (loc->replica != 0 || loc->part != 0)
 		goto after_lookup;
 
-	/* for blk pool we can take the UUID from BTT Info header */
-	if (ppc->pool->params.type == POOL_TYPE_BLK && ppc->pool->bttc.valid) {
-		loc->valid_puuid = &ppc->pool->bttc.btt_info.parent_uuid;
-		if (uuidcmp(loc->hdr.poolset_uuid, *loc->valid_puuid) != 0) {
-			CHECK_ASK(ppc, Q_POOLSET_UUID_FROM_BTT_INFO,
-				"%sinvalid pool_hdr.poolset_uuid.|Do you want "
-				"to set it to %s from BTT Info?", loc->prefix,
-				check_get_uuid_str(*loc->valid_puuid));
-			goto exit_question;
-		}
-	}
-
 	if (loc->single_part && loc->single_repl) {
 		/*
 		 * If the pool is not blk pool or BTT Info header is invalid
@@ -495,16 +447,6 @@ pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 
 	switch (question) {
 	case Q_POOLSET_UUID_SET:
-	case Q_POOLSET_UUID_FROM_BTT_INFO:
-		CHECK_INFO(ppc, "%ssetting pool_hdr.poolset_uuid to %s",
-			loc->prefix, check_get_uuid_str(*loc->valid_puuid));
-		memcpy(loc->hdr.poolset_uuid, loc->valid_puuid,
-			POOL_HDR_UUID_LEN);
-		if (question == Q_POOLSET_UUID_SET)
-			ppc->pool->uuid_op = UUID_NOT_FROM_BTT;
-		else
-			ppc->pool->uuid_op = UUID_FROM_BTT;
-		break;
 	case Q_POOLSET_UUID_REGENERATE:
 		if (util_uuid_generate(loc->hdr.poolset_uuid) != 0) {
 			ppc->result = CHECK_RESULT_INTERNAL_ERROR;
@@ -514,7 +456,6 @@ pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 		CHECK_INFO(ppc, "%ssetting pool_hdr.pooset_uuid to %s",
 			loc->prefix,
 			check_get_uuid_str(loc->hdr.poolset_uuid));
-		ppc->pool->uuid_op = UUID_NOT_FROM_BTT;
 		break;
 	default:
 		ERR("not implemented question id: %u", question);

@@ -92,16 +92,6 @@ typedef struct {
 	struct list *list_inval;
 	struct list *list_flog_inval;
 	struct list *list_unmap;
-
-	struct {
-		int btti_header;
-		int btti_backup;
-	} valid;
-
-	struct {
-		struct btt_info btti;
-		uint64_t btti_offset;
-	} pool_valid;
 } location;
 
 /* check steps */
@@ -110,11 +100,6 @@ void check_backup(PMEMpoolcheck *ppc);
 void check_pool_hdr(PMEMpoolcheck *ppc);
 void check_pool_hdr_uuids(PMEMpoolcheck *ppc);
 void check_sds(PMEMpoolcheck *ppc);
-void check_log(PMEMpoolcheck *ppc);
-void check_blk(PMEMpoolcheck *ppc);
-void check_btt_info(PMEMpoolcheck *ppc);
-void check_btt_map_flog(PMEMpoolcheck *ppc);
-void check_write(PMEMpoolcheck *ppc);
 
 struct check_data *check_data_alloc(void);
 void check_data_free(struct check_data *data);
