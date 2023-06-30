@@ -38,50 +38,19 @@ static const struct step steps[] = {
 		.part		= true,
 	},
 	{
-		.type		= POOL_TYPE_BLK | POOL_TYPE_LOG |
-					POOL_TYPE_OBJ,
+		.type		= POOL_TYPE_OBJ,
 		.func		= check_sds,
 		.part		= true,
 	},
 	{
-		.type		= POOL_TYPE_BLK | POOL_TYPE_LOG |
-					POOL_TYPE_OBJ |
-					POOL_TYPE_UNKNOWN,
+		.type		= POOL_TYPE_OBJ | POOL_TYPE_UNKNOWN,
 		.func		= check_pool_hdr,
 		.part		= true,
 	},
 	{
-		.type		= POOL_TYPE_BLK | POOL_TYPE_LOG |
-					POOL_TYPE_OBJ |
-					POOL_TYPE_UNKNOWN,
+		.type		= POOL_TYPE_OBJ | POOL_TYPE_UNKNOWN,
 		.func		= check_pool_hdr_uuids,
 		.part		= true,
-	},
-	{
-		.type		= POOL_TYPE_LOG,
-		.func		= check_log,
-		.part		= false,
-	},
-	{
-		.type		= POOL_TYPE_BLK,
-		.func		= check_blk,
-		.part		= false,
-	},
-	{
-		.type		= POOL_TYPE_BLK | POOL_TYPE_BTT,
-		.func		= check_btt_info,
-		.part		= false,
-	},
-	{
-		.type		= POOL_TYPE_BLK | POOL_TYPE_BTT,
-		.func		= check_btt_map_flog,
-		.part		= false,
-	},
-	{
-		.type		= POOL_TYPE_BLK | POOL_TYPE_LOG |
-					POOL_TYPE_BTT,
-		.func		= check_write,
-		.part		= false,
 	},
 	{
 		.func		= NULL,
