@@ -16,8 +16,6 @@
 #include <linux/fs.h>
 
 #include "libpmem.h"
-#include "libpmemlog.h"
-#include "libpmemblk.h"
 #include "libpmempool.h"
 
 #include "out.h"
@@ -25,74 +23,12 @@
 #include "pool.h"
 #include "lane.h"
 #include "obj.h"
-#include "btt.h"
 #include "file.h"
 #include "os.h"
 #include "set.h"
 #include "check_util.h"
 #include "util_pmem.h"
 #include "mmap.h"
-
-/* arbitrary size of a maximum file part being read / write at once */
-#define RW_BUFFERING_SIZE (128 * 1024 * 1024)
-
-/*
- * pool_btt_lseek -- (internal) perform lseek in BTT file mode
- */
-static inline os_off_t
-pool_btt_lseek(struct pool_data *pool, os_off_t offset, int whence)
-{
-	os_off_t result;
-	if ((result = os_lseek(pool->set_file->fd, offset, whence)) == -1)
-		ERR("!lseek");
-
-	return result;
-}
-
-/*
- * pool_btt_read -- (internal) perform read in BTT file mode
- */
-static inline ssize_t
-pool_btt_read(struct pool_data *pool, void *dst, size_t count)
-{
-	size_t total = 0;
-	ssize_t nread;
-	while (count > total &&
-		(nread = util_read(pool->set_file->fd, dst, count - total))) {
-		if (nread == -1) {
-			ERR("!read");
-			return total ? (ssize_t)total : -1;
-		}
-
-		dst = (void *)((ssize_t)dst + nread);
-		total += (size_t)nread;
-	}
-
-	return (ssize_t)total;
-}
-
-/*
- * pool_btt_write -- (internal) perform write in BTT file mode
- */
-static inline ssize_t
-pool_btt_write(struct pool_data *pool, const void *src, size_t count)
-{
-	ssize_t nwrite = 0;
-	size_t total = 0;
-	while (count > total &&
-		(nwrite = util_write(pool->set_file->fd, src,
-				count - total))) {
-		if (nwrite == -1) {
-			ERR("!write");
-			return total ? (ssize_t)total : -1;
-		}
-
-		src = (void *)((ssize_t)src + nwrite);
-		total += (size_t)nwrite;
-	}
-
-	return (ssize_t)total;
-}
 
 /*
  * pool_set_read_header -- (internal) read a header of a pool set
@@ -197,10 +133,6 @@ static enum pool_type
 pool_check_type_to_pool_type(enum pmempool_pool_type check_pool_type)
 {
 	switch (check_pool_type) {
-	case PMEMPOOL_POOL_TYPE_LOG:
-		return POOL_TYPE_LOG;
-	case PMEMPOOL_POOL_TYPE_BLK:
-		return POOL_TYPE_BLK;
 	case PMEMPOOL_POOL_TYPE_OBJ:
 		return POOL_TYPE_OBJ;
 	default:
@@ -218,7 +150,6 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 	int check)
 {
 	LOG(3, NULL);
-	int is_btt = ppc->args.pool_type == PMEMPOOL_POOL_TYPE_BTT;
 
 	params->type = POOL_TYPE_UNKNOWN;
 	params->is_poolset = util_is_poolset_file(ppc->path) == 1;
@@ -280,14 +211,6 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		}
 		params->is_dev_dax = set->replica[0]->part[0].is_dev_dax;
 		params->is_pmem = set->replica[0]->is_pmem;
-	} else if (is_btt) {
-		params->size = (size_t)stat_buf.st_size;
-		if (params->mode & S_IFBLK)
-			if (ioctl(fd, BLKGETSIZE64, &params->size)) {
-				ERR("!ioctl");
-				goto out_close;
-			}
-		addr = NULL;
 	} else {
 		enum file_type type = util_file_get_type(ppc->path);
 		if (type < 0) {
@@ -313,13 +236,6 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			pmem_is_pmem(addr, params->size);
 	}
 
-	/* stop processing for BTT device */
-	if (is_btt) {
-		params->type = POOL_TYPE_BTT;
-		params->is_part = false;
-		goto out_close;
-	}
-
 	struct pool_hdr hdr;
 	memcpy(&hdr, addr, sizeof(hdr));
 	util_convert2h_hdr_nocheck(&hdr);
@@ -336,11 +252,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		}
 	}
 
-	if (params->type == POOL_TYPE_BLK) {
-		struct pmemblk pbp;
-		memcpy(&pbp, addr, sizeof(pbp));
-		params->blk.bsize = le32toh(pbp.bsize);
-	} else if (params->type == POOL_TYPE_OBJ) {
+	if (params->type == POOL_TYPE_OBJ) {
 		struct pmemobjpool *pop = addr;
 		memcpy(params->obj.layout, pop->layout,
 			PMEMOBJ_MAX_LAYOUT);
@@ -351,7 +263,7 @@ out_unmap:
 		ASSERTeq(fd, -1);
 		ASSERTne(addr, NULL);
 		util_poolset_close(set, DO_NOT_DELETE_PARTS);
-	} else if (!is_btt) {
+	} else {
 		ASSERTne(fd, -1);
 		ASSERTne(addr, NULL);
 		munmap(addr, params->size);
@@ -366,7 +278,7 @@ out_close:
  * pool_set_file_open -- (internal) opens pool set file or regular file
  */
 static struct pool_set_file *
-pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
+pool_set_file_open(const char *fname, int rdonly)
 {
 	LOG(3, NULL);
 
@@ -380,28 +292,22 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 
 	const char *path = file->fname;
 
-	if (params->type != POOL_TYPE_BTT) {
-		int ret = util_poolset_create_set(&file->poolset, path,
-			0, 0, true);
-		if (ret < 0) {
-			LOG(2, "cannot open pool set -- '%s'", path);
-			goto err_free_fname;
-		}
-		unsigned flags = (rdonly ? POOL_OPEN_COW : 0) |
-					POOL_OPEN_IGNORE_BAD_BLOCKS;
-		if (util_pool_open_nocheck(file->poolset, flags))
-			goto err_free_fname;
-
-		file->size = file->poolset->poolsize;
-
-		/* get modification time from the first part of first replica */
-		path = file->poolset->replica[0]->part[0].path;
-		file->addr = file->poolset->replica[0]->part[0].addr;
-	} else {
-		int oflag = rdonly ? O_RDONLY : O_RDWR;
-		file->fd = util_file_open(fname, NULL, 0, oflag);
-		file->size = params->size;
+	int ret = util_poolset_create_set(&file->poolset, path,
+		0, 0, true);
+	if (ret < 0) {
+		LOG(2, "cannot open pool set -- '%s'", path);
+		goto err_free_fname;
 	}
+	unsigned flags = (rdonly ? POOL_OPEN_COW : 0) |
+				POOL_OPEN_IGNORE_BAD_BLOCKS;
+	if (util_pool_open_nocheck(file->poolset, flags))
+		goto err_free_fname;
+
+	file->size = file->poolset->poolsize;
+
+	/* get modification time from the first part of first replica */
+	path = file->poolset->replica[0]->part[0].path;
+	file->addr = file->poolset->replica[0]->part[0].addr;
 
 	os_stat_t buf;
 	if (os_stat(path, &buf)) {
@@ -414,10 +320,7 @@ pool_set_file_open(const char *fname, struct pool_params *params, int rdonly)
 	return file;
 
 err_close_poolset:
-	if (params->type != POOL_TYPE_BTT)
-		util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
-	else if (file->fd != -1)
-		os_close(file->fd);
+	util_poolset_close(file->poolset, DO_NOT_DELETE_PARTS);
 err_free_fname:
 	free(file->fname);
 err:
@@ -463,9 +366,6 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 		return NULL;
 	}
 
-	PMDK_TAILQ_INIT(&pool->arenas);
-	pool->uuid_op = UUID_NOP;
-
 	if (pool_params_parse(ppc, &pool->params, 0))
 		goto error;
 
@@ -478,7 +378,7 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 		goto error;
 	}
 
-	pool->set_file = pool_set_file_open(ppc->path, &pool->params, prv);
+	pool->set_file = pool_set_file_open(ppc->path, prv);
 	if (pool->set_file == NULL)
 		goto error;
 
@@ -493,10 +393,8 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 		PROT_READ) < 0)
 		goto error;
 
-	if (pool->params.type != POOL_TYPE_BTT) {
-		if (pool_set_file_map_headers(pool->set_file, rdonly, prv))
-			goto error;
-	}
+	if (pool_set_file_map_headers(pool->set_file, rdonly, prv))
+		goto error;
 
 	return pool;
 
@@ -534,20 +432,8 @@ pool_data_free(struct pool_data *pool)
 	LOG(3, NULL);
 
 	if (pool->set_file) {
-		if (pool->params.type != POOL_TYPE_BTT)
-			pool_set_file_unmap_headers(pool->set_file);
+		pool_set_file_unmap_headers(pool->set_file);
 		pool_set_file_close(pool->set_file);
-	}
-
-	while (!PMDK_TAILQ_EMPTY(&pool->arenas)) {
-		struct arena *arenap = PMDK_TAILQ_FIRST(&pool->arenas);
-		if (arenap->map)
-			free(arenap->map);
-		if (arenap->flog)
-			free(arenap->flog);
-
-		PMDK_TAILQ_REMOVE(&pool->arenas, arenap, next);
-		free(arenap);
 	}
 
 	free(pool);
@@ -577,14 +463,7 @@ pool_read(struct pool_data *pool, void *buff, size_t nbytes, uint64_t off)
 	if (off + nbytes > pool->set_file->size)
 		return -1;
 
-	if (pool->params.type != POOL_TYPE_BTT)
-		memcpy(buff, (char *)pool->set_file->addr + off, nbytes);
-	else {
-		if (pool_btt_lseek(pool, (os_off_t)off, SEEK_SET) == -1)
-			return -1;
-		if ((size_t)pool_btt_read(pool, buff, nbytes) != nbytes)
-			return -1;
-	}
+	memcpy(buff, (char *)pool->set_file->addr + off, nbytes);
 
 	return 0;
 }
@@ -602,16 +481,9 @@ pool_write(struct pool_data *pool, const void *buff, size_t nbytes,
 	if (off + nbytes > pool->set_file->size)
 		return -1;
 
-	if (pool->params.type != POOL_TYPE_BTT) {
-		memcpy((char *)pool->set_file->addr + off, buff, nbytes);
-		util_persist_auto(pool->params.is_pmem,
-				(char *)pool->set_file->addr + off, nbytes);
-	} else {
-		if (pool_btt_lseek(pool, (os_off_t)off, SEEK_SET) == -1)
-			return -1;
-		if ((size_t)pool_btt_write(pool, buff, nbytes) != nbytes)
-			return -1;
-	}
+	memcpy((char *)pool->set_file->addr + off, buff, nbytes);
+	util_persist_auto(pool->params.is_pmem,
+			(char *)pool->set_file->addr + off, nbytes);
 
 	return 0;
 }
@@ -660,37 +532,10 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 		goto out_close;
 	}
 
-	if (pool->params.type != POOL_TYPE_BTT) {
-		void *saddr = pool_set_file_map(file, 0);
-		memcpy(daddr, saddr, file->size);
-		goto out_unmap;
-	}
-
-	void *buf = malloc(RW_BUFFERING_SIZE);
-	if (buf == NULL) {
-		ERR("!malloc");
-		result = -1;
-		goto out_unmap;
-	}
-
-	if (pool_btt_lseek(pool, 0, SEEK_SET) == -1) {
-		result = -1;
-		goto out_free;
-	}
-	ssize_t buf_read = 0;
-	void *dst = daddr;
-	while ((buf_read = pool_btt_read(pool, buf, RW_BUFFERING_SIZE))) {
-		if (buf_read == -1)
-			break;
-
-		memcpy(dst, buf, (size_t)buf_read);
-		dst  = (void *)((ssize_t)dst + buf_read);
-	}
-
-out_free:
-	free(buf);
-out_unmap:
+	void *saddr = pool_set_file_map(file, 0);
+	memcpy(daddr, saddr, file->size);
 	munmap(daddr, file->size);
+
 out_close:
 	(void) os_close(dfd);
 	return result;
@@ -771,44 +616,6 @@ out_sunmap:
 }
 
 /*
- * pool_memset -- memset pool part described by off and count
- */
-int
-pool_memset(struct pool_data *pool, uint64_t off, int c, size_t count)
-{
-	int result = 0;
-
-	if (pool->params.type != POOL_TYPE_BTT)
-		memset((char *)off, 0, count);
-	else {
-		if (pool_btt_lseek(pool, (os_off_t)off, SEEK_SET) == -1)
-			return -1;
-
-		size_t zero_size = min(count, RW_BUFFERING_SIZE);
-		void *buf = malloc(zero_size);
-		if (!buf) {
-			ERR("!malloc");
-			return -1;
-		}
-		memset(buf, c, zero_size);
-		ssize_t nwrite = 0;
-		do {
-			zero_size = min(zero_size, count);
-			nwrite = pool_btt_write(pool, buf, zero_size);
-			if (nwrite < 0) {
-				result = -1;
-				break;
-			}
-			count -= (size_t)nwrite;
-		} while (count > 0);
-
-		free(buf);
-	}
-
-	return result;
-}
-
-/*
  * pool_set_files_count -- get total number of parts of all replicas
  */
 unsigned
@@ -875,10 +682,6 @@ static const char *
 pool_get_signature(enum pool_type type)
 {
 	switch (type) {
-	case POOL_TYPE_LOG:
-		return LOG_HDR_SIG;
-	case POOL_TYPE_BLK:
-		return BLK_HDR_SIG;
 	case POOL_TYPE_OBJ:
 		return OBJ_HDR_SIG;
 	default:
@@ -899,14 +702,6 @@ pool_hdr_default(enum pool_type type, struct pool_hdr *hdrp)
 	memcpy(hdrp->signature, sig, POOL_HDR_SIG_LEN);
 
 	switch (type) {
-	case POOL_TYPE_LOG:
-		hdrp->major = LOG_FORMAT_MAJOR;
-		hdrp->features = log_format_feat_default;
-		break;
-	case POOL_TYPE_BLK:
-		hdrp->major = BLK_FORMAT_MAJOR;
-		hdrp->features = blk_format_feat_default;
-		break;
 	case POOL_TYPE_OBJ:
 		hdrp->major = OBJ_FORMAT_MAJOR;
 		hdrp->features = obj_format_feat_default;
@@ -922,11 +717,7 @@ pool_hdr_default(enum pool_type type, struct pool_hdr *hdrp)
 enum pool_type
 pool_hdr_get_type(const struct pool_hdr *hdrp)
 {
-	if (memcmp(hdrp->signature, LOG_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
-		return POOL_TYPE_LOG;
-	else if (memcmp(hdrp->signature, BLK_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
-		return POOL_TYPE_BLK;
-	else if (memcmp(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
+	if (memcmp(hdrp->signature, OBJ_HDR_SIG, POOL_HDR_SIG_LEN) == 0)
 		return POOL_TYPE_OBJ;
 	else
 		return POOL_TYPE_UNKNOWN;
@@ -939,12 +730,6 @@ const char *
 pool_get_pool_type_str(enum pool_type type)
 {
 	switch (type) {
-	case POOL_TYPE_BTT:
-		return "btt";
-	case POOL_TYPE_LOG:
-		return "pmemlog";
-	case POOL_TYPE_BLK:
-		return "pmemblk";
 	case POOL_TYPE_OBJ:
 		return "pmemobj";
 	default:
@@ -975,116 +760,12 @@ pool_set_type(struct pool_set *set)
 }
 
 /*
- * pool_btt_info_valid -- check consistency of BTT Info header
- */
-int
-pool_btt_info_valid(struct btt_info *infop)
-{
-	if (memcmp(infop->sig, BTTINFO_SIG, BTTINFO_SIG_LEN) != 0)
-		return 0;
-
-	return util_checksum(infop, sizeof(*infop), &infop->checksum, 0, 0);
-}
-
-/*
- * pool_blk_get_first_valid_arena -- get first valid BTT Info in arena
- */
-int
-pool_blk_get_first_valid_arena(struct pool_data *pool, struct arena *arenap)
-{
-	arenap->zeroed = true;
-	uint64_t offset = pool_get_first_valid_btt(pool, &arenap->btt_info,
-		2 * BTT_ALIGNMENT, &arenap->zeroed);
-
-	if (offset != 0) {
-		arenap->offset = offset;
-		arenap->valid = true;
-		return 1;
-	}
-
-	return 0;
-}
-
-/*
- * pool_next_arena_offset --  get offset of next arena
- *
- * Calculated offset is theoretical. Function does not check if such arena can
- * exist.
- */
-uint64_t
-pool_next_arena_offset(struct pool_data *pool, uint64_t offset)
-{
-	uint64_t lastoff = (pool->set_file->size & ~(BTT_ALIGNMENT - 1));
-	uint64_t nextoff = min(offset + BTT_MAX_ARENA, lastoff);
-	return nextoff;
-}
-
-/*
- * pool_get_first_valid_btt -- return offset to first valid BTT Info
- *
- * - Return offset to valid BTT Info header in pool file.
- * - Start looking from given offset.
- * - Convert BTT Info header to host endianness.
- * - Return the BTT Info header by pointer.
- * - If zeroed pointer provided would check if all checked BTT Info are zeroed
- *	which is useful for BLK pools
- */
-uint64_t
-pool_get_first_valid_btt(struct pool_data *pool, struct btt_info *infop,
-	uint64_t offset, bool *zeroed)
-{
-	/* if we have valid arena get BTT Info header from it */
-	if (pool->narenas != 0) {
-		struct arena *arenap = PMDK_TAILQ_FIRST(&pool->arenas);
-		memcpy(infop, &arenap->btt_info, sizeof(*infop));
-		return arenap->offset;
-	}
-
-	const size_t info_size = sizeof(*infop);
-
-	/* theoretical offsets to BTT Info header and backup */
-	uint64_t offsets[2] = {offset, 0};
-
-	while (offsets[0] < pool->set_file->size) {
-		/* calculate backup offset */
-		offsets[1] = pool_next_arena_offset(pool, offsets[0]) -
-			info_size;
-
-		/* check both offsets: header and backup */
-		for (int i = 0; i < 2; ++i) {
-			if (pool_read(pool, infop, info_size, offsets[i]))
-				continue;
-
-			/* check if all possible BTT Info are zeroed */
-			if (zeroed)
-				*zeroed &= util_is_zeroed((const void *)infop,
-					info_size);
-
-			/* check if read BTT Info is valid */
-			if (pool_btt_info_valid(infop)) {
-				btt_info_convert2h(infop);
-				return offsets[i];
-			}
-		}
-
-		/* jump to next arena */
-		offsets[0] += BTT_MAX_ARENA;
-	}
-
-	return 0;
-}
-
-/*
  * pool_get_min_size -- return the minimum pool size of a pool of a given type
  */
 size_t
 pool_get_min_size(enum pool_type type)
 {
 	switch (type) {
-	case POOL_TYPE_LOG:
-		return PMEMLOG_MIN_POOL;
-	case POOL_TYPE_BLK:
-		return PMEMBLK_MIN_POOL;
 	case POOL_TYPE_OBJ:
 		return PMEMOBJ_MIN_POOL;
 	default:
