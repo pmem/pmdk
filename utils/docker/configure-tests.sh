@@ -49,7 +49,7 @@ config = {
 	'fs_dir_force_pmem': 0,
 	'keep_going': False,
 	'timeout': '3m',
-	'build': ['debug', 'release'],
+	'build': ['debug', 'nondebug'],
 	'force_enable': None,
 	'device_dax_path': [],
 	'fail_on_skip': False,

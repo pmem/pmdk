@@ -98,7 +98,7 @@ In order to get more information about specific *command* you can use **pmempool
 
 The debug logs are available only in the debug version of the tool,
 which is not provided by binary packages, but can be built from sources.
-The **pmempool.static-debug** binary blob can be found
+The **pmempool.static_debug** binary blob can be found
 in the 'src/tools/pmempool/' subdirectory.
 
 + **PMEMPOOL_TOOL_LOG_LEVEL**

@@ -530,8 +530,8 @@ ifeq ($(COMPILE_LANG), cpp)
 LINKER=$(CXX)
 endif
 
-SUFFIX_STATIC_DEBUG=static-debug
-SUFFIX_STATIC_NONDEBUG=static-nondebug
+SUFFIX_STATIC_DEBUG=static_debug
+SUFFIX_STATIC_NONDEBUG=static_nondebug
 
 ifneq ($(TARGET),)
 #
@@ -610,7 +610,7 @@ TSTCHECKS=$(shell ls -1 TEST* 2> /dev/null | grep '^TEST[0-9]\+$$' | sort -V)
 TSTCHECKSPY=$(shell test -f TESTS.py && cd .. && ./RUNTESTS.py --list-testcases $(TST) | while read name; do echo py/$$name; done)
 
 $(TSTCHECKSPY):
-	@cd .. && ./RUNTESTS.py $(subst nondebug,release,$(RUNTEST_OPTIONS)) -u $(shell echo $@ | sed 's/^py\/[^0-9]*\([0-9]*\)$$/\1/') -- ${TST}
+	@cd .. && ./RUNTESTS.py $(RUNTEST_OPTIONS) -u $(shell echo $@ | sed 's/^py\/[^0-9]*\([0-9]*\)$$/\1/') -- ${TST}
 
 $(TSTCHECKS): sync-test
 	@cd .. && ./RUNTESTS.sh ${TST} $(RUNTEST_OPTIONS) -s $@

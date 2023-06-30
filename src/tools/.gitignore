@@ -2,6 +2,6 @@ TAGS
 cscope.in.out
 cscope.po.out
 cscope.out
-*.static-debug
-*.static-nondebug
+*.static_debug
+*.static_nondebug
 .synced

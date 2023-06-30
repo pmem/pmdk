@@ -18,14 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['RUNTESTS.sh -t long -b debug',
-                 'RUNTESTS.sh -t long -b nondebug',
-                 'RUNTESTS.sh -t long -b static-debug',
-                 'RUNTESTS.sh -t long -b static-nondebug',
-                 'RUNTESTS.py -t long -b debug',
-                 'RUNTESTS.py -t long -b release',
-                 'RUNTESTS.py -t long -b static_debug',
-                 'RUNTESTS.py -t long -b static_release']
+        script: ['sh', 'py']
+        build: [ 'debug', 'nondebug', 'static_debug', 'static_nondebug']
 
     env:
       WORKDIR: utils/gha-runners
@@ -44,4 +38,4 @@ jobs:
         run: ./$WORKDIR/create-testconfig.sh
 
       - name: Run tests
-        run: cd src/test/ && ./${{ matrix.config }}
+        run: cd src/test/ && ./RUNTESTS.${{ matrix.script }} -t long -b ${{ matrix.build }}

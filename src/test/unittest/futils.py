@@ -23,7 +23,7 @@ def get_lib_dir(ctx):
     if str(ctx.build) == 'debug':
         return c.DEBUG_LIBDIR
     else:
-        return c.RELEASE_LIBDIR
+        return c.NONDEBUG_LIBDIR
 
 
 def get_example_path(ctx, libname, name, dirname=None):

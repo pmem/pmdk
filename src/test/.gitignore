@@ -7,8 +7,8 @@ testconfig.py
 *.log
 testfile*
 # ignore static binaries generated for testing
-*.static-debug
-*.static-nondebug
+*.static_debug
+*.static_nondebug
 libs.tar
 *.synced
 .sync-dir

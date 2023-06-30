@@ -41,20 +41,20 @@ how RUNTESTS.sh will run a test, use the -n option.  For example:
 	$ RUNTESTS.sh -n blk_nblock -s TEST0
 	(in ./blk_nblock) TEST=check FS=none BUILD=debug ./TEST0
 	(in ./blk_nblock) TEST=check FS=none BUILD=nondebug ./TEST0
-	(in ./blk_nblock) TEST=check FS=none BUILD=static-debug ./TEST0
-	(in ./blk_nblock) TEST=check FS=none BUILD=static-nondebug ./TEST0
+	(in ./blk_nblock) TEST=check FS=none BUILD=static_debug ./TEST0
+	(in ./blk_nblock) TEST=check FS=none BUILD=static_nondebug ./TEST0
 	(in ./blk_nblock) TEST=check FS=pmem BUILD=debug ./TEST0
 	(in ./blk_nblock) TEST=check FS=pmem BUILD=nondebug ./TEST0
-	(in ./blk_nblock) TEST=check FS=pmem BUILD=static-debug ./TEST0
-	(in ./blk_nblock) TEST=check FS=pmem BUILD=static-nondebug ./TEST0
+	(in ./blk_nblock) TEST=check FS=pmem BUILD=static_debug ./TEST0
+	(in ./blk_nblock) TEST=check FS=pmem BUILD=static_nondebug ./TEST0
 	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=debug ./TEST0
 	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=nondebug ./TEST0
-	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=static-debug ./TEST0
-	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=static-nondebug ./TEST0
+	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=static_debug ./TEST0
+	(in ./blk_nblock) TEST=check FS=non-pmem BUILD=static_nondebug ./TEST0
 	(in ./blk_nblock) TEST=check FS=any BUILD=debug ./TEST0
 	(in ./blk_nblock) TEST=check FS=any BUILD=nondebug ./TEST0
-	(in ./blk_nblock) TEST=check FS=any BUILD=static-debug ./TEST0
-	(in ./blk_nblock) TEST=check FS=any BUILD=static-nondebug ./TEST0
+	(in ./blk_nblock) TEST=check FS=any BUILD=static_debug ./TEST0
+	(in ./blk_nblock) TEST=check FS=any BUILD=static_nondebug ./TEST0
 
 Notice how the TEST0 script is run repeatedly with different settings for
 the three environment variables TEST, FS, and BUILD, providing the test type,
@@ -68,7 +68,7 @@ RUNTESTS.sh takes options to limit what it runs.  The usage is:
 	      [ --force-enable memcheck|pmemcheck|helgrind|drd ]] [ -c ]
 	    [tests...]
 
- Build types are: debug, nondebug, static-debug, static-nondebug, all (default)
+ Build types are: debug, nondebug, static_debug, static_nondebug, all (default)
  Test types are: check (default), short, medium, long, all
 		 where: check = short + medium; all = short + medium + long
  File system types are: none, pmem, non-pmem, any, all (default)

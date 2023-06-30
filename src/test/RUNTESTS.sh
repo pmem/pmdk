@@ -22,7 +22,7 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 -n			dry run
 -v			be verbose
 -b build-type		run only specified build type
-			build-type: debug, nondebug, static-debug, static-nondebug, all (default)
+			build-type: debug, nondebug, static_debug, static_nondebug, all (default)
 -t test-type		run only specified test type
 			test-type: check (default), short, medium, long, all
 			where: check = short + medium; all = short + medium + long
@@ -291,7 +291,7 @@ runtest() {
 		}
 
 		fss=$(intersection "$fstype" "$req_fstype" "none pmem non-pmem any")
-		builds=$(intersection "$buildtype" "$req_buildtype" "debug nondebug static-debug static-nondebug")
+		builds=$(intersection "$buildtype" "$req_buildtype" "debug nondebug static_debug static_nondebug")
 
 		# for each fs-type being tested...
 		for fs in $fss
@@ -384,7 +384,7 @@ verbose_tests=
 [ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
 [ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
 
-PMEMDETECT="tools/pmemdetect/pmemdetect.static-nondebug"
+PMEMDETECT="tools/pmemdetect/pmemdetect.static_nondebug"
 pmemdetect() {
 	LD_LIBRARY_PATH=$LIBNDCTL_LD_LIBRARY_PATHS:$LD_LIBRARY_PATH $PMEMDETECT "$@"
 }
@@ -475,7 +475,7 @@ do
 		buildtype="$buildtype $2"
 		case "$2"
 		in
-		debug|nondebug|static-debug|static-nondebug|all)
+		debug|nondebug|static_debug|static_nondebug|all)
 			;;
 		*)
 			usage "bad build-type: $buildtype"

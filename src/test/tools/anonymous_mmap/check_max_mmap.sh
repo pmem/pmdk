@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2023, Intel Corporation
 
 #
 # src/test/tools/anonymous_mmap/check_max_mmap.sh -- checks how many DAX
@@ -10,7 +10,7 @@
 
 DIR_CHECK_MAX_MMAP="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 FILE_MAX_DAX_DEVICES="$DIR_CHECK_MAX_MMAP/max_dax_devices"
-ANONYMOUS_MMAP="$DIR_CHECK_MAX_MMAP/anonymous_mmap.static-nondebug"
+ANONYMOUS_MMAP="$DIR_CHECK_MAX_MMAP/anonymous_mmap.static_nondebug"
 
 source "$DIR_CHECK_MAX_MMAP/../../testconfig.sh"
 
