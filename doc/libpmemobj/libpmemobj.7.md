@@ -112,9 +112,6 @@ build properly.=e=)
 **libpmemobj** is one of a collection of persistent memory libraries available.
 The others are:
 
-+ **libpmemblk**(7), providing pmem-resident arrays of fixed-sized blocks with
-atomic updates.
-
 + **libpmemlog**(7), providing a pmem-resident log file.
 
 + **libpmem**(7), low-level persistent memory support.
@@ -243,5 +240,5 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**OID_IS_NULL**(3), **pmemobj_alloc**(3), **pmemobj_ctl_exec**(3), **pmemobj_ctl_get**(3), **pmemobj_ctl_set**(3), **pmemobj_first**(3), **pmemobj_list_insert**(3), **pmemobj_memcpy_persist**(3), **pmemobj_mutex_zero**(3), **pmemobj_open**(3), **pmemobj_root**(3), **pmemobj_tx_add_range**(3), **pmemobj_tx_alloc**(3), **pmemobj_tx_begin**(3), **POBJ_LAYOUT_BEGIN**(3), **POBJ_LIST_HEAD**(3), **strerror**(3), **TOID_DECLARE**(3), **libpmem**(7), **libpmemblk**(7), **libpmemlog**(7)
+**OID_IS_NULL**(3), **pmemobj_alloc**(3), **pmemobj_ctl_exec**(3), **pmemobj_ctl_get**(3), **pmemobj_ctl_set**(3), **pmemobj_first**(3), **pmemobj_list_insert**(3), **pmemobj_memcpy_persist**(3), **pmemobj_mutex_zero**(3), **pmemobj_open**(3), **pmemobj_root**(3), **pmemobj_tx_add_range**(3), **pmemobj_tx_alloc**(3), **pmemobj_tx_begin**(3), **POBJ_LAYOUT_BEGIN**(3), **POBJ_LIST_HEAD**(3), **strerror**(3), **TOID_DECLARE**(3), **libpmem**(7), **libpmemlog**(7)
 and **<https://pmem.io>**
