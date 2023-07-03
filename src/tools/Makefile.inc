@@ -107,7 +107,6 @@ else
 LIBSDIR_PRIV=$(LIBSDIR_NONDEBUG)
 endif
 
-PMEMLOG_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemlog/libpmemlog_unscoped.o
 PMEMOBJ_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemobj/libpmemobj_unscoped.o
 PMEMBLK_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemblk/libpmemblk_unscoped.o
 
@@ -152,13 +151,6 @@ STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemblk.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemblk.a
 endif
 
-ifeq ($(LIBPMEMLOG), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmemlog
-STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemlog.a
-STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemlog.a
-endif
-
 ifeq ($(LIBPMEMOBJ), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmemobj
@@ -181,7 +173,7 @@ LIBS += $(LIBNDCTL_LIBS)
 endif
 
 # If any of these libraries is required, we need to link libpthread
-ifneq ($(LIBPMEMCORE)$(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEM2)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
+ifneq ($(LIBPMEMCORE)$(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEM2)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMOBJ),)
 LIBS += -pthread
 endif
 
@@ -193,7 +185,6 @@ endif
 ifeq ($(TOOLS_COMMON), y)
 CFLAGS += -I$(TOP)/src/core
 CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmemlog
 CFLAGS += -I$(TOP)/src/libpmemblk
 CFLAGS += -I$(TOP)/src/libpmemobj
 CFLAGS += $(UNIX98_CFLAGS)
@@ -203,10 +194,6 @@ ifeq ($(TOOLS_PMEMPOOL_COMMON), y)
 vpath %.c $(TOP)/src/tools/pmempool
 CFLAGS += -I$(TOP)/src/tools/pmempool
 OBJS += common.o output.o
-endif
-
-ifneq ($(LIBPMEMLOG_PRIV),)
-OBJS += pmemlog_priv.o
 endif
 
 ifneq ($(LIBPMEMOBJ_PRIV),)
@@ -286,12 +273,6 @@ $(TARGET_STATIC_NONDEBUG): $(STATIC_NONDEBUG_LIBS)
 
 $(TARGET):
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
-
-$(PMEMLOG_PRIV_OBJ):
-	$(MAKE) -C $(LIBSDIR) libpmemlog
-
-pmemlog_priv.o: $(PMEMLOG_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMLOG_PRIV)) $< $@
 
 $(PMEMOBJ_PRIV_OBJ):
 	$(MAKE) -C $(LIBSDIR) libpmemobj
