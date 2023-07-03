@@ -6,7 +6,7 @@
 from os.path import join, abspath, dirname
 
 # List of libraries for logging PMDK debug output
-LIBS_LIST = ('pmem', 'pmem2', 'pmemobj', 'pmemlog', 'pmempool')
+LIBS_LIST = ('pmem', 'pmem2', 'pmemobj', 'pmempool')
 
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
