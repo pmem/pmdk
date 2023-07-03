@@ -233,6 +233,33 @@ return one of the following values:
 + **PMEMPOOL_CHECK_RESULT_SYNC_REQ** - the *pool* has single healthy replica.
   To fix remaining issues use **pmempool_sync**(3).
 
+# EXAMPLE #
+
+This is an example of a *check context* initialization:
+
+```c
+struct _U(pmempool_check_args) args =
+{
+	.path = "/path/to/obj.pool",
+	.backup_path = NULL,
+	.pool_type = PMEMPOOL_POOL_TYPE_OBJ,
+	.flags = PMEMPOOL_CHECK_VERBOSE | PMEMPOOL_CHECK_FORMAT_STR
+};
+```
+
+```c
+PMEMpoolcheck *ppc = _U(pmempool_check_init)(&args, sizeof(args));
+```
+
+The check will process a *pool* of type **PMEMPOOL_POOL_TYPE_OBJ**
+located in the path */path/to/obj.pool*. Before the check it will
+not create a backup of the *pool* (*backup_path == NULL*).
+It will also generate
+detailed information about the check (**PMEMPOOL_CHECK_VERBOSE**).
+The **PMEMPOOL_CHECK_FORMAT_STR** flag indicates string
+format statuses (*struct pmempool_check_status*).
+Currently this is the only supported status format so this flag is required.
+
 # NOTES #
 
 Currently, checking the consistency of a *pmemobj* pool is
@@ -240,4 +267,4 @@ Currently, checking the consistency of a *pmemobj* pool is
 
 # SEE ALSO #
 
-**libpmemlog**(7), **libpmemobj**(7) and **<https://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

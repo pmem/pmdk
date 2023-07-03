@@ -56,9 +56,7 @@ for syncing the pool.
 >NOTE: The _UW(pmempool_sync) cannot do anything useful if there
 are no replicas in the pool set.  In such case, it fails with an error.
 
->NOTE: At the moment, replication is only supported for **libpmemobj**(7)
-pools, so _UW(pmempool_sync) cannot be used with other pool types
-(**libpmemlog**(7)).
+>NOTE: Replication is only supported for **libpmemobj**(7) pools.
 
 The following flags are available:
 
@@ -113,9 +111,7 @@ applied. The effective size of a replica is the sum of sizes of all its part
 files decreased by 4096 bytes per each part file. The 4096 bytes of each part
 file is utilized for storing internal metadata of the pool part files.=e=)
 
->NOTE: At the moment, *transform* operation is only supported for
-**libpmemobj**(7) pools, so _UW(pmempool_transform) cannot be used with other
-pool types (**libpmemlog**(7)).
+>NOTE: The *transform* operation is only supported for **libpmemobj**(7) pools.
 
 # RETURN VALUE #
 
@@ -149,4 +145,4 @@ versions of the library.
 
 # SEE ALSO #
 
-**libpmemlog**(7), **libpmemobj**(7) and **<https://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**
