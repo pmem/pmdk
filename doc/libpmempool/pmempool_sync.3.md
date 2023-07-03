@@ -58,7 +58,7 @@ are no replicas in the pool set.  In such case, it fails with an error.
 
 >NOTE: At the moment, replication is only supported for **libpmemobj**(7)
 pools, so _UW(pmempool_sync) cannot be used with other pool types
-(**libpmemlog**(7), **libpmemblk**(7)).
+(**libpmemlog**(7)).
 
 The following flags are available:
 
@@ -115,7 +115,7 @@ file is utilized for storing internal metadata of the pool part files.=e=)
 
 >NOTE: At the moment, *transform* operation is only supported for
 **libpmemobj**(7) pools, so _UW(pmempool_transform) cannot be used with other
-pool types (**libpmemlog**(7), **libpmemblk**(7)).
+pool types (**libpmemlog**(7)).
 
 # RETURN VALUE #
 

@@ -55,9 +55,6 @@ most applications, see:
 + **libpmemobj**(7), a general use persistent memory API, providing memory
   allocation and transactional operations on variable-sized objects.
 
-+ **libpmemblk**(7), providing pmem-resident arrays of fixed-sized blocks
-  with atomic updates.
-
 + **libpmemlog**(7), providing a pmem-resident log file.
 
 The **libpmem2** library provides a comprehensive set of functions for
@@ -303,5 +300,5 @@ by the SNIA NVM Programming Technical Work Group:
 **pmem2_get_persist_fn**(3),**pmem2_map_get_store_granularity**(3),
 **pmem2_map_new**(3), **pmem2_source_from_anon**(3),
 **pmem2_source_from_fd**(3), **libpmem2_unsafe_shutdown**(7),
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
+**libpmemlog**(7), **libpmemobj**(7)
 and **<https://pmem.io>**

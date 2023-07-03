@@ -42,8 +42,7 @@ The entry points are listed in the following format:
 name | r(ead)w(rite)x(ecute) | global/- | read argument type | write argument type | exec argument type | config argument type
 
 A description of **pmem_ctl** functions can be found on the following
-manual pages:
-**libpmemblk_ctl_get**(3), **libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3)
+manual pages: **libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3)
 
 # CTL EXTERNAL CONFIGURATION #
 
@@ -51,7 +50,7 @@ In addition to direct function call, each write entry point can also be set
 using two alternative methods.
 
 The first method is to load a configuration directly from the
-**PMEMBLK_CONF**/ **PMEMLOG_CONF**/ **PMEMOBJ_CONF** environment variable.
+**PMEMLOG_CONF**/ **PMEMOBJ_CONF** environment variable.
 A properly formatted ctl config string is a single-line
 sequence of queries separated by ';':
 
@@ -92,11 +91,11 @@ In summary, a full configuration sequence looks like this:
 As an example, to set both prefault at_open and at_create variables:
 ```
 
-PMEMBLK_CONF="prefault.at_open=1;prefault.at_create=1"
+PMEMOBJ_CONF="prefault.at_open=1;prefault.at_create=1"
 ```
 
 The second method of loading an external configuration is to set the
-**PMEMBLK_CONF_FILE**/ **PMEMLOG_CONF_FILE**/ **PMEMOBJ_CONF_FILE**
+**PMEMLOG_CONF_FILE**/ **PMEMOBJ_CONF_FILE**
 environment variable to point to a file that contains
 a sequence of ctl queries. The parsing rules are all the same, but the file
 can also contain white-spaces and comments.
@@ -108,7 +107,7 @@ An example configuration file:
 
 ```
 #########################
-# My pmemblk configuration
+# My pmemobj configuration
 #########################
 #
 # Global settings:
@@ -124,5 +123,4 @@ prefault.
 ```
 # SEE ALSO #
 
-**libpmemblk_ctl_get**(3), **libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3)
-and **<https://pmem.io>**
+**libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3) and **<https://pmem.io>**

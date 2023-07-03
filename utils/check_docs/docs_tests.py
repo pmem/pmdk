@@ -29,7 +29,7 @@ import sys
 EXPRESSION_AT_THE_LINE_START = r'[\s]*([a-zA-Z_]+)[\\(\s]+'
 EXPRESSION_AFTER_DEFINE_PHRASE = r'[\s]*#define[\s]*([a-zA-Z_]+)[\\(\s]+'
 
-PMDK_LIBRARIES = ['libpmem', 'libpmemblk', 'libpmemlog', 'libpmemobj',
+PMDK_LIBRARIES = ['libpmem', 'libpmemlog', 'libpmemobj',
                   'libpmempool', 'libpmem2']
 
 

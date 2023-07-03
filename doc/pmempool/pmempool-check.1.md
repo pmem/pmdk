@@ -16,7 +16,6 @@ header: "pmem Tools version 1.5"
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
