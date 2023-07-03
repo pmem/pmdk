@@ -35,7 +35,6 @@ SRC=pmembench.cpp\
     clo_vec.cpp\
     config_reader.cpp\
     scenario.cpp\
-    blk.cpp\
     pmem_memset.cpp\
     pmem_memcpy.cpp\
     pmem_flush.cpp\
@@ -52,8 +51,7 @@ SRC=pmembench.cpp\
     pmemobj_tx_add_range.cpp
 
 # Configuration file without the .cfg extension
-CONFIGS=pmembench_blk\
-	pmembench_memset\
+CONFIGS=pmembench_memset\
 	pmembench_memcpy\
 	pmembench_flush\
 	pmembench_obj_pmalloc\
@@ -80,7 +78,7 @@ LIBS += ../debug/libpmemcore.a
 LIBS += ../debug/libpmemcommon.a
 endif
 CFLAGS += $(LIBNDCTL_CFLAGS)
-LIBS += -lpmemobj -lpmemblk -lpmempool -lpmem -pthread -lm \
+LIBS += -lpmemobj -lpmempool -lpmem -pthread -lm \
 	$(LIBDL) $(LIBUUID) $(LIBNDCTL_LIBS)
 ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
@@ -100,10 +98,6 @@ CXXFLAGS += -I../core
 CXXFLAGS += -I../examples/libpmemobj/map
 CXXFLAGS += $(OS_INCS)
 CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
-# Libpmemblk is deprecated.
-# This flag allows to build tests, examples and benchmarks
-# using pmemblk despite the deprecated state.
-CXXFLAGS += -Wno-deprecated-declarations
 
 ifeq ($(OS_DIMM),ndctl)
 CXXFLAGS += -DSDS_ENABLED
