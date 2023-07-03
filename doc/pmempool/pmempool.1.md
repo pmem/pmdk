@@ -130,5 +130,5 @@ If **PMEMPOOL_TOOL_LOG_FILE** is not set, output is written to *stderr*.
 
 # SEE ALSO #
 
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
+**libpmemlog**(7), **libpmemobj**(7)
 and **<https://pmem.io>**

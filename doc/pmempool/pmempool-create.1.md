@@ -44,7 +44,7 @@ Valid pool types are: **blk**, **log** and **obj** which stands for
 the pool file is created with *minimum* allowed size for specified
 pool type. The minimum sizes for **blk**, **log** and **obj** pool
 types are **PMEMBLK_MIN_POOL**, **PMEMLOG_MIN_POOL** and **PMEMOBJ_MIN_POOL**
-respectively. See **libpmemblk**(7), **libpmemlog**(7)
+respectively. See **libpmemlog**(7)
 and **libpmemobj**(7) for details.
 
 For *pmemblk* pool type block size *\<bsize\>* is a required argument.
@@ -149,5 +149,5 @@ Create a pool file based on pool.log file
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
+**pmempool**(1), **libpmemlog**(7),
 **libpmemobj**(7) and **<https://pmem.io>**

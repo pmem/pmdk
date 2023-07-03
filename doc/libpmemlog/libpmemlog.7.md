@@ -97,8 +97,6 @@ The others are:
 + **libpmemobj**(7), a general use persistent memory API,
 	providing memory allocation and transactional operations on variable-sized objects.
 
-+ **libpmemblk**(7), providing pmem-resident arrays of fixed-sized blocks with atomic updates.
-
 + **libpmem**(7), low-level persistent memory support.
 
 Under normal usage, **libpmemlog** will never print messages or intentionally
@@ -320,5 +318,5 @@ by the SNIA NVM Programming Technical Work Group:
 **msync**(2), **pmemlog_append**(3), **pmemlog_create**(3),
 **pmemlog_ctl_exec**(3), **pmemlog_ctl_get**(3), **pmemlog_ctl_set**(3),
 **pmemlog_nbyte**(3), **pmemlog_tell**(3), **strerror**(3),
-**libpmem**(7), **libpmemblk**(7), **libpmemobj**(7)
+**libpmem**(7), **libpmemobj**(7)
 and **<https://pmem.io>**

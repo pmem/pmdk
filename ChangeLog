@@ -10,6 +10,7 @@
 	- removes libpmemblk tests and examples
 	- remove support for Travis bulids
 	- removes benchmarks as pre-work for libpmemblk removal
+	- removes libpmemblk related documentation
 	- ...
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>

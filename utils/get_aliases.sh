@@ -66,12 +66,6 @@ function list_pages {
 		echo "${man_child[@]}" >> $map_file
 	fi
 
-	if [ "$parent" == "libpmemblk" ]; then
-		man_child=($(ls -1 ../libpmemblk | grep -e ".*\.3$"))
-		echo -n "- $parent: " >> $map_file
-		echo "${man_child[@]}" >> $map_file
-	fi
-
 	if [ "$parent" == "libpmemlog" ]; then
 		man_child=($(ls -1 ../libpmemlog | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
