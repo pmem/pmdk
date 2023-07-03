@@ -41,11 +41,14 @@ cat "${WORKDIR}/.codecov.yml" | curl --data-binary @- https://codecov.io/validat
 
 # run codecov's uploader in current dir (WORKDIR), with gcov executable
 # (clean parsed coverage files, set flag and exit 1 if not successful)
-/opt/scripts/codecov --rootDir . --gcov --clean --flags ${flag} --nonZero --verbose
+/opt/scripts/codecov --rootDir . --gcov --clean --flags ${flag} --nonZero --verbose || \
+	echo "::warning file=$0,line=$LINENO::The Codecov's uploader failed"
 echo "Check for any leftover gcov files"
 leftover_files=$(find . -name "*.gcov")
 if [[ -n "${leftover_files}" ]]; then
 	# display found files and exit with error (they all should be parsed)
 	echo "${leftover_files}"
-	return 1
+	echo "::warning file=$0,line=$LINENO::The Codecov's uploader left *.gcov files behind"
+	# The Codecov's uploader is too unreliable to fail a build because of it.
+	return 0
 fi
