@@ -1,13 +1,9 @@
-# Run checks around PMDK's documentation (like missing manpages, etc.).
-#
-# This workflow does not use docker containers.
+# Scan the PMDK's documentation for missing man pages, etc.
 name: Documentation
 
 on:
   workflow_dispatch:
-  schedule:
-    # run this job at 00:00 UTC every Saturday
-    - cron: '0 0 * * 6'
+  workflow_call:
 
 jobs:
   linux:

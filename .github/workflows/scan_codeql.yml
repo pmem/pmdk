@@ -1,29 +1,24 @@
-# Run the CodeQL scanner for finding vulnerabilities in the code (both C and Python).
-#
-# This workflow does not use docker containers.
+# Scan the C/C++ and Python code for vulnerabilities using CodeQL.
 name: CodeQL
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  workflow_dispatch:
+  workflow_call:
 
 jobs:
-  analyze:
-    name: Analyze
+  codeql:
+    name: CodeQL
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       security-events: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'cpp', 'python' ]
-
     steps:
     - name: Clone the git repo
       uses: actions/checkout@v3
 
-    - name: Install required packages
+    - name: Install pmem/valgrind (including dependencies)
       run: |
         export VALGRIND_DEPS="autoconf \
           automake"
@@ -45,12 +40,10 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
-        languages: ${{ matrix.language }}
+        languages: cpp, python
 
-    - name: Run the build
+    - name: Build PMDK
       run: make EXTRA_CFLAGS=-DUSE_VALGRIND test -j$(nproc)
 
-    - name: Perform CodeQL Analysis
+    - name: CodeQL scan
       uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:${{matrix.language}}"

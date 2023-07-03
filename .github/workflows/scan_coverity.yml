@@ -1,11 +1,9 @@
-# Run the public instance of Coverity static analysis
-# for finding vulnerabilities in the code.
+# Scan the C/C++ code for vulnerabilities using Coverity.
 name: Coverity
 
 on:
-  schedule:
-    # run this job at 00:00 UTC every other day
-    - cron:  '0 0 */2 * *'
+  workflow_dispatch:
+  workflow_call:
 
 env:
   GITHUB_REPO: pmem/pmdk
