@@ -67,8 +67,7 @@ manual pages:
 **libpmempool**
 provides a set of utilities for off-line analysis and
 manipulation of a *pool*. A *pool* in this
-manpage means a pmemobj pool or pmemlog pool,
-independent of the underlying storage. Some
+manpage means a pmemobj pool independent of the underlying storage. Some
 **libpmempool** functions are required to work without
 any impact on the *pool* but some may create a new or modify
 an existing *pool*.
@@ -268,5 +267,4 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 **dlclose**(3), **pmempool_check_init**(3), **pmempool_feature_query**(3),
 **pmempool_rm**(3), **pmempool_sync**(3), **strerror**(3), **libpmem**(7),
-**libpmemlog**(7), **libpmemobj**(7)**
-and **<https://pmem.io>**
+**libpmemobj**(7)** and **<https://pmem.io>**
