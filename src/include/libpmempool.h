@@ -25,11 +25,11 @@ extern "C" {
  */
 enum pmempool_pool_type {
 	PMEMPOOL_POOL_TYPE_DETECT,
-	PMEMPOOL_POOL_TYPE_LOG, /* deprecated */
-	PMEMPOOL_POOL_TYPE_BLK, /* deprecated */
+	PMEMPOOL_POOL_TYPE_RESERVED1, /* used to be log */
+	PMEMPOOL_POOL_TYPE_RESERVED2, /* used to be blk */
 	PMEMPOOL_POOL_TYPE_OBJ,
-	PMEMPOOL_POOL_TYPE_BTT, /* deprecated */
-	PMEMPOOL_POOL_TYPE_RESERVED1, /* used to be cto */
+	PMEMPOOL_POOL_TYPE_RESERVED3, /* used to be btt */
+	PMEMPOOL_POOL_TYPE_RESERVED4, /* used to be cto */
 };
 
 /*
