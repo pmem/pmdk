@@ -8,7 +8,7 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 
 # core targets
-TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools libpmem2
+TARGETS = libpmem libpmemblk libpmemobj libpmempool tools libpmem2
 # make all targets
 ALL_TARGETS = $(TARGETS) common core
 # all available targets
@@ -17,8 +17,8 @@ POSSIBLE_TARGETS = $(TARGETS) common core test\
 
 SCOPE_DIRS = $(TARGETS) common core
 
-DEBUG_RELEASE_TARGETS = common core libpmem libpmemblk libpmemlog libpmemobj\
-	libpmempool libpmem2
+DEBUG_RELEASE_TARGETS = common core libpmem libpmemblk libpmemobj libpmempool\
+	libpmem2
 RELEASE_TARGETS = tools
 
 ifneq ($(BUILD_EXAMPLES),n)
@@ -41,16 +41,15 @@ EXAMPLES_TARGETS = $(TARGETS)
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
 HEADERS_INSTALL = include/libpmem.h\
 		include/libpmemobj.h include/libpmempool.h\
-		include/libpmemblk.h include/libpmemlog.h\
-		include/libpmem2.h
+		include/libpmemblk.h include/libpmem2.h
 
 OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
 PMEM2_HEADERS_INSTALL = include/libpmem2/*.h
 
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_COMMON = common.pc
-PKG_CONFIG_FILES = libpmem.pc libpmemobj.pc libpmemlog.pc libpmemblk.pc\
-		libpmempool.pc libpmem2.pc
+PKG_CONFIG_FILES = libpmem.pc libpmemobj.pc libpmemblk.pc libpmempool.pc\
+		libpmem2.pc
 PMREORDER_BIN = $(DESTDIR)$(bindir)
 PMREORDER_SRC = tools/pmreorder
 PMREORDER_FILES = $(PMREORDER_SRC)/*.py
@@ -100,8 +99,8 @@ sparse: $(SPARSE_TARGETS:=-sparse)
 
 custom_build = $(DEBUG)$(OBJDIR)
 
-tools: libpmem libpmemblk libpmemlog libpmemobj libpmempool
-libpmemblk libpmemlog libpmemobj: libpmem
+tools: libpmem libpmemblk libpmemobj libpmempool
+libpmemblk libpmemobj: libpmem
 libpmempool: libpmemblk
 benchmarks test tools: common core
 
