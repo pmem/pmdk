@@ -1,7 +1,6 @@
 ignore:
   - '.*test.*'
   - '.*valgrind.*'
-  - '.*benchmarks.*'
 
 comment:
   layout: "diff"

@@ -42,14 +42,14 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
 
 # Libpmemblk is deprecated.
-# This flag allows to build tests, examples and benchmarks
+# This flag allows to build tests and examples
 # using pmemblk despite the deprecated state.
 CFLAGS += -Wno-deprecated-declarations
 
 include ../Makefile.inc
 
 # Libpmemlog is deprecated.
-# This flag allows to build tests, examples and benchmarks
+# This flag allows to build tests and examples
 # using pmemlog despite the deprecated state.
 CFLAGS += -Wno-deprecated-declarations
 

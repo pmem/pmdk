@@ -29,7 +29,7 @@ LIBPMEMBLK_PRIV=btt_init btt_write btt_fini btt_info_convert2h\
 	btt_info_convert2le btt_flog_convert2h btt_flog_convert2le
 
 # Libpmemblk and libpmemlog are deprecated.
-# This flag allows to build tests, examples and benchmarks
+# This flag allows to build tests and examples
 # using pmemblk/pmemlog despite the deprecated state.
 CFLAGS += -Wno-deprecated-declarations
 

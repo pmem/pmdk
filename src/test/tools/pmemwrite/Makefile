@@ -21,6 +21,6 @@ LIBPMEMBLK_PRIV=btt_info_convert2h
 include $(TOP)/src/tools/Makefile.inc
 
 # Libpmemlog is deprecated.
-# This flag allows to build tests, examples and benchmarks
+# This flag allows to build tests and examples
 # using pmemlog despite the deprecated state.
 CFLAGS += -Wno-deprecated-declarations

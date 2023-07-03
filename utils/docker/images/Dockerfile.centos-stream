@@ -33,10 +33,6 @@ ENV VALGRIND_DEPS "\
 	findutils \
 	git"
 
-# benchmarks dependencies (optional)
-ENV BENCH_DEPS "\
-	glib2-devel"
-
 # examples dependencies (optional)
 ENV EXAMPLES_DEPS "\
 	fuse \

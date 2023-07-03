@@ -34,9 +34,6 @@ ENV VALGRIND_DEPS "autoconf \
 	build-essential \
 	git"
 
-# benchmarks dependencies (optional)
-ENV BENCH_DEPS libglib2.0-dev
-
 # examples dependencies (optional)
 ENV EXAMPLES_DEPS "libfuse-dev \
 	libncurses5-dev \

@@ -98,7 +98,7 @@ check_librt = $(shell echo "int main() { struct timespec t; return clock_gettime
 
 # XXX: required by clock_gettime(), if glibc version < 2.17
 # The os_clock_gettime() function is now in OS abstraction layer,
-# linked to all the librariess, unit tests and benchmarks.
+# linked to all the librariess and unit tests.
 ifeq ($(LIBRT_NEEDED),)
 export LIBRT_NEEDED := $(call check_librt)
 else

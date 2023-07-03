@@ -70,12 +70,6 @@
           - systemd
           - libndctl-devel
 
-    - name: "Install benchmarks dependencies (optional)"
-      package:
-        state: present
-        name:
-          - glib2-devel
-
     - name: "Install examples dependencies (optional)"
       package:
         state: present
