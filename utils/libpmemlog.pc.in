@@ -1,9 +1,0 @@
-includedir=${prefix}/include
-
-Name: libpmemlog
-Description: libpmemlog library from PMDK project
-Version: ${version}
-URL: https://pmem.io/pmdk
-Requires.private: libpmem${rasdeps}
-Libs: -L${libdir} -lpmemlog
-Cflags: -I${includedir}

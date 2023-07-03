@@ -220,12 +220,7 @@ EXTRA_TARGETS_CLEAN = $(EXTRA_TARGETS:=-clean)
 EXTRA_TARGETS_CLOBBER = $(EXTRA_TARGETS:=-clobber)
 endif
 
-PMEMLOG_PRIV_OBJ=$(LIB_OUTDIR)/libpmemlog/libpmemlog_unscoped.o
 PMEMBLK_PRIV_OBJ=$(LIB_OUTDIR)/libpmemblk/libpmemblk_unscoped.o
-
-ifneq ($(LIBPMEMLOG_PRIV_FUNCS),)
-OBJS += pmemlog_priv_funcs.o
-endif
 
 ifneq ($(LIBPMEMBLK_PRIV_FUNCS),)
 OBJS += pmemblk_priv_funcs.o

@@ -36,7 +36,6 @@ echo "Areas computed basing on the list of modified files: (see utils/check-area
 categorize core      -e "^src/core/"
 categorize pmem      -e "^src/libpmem/"     -e "^src/include/libpmem.h"
 categorize pmem2     -e "^src/libpmem2/"    -e "^src/include/libpmem2.h" -e "^src/include/libpmem2/"
-categorize log       -e "^src/libpmemlog/"  -e "^src/include/libpmemlog.h"
 categorize obj       -e "^src/libpmemobj/"  -e "^src/include/libpmemobj.h" -e "^src/include/libpmemobj/"
 categorize pool      -e "^src/libpmempool/" -e "^src/include/libpmempool.h" -e "^src/tools/pmempool/"
 categorize benchmark -e "^src/benchmarks/"

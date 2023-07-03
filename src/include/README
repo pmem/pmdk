@@ -18,8 +18,6 @@ libpmem2.h -- definitions of libpmem2 entry points (see libpmem2(7))
 
 libpmemblk.h -- definitions of libpmemblk entry points (see libpmemblk(7))
 
-libpmemlog.h -- definitions of libpmemlog entry points (see libpmemlog(7))
-
 libpmemobj.h -- definitions of libpmemobj entry points (see libpmemobj(7))
 
 libpmempool.h -- definitions of libpmempool entry points (see libpmempool(7))
