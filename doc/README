@@ -22,7 +22,6 @@ document subdirectories:
 
 libpmem -- low-level persistent memory support
 libpmem2 -- low-level persistent memory support
-libpmemlog -- pmem-resident log files (DEPRECATED)
 libpmemobj -- transactional object store
 libpmempool -- persistent memory pool management library
 pmempool -- persistent memory pool management tool
