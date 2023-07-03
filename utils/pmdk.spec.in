@@ -274,69 +274,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
-%package -n libpmemlog__PKG_NAME_SUFFIX__
-Summary: Persistent Memory Resident Log File library
-Group: __GROUP_SYS_LIBS__
-Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-%description -n libpmemlog__PKG_NAME_SUFFIX__
-The libpmemlog library provides a pmem-resident log file. This is
-useful for programs like databases that append frequently to a log
-file.
-
-%files -n libpmemlog__PKG_NAME_SUFFIX__
-%defattr(-,root,root,-)
-%{_libdir}/libpmemlog.so.*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n libpmemlog-devel
-Summary: Development files for the Persistent Memory Resident Log File library
-Group: __GROUP_DEV_LIBS__
-Requires: libpmemlog__PKG_NAME_SUFFIX__ = %{version}-%{release}
-Requires: libpmem-devel = %{version}-%{release}
-%description -n libpmemlog-devel
-The libpmemlog library provides a pmem-resident log file. This
-library is provided for cases requiring an append-mostly file to
-record variable length entries. Most developers will find higher
-level libraries like libpmemobj to be more generally useful.
-
-%files -n libpmemlog-devel
-%defattr(-,root,root,-)
-%{_libdir}/libpmemlog.so
-%{_libdir}/pkgconfig/libpmemlog.pc
-%{_includedir}/libpmemlog.h
-%{_mandir}/man7/libpmemlog.7.gz
-%{_mandir}/man5/poolset.5.gz
-%{_mandir}/man3/pmemlog_*.3.gz
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n libpmemlog-debug
-Summary: Debug variant of the Persistent Memory Resident Log File library
-Group: __GROUP_DEV_LIBS__
-Requires: libpmemlog__PKG_NAME_SUFFIX__ = %{version}-%{release}
-%description -n libpmemlog-debug
-The libpmemlog library provides a pmem-resident log file. This
-library is provided for cases requiring an append-mostly file to
-record variable length entries. Most developers will find higher
-level libraries like libpmemobj to be more generally useful.
-
-This sub-package contains debug variant of the library, providing
-run-time assertions and trace points. The typical way to access the
-debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/pmdk_debug.
-
-%files -n libpmemlog-debug
-%defattr(-,root,root,-)
-%dir %{_libdir}/pmdk_debug
-%{_libdir}/pmdk_debug/libpmemlog.so
-%{_libdir}/pmdk_debug/libpmemlog.so.*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
 %package -n libpmemobj__PKG_NAME_SUFFIX__
 Summary: Persistent Memory Transactional Object Store library
 Group: __GROUP_SYS_LIBS__
@@ -414,7 +351,7 @@ Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 %description -n libpmempool__PKG_NAME_SUFFIX__
 The libpmempool library provides a set of utilities for off-line
 administration, analysis, diagnostics and repair of persistent memory
-pools created by libpmemlog, libpemblk and libpmemobj libraries.
+pools created by libpemblk and libpmemobj libraries.
 
 %files -n libpmempool__PKG_NAME_SUFFIX__
 %defattr(-,root,root,-)
@@ -431,7 +368,7 @@ Requires: libpmem-devel = %{version}-%{release}
 %description -n libpmempool-devel
 The libpmempool library provides a set of utilities for off-line
 administration, analysis, diagnostics and repair of persistent memory
-pools created by libpmemlog, libpemblk and libpmemobj libraries.
+pools created by libpemblk and libpmemobj libraries.
 
 %files -n libpmempool-devel
 %defattr(-,root,root,-)
@@ -452,7 +389,7 @@ Requires: libpmempool__PKG_NAME_SUFFIX__ = %{version}-%{release}
 %description -n libpmempool-debug
 The libpmempool library provides a set of utilities for off-line
 administration, analysis, diagnostics and repair of persistent memory
-pools created by libpmemlog, libpemblk and libpmemobj libraries.
+pools created by libpemblk and libpmemobj libraries.
 
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
@@ -471,7 +408,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 Summary: Utilities for Persistent Memory
 Group: __GROUP_SYS_BASE__
 Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-Requires: libpmemlog__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemblk__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemobj__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmempool__PKG_NAME_SUFFIX__ >= %{version}-%{release}
@@ -591,8 +527,6 @@ __MAKE_INSTALL_FDUPES__
 %postun -n libpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %post   -n libpmemblk__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmemblk__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-%post   -n libpmemlog__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-%postun -n libpmemlog__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %post   -n libpmemobj__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmemobj__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %post   -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig

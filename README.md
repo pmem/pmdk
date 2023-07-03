@@ -40,12 +40,6 @@ Libraries available in this repository:
 
 - [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
 
-- [libpmemlog](https://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file. (DEPRECATED)
-
-> NOTICE:
-The **libpmemlog** library is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
-
 - [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
 **Libpmemset** has been removed from PMDK repository.
