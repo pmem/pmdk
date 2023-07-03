@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2014-2023, Intel Corporation */
 /*
- * write.c -- simple app for writing data to pool used by pmempool tests
+ * write.c -- simple app for writing data to obj pool used by pmempool tests
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -14,10 +14,6 @@
 
 #include "common.h"
 #include "output.h"
-#include <libpmemlog.h>
-#include <libpmemobj.h>
-#include "mmap.h"
-#include "queue.h"
 
 /*
  * pmemwrite -- context and arguments
@@ -46,35 +42,6 @@ print_usage(char *appname)
 	printf("<blockno>:w:<string>  - write <string> to <blockno> block\n");
 	printf("<blockno>:z           - set zero flag on <blockno> block\n");
 	printf("<blockno>:z           - set error flag on <blockno> block\n");
-}
-
-/*
- * pmemwrite_log -- write data to pmemlog pool file
- */
-static int
-pmemwrite_log(struct pmemwrite *pwp)
-{
-	PMEMlogpool *plp = pmemlog_open(pwp->fname);
-
-	if (!plp) {
-		warn("%s", pwp->fname);
-		return -1;
-	}
-
-	int i;
-	int ret = 0;
-	for (i = 0; i < pwp->nargs; i++) {
-		size_t len = strlen(pwp->args[i]);
-		if (pmemlog_append(plp, pwp->args[i], len)) {
-			warn("%s", pwp->fname);
-			ret = -1;
-			break;
-		}
-	}
-
-	pmemlog_close(plp);
-
-	return ret;
 }
 
 /*
@@ -150,16 +117,10 @@ main(int argc, char *argv[])
 
 	pmem_pool_parse_params(pmemwrite.fname, &params, 1);
 
-	switch (params.type) {
-	case PMEM_POOL_TYPE_LOG:
-		ret = pmemwrite_log(&pmemwrite);
-		break;
-	case PMEM_POOL_TYPE_OBJ:
+	if (params.type == PMEM_POOL_TYPE_OBJ)
 		ret = pmemwrite_obj(&pmemwrite);
-		break;
-	default:
+	else
 		ret = 1;
-	}
 end:
 	return ret;
 }

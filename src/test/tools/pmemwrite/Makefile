@@ -11,16 +11,8 @@ TARGET = pmemwrite
 OBJS = write.o
 
 LIBPMEM=y
-LIBPMEMBLK=y
-LIBPMEMLOG=y
 LIBPMEMOBJ=y
 TOOLS_COMMON=y
 TOOLS_PMEMPOOL_COMMON=y
-LIBPMEMBLK_PRIV=btt_info_convert2h
 
 include $(TOP)/src/tools/Makefile.inc
-
-# Libpmemlog is deprecated.
-# This flag allows to build tests, examples and benchmarks
-# using pmemlog despite the deprecated state.
-CFLAGS += -Wno-deprecated-declarations
