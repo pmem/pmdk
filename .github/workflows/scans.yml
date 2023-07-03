@@ -1,0 +1,22 @@
+# Scan the code for various flaws. See each of the scans for details.
+name: Scans
+
+on:
+  workflow_dispatch:
+  schedule:
+    # run this job at 00:00 UTC every day
+    - cron:  '0 0 * * *'
+
+jobs:
+  call-bandit:
+    uses: ./.github/workflows/scan_bandit.yml
+    name: Bandit
+  call-codeql:
+    uses: ./.github/workflows/scan_codeql.yml
+    name: CodeQL
+  call-coverity:
+    uses: ./.github/workflows/scan_coverity.yml
+    name: Coverity
+  call-documentation:
+    uses: ./.github/workflows/scan_documentation.yml
+    name: Documentation
