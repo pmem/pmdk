@@ -75,13 +75,11 @@ results in the load/store, non-paged access to pmem.
 
 This library is for applications that use persistent memory directly,
 without the help of any library-supplied transactions or memory
-allocation. Higher-level libraries that build on **libpmem** are
-available and are recommended for most applications, see:
+allocation. A higher-level library that relies on **libpmem** is available
+and recommended for most applications, see:
 
 + **libpmemobj**(7), a general use persistent memory API, providing memory
   allocation and transactional operations on variable-sized objects.
-
-+ **libpmemlog**(7), providing a pmem-resident log file.
 
 Under normal usage, **libpmem** will never print messages or
 intentionally cause the process to exit.
@@ -150,8 +148,7 @@ pmem for some reason.
 Unlike the other variables, the value of
 **PMEM_IS_PMEM_FORCE** is not queried (and cached) at
 library initialization time, but on the first call to
-**pmem_is_pmem**(3). This means that in case of
-**libpmemlog**(7) and **libpmemobj**(7),
+**pmem_is_pmem**(3). This means that in case of **libpmemobj**(7),
 **PMEM_IS_PMEM_FORCE** may still be set or modified by the program
 until the first attempt to create or open the persistent
 memory pool.
@@ -361,5 +358,4 @@ recommended by the SNIA NVM Programming Technical Work Group:
 **dlclose**(3),
 **pmem_flush**(3), **pmem_is_pmem**(3), **pmem_memmove_persist**(3),
 **pmem_msync**(3), **pmem_persist**(3), **strerror**(3),
-**libpmemlog**(7), **libpmemobj**(7)
-and **<https://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

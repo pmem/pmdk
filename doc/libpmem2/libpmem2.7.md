@@ -48,14 +48,12 @@ results in the load/store, non-paged access to pmem.
 
 This library is for applications that use persistent memory directly,
 without the help of any library-supplied transactions or memory
-allocation. Higher-level libraries that *currently* build on **libpmem**
-(previous variation of libpmem2) are available and are recommended for
-most applications, see:
+allocation. A higher-level library that *currently* build on **libpmem**
+(previous variation of libpmem2) is available and recommended
+for most applications, see:
 
 + **libpmemobj**(7), a general use persistent memory API, providing memory
   allocation and transactional operations on variable-sized objects.
-
-+ **libpmemlog**(7), providing a pmem-resident log file.
 
 The **libpmem2** library provides a comprehensive set of functions for
 robust use of Persistent Memory. It relies on three core concepts:
@@ -300,5 +298,4 @@ by the SNIA NVM Programming Technical Work Group:
 **pmem2_get_persist_fn**(3),**pmem2_map_get_store_granularity**(3),
 **pmem2_map_new**(3), **pmem2_source_from_anon**(3),
 **pmem2_source_from_fd**(3), **libpmem2_unsafe_shutdown**(7),
-**libpmemlog**(7), **libpmemobj**(7)
-and **<https://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**
