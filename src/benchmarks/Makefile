@@ -36,7 +36,6 @@ SRC=pmembench.cpp\
     config_reader.cpp\
     scenario.cpp\
     log.cpp\
-    blk.cpp\
     pmem_memset.cpp\
     pmem_memcpy.cpp\
     pmem_flush.cpp\
@@ -54,7 +53,6 @@ SRC=pmembench.cpp\
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
-	pmembench_blk\
 	pmembench_memset\
 	pmembench_memcpy\
 	pmembench_flush\
@@ -82,7 +80,7 @@ LIBS += ../debug/libpmemcore.a
 LIBS += ../debug/libpmemcommon.a
 endif
 CFLAGS += $(LIBNDCTL_CFLAGS)
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmempool -lpmem -pthread -lm \
+LIBS += -lpmemobj -lpmemlog -lpmempool -lpmem -pthread -lm \
 	$(LIBDL) $(LIBUUID) $(LIBNDCTL_LIBS)
 ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
@@ -102,9 +100,9 @@ CXXFLAGS += -I../core
 CXXFLAGS += -I../examples/libpmemobj/map
 CXXFLAGS += $(OS_INCS)
 CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
-# Libpmemblk and libpmemlog are deprecated.
+# Libpmemlog is deprecated.
 # This flag allows to build tests, examples and benchmarks
-# using pmemblk/pmemlog despite the deprecated state.
+# using pmemlog despite the deprecated state.
 CXXFLAGS += -Wno-deprecated-declarations
 
 ifeq ($(OS_DIMM),ndctl)
