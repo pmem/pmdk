@@ -5,7 +5,7 @@ description: ""
 disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
 aliases: ["pmempool-rm.1.html"]
 title: "pmempool | PMDK"
-header: "pmem Tools version 1.4"
+header: "pmem Tools version 1.5"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
@@ -29,11 +29,6 @@ header: "pmem Tools version 1.4"
 $ pmempool rm [<options>] <file>..
 ```
 
-# NOTE #
-
-> NOTICE:
-The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0 release.
-
 # DESCRIPTION #
 
 The **pmempool rm** command removes each specified file. If the specified file
@@ -43,7 +38,7 @@ files. All pool files are removed using **unlink**(3) call,
 except the pools created on **device dax** which are zeroed instead.
 If specified file does not exist the **pmempool rm** command terminates with an error code.
 By default it prompts before removing *write-protected* files.
-See **EXAMPLES** section for example usage of the *rm* command.
+See the **EXAMPLE** section for an example usage of the *rm* command.
 
 ##### Available options: #####
 
@@ -78,7 +73,7 @@ Prompt before removing every single file.
 # EXAMPLE #
 
 ```
-$ pmempool rm pool.obj pool.blk
+$ pmempool rm pool1.obj pool2.obj
 ```
 
 Remove specified pool files.
@@ -87,15 +82,15 @@ Remove specified pool files.
 $ pmempool rm pool.set
 ```
 
-Remove all pool files from the "pool.set", do not remove *pool.set* itself.
+Remove all pool files defined in the *pool.set* file.
+Do not remove *pool.set* itself.
 
 ```
 $ pmempool rm -a pool.set
 ```
 
-Remove all pool files from the "pool.set".
+Remove all pool files defined in the *pool.set* file and remove the *pool.set* itself.
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<https://pmem.io>**
+**pmempool**(1), **libpmemobj**(7) and **<https://pmem.io>**

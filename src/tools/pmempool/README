@@ -102,11 +102,7 @@ pmempool with *info* command should be invoked off-line. Using pmempool on
 pool file which may be modified by another process may lead to stopping
 processing the file.
 
-There is a set of common features for all pool types and a set of features
-specific for particular pool type.
-All features are described below.
-
-** Common features
+Below is the description of available features:
 
  * The basic function of *info* command is to print information about the
    most important internal data structures from specific pool. By default this
@@ -136,34 +132,6 @@ All features are described below.
    them in more human-readable formats with appropriate units
    (e.g. 4k, 8M, 16G).
 
-** Features for *log* pool type (DEPRECATED)
-
- * By default pmempool with *info* command displays the pool header, log pool
-   type specific header and statistics. It is possible to print data in
-   hexadecimal format by passing appropriate command line option.
-
- * It is possible to walk through the usable data using fixed data chunk size.
-   This feature uses similar approach as pmemlog_walk() function. For details
-   please refer to libpmemlog(7).
-
-** Features for *blk* pool type (DEPRECATED)
-
- * By default pmempool with *info* command displays the pool header, blk pool
-   type specific header, BTT Info header and statistics.
-
- * It is possible to print more headers and internal data by passing specific
-   command line options. It is possible to print the following sections:
-   BTT Map entries, BTT FLOG, BTT Info backup and data blocks.
-
- * It is possible to print specific range of blocks in both absolute or relative
-   manner (e.g. display blocks from 10 to 1000, display 10 blocks starting from
-   block number 1000)
-
- * By default when displaying data blocks all blocks are displayed. However it
-   is possible to skip blocks marked with zero or error flags, or to skip blocks
-   which are not marked by any flag. Skipping blocks has impact on blocks ranges
-   (e.g. display 10 blocks marked with error flag in the range from 0 to 10000)
-
 2.2. check
 ----------
 
@@ -171,33 +139,17 @@ The pmempool invoked with *check* command checks existing pool's consistency.
 If the pool is consistent pmempool exits with exit code 0. Otherwise nonzero
 error code is returned and appropriate message is displayed.
 
-In addition it may also try to fix some common known errors upon explicit demand
-of user. In this case a pool file will be opened in read-write mode so the user
-should be aware of modifications made by pmempool application.
-
 Below is the description of available features:
 
- * By default pmempool with *check* command prints brief description about
+ * Pmempool with *check* command prints brief description about
    encountered error(s) and proper error value is returned. If there is no error
    nothing is printed and exit code is 0.
-
- * If an error is encountered while checking a consistency of a pool it is
-   possible to try to fix all errors. In this case the pool file will be opened
-   in read-write mode.
-
- * User may request to _not_ modify pool's file when trying to repair it but
-   just to report what would be done if the repair was performed.
-
- * When repairing a pool user may request to create backup before any
-   modification is made. If it is not possible to create full backup of existing
-   pool, the process will terminate.
 
 2.3. create
 -----------
 
-The pmempool invoked with *create* command creates a pool file of specific
-type and size. Depending on pool's type it is possible to provide more desired
-properties of a pool.
+The pmempool invoked with the *create* command creates a pool file of a specific
+type and size.
 
 Below is the description of available features:
 
@@ -227,12 +179,6 @@ Below is the description of available features:
 
  * By default data is dumped to standard output. However it is possible to
    specify a file name to dump data into.
-
- * In case of pmem blk pool type it is possible to set range of blocks in either
-   absolute or relative manner. (DEPRECATED)
-
- * In case of pmem log pool type it is possible to set size of chunk and range
-   of chunks to dump in either absolute or relative manner. (DEPRECATED)
 
 2.5. rm
 -------

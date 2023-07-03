@@ -5,7 +5,7 @@ description: ""
 disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
 aliases: ["pmempool-feature.1.html"]
 title: "pmempool | PMDK"
-header: "pmem Tools version 1.4"
+header: "pmem Tools version 1.5"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)

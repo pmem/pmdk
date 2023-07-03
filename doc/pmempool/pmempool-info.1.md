@@ -5,7 +5,7 @@ description: ""
 disclaimer: "The contents of this web site and the associated <a href=\"https://github.com/pmem\">GitHub repositories</a> are BSD-licensed open source."
 aliases: ["pmempool-info.1.html"]
 title: "pmempool | PMDK"
-header: "pmem Tools version 1.4"
+header: "pmem Tools version 1.5"
 ---
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
@@ -30,13 +30,6 @@ header: "pmem Tools version 1.4"
 ```
 $ pmempool info [<options>] <file>
 ```
-
-# NOTE #
-
-> NOTICE:
-
-The **libpmemblk** and **libpmemlog** libraries are deprecated (this affects pool types
-**blk**, **btt** and **log**) since PMDK 1.13.0 release.
 
 # DESCRIPTION #
 
@@ -69,42 +62,37 @@ The statistics are specific to the type of pool. See **STATISTICS** section for 
 Although the pool consistency is *not* checked by the *info* command,
 it prints information about checksum errors and/or offsets errors.
 
-##### Common options: #####
+##### Available options: #####
 
 By default the *info* command of **pmempool** prints information about the most important
 internal data structures from pool. The particular set of headers and meta-data depend on
 pool type. The pool type is recognized automatically and appropriate information is displayed
 in human-readable format.
 
-To force processing specified file(s) as desired pool type use **-f** option with appropriate
-name of pool type. The valid names off pool types are **blk**, **log**, **obj** or **btt**.
-This option may be useful when the pool header is corrupted and automatic recognition of
-pool type fails.
+To force processing specified file(s) as desired pool type use **-f** option
+with appropriate name of pool type. The valid name of the pool type is **obj**.
+This option may be useful when the pool header is corrupted and automatic
+recognition of pool type fails.
 
-`-f, --force blk|log|obj|btt`
+`-f, --force obj`
 
 Force parsing pool as specified pool type.
 
 >NOTE:
 By default only pool headers and internal meta-data are displayed.
 To display user data use **-d** option. Using **-r** option you can
-specify number of blocks/bytes/data chunks or objects using special
-text format. See **RANGE** section for details. The range refers to
-*block numbers* in case of pmem blk pool type, to *chunk numbers*
-in case of pmem log pool type and to *object numbers* in case of
-pmem obj pool type.
-See **EXAMPLES** section for an example of usage of these options.
+specify number of objects using special text format.
+See **RANGE** section for details. The range refers to
+*object numbers* in case of pmem obj pool type.
+See the **EXAMPLE** section for an example of usage of these options.
 
 `-d, --data`
 
 Dump user data in hexadecimal format.
-In case of pmem *blk* pool type data is dumped in *blocks*.
-In case of pmem *log* pool type data is dumped as a wholeor in *chunks* if **-w**
-option is used (See **Options for PMEMLOG** section for details).
 
 `-r, --range <range>`
 
-Range of blocks/data chunks/objects/zone headers/chunk headers/lanes.
+Range of objects/zone headers/chunk headers/lanes.
 See **RANGE** section for details about range format.
 
 `-n, --human`
@@ -129,35 +117,6 @@ Print bad blocks found in the pool.
 
 Display help message and exit.
 
-##### Options for PMEMLOG: #####
-
-`-w, --walk <size>`
-
-Use this option to walk through used data with fixed data chunk size.
-See **pmemlog_walk**(3) in **libpmemlog**(7) for details.
-
-##### Options for PMEMBLK: #####
-
-By default the *info* command displays the **pmemblk** header and
-BTT (Block Translation Table) Info header in case of **pmemblk** pool type.
-
-To display BTT Map and/or BTT FLOG (Free List and Log) use **-m**
-and **-g** options respectively or increase verbosity level.
-
-In order to display BTT Info header backup use **-B** option.
-
-`-m, --map`
-
-Print BTT Map entries.
-
-`-g, --flog`
-
-Print BTT FLOG entries.
-
-`-B, --backup`
-
-Print BTT Info header backup.
-
 >NOTE:
 By default the *info* command displays all data blocks when **-d** options is used.
 However it is possible to skip blocks marked with *zero* and/or *error* flags.
@@ -176,8 +135,6 @@ Skip blocks marked with *error* flag.
 `-u, --skip-no-flag`
 
 Skip blocks *not* marked with any flag.
-
-##### Options for PMEMOBJ: #####
 
 By default the *info* command displays pool header and **pmemobj** pool descriptor.
 In order to print information about other data structures one of the
@@ -270,43 +227,23 @@ You can specify multiple ranges separated by commas.
 
 `<first>-<last>`
 
-All blocks/bytes/data chunks from *\<first\>* to *\<last\>* will be dumped.
+All data chunks from *\<first\>* to *\<last\>* will be dumped.
 
 `-<last>`
 
-All blocks/bytes/data chunks up to *\<last\>* will be dumped.
+All data chunks up to *\<last\>* will be dumped.
 
 `<first>-`
 
-All blocks/bytes/data chunks starting from *\<first\>* will be dumped.
+All data chunks starting from *\<first\>* will be dumped.
 
 `<number>`
 
-Only *\<number\>* block/byte/data chunk will be dumped.
+Only *\<number\>* data chunk will be dumped.
 
 # STATISTICS #
 
-Below is the description of statistical measures for specific pool types.
-
-##### PMEMLOG #####
-
-+ **Total** - Total space in pool.
-+ **Available** - Size and percentage of available space.
-+ **Used** - Size and percentage of used space.
-
-##### PMEMBLK #####
-
-+ **Total blocks** - Total number of blocks in pool.
-+ **Zeroed blocks** - Number and percentage of blocks marked with *zero* flag.
-+ **Error blocks** - Number and percentage of blocks marked with *error* flag.
-+ **Blocks without any flag** - Number and percentage of blocks *not* marked with any flag.
-
->NOTE:
-In case of pmemblk, statistics are evaluated for blocks which meet requirements regarding:
-*range* of blocks (**-r** option),
-*skipped* types of blocks (**-z**, **-e**, **-u** options).
-
-##### PMEMOBJ #####
+Below is the description of statistical measures for the *obj* pool type.
 
 + **Object store**
 
@@ -335,31 +272,24 @@ In case of pmemblk, statistics are evaluated for blocks which meet requirements 
 # EXAMPLE #
 
 ```
-$ pmempool info ./pmemblk
+$ pmempool info pool.obj
 ```
 
-Parse and print information about "pmemblk" pool file.
+Parse and print information about pool.obj pool file.
 
 ```
-$ pmempool info -f blk ./pmempool
+$ pmempool info -d pool.obj
 ```
 
-Force parsing "pmempool" file as **pmemblk** pool type.
+Print information and data in hexadecimal dump format for the pool.obj file.
 
 ```
-$ pmempool info -d ./pmemlog
+$ pmempool info -d -r10-100 -eu pool.obj
 ```
 
-Print information and data in hexadecimal dump format for file "pmemlog".
-
-```
-$ pmempool info -d -r10-100 -eu ./pmemblk
-```
-
-Print information from "pmemblk" file. Dump data blocks from 10 to 100,
+Print information from the pool.obj file. Dump data chunks from 10 to 100,
 skip blocks marked with error flag and not marked with any flag.
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<https://pmem.io>**
+**pmempool**(1), **libpmemobj**(7) and **<https://pmem.io>**
