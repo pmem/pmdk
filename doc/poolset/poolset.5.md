@@ -36,17 +36,16 @@ mypool.set
 Depending on the configuration of the system, the available non-volatile
 memory space may be divided into multiple memory devices. In such case, the
 maximum size of the transactional object store could be limited by the capacity
-of a single memory device. Therefore, **libpmemobj**(7) and
-**libpmemlog**(7) allow building object stores spanning multiple memory devices
-by creation of persistent memory pools consisting of multiple files, where each
-part of such a *pool set* may be stored on a different pmem-aware filesystem.
+of a single memory device. Therefore, **libpmemobj**(7) allows building object
+stores spanning multiple memory devices by creation of persistent memory pools
+consisting of multiple files, where each part of such a *pool set* may be stored
+on a different pmem-aware filesystem.
 
 To improve reliability and eliminate single point of failure, **libpmemobj**(7)
 also allows all the data written to a persistent memory pool to be copied
 to local pool *replicas*, thereby providing backup for the
 persistent memory pool by producing a *mirrored pool set*. In practice,
 the pool replicas may be considered as binary copies of the "master" pool set.
-Data replication is not supported in **libpmemlog**(7).
 
 The *set* file for each type of pool is a plain text file. Lines in the file
 are formatted as follows:
@@ -90,11 +89,8 @@ See **POOL SET OPTIONS** below for details.
 Please see **ndctl-create-namespace**(1) for more information on Device DAX,
 including how to configure desired alignment.
 
-The minimum file size of each part of the pool set is defined as follows:
-
-+ For object pools, as **PMEMOBJ_MIN_PART** in **\<libpmemobj.h\>**
-
-+ For log pools, as **PMEMLOG_MIN_PART** in **\<libpmemlog.h\>**
+The minimum file size of each part of the pool set
+is defined as **PMEMOBJ_MIN_PART** in **\<libpmemobj.h\>**
 
 The net pool size of the pool set is equal to:
 
@@ -109,11 +105,8 @@ page_aligned_part_size = part_size & ~(page_size - 1)
 Note that page size is OS specific. For more information please see
 **sysconf**(3).
 
-The minimum net pool size of a pool set is defined as follows:
-
-+ For object pools, as **PMEMOBJ_MIN_POOL** in **\<libpmemobj.h\>**
-
-+ For log pools, as **PMEMLOG_MIN_POOL** in **\<libpmemlog.h\>**
+The minimum net pool size of a pool set
+is defined as **PMEMOBJ_MIN_POOL** in **\<libpmemobj.h\>**
 
 Here is an example "mypool.set" file:
 
@@ -126,10 +119,10 @@ OPTION NOHDRS
 ```
 
 The files in the set may be created by running one of the following commands.
-To create a log pool:
+To create a obj pool:
 
 ```
-$ pmempool create log mypool.set
+$ pmempool create obj mypool.set
 ```
 
 # REPLICAS #
@@ -212,8 +205,7 @@ Only poolsets with the *SINGLEHDR* option can safely use directories.
 # NOTES #
 
 Creation of all the parts of the pool set and the associated replica sets can
-be done with the **pmemobj_create**(3) or
-**pmemlog_create**(3) function, or by using the **pmempool**(1) utility.
+be done with the **pmemobj_create**(3) function, or by using the **pmempool**(1) utility.
 
 Restoring data from a replica can be done by using the
 **pmempool-sync**(1) command or the _UW(pmempool_sync) API from the
@@ -225,17 +217,14 @@ Modifications of a pool set file configuration can be done by using the
 
 When creating a pool set consisting of multiple files, or when creating
 a replicated pool set, the *path* argument passed to **pmemobj_create**(3)
-or **pmemlog_create**(3) must point to the special *set*
-file that defines the pool layout and the location of all the parts of the
-pool set.
+must point to the special *set* file that defines the pool layout and the location
+of all the parts of the pool set.
 
 When opening a pool set consisting of multiple files, or when opening a
 replicated pool set, the *path* argument passed to **pmemobj_open**(3)
-or **pmemlog_open**(3) must point to the same *set* file
-that was used for pool set creation.
+must point to the same *set* file that was used for pool set creation.
 
 # SEE ALSO #
 
-**ndctl-create-namespace**(1), **pmemlog_create**(3),
-**pmemobj_create**(3), **sysconf**(3), **libpmemlog**(7),
+**ndctl-create-namespace**(1), **pmemobj_create**(3), **sysconf**(3),
 **libpmemobj**(7) and **<https://pmem.io>**
