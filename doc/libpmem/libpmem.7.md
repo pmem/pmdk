@@ -81,9 +81,6 @@ available and are recommended for most applications, see:
 + **libpmemobj**(7), a general use persistent memory API, providing memory
   allocation and transactional operations on variable-sized objects.
 
-+ **libpmemblk**(7), providing pmem-resident arrays of fixed-sized blocks
-  with atomic updates.
-
 + **libpmemlog**(7), providing a pmem-resident log file.
 
 Under normal usage, **libpmem** will never print messages or
@@ -154,7 +151,7 @@ Unlike the other variables, the value of
 **PMEM_IS_PMEM_FORCE** is not queried (and cached) at
 library initialization time, but on the first call to
 **pmem_is_pmem**(3). This means that in case of
-**libpmemlog**(7), **libpmemblk**(7), and **libpmemobj**(7),
+**libpmemlog**(7) and **libpmemobj**(7),
 **PMEM_IS_PMEM_FORCE** may still be set or modified by the program
 until the first attempt to create or open the persistent
 memory pool.
@@ -364,5 +361,5 @@ recommended by the SNIA NVM Programming Technical Work Group:
 **dlclose**(3),
 **pmem_flush**(3), **pmem_is_pmem**(3), **pmem_memmove_persist**(3),
 **pmem_msync**(3), **pmem_persist**(3), **strerror**(3),
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
+**libpmemlog**(7), **libpmemobj**(7)
 and **<https://pmem.io>**
