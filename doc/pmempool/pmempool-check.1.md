@@ -116,5 +116,5 @@ increased verbosity level.
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
+**pmempool**(1), **libpmemlog**(7),
 **libpmemobj**(7), **libpmempool**(7) and **<https://pmem.io>**

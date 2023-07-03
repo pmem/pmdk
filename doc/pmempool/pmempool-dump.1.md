@@ -117,5 +117,5 @@ Dump data form 1K to 2K from pool.bin file.
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
+**pmempool**(1), **libpmemlog**(7),
 **libpmemobj**(7) and **<https://pmem.io>**

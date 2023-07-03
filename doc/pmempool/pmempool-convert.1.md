@@ -31,5 +31,5 @@ The **libpmemblk** and **libpmemlog** libraries are deprecated since PMDK 1.13.0
 
 # SEE ALSO #
 
-**pmdk-convert**(1), **pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
+**pmdk-convert**(1), **pmempool**(1), **libpmemlog**(7),
 **libpmemobj**(7), **libpmempool**(7) and **<https://pmem.io>**
