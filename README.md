@@ -16,6 +16,7 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 
 ## Contents
 1. [Libraries and Utilities](#libraries-and-utilities)
+	* [Archived and deprecated](#archived-and-deprecated)
 2. [Getting Started](#getting-started)
 3. [Version Conventions](#version-conventions)
 4. [Dependencies](#dependencies)
@@ -34,30 +35,28 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 All PMDK related libraries are described in detail on [pmem.io/pmdk](https://pmem.io/pmdk/).
 
 Libraries available in this repository:
-- [libpmem](https://pmem.io/pmdk/libpmem/):  provides low level persistent memory support.
 
-- [libpmem2](https://pmem.io/pmdk/libpmem2/):  provides low level persistent memory support, is a new version of libpmem.
+- [libpmem](https://pmem.io/pmdk/libpmem/): provides low-level persistent memory support.
+- [libpmem2](https://pmem.io/pmdk/libpmem2/): provides low-level persistent memory support, is a new version of libpmem.
+- [libpmemobj](https://pmem.io/pmdk/libpmemobj/): provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
+- [libpmempool](https://pmem.io/pmdk/libpmempool/): provides support for off-line pool management and diagnostics.
 
-- [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
+Utilities available in this repository:
 
-- [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
+- [pmempool](https://pmem.io/pmdk/pmempool/): allows managing and analyzing persistent memory pools.
+- [pmemcheck](https://pmem.io/2015/07/17/pmemcheck-basic.html): a Valgrind tool for persistent memory error detection.
 
-**Libpmemset** has been removed from PMDK repository.
-
-**Librpmem** library has been removed from PMDK repository. If you are interested in a remote persistent
-memory support please look at new [librpma](https://github.com/pmem/rpma).
-
-If you're looking for *libvmem* and *libvmmalloc*, they have been moved to a
-[separate repository](https://github.com/pmem/vmem).
-
-Available Utilities:
-
-- [pmempool](https://pmem.io/pmdk/pmempool/): Manage and analyze persistent memory pools with this stand-alone utility
-
-- [pmemcheck](https://pmem.io/2015/07/17/pmemcheck-basic.html): Use dynamic runtime analysis with an enhanced version of Valgrind for use with persistent memory.
-
-Currently these libraries only work on 64-bit Linux.
+Currently these libraries and utilities only work on 64-bit Linux.
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
+
+### Archived and deprecated
+
+- [libpmemblk](https://pmem.io/pmdk/libpmemblk/): supports arrays of pmem-resident blocks, all the same size, that are atomically updated. The final release was [1.13.1](https://github.com/pmem/pmdk/releases/tag/1.13.1).
+- [libpmemlog](https://pmem.io/pmdk/libpmemlog/): provides a pmem-resident log file. The final release was [1.13.1](https://github.com/pmem/pmdk/releases/tag/1.13.1).
+- [libpmemset](https://pmem.io/pmdk/libpmemset/): provides support for persistent file I/O operations, runtime mapping concatenation and multi-part support across poolsets. The final release was [1.12.1](https://github.com/pmem/pmdk/releases/tag/1.12.1).
+- [librpmem](https://pmem.io/pmdk/librpmem/): provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs. The final release was [1.12.1](https://github.com/pmem/pmdk/releases/tag/1.12.1).
+- [libvmem](https://pmem.io/vmem/libvmem/): turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API. It has been moved to a [separate repository](https://github.com/pmem/vmem).
+- [libvmemalloc](https://pmem.io/vmem/libvmmalloc/): transparently converts all the dynamic memory allocations into persistent memory allocations. This allows the use of persistent memory as volatile memory without modifying the target application. It has been moved to a [separate repository](https://github.com/pmem/vmem).
 
 ## Getting Started
 
