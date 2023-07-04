@@ -18,9 +18,6 @@ jobs:
     env:
       GITHUB_REPO: pmem/pmdk
       DOCKER_REPO: ghcr.io/pmem/pmdk
-      # use org's Private Access Token to log in to GitHub Container Registry
-      GH_CR_USER:  ${{ secrets.GH_CR_USER }}
-      GH_CR_PAT:   ${{ secrets.GH_CR_PAT }}
       HOST_WORKDIR: /home/runner/work/pmdk/pmdk
       WORKDIR:      utils/docker
       PMDK_CC:      gcc
@@ -32,12 +29,12 @@ jobs:
     strategy:
       matrix:
         CONFIG: [
-                 "OS_VER=7 FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1",
+                 "OS_VER=7 FAULT_INJECTION=1 TEST_BUILD=debug",
                  "OS_VER=7 TEST_BUILD=nondebug",
                  "OS_VER=7 TEST_BUILD=debug NDCTL_ENABLE=n",
                  "OS_VER=7 TEST_BUILD=nondebug NDCTL_ENABLE=n",
                  "OS_VER=stream TEST_BUILD=debug SRC_CHECKERS=1",
-                 "OS_VER=stream FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1",
+                 "OS_VER=stream FAULT_INJECTION=1 TEST_BUILD=debug",
                  "OS_VER=stream TEST_BUILD=nondebug",
                 ]
     steps:
