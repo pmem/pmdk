@@ -54,4 +54,4 @@ On success, _UW(pmempool_rm) returns 0. On error, it returns -1 and sets
 
 # SEE ALSO #
 
-**unlink**(3), **libpmemlog**(7), **libpmemobj**(7) and **<https://pmem.io>**
+**unlink**(3), **libpmemobj**(7) and **<https://pmem.io>**
