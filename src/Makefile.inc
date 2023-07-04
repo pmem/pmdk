@@ -221,14 +221,9 @@ EXTRA_TARGETS_CLOBBER = $(EXTRA_TARGETS:=-clobber)
 endif
 
 PMEMLOG_PRIV_OBJ=$(LIB_OUTDIR)/libpmemlog/libpmemlog_unscoped.o
-PMEMBLK_PRIV_OBJ=$(LIB_OUTDIR)/libpmemblk/libpmemblk_unscoped.o
 
 ifneq ($(LIBPMEMLOG_PRIV_FUNCS),)
 OBJS += pmemlog_priv_funcs.o
-endif
-
-ifneq ($(LIBPMEMBLK_PRIV_FUNCS),)
-OBJS += pmemblk_priv_funcs.o
 endif
 
 MAKEFILE_DEPS=../Makefile.inc Makefile $(TOP)/src/common.inc
@@ -260,9 +255,6 @@ endif
 
 $(LIB_AR): $(LIB_AR_ALL) $(MAKEFILE_DEPS)
 	$(AR) rv $@ $(LIB_AR_ALL)
-
-$(PMEMBLK_PRIV_OBJ):
-	$(MAKE) -C $(LIBSDIR) libpmemblk
 
 install: all
 ifneq ($(LIBRARY_NAME),)

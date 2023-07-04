@@ -713,7 +713,7 @@ pmemlog_ctl_getU(PMEMlogpool *plp, const char *name, void *arg)
 }
 
 /*
- * pmemblk_ctl_setU -- programmatically executes a write ctl query
+ * pmemlog_ctl_setU -- programmatically executes a write ctl query
  */
 static inline
 int
