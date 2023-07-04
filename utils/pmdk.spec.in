@@ -207,72 +207,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
-%package -n libpmemblk__PKG_NAME_SUFFIX__
-Summary: Persistent Memory Resident Array of Blocks library
-Group: __GROUP_SYS_LIBS__
-Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-%description -n libpmemblk__PKG_NAME_SUFFIX__
-The libpmemblk implements a pmem-resident array of blocks, all the same
-size, where a block is updated atomically with respect to power
-failure or program interruption (no torn blocks).
-
-%files -n libpmemblk__PKG_NAME_SUFFIX__
-%defattr(-,root,root,-)
-%{_libdir}/libpmemblk.so.*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n libpmemblk-devel
-Summary: Development files for the Persistent Memory Resident Array of Blocks library
-Group: __GROUP_DEV_LIBS__
-Requires: libpmemblk__PKG_NAME_SUFFIX__ = %{version}-%{release}
-Requires: libpmem-devel = %{version}-%{release}
-%description -n libpmemblk-devel
-The libpmemblk implements a pmem-resident array of blocks, all the same
-size, where a block is updated atomically with respect to power
-failure or program interruption (no torn blocks).
-
-For example, a program keeping a cache of fixed-size objects in pmem
-might find this library useful. This library is provided for cases
-requiring large arrays of objects at least 512 bytes each. Most
-developers will find higher level libraries like libpmemobj to be
-more generally useful.
-
-%files -n libpmemblk-devel
-%defattr(-,root,root,-)
-%{_libdir}/libpmemblk.so
-%{_libdir}/pkgconfig/libpmemblk.pc
-%{_includedir}/libpmemblk.h
-%{_mandir}/man7/libpmemblk.7.gz
-%{_mandir}/man5/poolset.5.gz
-%{_mandir}/man3/pmemblk_*.3.gz
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n libpmemblk-debug
-Summary: Debug variant of the Persistent Memory Resident Array of Blocks library
-Group: __GROUP_DEV_LIBS__
-Requires: libpmemblk__PKG_NAME_SUFFIX__ = %{version}-%{release}
-%description -n libpmemblk-debug
-The libpmemblk implements a pmem-resident array of blocks, all the same
-size, where a block is updated atomically with respect to power
-failure or program interruption (no torn blocks).
-
-This sub-package contains debug variant of the library, providing
-run-time assertions and trace points. The typical way to access the
-debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/pmdk_debug.
-
-%files -n libpmemblk-debug
-%defattr(-,root,root,-)
-%dir %{_libdir}/pmdk_debug
-%{_libdir}/pmdk_debug/libpmemblk.so
-%{_libdir}/pmdk_debug/libpmemblk.so.*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
 
 %package -n libpmemlog__PKG_NAME_SUFFIX__
 Summary: Persistent Memory Resident Log File library
@@ -414,7 +348,7 @@ Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 %description -n libpmempool__PKG_NAME_SUFFIX__
 The libpmempool library provides a set of utilities for off-line
 administration, analysis, diagnostics and repair of persistent memory
-pools created by libpmemlog, libpemblk and libpmemobj libraries.
+pools created by libpmemlog and libpmemobj libraries.
 
 %files -n libpmempool__PKG_NAME_SUFFIX__
 %defattr(-,root,root,-)
@@ -431,7 +365,7 @@ Requires: libpmem-devel = %{version}-%{release}
 %description -n libpmempool-devel
 The libpmempool library provides a set of utilities for off-line
 administration, analysis, diagnostics and repair of persistent memory
-pools created by libpmemlog, libpemblk and libpmemobj libraries.
+pools created by libpmemlog and libpmemobj libraries.
 
 %files -n libpmempool-devel
 %defattr(-,root,root,-)
@@ -452,7 +386,7 @@ Requires: libpmempool__PKG_NAME_SUFFIX__ = %{version}-%{release}
 %description -n libpmempool-debug
 The libpmempool library provides a set of utilities for off-line
 administration, analysis, diagnostics and repair of persistent memory
-pools created by libpmemlog, libpemblk and libpmemobj libraries.
+pools created by libpmemlog and libpmemobj libraries.
 
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the
@@ -472,7 +406,6 @@ Summary: Utilities for Persistent Memory
 Group: __GROUP_SYS_BASE__
 Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemlog__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-Requires: libpmemblk__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemobj__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmempool__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Obsoletes: nvml-tools < %{version}-%{release}
@@ -589,8 +522,6 @@ __MAKE_INSTALL_FDUPES__
 
 %post   -n libpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-%post   -n libpmemblk__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-%postun -n libpmemblk__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %post   -n libpmemlog__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmemlog__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %post   -n libpmemobj__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
