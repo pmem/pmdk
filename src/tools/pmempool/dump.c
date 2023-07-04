@@ -160,7 +160,7 @@ pmempool_dump_func(const char *appname, int argc, char *argv[])
 	out_set_stream(pd.ofh);
 
 	struct pmem_pool_params params;
-	/* parse pool type and block size for pmem blk pool */
+	/* parse pool type */
 	pmem_pool_parse_params(pd.fname, &params, 1);
 
 	ret = util_options_verify(opts, params.type);
