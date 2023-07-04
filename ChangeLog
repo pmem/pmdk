@@ -14,11 +14,9 @@
 	- removes log/blk support from pmemspoil
 	- removes libpmemblk related documentation
 	- removes libpmemlog source code
-<<<<<<< HEAD
 	- removes libpmemlog related documentation
-=======
 	- removes libpmemblk source code
->>>>>>> a721e2125 (common: remove libpmemblk source code)
+	- removes libvmem and libvmmalloc folders
 	- ...
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
