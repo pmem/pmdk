@@ -1,4 +1,3 @@
-blk_pool_lock
 obj_basic_integration
 obj_pool_lock
 libpmempool_rm

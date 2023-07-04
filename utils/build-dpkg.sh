@@ -311,23 +311,6 @@ Description: Development files for libpmem
  for the persistent memory instructions for flushing changes to pmem is
  provided.
 
-Package: libpmemblk
-Architecture: any
-Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory block array support library
- libpmemblk implements a pmem-resident array of blocks, all the same size, where
- a block is updated atomically with respect to power failure or program
- interruption (no torn blocks).
-
-Package: libpmemblk-dev
-Section: libdevel
-Architecture: any
-Depends: libpmemblk (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmemblk
- libpmemblk implements a pmem-resident array of blocks, all the same size, where
- a block is updated atomically with respect to power failure or program
- interruption (no torn blocks).
-
 Package: libpmemobj
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
@@ -354,8 +337,8 @@ Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Persistent Memory pool management support library
  libpmempool provides a set of utilities for management, diagnostics and repair
  of persistent memory pools. A pool in this context means a pmemobj pool,
- pmemblk pool or BTT layout, independent of the underlying
- storage. The libpmempool is for applications that need high reliability or
+ independent of the underlying storage.
+ The libpmempool is for applications that need high reliability or
  built-in troubleshooting. It may be useful for testing and debugging purposes
  also.
 
@@ -374,7 +357,7 @@ Package: $PACKAGE_NAME-dbg
 Section: debug
 Priority: optional
 Architecture: any
-Depends: libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
+Depends: libpmem (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
 Description: Debug symbols for PMDK libraries
  Debug symbols for all PMDK libraries.
 
@@ -493,42 +476,6 @@ hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 # Related issue: https://github.com/pmem/issues/issues/841
 libpmem-dev: package-has-unnecessary-activation-of-ldconfig-trigger
 
-EOF
-
-cat << EOF > debian/libpmemblk.install
-$LIB_DIR/libpmemblk.so.*
-EOF
-
-cat << EOF > debian/libpmemblk.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-libpmemblk: package-name-doesnt-match-sonames
-EOF
-
-cat << EOF > debian/libpmemblk-dev.install
-$LIB_DIR/pmdk_debug/libpmemblk.a $LIB_DIR/pmdk_dbg/
-$LIB_DIR/pmdk_debug/libpmemblk.so $LIB_DIR/pmdk_dbg/
-$LIB_DIR/pmdk_debug/libpmemblk.so.* $LIB_DIR/pmdk_dbg/
-$LIB_DIR/libpmemblk.so
-$LIB_DIR/pkgconfig/libpmemblk.pc
-$INC_DIR/libpmemblk.h
-$MAN7_DIR/libpmemblk.7
-$MAN3_DIR/pmemblk_*.3
-EOF
-
-cat << EOF > debian/libpmemblk-dev.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-# The following warnings are triggered by a bug in debhelper:
-# https://bugs.debian.org/204975
-postinst-has-useless-call-to-ldconfig
-postrm-has-useless-call-to-ldconfig
-# We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
-# pmdk provides second set of libraries for debugging.
-# These are in /usr/lib/$arch/pmdk_dbg/, but still trigger ldconfig.
-# Related issue: https://github.com/pmem/issues/issues/841
-libpmemblk-dev: package-has-unnecessary-activation-of-ldconfig-trigger
 EOF
 
 cat << EOF > debian/libpmemobj.install

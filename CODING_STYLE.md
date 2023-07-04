@@ -92,9 +92,9 @@ conventions for git commit messages:
 - The first line is a short summary, no longer than **50 characters,** starting
   with an area name and then a colon.  There should be no period after
   the short summary.
-- Valid area names are: **pmem, pmem2, obj, blk, set,
-  test, doc, daxio, pmreorder, pool** (for *libpmempool* and *pmempool*),
-  **benchmark, examples, core** and **common** (for everything else).
+- Valid area names are: **pmem**, **pmem2**, **obj**, **set**, **test**,
+  **doc**, **daxio**, **pmreorder**, **pool** (for *libpmempool* and *pmempool*),
+  **benchmark**, **examples**, **core** and **common** (for everything else).
 - It is acceptable for the short summary to be the only thing in the commit
   message if it is a trivial change.  Otherwise, the second line must be
   a blank line.
