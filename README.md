@@ -8,7 +8,7 @@
 [![CodeQL status](https://github.com/pmem/pmemstream/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/pmem/pmemstream/actions/workflows/codeql.yml)
 [![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/bandit.yml)
 
-The **Persistent Memory Development Kit (PMDK)** is a collection of libraries and tools for System Administrators and Application Developers to simplify managing and accessing persistent memory devices. For more information, see https://pmem.io.
+The **Persistent Memory Development Kit (PMDK)** is a collection of libraries and tools for System Administrators and Application Developers to simplify managing and accessing persistent memory devices.
 
 To install PMDK libraries, either install pre-built packages, which we build for every stable release, or clone the tree and build it yourself. **Pre-built** packages can be found in popular Linux distribution package repositories, or you can check out our recent stable releases on our [github release page](https://github.com/pmem/pmdk/releases). Specific installation instructions are outlined below.
 
@@ -16,6 +16,7 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 
 ## Contents
 1. [Libraries and Utilities](#libraries-and-utilities)
+	* [Archived and deprecated](#archived-and-deprecated)
 2. [Getting Started](#getting-started)
 3. [Version Conventions](#version-conventions)
 4. [Dependencies](#dependencies)
@@ -31,33 +32,29 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 
 ## Libraries and Utilities
 
-All PMDK related libraries are described in detail on [pmem.io/pmdk](https://pmem.io/pmdk/).
-
 Libraries available in this repository:
-- [libpmem](https://pmem.io/pmdk/libpmem/):  provides low level persistent memory support.
 
-- [libpmem2](https://pmem.io/pmdk/libpmem2/):  provides low level persistent memory support, is a new version of libpmem.
+- **libpmem**: provides low-level persistent memory support.
+- **libpmem2**: provides low-level persistent memory support, is a new version of libpmem.
+- **libpmemobj**: provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
+- **libpmempool**: provides support for off-line pool management and diagnostics.
 
-- [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
+Utilities available in this repository:
 
-- [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
+- **pmempool**: allows managing and analyzing persistent memory pools.
+- **pmemcheck**: a Valgrind tool for persistent memory error detection.
 
-**Libpmemset** has been removed from PMDK repository.
-
-**Librpmem** library has been removed from PMDK repository. If you are interested in a remote persistent
-memory support please look at new [librpma](https://github.com/pmem/rpma).
-
-If you're looking for *libvmem* and *libvmmalloc*, they have been moved to a
-[separate repository](https://github.com/pmem/vmem).
-
-Available Utilities:
-
-- [pmempool](https://pmem.io/pmdk/pmempool/): Manage and analyze persistent memory pools with this stand-alone utility
-
-- [pmemcheck](https://pmem.io/2015/07/17/pmemcheck-basic.html): Use dynamic runtime analysis with an enhanced version of Valgrind for use with persistent memory.
-
-Currently these libraries only work on 64-bit Linux.
+Currently these libraries and utilities only work on 64-bit Linux.
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
+
+### Archived and deprecated
+
+- **libpmemblk**: supports arrays of pmem-resident blocks, all the same size, that are atomically updated. The final release was [1.13.1](https://github.com/pmem/pmdk/releases/tag/1.13.1).
+- **libpmemlog**: provides a pmem-resident log file. The final release was [1.13.1](https://github.com/pmem/pmdk/releases/tag/1.13.1).
+- **libpmemset**: provides support for persistent file I/O operations, runtime mapping concatenation and multi-part support across poolsets. The final release was [1.12.1](https://github.com/pmem/pmdk/releases/tag/1.12.1).
+- **librpmem**: provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs. The final release was [1.12.1](https://github.com/pmem/pmdk/releases/tag/1.12.1).
+- **libvmem**: turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API. It has been moved to a [separate repository](https://github.com/pmem/vmem).
+- **libvmemalloc**: transparently converts all the dynamic memory allocations into persistent memory allocations. This allows the use of persistent memory as volatile memory without modifying the target application. It has been moved to a [separate repository](https://github.com/pmem/vmem).
 
 ## Getting Started
 
@@ -253,7 +250,7 @@ To enable logging of debug information, use debug version of a library and set
 desired log level using (library-specific) variable, e.g. `PMEM_LOG_LEVEL=<level>`.
 
 For more details see appropriate manpage (debbuging section), e.g.
-[libpmem(7)](https://pmem.io/pmdk/manpages/linux/master/libpmem/libpmem.7.html#debugging-and-error-handling).
+libpmem(7) section "Debugging and Error Handling".
 
 ## Experimental Packages
 
