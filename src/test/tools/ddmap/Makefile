@@ -13,6 +13,5 @@ OBJS = ddmap.o
 LIBPMEM=y
 TOOLS_COMMON=y
 TOOLS_PMEMPOOL_COMMON=y
-LIBPMEMBLK_PRIV=btt_info_convert2h
 
 include $(TOP)/src/tools/Makefile.inc

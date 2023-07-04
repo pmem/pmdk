@@ -1,9 +1,0 @@
-includedir=${prefix}/include
-
-Name: libpmemblk
-Description: libpmemblk library from PMDK project
-Version: ${version}
-URL: https://pmem.io/pmdk
-Requires.private: libpmem${rasdeps}
-Libs: -L${libdir} -lpmemblk
-Cflags: -I${includedir}

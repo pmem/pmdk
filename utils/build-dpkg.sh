@@ -311,6 +311,7 @@ Description: Development files for libpmem
  for the persistent memory instructions for flushing changes to pmem is
  provided.
 
+<<<<<<< HEAD
 Package: libpmemblk
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
@@ -327,6 +328,20 @@ Description: Development files for libpmemblk
  libpmemblk implements a pmem-resident array of blocks, all the same size, where
  a block is updated atomically with respect to power failure or program
  interruption (no torn blocks).
+=======
+Package: libpmemlog
+Architecture: any
+Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: Persistent Memory log file support library
+ libpmemlog implements a pmem-resident log file.
+
+Package: libpmemlog-dev
+Section: libdevel
+Architecture: any
+Depends: libpmemlog (=\${binary:Version}), libpmem-dev,  \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libpmemlog
+ libpmemlog implements a pmem-resident log file.
+>>>>>>> a959a0f5a (common: remove libpmemblk source code)
 
 Package: libpmemobj
 Architecture: any
@@ -353,8 +368,13 @@ Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Persistent Memory pool management support library
  libpmempool provides a set of utilities for management, diagnostics and repair
+<<<<<<< HEAD
  of persistent memory pools. A pool in this context means a pmemobj pool,
  pmemblk pool or BTT layout, independent of the underlying
+=======
+ of persistent memory pools. A pool in this context means a pmemobj pool
+ or pmemlog pool, independent of the underlying
+>>>>>>> a959a0f5a (common: remove libpmemblk source code)
  storage. The libpmempool is for applications that need high reliability or
  built-in troubleshooting. It may be useful for testing and debugging purposes
  also.
@@ -374,7 +394,11 @@ Package: $PACKAGE_NAME-dbg
 Section: debug
 Priority: optional
 Architecture: any
+<<<<<<< HEAD
 Depends: libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
+=======
+Depends: libpmem (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
+>>>>>>> a959a0f5a (common: remove libpmemblk source code)
 Description: Debug symbols for PMDK libraries
  Debug symbols for all PMDK libraries.
 
@@ -495,6 +519,7 @@ libpmem-dev: package-has-unnecessary-activation-of-ldconfig-trigger
 
 EOF
 
+<<<<<<< HEAD
 cat << EOF > debian/libpmemblk.install
 $LIB_DIR/libpmemblk.so.*
 EOF
@@ -517,6 +542,30 @@ $MAN3_DIR/pmemblk_*.3
 EOF
 
 cat << EOF > debian/libpmemblk-dev.lintian-overrides
+=======
+cat << EOF > debian/libpmemlog.install
+$LIB_DIR/libpmemlog.so.*
+EOF
+
+cat << EOF > debian/libpmemlog.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libpmemlog: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libpmemlog-dev.install
+$LIB_DIR/pmdk_debug/libpmemlog.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemlog.so $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmemlog.so.* $LIB_DIR/pmdk_dbg/
+$LIB_DIR/libpmemlog.so
+$LIB_DIR/pkgconfig/libpmemlog.pc
+$INC_DIR/libpmemlog.h
+$MAN7_DIR/libpmemlog.7
+$MAN3_DIR/pmemlog_*.3
+EOF
+
+cat << EOF > debian/libpmemlog-dev.lintian-overrides
+>>>>>>> a959a0f5a (common: remove libpmemblk source code)
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
@@ -528,7 +577,11 @@ hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 # pmdk provides second set of libraries for debugging.
 # These are in /usr/lib/$arch/pmdk_dbg/, but still trigger ldconfig.
 # Related issue: https://github.com/pmem/issues/issues/841
+<<<<<<< HEAD
 libpmemblk-dev: package-has-unnecessary-activation-of-ldconfig-trigger
+=======
+libpmemlog-dev: package-has-unnecessary-activation-of-ldconfig-trigger
+>>>>>>> a959a0f5a (common: remove libpmemblk source code)
 EOF
 
 cat << EOF > debian/libpmemobj.install
