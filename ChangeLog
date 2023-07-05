@@ -3,22 +3,15 @@
 	This release:
 	- removes libpmempool tests that use log/blk/btt pool types
 	- removes pmempool tests that use log/blk/btt pool types
-	- removes other misc tests using pmempool with log/blk/btt pool types
 	- removes btt specific test and related btt tests tools
 	- removes btt support from pmemspoil
-	- removes libpmemlog tests and examples
-	- removes libpmemblk tests and examples
+	- removes libpmemblk/libpmemlog tests and examples
 	- remove support for Travis bulids
 	- removes log/blk/btt support from pmempool
 	- removes log/blk support from pmemwrite
 	- removes log/blk support from pmemspoil
-	- removes libpmemblk related documentation
-	- removes libpmemlog source code
-<<<<<<< HEAD
-	- removes libpmemlog related documentation
-=======
-	- removes libpmemblk source code
->>>>>>> a721e2125 (common: remove libpmemblk source code)
+	- removes libpmemblk/libpmemlog related documentation
+	- removes libpmemblk/libpmemlog source code
 	- ...
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
