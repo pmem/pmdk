@@ -10,6 +10,6 @@
 >4	string			POOLSET		Persistent Memory Poolset file
 >>11	search			REPLICA		with replica
 # Pool type signature
->4	regex			LOG|BLK|OBJ	Persistent Memory Pool file, type: %s,
+>4	regex			OBJ		Persistent Memory Pool file, type: %s,
 # Major version number
 >>8	lelong			>0		version 0x%x
