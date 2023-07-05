@@ -8,31 +8,6 @@
 
 set -e
 
-OS=$1
-
-install_upstream_from_distro() {
-  case "$OS" in
-    rockylinux) dnf install -y valgrind ;;
-    fedora) dnf install -y valgrind ;;
-    ubuntu) apt-get install -y --no-install-recommends valgrind ;;
-    centos) yum install -y valgrind ;;
-    *) return 1 ;;
-  esac
-}
-
-install_upstream_3_16_1() {
-  git clone git://sourceware.org/git/valgrind.git
-  cd valgrind
-  # valgrind v3.16.1 upstream
-  git checkout VALGRIND_3_16_BRANCH
-  ./autogen.sh
-  ./configure
-  make -j$(nproc)
-  make -j$(nproc) install
-  cd ..
-  rm -rf valgrind
-}
-
 install_custom-pmem_from_source() {
   git clone https://github.com/pmem/valgrind.git
   cd valgrind
@@ -46,8 +21,4 @@ install_custom-pmem_from_source() {
   rm -rf valgrind
 }
 
-ARCH=$(uname -m)
-case "$ARCH" in
-  aarch64) install_upstream_3_16_1 ;;
-  *) install_custom-pmem_from_source ;;
-esac
+install_custom-pmem_from_source
