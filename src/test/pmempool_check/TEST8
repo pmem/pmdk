@@ -47,7 +47,7 @@ $PMEMSPOIL -v $POOL_P1\
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vyr $POOLSET >> $LOG
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX info $POOLSET > /dev/null
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 check
 
