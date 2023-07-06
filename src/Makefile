@@ -97,7 +97,7 @@ sparse: $(SPARSE_TARGETS:=-sparse)
 
 custom_build = $(DEBUG)$(OBJDIR)
 
-tools: libpmem libpmemlog libpmemobj libpmempool
+tools: libpmem libpmemobj libpmempool
 libpmempool libpmemobj: libpmem
 benchmarks test tools: common core
 

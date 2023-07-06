@@ -1731,28 +1731,6 @@ function obj_pool_desc_size() {
 }
 
 #
-# log_pool_desc_size -- returns the minimum size of pool header
-# in bytes which is two times the actual pagesize.
-#
-# This should be use to calculate the minimum zero size for pool
-# creation on some tests.
-#
-function log_pool_desc_size() {
-	echo "$(expr $(getconf PAGESIZE) \* 2)"
-}
-
-#
-# blk_pool_desc_size -- returns the minimum size of pool header
-# in bytes which is two times the actual pagesize.
-#
-# This should be use to calculate the minimum zero size for pool
-# creation on some tests.
-#
-function blk_pool_desc_size() {
-	echo "$(expr $(getconf PAGESIZE) \* 2)"
-}
-
-#
 # require_mmap_under_valgrind -- only allow script to continue if mapping is
 #				possible under Valgrind with required length
 #				(sum of required DAX devices size).
