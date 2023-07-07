@@ -121,12 +121,7 @@
         if [ ! -d "${MOUNT_POINT}" ]; then
           sudo mkdir ${MOUNT_POINT}
         fi
-      register: script
 
-    - debug: var=script
-
-    - name: "Create new namespace configuration"
-      shell: |
         sudo mkfs.ext4 -F /dev/${pmem_name}
         sudo mount -o dax /dev/${pmem_name} ${MOUNT_POINT}
         sudo chown -R {{ testUser }} ${MOUNT_POINT}
