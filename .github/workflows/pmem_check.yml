@@ -5,14 +5,11 @@ name: PMEM check
 
 on: 
   workflow_dispatch:
-  schedule:
-    # run this job every 8 hours
-    - cron:  '0 */8 * * *'
+  workflow_call:
 
 jobs:
   linux:
     name: PMEM_check
-    if: github.repository == 'pmem/pmdk'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -25,6 +22,8 @@ jobs:
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
+        with:
+          repository: pmem/pmdk
 
       - name: Get system information
         run: ./$WORKDIR/get-system-info.sh
