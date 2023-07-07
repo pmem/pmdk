@@ -6,11 +6,11 @@
 # src/test/obj_sync/TEST2 -- unit test for PMEM-resident locks
 #
 
-# XXX disable the test for 'helgrind'
-# until https://github.com/pmem/pmdk/issues/5646 is fixed
-# by adding the prefix DISABLE_ to the script name.
-
 . ../unittest/unittest.sh
+
+# XXX disable the test for 'helgrind'
+# until https://github.com/pmem/pmdk/issues/5646 is fixed.
+DISABLED
 
 require_test_type medium
 
