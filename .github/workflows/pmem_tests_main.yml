@@ -1,0 +1,16 @@
+# Run all PMem tests in a sequence
+#
+# This workflow is run on 'self-hosted' runners.
+name: PMEM tests main
+
+on: 
+  workflow_dispatch:
+  schedule:
+    # run this job every 8 hours
+    - cron:  '0 */8 * * *'
+
+jobs:
+  call-pmem-check:
+    uses: ./.github/workflows/pmem_check.yml
+    name: PMem check
+    if: github.repository == 'pmem/pmdk'
