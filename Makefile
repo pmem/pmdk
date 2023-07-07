@@ -78,16 +78,22 @@ test check pcheck pycheck: all
 
 check pcheck pycheck: check-doc
 
-cstyle:
-	test -d .git && utils/check-commits.sh
+cstyle: check-commits check-whitespace check-license
 	$(MAKE) -C src $@
 	$(MAKE) -C utils $@
+
+format:
+	$(MAKE) -C src $@
+	@echo Done.
+
+check-whitespace:
 	@echo Checking files for whitespace issues...
 	@utils/check_whitespace -g
 	@echo Done.
 
-format:
-	$(MAKE) -C src $@
+check-commits:
+	@echo Checking commit messages...
+	test -d .git && utils/check-commits.sh
 	@echo Done.
 
 check-license:
