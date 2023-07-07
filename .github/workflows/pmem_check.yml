@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        config: ['debug', 'nondebug', 'static_debug', 'static_nondebug']
+        build: ['debug', 'nondebug', 'static_debug', 'static_nondebug']
     env:
       WORKDIR: utils/gha-runners
 
@@ -34,8 +34,8 @@ jobs:
       - name: Create testconfig files
         run: ./$WORKDIR/create-testconfig.sh
 
-      - name: Run tests check
-        run: make check TEST_BUILD=${{ matrix.config }}
+      - name: Run tests (Bash)
+        run: cd src/test/ && ./RUNTESTS.sh -b ${{ matrix.build }}
 
-      - name: Run tests pycheck
-        run: make pycheck TEST_BUILD=${{ matrix.config }}
+      - name: Run tests (Python)
+        run: cd src/test/ && ./RUNTESTS.py -b ${{ matrix.build }}
