@@ -146,6 +146,7 @@ class BaseTest(metaclass=_TestCase):
         ctx (Context): context affiliated with the test
     """
     enabled = True
+    disabled = False
 
     def __init__(self):
         self.ctx = None
