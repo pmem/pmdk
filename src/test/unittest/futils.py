@@ -79,6 +79,7 @@ class Color:
     """
     RED = '\33[91m'
     GREEN = '\33[92m'
+    YELLOW = '\33[93m'
     END = '\33[0m'
 
 
