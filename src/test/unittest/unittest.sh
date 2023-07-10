@@ -1442,8 +1442,14 @@ function require_valgrind() {
 	local ret=$?
 	restore_exit_on_error
 	if [ $ret -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP valgrind required"
-		exit 0
+		if [ "$FORCE_CHECK_TYPE" != "none" ]; then
+			msg=$(interactive_red STDOUT "FAIL:")
+			echo -e "$UNITTEST_NAME: $msg valgrind not installed"
+			exit 1
+		else
+			msg "$UNITTEST_NAME: SKIP valgrind required"
+			exit 0
+		fi
 	fi
 }
 

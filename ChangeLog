@@ -8,6 +8,7 @@
 	- removes libpmemblk/libpmemlog source code and documentation
 	- removes support for Travis bulids
 	- removes libvmem and libvmmalloc folders
+	- adds explicit test failure when Valgrind is not installed but required
 	- ...
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
