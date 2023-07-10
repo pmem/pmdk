@@ -315,7 +315,11 @@ runtest() {
 			do
 				export RUNTEST_DIR=$1
 				export RUNTEST_PARAMS="TEST=$ttype FS=$fs BUILD=$build"
-				export RUNTEST_EXTRA="CHECK_TYPE=$checktype CHECK_POOL=$check_pool \
+				# FORCE_CHECK_TYPE is required for easy force-enable condition failure detection.
+				# Please see require_valgrind() for details.
+				export RUNTEST_EXTRA="CHECK_TYPE=$checktype \
+					FORCE_CHECK_TYPE=$checktype \
+					CHECK_POOL=$check_pool \
 					$special_params"
 				export RUNTEST_SCRIPT="$runscript"
 				export RUNTEST_TIMEOUT="$req_timeout"

@@ -76,7 +76,7 @@ class Valgrind:
 
     """
 
-    def __init__(self, tool, cwd, testnum):
+    def __init__(self, tool, cwd, testnum, force_enable):
         self.tool = NONE if tool is None else tool
         self.tool_name = self.tool.name.lower()
         self.cwd = cwd
@@ -87,7 +87,7 @@ class Valgrind:
         if self.tool == NONE:
             self.valgrind_exe = None
         else:
-            self.valgrind_exe = self._get_valgrind_exe()
+            self.valgrind_exe = self._get_valgrind_exe(force_enable)
 
         if self.valgrind_exe is None:
             return
@@ -161,8 +161,8 @@ class Valgrind:
 
             else:
                 vg_tool = config.force_enable
-
-        return [cls(vg_tool, tc.cwd, tc.testnum, **kwargs), ]
+        return [cls(vg_tool, tc.cwd, tc.testnum,
+                    config.force_enable is not None, **kwargs), ]
 
     @property
     def cmd(self):
@@ -184,7 +184,7 @@ class Valgrind:
     def check(self, **kwargs):
         self.validate_log()
 
-    def _get_valgrind_exe(self):
+    def _get_valgrind_exe(self, force_enable):
         """
         On some systems "valgrind" is a shell script that calls the actual
         executable "valgrind.bin".
@@ -193,9 +193,12 @@ class Valgrind:
         """
         try:
             out = sp.check_output('which valgrind', shell=True,
-                                  universal_newlines=True)
+                                  universal_newlines=True, stderr=sp.STDOUT)
         except sp.CalledProcessError:
-            raise futils.Skip('Valgrind not found')
+            if force_enable:
+                raise futils.Fail('Valgrind not found')
+            else:
+                raise futils.Skip('Valgrind not found')
 
         valgrind_bin = path.join(path.dirname(out), 'valgrind.bin')
         if path.isfile(valgrind_bin):
