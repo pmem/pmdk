@@ -23,3 +23,16 @@ def require_architectures(*archs):
         return tc
 
     return wrapped
+
+
+def DISABLED(**kwargs):
+    """
+    DISABLE a given test.
+
+    Used as a test class (tc) decorator.
+    """
+
+    def wrapped(tc):
+        tc.force_disabling = True
+
+    return wrapped

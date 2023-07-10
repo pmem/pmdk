@@ -106,9 +106,13 @@ class TestRunner:
                     try:
                         t = tc()
                         if t.enabled:
-                            self.msg.print('{}: SETUP\t({}/{})'
-                                           .format(t, t.test_type, c))
-                            t._execute(c)
+                            if t.force_disabling:
+                                self._test_disabled(t, c)
+                                continue
+                            else:
+                                self.msg.print('{}: SETUP\t({}/{})'
+                                               .format(t, t.test_type, c))
+                                t._execute(c)
                         else:
                             continue
 
@@ -152,6 +156,12 @@ class TestRunner:
 
         self.msg.print('{}: {}PASS{} {}'
                        .format(tc, futils.Color.GREEN, futils.Color.END, tm))
+
+    def _test_disabled(self, tc, context):
+        """Print message specific for disabled test"""
+        self.msg.print('{}: {}DISABLED{}\t({}/{})'
+                       .format(tc, futils.Color.YELLOW, futils.Color.END,
+                               tc.test_type, context))
 
 
 def _import_testfiles():
