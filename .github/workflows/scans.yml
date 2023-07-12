@@ -16,6 +16,9 @@ jobs:
     name: CodeQL
   call-coverity:
     uses: ./.github/workflows/scan_coverity.yml
+    secrets:
+      COVERITY_SCAN_NOTIFICATION_EMAIL:  ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
+      COVERITY_SCAN_TOKEN:               ${{ secrets.COVERITY_SCAN_TOKEN }}
     name: Coverity
   call-documentation:
     uses: ./.github/workflows/scan_documentation.yml
