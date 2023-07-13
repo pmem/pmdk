@@ -8,6 +8,10 @@
 
 . ../unittest/unittest.sh
 
+# XXX disable the test until https://github.com/pmem/pmdk/issues/5699
+# and https://github.com/pmem/pmdk/issues/5706 are fixed.
+DISABLED
+
 require_test_type medium
 
 require_fs_type none
