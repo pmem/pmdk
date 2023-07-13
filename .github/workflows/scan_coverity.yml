@@ -4,6 +4,11 @@ name: Coverity
 on:
   workflow_dispatch:
   workflow_call:
+    secrets:
+      COVERITY_SCAN_NOTIFICATION_EMAIL:
+        required: true
+      COVERITY_SCAN_TOKEN:
+        required: true
 
 env:
   GITHUB_REPO: pmem/pmdk
