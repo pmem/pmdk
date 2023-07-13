@@ -143,9 +143,13 @@ class BaseTest(metaclass=_TestCase):
     Attributes:
         enabled (bool): True if test is meant to be executed, False otherwise.
             Defaults to True.
+        force_disabled (bool): True if the test is explicitle excluded from
+            execution e.g. in case the test fails permanently.
+            Defaults to False.
         ctx (Context): context affiliated with the test
     """
     enabled = True
+    force_disabled = False
 
     def __init__(self):
         self.ctx = None
