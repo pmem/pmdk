@@ -233,11 +233,11 @@ that impact performance and never logs any trace information or performs any
 run-time assertions.
 
 A second version of **libpmem2**, accessed when a program uses the libraries
-under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
-typical way to access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
-controlled using the following environment variables. These variables have
-no effect on the non-debug version of the library.
+under **/usr/lib/pmdk_debug**, contains run-time assertions and trace points.
+The typical way to access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to **/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**,
+as appropriate. Debugging output is controlled using the following environment
+variables. These variables have no effect on the non-debug version of the library.
 
 + **PMEM2_LOG_LEVEL**
 
@@ -249,7 +249,7 @@ No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged, in addition
 to returning the *errno*-based errors as usual. The same information
-may be retrieved using _UW(pmem2_errormsg).
+may be retrieved using **pmem2_errormsg**().
 
 + **2** - A trace of basic operations is logged.
 

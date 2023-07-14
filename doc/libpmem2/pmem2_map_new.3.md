@@ -92,11 +92,11 @@ the alignment required for specific *\*source*. Please see
 the alignment required for specific *\*source*. Please see
 **pmem2_source_alignment**(3).
 
-* **PMEM2_E_SRC_DEVDAX_PRIVATE** - device DAX mapped with MAP_PRIVATE. (Linux only)
+* **PMEM2_E_SRC_DEVDAX_PRIVATE** - device DAX mapped with MAP_PRIVATE.
 
 * **PMEM2_E_ADDRESS_UNALIGNED** - when mapping device DAX to a virtual memory reservation
 and the base mapping address (reservation address + reservation offset) is not aligned
-to the device DAX granularity. Please see **pmem2_config_set_vm_reservation**(3). (Linux only)
+to the device DAX granularity. Please see **pmem2_config_set_vm_reservation**(3).
 
 * **PMEM2_E_ADDRESS_UNALIGNED** - when mapping to a virtual memory reservation and the region
 for the mapping exceeds reservation size. Please see **pmem2_config_set_vm_reservation**(3).

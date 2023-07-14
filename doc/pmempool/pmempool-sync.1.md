@@ -41,12 +41,12 @@ the healthy replicas.
 Currently synchronizing data is allowed only for **pmemobj** pools (see
 **libpmemobj**(7)).
 
-_WINUX(,=q=If a pool set has the option *SINGLEHDR* or *NOHDRS*
+If a pool set has the option *SINGLEHDR* or *NOHDRS*
 (see **poolset**(5)), **pmempool sync** command has limited capability
 of checking its metadata. This is due to limited or no, respectively, internal
 metadata at the beginning of pool set parts in every replica when either of the
 options is used. In that cases, only missing parts or the ones which cannot
-be opened are recreated.=e=)
+be opened are recreated.
 
 ##### Available options: #####
 
