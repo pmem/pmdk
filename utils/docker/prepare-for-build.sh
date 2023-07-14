@@ -21,5 +21,5 @@ fi
 # should be preserved
 KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}
 if [[ "$KEEP_TEST_CONFIG" == 0 ]]; then
-	./configure-tests.sh $@
+	./configure-tests.sh
 fi
