@@ -24,7 +24,7 @@ header: "pmem API version 1.1"
 
 # NAME #
 
-**pmem_is_pmem**(), _UW(pmem_map_file),
+**pmem_is_pmem**(), **pmem_map_file**(),
 **pmem_unmap**() - check persistency, create and delete mappings
 
 # SYNOPSIS #
@@ -33,12 +33,10 @@ header: "pmem API version 1.1"
 #include <libpmem.h>
 
 int pmem_is_pmem(const void *addr, size_t len);
-_UWFUNCR1(void, *pmem_map_file, *path, =q=size_t len, int flags,
-	mode_t mode, size_t *mapped_lenp, int *is_pmemp=e=)
+void *pmem_map_file(const char *path, size_t len, int flags,
+	mode_t mode, size_t *mapped_lenp, int *is_pmemp);
 int pmem_unmap(void *addr, size_t len);
 ```
-
-_UNICODE()
 
 # DESCRIPTION #
 
@@ -61,14 +59,14 @@ save the result, and use the saved result to determine whether
 persistence. Calling **pmem_is_pmem**() each time changes are flushed to
 persistence will not perform well.
 
-The _UW(pmem_map_file) function creates a new read/write mapping for a
+The **pmem_map_file**() function creates a new read/write mapping for a
 file. If **PMEM_FILE_CREATE** is not specified in *flags*, the entire existing
 file *path* is mapped, *len* must be zero, and *mode* is ignored. Otherwise,
 *path* is opened or created as specified by *flags* and *mode*, and *len*
-must be non-zero. _UW(pmem_map_file) maps the file using **mmap**(2), but it
+must be non-zero. **pmem_map_file**() maps the file using **mmap**(2), but it
 also takes extra steps to make large page mappings more likely.
 
-On success, _UW(pmem_map_file) returns a pointer to the mapped area. If
+On success, **pmem_map_file**() returns a pointer to the mapped area. If
 *mapped_lenp* is not NULL, the length of the mapping is stored into
 \**mapped_lenp*. If *is_pmemp* is not NULL, a flag indicating whether the
 mapped file is actual pmem, or if **msync**() must be used to flush writes
@@ -85,11 +83,11 @@ following file creation flags:
   *mode* specifies the mode to use in case a new file is created (see
   **creat**(2)).
 
-The remaining flags modify the behavior of _UW(pmem_map_file) when
+The remaining flags modify the behavior of **pmem_map_file**() when
 **PMEM_FILE_CREATE** is specified.
 
 + **PMEM_FILE_EXCL** - If specified in conjunction with **PMEM_FILE_CREATE**,
-  and *path* already exists, then _UW(pmem_map_file) will fail with **EEXIST**.
+  and *path* already exists, then **pmem_map_file**() will fail with **EEXIST**.
   Otherwise, has the same meaning as **O_EXCL** on **open**(2), which is
   generally undefined.
 
@@ -112,7 +110,7 @@ The *path* can point to a Device DAX. In this case only the
 both ignored. For Device DAX mappings, *len* must be equal to
 either 0 or the exact size of the device.
 
-To delete mappings created with _UW(pmem_map_file), use **pmem_unmap**().
+To delete mappings created with **pmem_map_file**(), use **pmem_unmap**().
 
 The **pmem_unmap**() function deletes all the mappings for the
 specified address range, and causes further references to addresses
@@ -129,7 +127,7 @@ from **pmem_is_pmem**() means it is safe to use **pmem_persist**(3)
 and the related functions to make changes durable for that memory
 range. See also **CAVEATS**.
 
-On success, _UW(pmem_map_file) returns a pointer to the memory-mapped region
+On success, **pmem_map_file**() returns a pointer to the memory-mapped region
 and sets \**mapped_lenp* and \**is_pmemp* if they are not NULL.
 On error, it returns NULL, sets *errno* appropriately, and does not modify
 \**mapped_lenp* or \**is_pmemp*.
@@ -147,11 +145,11 @@ on Filesystem DAX.
 # CAVEATS #
 
 The result of **pmem_is_pmem**() query is only valid for the mappings
-created using _UW(pmem_map_file). For other memory regions, in particular
+created using **pmem_map_file**(). For other memory regions, in particular
 those created by a direct call to **mmap**(2), **pmem_is_pmem**() always
 returns false, even if the queried range is entirely persistent memory.
 
-Not all file systems support **posix_fallocate**(3). _UW(pmem_map_file) will
+Not all file systems support **posix_fallocate**(3). **pmem_map_file**() will
 fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
 the underlying file system does not support **posix_fallocate**(3).
 

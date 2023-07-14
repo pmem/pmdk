@@ -31,16 +31,15 @@ header: "pmemobj API version 2.3"
 
 ```c
 #include <libpmemobj.h>
-cc _WINUX(,-std=gnu99) ... -lpmemobj -lpmem
+cc -std=gnu99 ... -lpmemobj -lpmem
 ```
-_UNICODE()
 
 ##### Library API versioning: #####
 
 ```c
-_UWFUNC(pmemobj_check_version, =q=
+const char *pmemobj_check_version(
 	unsigned major_required,
-	unsigned minor_required=e=)
+	unsigned minor_required);
 ```
 
 ##### Managing library behavior: #####
@@ -56,7 +55,7 @@ void pmemobj_set_funcs(
 ##### Error handling: #####
 
 ```c
-_UWFUNC(pmemobj_errormsg, void)
+const char *pmemobj_errormsg(void);
 ```
 
 ##### Other library functions: #####
@@ -106,8 +105,8 @@ builds on this type of memory mapped file using the low-level pmem support
 provided by **libpmem**(7), handling the transactional updates, flushing
 changes to persistence, and managing recovery for the application.
 
-_WINUX(,=q=**libpmemobj** requires the **-std=gnu99** compilation flag to
-build properly.=e=)
+**libpmemobj** requires the **-std=gnu99** compilation flag to
+build properly.
 
 **libpmemobj** is one of a collection of persistent memory libraries available.
 The other is **libpmem**(7), low-level persistent memory support.
@@ -122,15 +121,14 @@ below.
 This section describes how the library API is versioned,
 allowing applications to work with an evolving API.
 
-The _UW(pmemobj_check_version) function is used to see if the installed
+The **pmemobj_check_version**() function is used to see if the installed
 **libpmemobj** supports the version of the library API required by an
 application. The easiest way to do this is for the application to supply
 the compile-time version information, supplied by defines in
 **\<libpmemobj.h\>**, like this:
 
 ```c
-reason = _U(pmemobj_check_version)(PMEMOBJ_MAJOR_VERSION,
-                               PMEMOBJ_MINOR_VERSION);
+reason = pmemobj_check_version(PMEMOBJ_MAJOR_VERSION, PMEMOBJ_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
 }
@@ -147,9 +145,9 @@ interfaces described here are available in version 1.0 of the library. Interface
 added after version 1.0 will contain the text *introduced in version x.y* in
 the section of this manual describing the feature.
 
-On success, _UW(pmemobj_check_version) returns NULL. Otherwise, the return
+On success, **pmemobj_check_version**() returns NULL. Otherwise, the return
 value is a static string describing the reason the version check failed. The
-string returned by _UW(pmemobj_check_version) must not be modified or freed.
+string returned by **pmemobj_check_version**() must not be modified or freed.
 
 # MANAGING LIBRARY BEHAVIOR #
 
@@ -168,7 +166,7 @@ desired limit.
 
 If an error is detected during the call to a **libpmemobj** function, the
 application may retrieve an error message describing the reason for the failure
-from _UW(pmemobj_errormsg). This function returns a pointer to a static buffer
+from **pmemobj_errormsg**(). This function returns a pointer to a static buffer
 containing the last error message logged for the current thread. If *errno*
 was set, the error message may include a description of the corresponding
 error code as returned by **strerror**(3). The error message buffer is
@@ -202,7 +200,7 @@ No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged,
 in addition to returning the *errno*-based errors as usual.
-The same information may be retrieved using _UW(pmemobj_errormsg).
+The same information may be retrieved using **pmemobj_errormsg**().
 
 + **2** - A trace of basic operations is logged.
 

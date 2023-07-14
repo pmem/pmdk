@@ -21,26 +21,24 @@ header: "pmempool API version 1.3"
 
 # NAME #
 
-_UW(pmempool_rm) - remove persistent memory pool
+**pmempool_rm**() - remove persistent memory pool
 
 # SYNOPSIS #
 
 ```c
 #include <libpmempool.h>
 
-_UWFUNCR1(int, pmempool_rm, *path, int flags)
+int pmempool_rm(const char *path, int flags);
 ```
-
-_UNICODE()
 
 # DESCRIPTION #
 
-The _UW(pmempool_rm) function removes the pool pointed to by *path*. The *path*
+The **pmempool_rm**() function removes the pool pointed to by *path*. The *path*
 can point to a regular file, device dax or pool set file. If *path* is a pool
-set file, _UW(pmempool_rm) will remove all part files from replicas
+set file, **pmempool_rm**() will remove all part files from replicas
 using **unlink**(2) before removing the pool set file itself.
 
-The *flags* argument determines the behavior of _UW(pmempool_rm).
+The *flags* argument determines the behavior of **pmempool_rm**().
 It is either 0 or the bitwise OR of one or more of the following flags:
 
 + **PMEMPOOL_RM_FORCE** - Ignore all errors when removing part files from replicas.
@@ -49,7 +47,7 @@ It is either 0 or the bitwise OR of one or more of the following flags:
 
 # RETURN VALUE #
 
-On success, _UW(pmempool_rm) returns 0. On error, it returns -1 and sets
+On success, **pmempool_rm**() returns 0. On error, it returns -1 and sets
 *errno* accordingly.
 
 # SEE ALSO #

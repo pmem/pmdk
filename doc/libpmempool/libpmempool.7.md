@@ -30,23 +30,21 @@ header: "pmempool API version 1.3"
 
 ```c
 #include <libpmempool.h>
-cc _WINUX(,-std=gnu99) ... -lpmempool -lpmem
+cc -std=gnu99 ... -lpmempool -lpmem
 ```
-
-_UNICODE()
 
 ##### Library API versioning: #####
 
 ```c
-_UWFUNC(pmempool_check_version, =q=
+const char *pmempool_check_version(
 	unsigned major_required,
-	unsigned minor_required=e=)
+	unsigned minor_required);
 ```
 
 ##### Error handling: #####
 
 ```c
-_UWFUNC(pmempool_errormsg, void)
+const char *pmempool_errormsg(void);
 ```
 
 ##### Other library functions: #####
@@ -87,22 +85,22 @@ thread. For this reason, all functions that might trigger destruction (e.g.
 **dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
 
-_WINUX(,=q=**libpmempool** requires the **-std=gnu99** compilation flag to
-build properly.=e=)
+**libpmempool** requires the **-std=gnu99** compilation flag to
+build properly.
 
 # LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned,
 allowing applications to work with an evolving API.
 
-The _UW(pmempool_check_version) function is used to see if
+The **pmempool_check_version**() function is used to see if
 the installed **libpmempool** supports the version of the
 library API required by an application. The easiest way to
 do this for the application is to supply the compile-time
 version information, supplied by defines in **\<libpmempool.h\>**, like this:
 
 ```c
-reason = _U(pmempool_check_version)(PMEMPOOL_MAJOR_VERSION,
+reason = pmempool_check_version(PMEMPOOL_MAJOR_VERSION,
                                 PMEMPOOL_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
@@ -122,17 +120,17 @@ Interfaces added after version 1.0 will contain the text
 *introduced in version x.y* in the section of this manual
 describing the feature.
 
-When the version check performed by _UW(pmempool_check_version)
+When the version check performed by **pmempool_check_version**()
 is successful, the return value is NULL. Otherwise the
 return value is a static string describing the reason for
 failing the version check. The string returned by
-_UW(pmempool_check_version) must not be modified or freed.
+**pmempool_check_version**() must not be modified or freed.
 
 # DEBUGGING AND ERROR HANDLING #
 
 If an error is detected during the call to a **libpmempool** function, the
 application may retrieve an error message describing the reason for the failure
-from _UW(pmempool_errormsg). This function returns a pointer to a static buffer
+from **pmempool_errormsg**(). This function returns a pointer to a static buffer
 containing the last error message logged for the current thread. If *errno*
 was set, the error message may include a description of the corresponding
 error code as returned by **strerror**(3). The error message buffer is
@@ -166,7 +164,7 @@ No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged (in addition
 to returning the *errno*-based errors as usual). The same information
-may be retrieved using _UW(pmempool_errormsg).
+may be retrieved using **pmempool_errormsg**().
 
 + **2** - A trace of basic operations is logged.
 
@@ -192,8 +190,8 @@ The program detects the type and checks consistency of given pool.
 If there are any issues detected, the pool is automatically repaired.
 
 ```c
-#include <stddef.h>_WINUX(,=q=
-#include <unistd.h>=e=)
+#include <stddef.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <libpmempool.h>
@@ -206,11 +204,11 @@ int
 main(int argc, char *argv[])
 {
 	PMEMpoolcheck *ppc;
-	struct _U(pmempool_check_status) *status;
+	struct pmempool_check_status *status;
 	enum pmempool_check_result ret;
 
 	/* arguments for check */
-	struct _U(pmempool_check_args) args = {
+	struct pmempool_check_args args = {
 		.path		= PATH,
 		.backup_path	= NULL,
 		.pool_type	= PMEMPOOL_POOL_TYPE_DETECT,
@@ -218,13 +216,13 @@ main(int argc, char *argv[])
 	};
 
 	/* initialize check context */
-	if ((ppc = _U(pmempool_check_init)(&args, sizeof(args))) == NULL) {
-		perror("_U(pmempool_check_init)");
+	if ((ppc = pmempool_check_init(&args, sizeof(args))) == NULL) {
+		perror("pmempool_check_init");
 		exit(EXIT_FAILURE);
 	}
 
 	/* perform check and repair, answer 'yes' for each question */
-	while ((status = _U(pmempool_check)(ppc)) != NULL) {
+	while ((status = pmempool_check(ppc)) != NULL) {
 		switch (status->type) {
 		case PMEMPOOL_CHECK_MSG_TYPE_ERROR:
 			printf("%s\n", status->str.msg);

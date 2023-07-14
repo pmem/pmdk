@@ -35,20 +35,18 @@ header: "pmem API version 1.1"
 cc ... -lpmem
 ```
 
-_UNICODE()
-
 ##### Library API versioning: #####
 
 ```c
-_UWFUNC(pmem_check_version, =q=
+const char *pmem_check_version(
 	unsigned major_required,
-	unsigned minor_required=e=)
+	unsigned minor_required);
 ```
 
 ##### Error handling: #####
 
 ```c
-_UWFUNC(pmem_errormsg, void)
+const char *pmem_errormsg(void);
 ```
 
 ##### Other library functions: #####
@@ -98,15 +96,14 @@ resources associated with that thread might not be cleaned up properly.
 This section describes how the library API is versioned, allowing
 applications to work with an evolving API.
 
-The _UW(pmem_check_version) function is used to determine whether the installed
+The **pmem_check_version**() function is used to determine whether the installed
 **libpmem** supports the version of the library API required by an
 application. The easiest way to do this is for the application to supply
 the compile-time version information, supplied by defines in
 **\<libpmem.h\>**, like this:
 
 ```c
-reason = _U(pmem_check_version)(PMEM_MAJOR_VERSION,
-                            PMEM_MINOR_VERSION);
+reason = pmem_check_version(PMEM_MAJOR_VERSION, PMEM_MINOR_VERSION);
 if (reason != NULL) {
 	/* version check failed, reason string tells you why */
 }
@@ -124,10 +121,10 @@ in version 1.0 of the library. Interfaces added after version 1.0 will
 contain the text *introduced in version x.y* in the section of this
 manual describing the feature.
 
-When the version check performed by _UW(pmem_check_version) is
+When the version check performed by **pmem_check_version**() is
 successful, the return value is NULL. Otherwise the return value is a
 static string describing the reason for failing the version check. The
-string returned by _UW(pmem_check_version) must not be modified or
+string returned by **pmem_check_version**() must not be modified or
 freed.
 
 # ENVIRONMENT #
@@ -209,7 +206,7 @@ This variable is intended for use during library testing.
 + **PMEM_MMAP_HINT**=*val*
 
 This environment variable allows overriding
-the hint address used by _UW(pmem_map_file). If set, it also disables
+the hint address used by **pmem_map_file**(). If set, it also disables
 mapping address randomization. This variable is intended for use during
 library testing and debugging. Setting it to some fairly large value
 (i.e. 0x10000000000) will very likely result in mapping the file at the
@@ -230,7 +227,7 @@ place the mapping.
 
 If an error is detected during the call to a **libpmem** function, the
 application may retrieve an error message describing the reason of the failure
-from _UW(pmem_errormsg). This function returns a pointer to a static buffer
+from **pmem_errormsg**(). This function returns a pointer to a static buffer
 containing the last error message logged for the current thread. If *errno*
 was set, the error message may include a description of the corresponding
 error code as returned by **strerror**(3). The error message buffer is
@@ -264,7 +261,7 @@ No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged, in addition
 to returning the *errno*-based errors as usual. The same information
-may be retrieved using _UW(pmem_errormsg).
+may be retrieved using **pmem_errormsg**().
 
 + **2** - A trace of basic operations is logged.
 
@@ -320,9 +317,9 @@ main(int argc, char *argv[])
 
 	/* create a pmem file and memory map it */
 
-	if ((pmemaddr = _U(pmem_map_file)(PATH, PMEM_LEN, PMEM_FILE_CREATE,
+	if ((pmemaddr = pmem_map_file(PATH, PMEM_LEN, PMEM_FILE_CREATE,
 			0666, &mapped_len, &is_pmem)) == NULL) {
-		perror("_U(pmem_map_file)");
+		perror("pmem_map_file");
 		exit(1);
 	}
 

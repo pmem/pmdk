@@ -22,9 +22,9 @@ header: "pmemobj API version 2.3"
 
 # NAME #
 
-_UW(pmemobj_ctl_get),
-_UW(pmemobj_ctl_set),
-_UW(pmemobj_ctl_exec)
+**pmemobj_ctl_get**(),
+**pmemobj_ctl_set**(),
+**pmemobj_ctl_exec**()
 - Query and modify libpmemobj internal behavior (EXPERIMENTAL)
 
 # SYNOPSIS #
@@ -32,19 +32,14 @@ _UW(pmemobj_ctl_exec)
 ```c
 #include <libpmemobj.h>
 
-_UWFUNCR2(int, pmemobj_ctl_get, PMEMobjpool *pop, *name, void *arg,
-	=q= (EXPERIMENTAL)=e=)
-_UWFUNCR2(int, pmemobj_ctl_set, PMEMobjpool *pop, *name, void *arg,
-	=q= (EXPERIMENTAL)=e=)
-_UWFUNCR2(int, pmemobj_ctl_exec, PMEMobjpool *pop, *name, void *arg,
-	=q= (EXPERIMENTAL)=e=)
+int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
+int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
+int pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
 ```
-
-_UNICODE()
 
 # DESCRIPTION #
 
-The _UW(pmemobj_ctl_get), _UW(pmemobj_ctl_set) and _UW(pmemobj_ctl_exec)
+The **pmemobj_ctl_get**(), **pmemobj_ctl_set**() and **pmemobj_ctl_exec**()
 functions provide a uniform interface for querying and modifying the internal
 behavior of **libpmemobj**(7) through the control (CTL) namespace.
 
@@ -69,18 +64,18 @@ prefault.at_create | rw | global | int | int | - | boolean
 
 If set, every page of the pool will be touched and written to when the pool
 is created, in order to trigger page allocation and minimize the performance
-impact of pagefaults. Affects only the _UW(pmemobj_create) function.
+impact of pagefaults. Affects only the **pmemobj_create**() function.
 
 prefault.at_open | rw | global | int | int | - | boolean
 
 If set, every page of the pool will be touched and written to when the pool
 is opened, in order to trigger page allocation and minimize the performance
-impact of pagefaults. Affects only the _UW(pmemobj_open) function.
+impact of pagefaults. Affects only the **pmemobj_open**() function.
 
 sds.at_create | rw | global | int | int | - | boolean
 
 If set, force-enables or force-disables SDS feature during pool creation.
-Affects only the _UW(pmemobj_create) function. See **pmempool_feature_query**(3)
+Affects only the **pmemobj_create**() function. See **pmempool_feature_query**(3)
 for information about SDS (SHUTDOWN_STATE) feature.
 
 copy_on_write.at_open | rw | global | int | int | - | boolean

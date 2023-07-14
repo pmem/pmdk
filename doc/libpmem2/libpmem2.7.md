@@ -249,7 +249,7 @@ No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged, in addition
 to returning the *errno*-based errors as usual. The same information
-may be retrieved using _UW(pmem2_errormsg).
+may be retrieved using **pmem2_errormsg**().
 
 + **2** - A trace of basic operations is logged.
 
