@@ -171,20 +171,17 @@ pmempool_dump_func(const char *appname, int argc, char *argv[])
 	case PMEM_POOL_TYPE_OBJ:
 		outv_err("%s: PMEMOBJ pool not supported\n", pd.fname);
 		ret = -1;
-		goto out;
+		break;
 	case PMEM_POOL_TYPE_UNKNOWN:
 		outv_err("%s: unknown pool type -- '%s'\n", pd.fname,
 				params.signature);
 		ret = -1;
-		goto out;
+		break;
 	default:
 		outv_err("%s: cannot determine type of pool\n", pd.fname);
 		ret = -1;
-		goto out;
+		break;
 	}
-
-	if (ret)
-		outv_err("%s: dumping pool file failed\n", pd.fname);
 
 out:
 	if (pd.ofh != stdout)
