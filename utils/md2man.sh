@@ -27,41 +27,17 @@ set -o pipefail
 filename=$1
 template=$2
 outfile=$3
-title=`sed -n 's/^title:\ _MP(*\([A-Za-z0-9_-]*\).*$/\1/p' $filename`
+title=`sed -n 's/^title:\ *\([A-Za-z0-9_-]*\).*$/\1/p' $filename`
 section=`sed -n 's/^title:.*\([0-9]\))$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
-if [ "$TESTOPTS" != "" ]; then
-	m4 $TESTOPTS macros.man $filename | sed -n -e '/# NAME #/,$p' > $outfile
-else
-	OPTS=
-
-if [ "$WIN32" == 1 ]; then
-	OPTS="$OPTS -DWIN32"
-else
-	OPTS="$OPTS -UWIN32"
-fi
-
-if [ "$(uname -s)" == "FreeBSD" ]; then
-	OPTS="$OPTS -DFREEBSD"
-else
-	OPTS="$OPTS -UFREEBSD"
-fi
-
-if [ "$WEB" == 1 ]; then
-	OPTS="$OPTS -DWEB"
-	mkdir -p "$(dirname $outfile)"
-	m4 $OPTS macros.man $filename | sed -n -e '/---/,$p' > $outfile
-else
-	SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date +%s)}"
-	COPYRIGHT=$(grep -rwI "\[comment]: <> (Copyright" $filename |\
-		sed "s/\[comment\]: <> (\([^)]*\))/\1/")
-	dt=$(date -u -d "@$SOURCE_DATE_EPOCH" +%F 2>/dev/null ||
-		date -u -r "$SOURCE_DATE_EPOCH" +%F 2>/dev/null || date -u +%F)
-	m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
-		pandoc -s -t man -o $outfile --template=$template \
-		-V title=$title -V section=$section \
-		-V date="$dt" -V version="$version" \
-		-V copyright="$COPYRIGHT"
-fi
-fi
+SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date +%s)}"
+COPYRIGHT=$(grep -rwI "\[comment]: <> (Copyright" $filename |\
+	sed "s/\[comment\]: <> (\([^)]*\))/\1/")
+dt=$(date -u -d "@$SOURCE_DATE_EPOCH" +%F 2>/dev/null ||
+	date -u -r "$SOURCE_DATE_EPOCH" +%F 2>/dev/null || date -u +%F)
+echo $filename | sed -n -e '/# NAME #/,$p' |\
+	pandoc -s -t man -o $outfile --template=$template \
+	-V title=$title -V section=$section \
+	-V date="$dt" -V version="$version" \
+	-V copyright="$COPYRIGHT"

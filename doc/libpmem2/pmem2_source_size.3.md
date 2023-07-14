@@ -39,8 +39,7 @@ The **pmem2_source_size**() function retrieves the size of the file
 in bytes pointed by file descriptor stored in the *source* and puts
 it in *\*size*.
 
-This function is a portable replacement for OS-specific APIs.
-On Linux, it hides the quirkiness of Device DAX size detection.
+This function hides the quirkiness of Device DAX size detection.
 
 # RETURN VALUE #
 

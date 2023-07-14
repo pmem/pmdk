@@ -53,8 +53,6 @@ On all systems:
 
 * **PMEM2_E_NOSUPP** - source type or operating system not supported (see #caveats for details.)
 
-on Linux:
-
 * **PMEM2_E_DAX_REGION_NOT_FOUND** - no **ndctl_region** could be determined for the source.
 
 * **PMEM2_E_INVALID_FILE_TYPE** - if the source points to a directory.
