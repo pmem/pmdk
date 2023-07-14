@@ -100,6 +100,7 @@ class GdbProcess:
             # will be checked by 'match' tool
             return
         if self._process.stderr:
+            print(self._process.stderr)
             raise futils.Fail('Gdb validation failed')
 
     def _prepare_args(self):
