@@ -3,16 +3,12 @@ name: Docker rebuild
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - master
-    paths:
-      - 'utils/docker/images/**'
   push:
     branches:
       - master
     paths:
       - 'utils/docker/images/**'
+      - '.github/workflows/docker_rebuild.yml'
   schedule:
     # run this job at 22:00 UTC every other day (hopefully just before the nightly)
     - cron:  '0 22 */2 * *'
