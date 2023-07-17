@@ -23,7 +23,7 @@ header: "pmempool API version 1.3"
 
 # NAME #
 
-_UW(pmempool_check_init), _UW(pmempool_check),
+**pmempool_check_init**(), **pmempool_check**(),
 **pmempool_check_end**() - checks pmempool health
 
 # SYNOPSIS #
@@ -31,70 +31,34 @@ _UW(pmempool_check_init), _UW(pmempool_check),
 ```c
 #include <libpmempool.h>
 
-_UWFUNCR1UW(PMEMpoolcheck, *pmempool_check_init, struct pmempool_check_args,
-*args,=q=
-	size_t args_size=e=)
-_UWFUNCRUW(struct pmempool_check_status, *pmempool_check, PMEMpoolcheck *ppc)
+PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
+	size_t args_size);
+struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
-
-_UNICODE()
 
 # DESCRIPTION #
 
 To perform the checks provided by **libpmempool**, a *check context*
-must first be initialized using the _UW(pmempool_check_init)
+must first be initialized using the **pmempool_check_init**()
 function described in this section. Once initialized, the
 *check context* is represented by an opaque handle of
 type *PMEMpoolcheck\**, which is passed to all of the
 other functions available in **libpmempool**
 
-To execute checks, _UW(pmempool_check) must be called iteratively.
+To execute checks, **pmempool_check**() must be called iteratively.
 Each call generates a new check status, represented by a
-_UWS(pmempool_check_status) structure. Status messages are described
+*struct pmempool_check_status* structure. Status messages are described
 later below.
 
-When the checks are completed, _UW(pmempool_check) returns NULL. The check
+When the checks are completed, **pmempool_check**() returns NULL. The check
 must be finalized using **pmempool_check_end**(), which returns an
 *enum pmempool_check_result* describing the results of the entire check.
 
-_UW(pmempool_check_init) initializes the check context. *args* describes
+**pmempool_check_init**() initializes the check context. *args* describes
 parameters of the check context. *args_size* should be equal to the size of
-the _UWS(pmempool_check_args). _UWS(pmempool_check_args) is defined as follows:
+the *struct pmempool_check_args*. *struct pmempool_check_args* is defined as follows:
 
-_WINUX(=q=
-```c
-struct pmempool_check_argsU
-{
-	/* path to the pool to check */
-	const char *path;
-
-	/* optional backup path */
-	const char *backup_path;
-
-	/* type of the pool */
-	enum pmempool_pool_type pool_type;
-
-	/* parameters */
-	int flags;
-};
-
-struct pmempool_check_argsW
-{
-	/* path to the pool to check */
-	const wchar_t *path;
-
-	/* optional backup path */
-	const wchar_t *backup_path;
-
-	/* type of the pool */
-	enum pmempool_pool_type pool_type;
-
-	/* parameters */
-	int flags;
-};
-```
-=e=,=q=
 ```c
 struct pmempool_check_args
 {
@@ -111,7 +75,6 @@ struct pmempool_check_args
 	int flags;
 };
 ```
-=e=)
 
 The *flags* argument accepts any combination of the following values (ORed):
 
@@ -145,34 +108,10 @@ the same structure (the same number of parts with exactly the same size) as the
 
 Backup is supported only if the source *pool set* has no defined replicas.
 
-The _UW(pmempool_check) function starts or resumes the check indicated by *ppc*.
-When the next status is generated, the check is paused and _UW(pmempool_check)
-returns a pointer to the _UWS(pmempool_check_status) structure:
+The **pmempool_check**() function starts or resumes the check indicated by *ppc*.
+When the next status is generated, the check is paused and **pmempool_check**()
+returns a pointer to the *struct pmempool_check_status* structure:
 
-_WINUX(=q=
-{
-```c
-struct pmempool_check_statusU
-{
-	enum pmempool_check_msg_type type; /* type of the status */
-	struct
-	{
-		const char *msg; /* status message string */
-		const char *answer; /* answer to message if applicable */
-	} str;
-};
-
-struct pmempool_check_statusW
-{
-	enum pmempool_check_msg_type type; /* type of the status */
-	struct
-	{
-		const wchar_t *msg; /* status message string */
-		const wchar_t *answer; /* answer to message if applicable */
-	} str;
-};
-```
-=e=,=q=
 ```c
 struct pmempool_check_status
 {
@@ -184,7 +123,6 @@ struct pmempool_check_status
 	} str;
 };
 ```
-=e=)
 
 This structure can describe three types of statuses:
 
@@ -197,21 +135,21 @@ This structure can describe three types of statuses:
   **PMEMPOOL_CHECK_ALWAYS_YES** flag was not set. It requires *answer* to be
   set to "yes" or "no" before continuing.
 
-After calling _UW(pmempool_check) again, the previously provided
-_UWS(pmempool_check_status) pointer must be considered invalid.
+After calling **pmempool_check**() again, the previously provided
+*struct pmempool_check_status* pointer must be considered invalid.
 
 The **pmempool_check_end**() function finalizes the check and releases all
 related resources. *ppc* is invalid after calling **pmempool_check_end**().
 
 # RETURN VALUE #
 
-_UW(pmempool_check_init) returns an opaque handle of type *PMEMpoolcheck\**.
+**pmempool_check_init**() returns an opaque handle of type *PMEMpoolcheck\**.
 If the provided parameters are invalid or the initialization process fails,
-_UW(pmempool_check_init) returns NULL and sets *errno* appropriately.
+**pmempool_check_init**() returns NULL and sets *errno* appropriately.
 
-Each call to _UW(pmempool_check) returns a pointer to a
-_UWS(pmempool_check_status) structure when a status is generated. When the
-check completes, _UW(pmempool_check) returns NULL.
+Each call to **pmempool_check**() returns a pointer to a
+*struct pmempool_check_status* structure when a status is generated. When the
+check completes, **pmempool_check**() returns NULL.
 
 The **pmempool_check_end**() function returns an *enum pmempool_check_result*
 summarizing the results of the finalized check. **pmempool_check_end**() can
@@ -238,7 +176,7 @@ return one of the following values:
 This is an example of a *check context* initialization:
 
 ```c
-struct _U(pmempool_check_args) args =
+struct pmempool_check_args args =
 {
 	.path = "/path/to/obj.pool",
 	.backup_path = NULL,
@@ -248,7 +186,7 @@ struct _U(pmempool_check_args) args =
 ```
 
 ```c
-PMEMpoolcheck *ppc = _U(pmempool_check_init)(&args, sizeof(args));
+PMEMpoolcheck *ppc = pmempool_check_init(&args, sizeof(args));
 ```
 
 The check will process a *pool* of type **PMEMPOOL_POOL_TYPE_OBJ**

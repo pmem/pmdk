@@ -49,11 +49,7 @@ If the function fails, the *\*numa_node* variable is left unmodified and a negat
 
 The **pmem2_source_numa_node**() can fail with the following errors:
 
-On all systems:
-
 * **PMEM2_E_NOSUPP** - source type or operating system not supported (see #caveats for details.)
-
-on Linux:
 
 * **PMEM2_E_DAX_REGION_NOT_FOUND** - no **ndctl_region** could be determined for the source.
 
