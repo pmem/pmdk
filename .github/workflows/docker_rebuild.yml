@@ -3,16 +3,12 @@ name: Docker rebuild
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - master
-    paths:
-      - 'utils/docker/images/**'
   push:
     branches:
       - master
     paths:
       - 'utils/docker/images/**'
+      - '.github/workflows/docker_rebuild.yml'
   schedule:
     # run this job at 22:00 UTC every other day (hopefully just before the nightly)
     - cron:  '0 22 */2 * *'
@@ -47,9 +43,6 @@ jobs:
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
-
-      - name: Get system information
-        run: ./$WORKDIR/get-system-info.sh
   
       - name: Pull or rebuild the image
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh rebuild
