@@ -61,9 +61,9 @@ function push_image {
 	# - not a pull_request event,
 	# - and PUSH_IMAGE flag was set for current build.
 	if [[ "${CI_REPO_SLUG}" == "${GITHUB_REPO}" \
-		&& (${CI_BRANCH} == stable-* || ${CI_BRANCH} == devel-* || ${CI_BRANCH} == master) \
-		&& ${CI_EVENT_TYPE} != "pull_request" \
-		&& ${PUSH_IMAGE} == "1" ]]
+		&& (((${CI_BRANCH} == stable-* || ${CI_BRANCH} == devel-* || ${CI_BRANCH} == master) \
+		&& ${CI_EVENT_TYPE} != "pull_request") \
+			|| ${PUSH_IMAGE} == "1") ]]
 	then
 		echo "The image will be pushed to the Container Registry: ${DOCKER_REPO}"
 		pushd ${images_dir_name}
@@ -71,6 +71,11 @@ function push_image {
 		popd
 	else
 		echo "Skip pushing the image to the ${DOCKER_REPO}."
+		echo "CI_REPO_SLUG: ${CI_REPO_SLUG}"
+		echo "GITHUB_REPO: ${GITHUB_REPO}"
+		echo "CI_BRANCH: ${CI_BRANCH}"
+		echo "CI_EVENT_TYPE: ${CI_EVENT_TYPE}"
+		echo "PUSH_IMAGE: ${PUSH_IMAGE}"
 	fi
 }
 
