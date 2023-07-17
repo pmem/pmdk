@@ -47,9 +47,6 @@ jobs:
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
-
-      - name: Get system information
-        run: ./$WORKDIR/get-system-info.sh
   
       - name: Pull or rebuild the image
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh rebuild

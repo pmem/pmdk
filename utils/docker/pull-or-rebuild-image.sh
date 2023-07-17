@@ -108,7 +108,8 @@ for file in $files; do echo $file; done
 for file in $files; do
 	# Check if modified files are relevant to the current build
 	if [[ $file =~ ^($base_dir)\/Dockerfile\.($OS)-($OS_VER)$ ]] \
-		|| [[ $file =~ ^($base_dir)\/.*\.sh$ ]]
+		|| [[ $file =~ ^($base_dir)\/.*\.sh$ ]] \
+		|| [[ $file =~ ^($base_dir)\/\.\.\/\.\.\/\.\.\/\.github\/workflows\/docker_rebuild\.yml ]]
 	then
 		build_image
 		push_image
