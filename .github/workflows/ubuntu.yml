@@ -14,27 +14,23 @@ jobs:
     name: Linux
     runs-on: ubuntu-latest
     env:
-      # use org's Private Access Token to log in to GitHub Container Registry
-      DOC_UPDATE_GITHUB_TOKEN: ${{ secrets.DOC_UPDATE_GITHUB_TOKEN }}
-      HOST_WORKDIR: /home/runner/work/pmdk/pmdk
-      WORKDIR:      utils/docker
-      PMDK_CC:      gcc
-      PMDK_CXX:     g++
-      MAKE_PKG:     0
-      VALGRIND:     1
-      SRC_CHECKERS: 0
+      HOST_WORKDIR:    /home/runner/work/pmdk/pmdk
+      WORKDIR:         utils/docker
+      PMDK_CC:         gcc
+      PMDK_CXX:        g++
+      MAKE_PKG:        0
+      SRC_CHECKERS:    0
+      OS:              ubuntu
+      OS_VER:          22.04
+      FAULT_INJECTION: 1
     strategy:
       # Introduced to stop sporadically failing Codecov uploader (COVERAGE=1)
       # from stopping all other builds.
       fail-fast: false
       matrix:
-        CONFIG: [
-                 "N=1 OS=ubuntu OS_VER=22.04 FAULT_INJECTION=1 TEST_BUILD=debug",
-                 "N=2 OS=ubuntu OS_VER=22.04 FAULT_INJECTION=1 TEST_BUILD=nondebug UBSAN=1",
-                 "N=3 OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
-                 "N=4 OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1",
-                 "N=5 OS=ubuntu OS_VER=22.04 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug",
-                ]
+        include:
+          - {TEST_BUILD: debug, COVERAGE: 1}
+          - {TEST_BUILD: nondebug, COVERAGE: 0}
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
@@ -44,8 +40,11 @@ jobs:
       - name: Get system information
         run: ./$WORKDIR/get-system-info.sh
 
-      - name: Pull or rebuild the image
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
+      - name: Pull the image
+        run: cd $WORKDIR && ./pull-or-rebuild-image.sh
 
       - name: Run the build
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
+        env:
+          TEST_BUILD: ${{ matrix.TEST_BUILD }}
+          COVERAGE: ${{ matrix.COVERAGE }}
+        run: cd $WORKDIR && ./build-CI.sh
