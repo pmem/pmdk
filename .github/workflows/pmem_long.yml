@@ -35,7 +35,7 @@ jobs:
         run: ./$WORKDIR/build-pmdk.sh
 
       - name: Create testconfig file
-        run: ./$WORKDIR/create-testconfig.sh
+        run: ./$WORKDIR/../create-testconfig.sh
 
       - name: Run tests
         run: cd src/test/ && ./RUNTESTS.${{ matrix.script }} -t long -b ${{ matrix.build }}

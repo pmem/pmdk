@@ -63,11 +63,8 @@ pushd $WORKDIR/src/test
 make -j$(nproc) clobber
 make -j$(nproc)
 
-# Prepare test config once more. Now, with path to PMDK set in the OS
-# (rather than in the git tree) - for testing packages installed in the system.
-$SCRIPTSDIR/configure-tests.sh
-
-# Append variables exclusively for PKG tests
+# Append variables with path to PMDK set in the OS (rather than in the git tree)
+# - for testing packages installed in the system.
 case "$OS" in
 "opensuse/leap" | "rockylinux/rockylinux")
 	PMDK_LIB_PATH_NONDEBUG=/usr/lib64

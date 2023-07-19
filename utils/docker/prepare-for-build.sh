@@ -21,5 +21,12 @@ fi
 # should be preserved
 KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}
 if [[ "$KEEP_TEST_CONFIG" == 0 ]]; then
-	./configure-tests.sh
+	OUTPUT_DIR=$WORKDIR/src/test \
+		NON_PMEM_FS_DIR=/tmp \
+		PMEM_FS_DIR=/tmp \
+		PMEM_FS_DIR_FORCE_PMEM=1 \
+		force_cacheline=True \
+		force_byte=True \
+		TEST_TIMEOUT=3m \
+		../create-testconfig.sh
 fi
