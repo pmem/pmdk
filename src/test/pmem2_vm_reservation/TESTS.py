@@ -287,6 +287,8 @@ class TEST30(PMEM2_VM_RESERVATION):
     test_case = "test_vm_reserv_map_invalid_granularity"
 
 
+# XXX - https://github.com/pmem/pmdk/issues/5707
+@t.DISABLED()
 class TEST31(PMEM2_VM_RESERVATION_ASYNC):
     """
     map and unmap asynchronously multiple times to the whole vm reservation

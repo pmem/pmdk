@@ -8,8 +8,8 @@
 
 . ../unittest/unittest.sh
 
-# XXX disable the test for 'helgrind'
-# until https://github.com/pmem/pmdk/issues/5646 is fixed.
+# XXX disable the test until https://github.com/pmem/pmdk/issues/5646
+# and https://github.com/pmem/pmdk/issues/5727 are fixed.
 DISABLED
 
 require_test_type medium

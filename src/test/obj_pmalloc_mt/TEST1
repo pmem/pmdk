@@ -9,6 +9,9 @@
 
 . ../unittest/unittest.sh
 
+# XXX disable the test until https://github.com/pmem/pmdk/issues/5726 is fixed.
+DISABLED
+
 require_fs_type any
 require_test_type medium
 configure_valgrind drd force-disable
