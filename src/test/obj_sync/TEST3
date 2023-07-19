@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # src/test/obj_sync/TEST3 -- unit test for PMEM-resident locks
 #
 
 . ../unittest/unittest.sh
+
+# XXX disable the test until https://github.com/pmem/pmdk/issues/5705 is fixed.
+DISABLED
 
 require_test_type medium
 
