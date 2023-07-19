@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # src/test/obj_tx_flow/TEST0 -- unit test for transaction flow
@@ -9,9 +9,9 @@
 . ../unittest/unittest.sh
 
 # this test verifies the correctness of the tx management functions only
-configure_valgrind pmemcheck force-disable
-
 require_test_type medium
+
+configure_valgrind pmemcheck force-disable
 
 setup
 

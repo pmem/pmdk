@@ -24,22 +24,20 @@ set features)
 
 # NAME #
 
-_UW(pmempool_feature_query), _UW(pmempool_feature_enable),
-_UW(pmempool_feature_disable) - toggle or query pool set features
+**pmempool_feature_query**(), **pmempool_feature_enable**(),
+**pmempool_feature_disable**() - toggle or query pool set features
 
 # SYNOPSIS #
 
 ```c
 #include <libpmempool.h>
 
-_UWFUNCR1(int, pmempool_feature_query, *path, =q=enum pmempool_feature feature, unsigned flags=e=)
+int pmempool_feature_query(const char *path, enum pmempool_feature feature, unsigned flags);
 
-_UWFUNCR1(int, pmempool_feature_enable, *path, =q=enum pmempool_feature feature, unsigned flags=e=)
+int pmempool_feature_enable(const char *path, enum pmempool_feature feature, unsigned flags);
 
-_UWFUNCR1(int, pmempool_feature_disable, *path, =q=enum pmempool_feature feature, unsigned flags=e=)
+int pmempool_feature_disable(const char *path, enum pmempool_feature feature, unsigned flags);
 ```
-
-_UNICODE()
 
 # DESCRIPTION #
 
@@ -64,13 +62,13 @@ pool open which verifies pool consistency in the presence of dirty shutdown.
 during opening a pool and fixing bad blocks performed by pmempool-sync
 during syncing a pool. For details see **pmempool-feature**(1).
 
-The _UW(pmempool_feature_query) function checks state of *feature* in the
+The **pmempool_feature_query**() function checks state of *feature* in the
 pool set pointed by *path*.
 
-The _UW(pmempool_feature_enable) function enables *feature* in the pool set
+The **pmempool_feature_enable**() function enables *feature* in the pool set
 pointed by *path*.
 
-The _UW(pmempool_feature_disable) function disables *feature* in the pool set
+The **pmempool_feature_disable**() function disables *feature* in the pool set
 pointed by *path*.
 
 # COMPATIBILITY #
@@ -80,18 +78,18 @@ software version) are not supported.
 
 # DISCLAIMER #
 
-_UW(pmempool_feature_query), _UW(pmempool_feature_enable) and
-_UW(pmempool_feature_disable) are not fail safe.
+**pmempool_feature_query**(), **pmempool_feature_enable**() and
+**pmempool_feature_disable**() are not fail safe.
 
 # RETURN VALUE #
 
-On success, _UW(pmempool_feature_query) returns 0 if *feature* is disabled or
+On success, **pmempool_feature_query**() returns 0 if *feature* is disabled or
 1 if it is enabled. On error, it returns -1 and sets *errno* accordingly.
 
-On success, _UW(pmempool_feature_enable) returns 0. On error, it returns -1
+On success, **pmempool_feature_enable**() returns 0. On error, it returns -1
 and sets *errno* accordingly.
 
-On success, _UW(pmempool_feature_disable) returns 0. On error, it returns -1
+On success, **pmempool_feature_disable**() returns 0. On error, it returns -1
 and sets *errno* accordingly.
 
 If non zero *flags* are provided **errno** is set to EINVAL and function

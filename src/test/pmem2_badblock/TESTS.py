@@ -68,7 +68,8 @@ class PMEM2_BADBLOCK(t.Test):
 
 
 # XXX - https://github.com/pmem/pmdk/issues/5636
-class DISABLE_TEST0(PMEM2_BADBLOCK_COUNT):
+@t.DISABLED()
+class TEST0(PMEM2_BADBLOCK_COUNT):
     """
     compares the number of bad blocks returned by pmem2 and ndctl on fsdax
     """
@@ -80,8 +81,9 @@ class DISABLE_TEST0(PMEM2_BADBLOCK_COUNT):
 
 
 # XXX - https://github.com/pmem/pmdk/issues/5636
+@t.DISABLED()
 @t.require_devdax(t.DevDax('devdax1'))
-class DISABLE_TEST1(PMEM2_BADBLOCK_COUNT):
+class TEST1(PMEM2_BADBLOCK_COUNT):
     """
     compares the number of bad blocks returned by pmem2 and ndctl on devdax
     """
@@ -93,7 +95,8 @@ class DISABLE_TEST1(PMEM2_BADBLOCK_COUNT):
 
 
 # XXX - https://github.com/pmem/pmdk/issues/5636
-class DISABLE_TEST2(PMEM2_BADBLOCK):
+@t.DISABLED()
+class TEST2(PMEM2_BADBLOCK):
     """test mcsafe read operation with encountered badblock"""
     test_case = "test_pmem2_src_mcsafe_badblock_read"
 
@@ -103,7 +106,8 @@ class DISABLE_TEST2(PMEM2_BADBLOCK):
 
 
 # XXX - https://github.com/pmem/pmdk/issues/5636
-class DISABLE_TEST3(PMEM2_BADBLOCK):
+@t.DISABLED()
+class TEST3(PMEM2_BADBLOCK):
     """test mcsafe write operation with encountered badblock"""
     test_case = "test_pmem2_src_mcsafe_badblock_write"
 
@@ -113,8 +117,9 @@ class DISABLE_TEST3(PMEM2_BADBLOCK):
 
 
 # XXX - https://github.com/pmem/pmdk/issues/5636
+@t.DISABLED()
 @t.require_devdax(t.DevDax('devdax1'))
-class DISABLE_TEST4(PMEM2_BADBLOCK):
+class TEST4(PMEM2_BADBLOCK):
     """test mcsafe read operation with encountered badblock on devdax"""
     test_case = "test_pmem2_src_mcsafe_badblock_read"
 
@@ -124,8 +129,9 @@ class DISABLE_TEST4(PMEM2_BADBLOCK):
 
 
 # XXX - https://github.com/pmem/pmdk/issues/5636
+@t.DISABLED()
 @t.require_devdax(t.DevDax('devdax1'))
-class DISABLE_TEST5(PMEM2_BADBLOCK):
+class TEST5(PMEM2_BADBLOCK):
     """test mcsafe write operation with encountered badblock on devdax"""
     test_case = "test_pmem2_src_mcsafe_badblock_write"
 

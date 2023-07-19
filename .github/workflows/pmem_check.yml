@@ -32,7 +32,7 @@ jobs:
         run: ./$WORKDIR/build-pmdk.sh
 
       - name: Create testconfig files
-        run: ./$WORKDIR/create-testconfig.sh
+        run: ./$WORKDIR/../create-testconfig.sh
 
       - name: Run tests (Bash)
         run: cd src/test/ && ./RUNTESTS.sh -b ${{ matrix.build }}

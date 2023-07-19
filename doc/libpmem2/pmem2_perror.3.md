@@ -20,26 +20,24 @@ header: "pmem2 API version 1.0"
 
 # NAME #
 
-_UW(pmem2_perror) - prints a descriptive error message to stderr
+**pmem2_perror**() - prints a descriptive error message to stderr
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-_UWFUNCR1(void, pmem2_perror, *format, ...)
+void pmem2_perror(const char *format, ...);
 ```
-
-_UNICODE()
 
 # DESCRIPTION #
 
-The _UW(pmem2_perror) function produces a message on standard error stream describing
+The **pmem2_perror**() function produces a message on standard error stream describing
 the last error encountered during library call.
 
-_UW(pmem2_perror) takes a variable number of arguments. First, the argument string
+**pmem2_perror**() takes a variable number of arguments. First, the argument string
 *format* is printed - similarly to the **printf**(3), followed by a colon and a blank.
-Then an error message retrieved from the _UW(pmem2_errormsg), and a new-line. To see
+Then an error message retrieved from the **pmem2_errormsg**(), and a new-line. To see
 how the error message is generated, please see **pmem2_errormsg**(3).
 
 # SEE ALSO #

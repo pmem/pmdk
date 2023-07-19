@@ -170,7 +170,7 @@ Device DAX devices with any internal alignments in one replica.
 
 Using the *SINGLEHDR* option has important implications for data
 integrity checking and recoverability in case of a pool set damage.
-See _UW(pmempool_sync) API for more information about pool set recovery.
+See **pmempool_sync**() API for more information about pool set recovery.
 
 # DIRECTORIES #
 
@@ -208,11 +208,11 @@ Creation of all the parts of the pool set and the associated replica sets can
 be done with the **pmemobj_create**(3) function, or by using the **pmempool**(1) utility.
 
 Restoring data from a replica can be done by using the
-**pmempool-sync**(1) command or the _UW(pmempool_sync) API from the
+**pmempool-sync**(1) command or the **pmempool_sync**() API from the
 **libpmempool**(7) library.
 
 Modifications of a pool set file configuration can be done by using the
-**pmempool-transform**(1) command or the _UW(pmempool_transform) API from the
+**pmempool-transform**(1) command or the **pmempool_transform**() API from the
 **libpmempool**(7) library.
 
 When creating a pool set consisting of multiple files, or when creating

@@ -83,6 +83,10 @@ function interactive_green() {
 	interactive_color 2 "$@"
 }
 
+function interactive_yellow() {
+	interactive_color 3 "$@"
+}
+
 function verbose_msg() {
 	if [ "$UNITTEST_LOG_LEVEL" -ge 2 ]; then
 		echo "$*"
@@ -1911,6 +1915,18 @@ function pass() {
 	if [ "$FS" != "none" ]; then
 		rm $RM_ONEFS -rf -- $DIR
 	fi
+}
+
+#
+# DISABLED -- print a message that the test has been intentionally disabled
+#	      and abandon test execution
+#
+function DISABLED() {
+	msg=$(interactive_yellow STDOUT "DISABLED")
+	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
+		echo -e "$UNITTEST_NAME: $msg ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
+	fi
+	exit 0
 }
 
 # Length of pool file's signature

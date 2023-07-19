@@ -8,6 +8,7 @@
 	- removes libpmemblk/libpmemlog source code and documentation
 	- removes support for Travis bulids
 	- removes libvmem and libvmmalloc folders
+  - reorganizes `make cstyle` command handling by addind separate steps
 	- adds explicit test failure when Valgrind is not installed but required
 	- ...
 

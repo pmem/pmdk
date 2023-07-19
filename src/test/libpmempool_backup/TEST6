@@ -9,13 +9,12 @@
 
 . ../unittest/unittest.sh
 
-EXE=../libpmempool_api/libpmempool_test$EXESUFFIX
+require_test_type medium
 
 # This test memcpy + persist entire pool, and it runs
 # forever under pmemcheck.
+EXE=../libpmempool_api/libpmempool_test$EXESUFFIX
 configure_valgrind pmemcheck force-disable $EXE
-
-require_test_type medium
 
 require_fs_type pmem non-pmem
 

@@ -17,7 +17,7 @@ header: "pmemobj API version 2.3"
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
-_WINUX(,[NOTES](#notes)<br />)
+[NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -148,14 +148,12 @@ contains the object represented by *oid*. If the pool is not open or
 The **pmemobj_pool_by_ptr**() function returns a handle to the pool that
 contains the address, or NULL if the address does not belong to any open pool.
 
-_WINUX(,=q=
-
 # NOTES #
 
 For performance reasons the **pmemobj_direct**() function is inlined by default.
 To use the non-inlined variant of **pmemobj_direct**(),
 define **PMEMOBJ_DIRECT_NON_INLINE** prior to the *\#include* of **\<libpmemobj.h\>**,
-either with *\#define* or with the *\-D* option to the compiler.=e=)
+either with *\#define* or with the *\-D* option to the compiler.
 
 # EXAMPLES #
 

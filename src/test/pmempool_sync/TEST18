@@ -11,6 +11,9 @@
 
 . ../unittest/unittest.sh
 
+# XXX Disable tests for all configurations until the issue #5708 is fixed.
+DISABLED
+
 require_test_type medium
 require_fs_type any
 

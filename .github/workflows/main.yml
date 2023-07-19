@@ -45,9 +45,3 @@ jobs:
     needs: [src_checkers, basic_build]
     uses: ./.github/workflows/ubuntu.yml
     name: Ubuntu
-
-
-  call-centos:
-    needs: [src_checkers, basic_build]
-    uses: ./.github/workflows/centos.yml
-    name: CentOS
