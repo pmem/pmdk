@@ -59,7 +59,7 @@ TM=1
 # lookup all Device DAX devices in the system
 DEVICE_DAX_PATH=
 device_dax_path=
-if [ `which ndctl` -a `which jq` ]; then
+if which ndctl > /dev/null 2>&1 && which jq > /dev/null 2>&1; then
     DEVICE_DAX_PATH="$(ndctl list -X | jq -r '.[].daxregion.devices[].chardev' | awk '$0="/dev/"$0' | paste -sd' ')"
     device_dax_path="$(ndctl list -X | jq -r '.[].daxregion.devices[].chardev' | awk '$0="'\''/dev/"$0"'\''"' | paste -sd',')"
 fi
