@@ -14,6 +14,9 @@ jobs:
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
+        with:
+          # required for `make check-license` to work properly
+          fetch-depth: 50
 
       - name: Install dependencies
         run: sudo pip install flake8
