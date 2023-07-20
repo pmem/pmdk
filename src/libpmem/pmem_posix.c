@@ -2,7 +2,7 @@
 /* Copyright 2014-2019, Intel Corporation */
 
 /*
- * pmem_posix.c -- pmem utilities with Posix implementation
+ * pmem_posix.c -- pmem utilities with Posix implementation xD
  */
 
 #include <stddef.h>
