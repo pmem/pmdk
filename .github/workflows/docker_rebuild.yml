@@ -30,19 +30,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        CONFIG: [
-                 "OS=centos OS_VER=7",
-                 "OS=centos OS_VER=stream",
-                 "OS=debian OS_VER=11",
-                 "OS=fedora OS_VER=37",
-                 "OS=opensuse-leap OS_VER=15",
-                 "OS=rockylinux OS_VER=8",
-                 "OS=rockylinux OS_VER=9",
-                 "OS=ubuntu OS_VER=22.04",
-                ]
+        include:
+          - {OS: opensuse-leap, OS_VER: 15}
+          - {OS: rockylinux, OS_VER: 8}
+          - {OS: rockylinux, OS_VER: 9}
+          - {OS: ubuntu, OS_VER: 22.04}
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
   
-      - name: Pull or rebuild the image
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh rebuild
+      - name: Rebuild the image
+        env:
+          OS: ${{ matrix.OS }}
+          OS_VER: ${{ matrix.OS_VER }}
+        run: cd $WORKDIR && ./pull-or-rebuild-image.sh rebuild
