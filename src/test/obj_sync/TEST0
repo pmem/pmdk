@@ -8,13 +8,14 @@
 
 . ../unittest/unittest.sh
 
+# XXX disable the test until https://github.com/pmem/pmdk/issues/5727
+# and https://github.com/pmem/pmdk/issues/5643 are fixed.
+DISABLED
+
 require_test_type medium
 
 require_fs_type none
 require_build_type debug nondebug
-# XXX disable the test for 'pmemcheck'
-# until https://github.com/pmem/pmdk/issues/5643 is fixed.
-configure_valgrind pmemcheck force-disable
 
 setup
 
