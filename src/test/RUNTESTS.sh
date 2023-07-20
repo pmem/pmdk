@@ -16,7 +16,7 @@ usage()
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 		[ -o timeout ] [ -s test-file | -u test-sequence ] [-k skip-dir ]
 		[[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] ||
-		[ --force-enable memcheck|pmemcheck|helgrind|drd ]]
+		[ --force-enable memcheck|pmemcheck|helgrind|drd|none ]]
 		[ -c ] [tests...]
 -h			print this help message
 -n			dry run
@@ -53,7 +53,7 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			drd: auto (default, enable/disable based on test requirements),
 			force-enable (enable when test does not require drd, but
 			obey test's explicit drd disable)
---force-enable memcheck|pmemcheck|helgrind|drd
+--force-enable memcheck|pmemcheck|helgrind|drd|none
 			allows to force the use of a specific valgrind tool,
 			but skips tests where the tool is explicitly disabled
 			Can not be use with -m, -p, -e, -d.
@@ -455,6 +455,9 @@ do
 
 		case "$receivetype"
 		in
+		none)
+			forcechecktype=$receivetype
+			;;
 		memcheck|pmemcheck|helgrind|drd)
 			;;
 		*)
