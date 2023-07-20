@@ -1,0 +1,37 @@
+# Measure code coverage and report it to codecov.io
+name: Coverage
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  # Note: All coverage scans, e.g. on pull requests, should be run in the same
+  # environment.
+  GITHUB_REPO:  pmem/pmdk
+  DOCKER_REPO:  ghcr.io/pmem/pmdk
+  HOST_WORKDIR: /home/runner/work/pmdk/pmdk
+  WORKDIR:      utils/docker
+  PMDK_CC:      gcc
+  PMDK_CXX:     g++
+  MAKE_PKG:     0
+  SRC_CHECKERS: 0
+  OS:           ubuntu
+  OS_VER:       22.04
+  COVERAGE:     1
+  TEST_BUILD:   debug
+  FAULT_INJECTION: 1
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the git repo
+        uses: actions/checkout@v3
+
+      - name: Pull the image
+        run: cd $WORKDIR && ./pull-or-rebuild-image.sh
+
+      - name: Measure and upload code coverage
+        run: cd $WORKDIR && ./build-CI.sh

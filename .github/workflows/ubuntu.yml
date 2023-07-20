@@ -29,6 +29,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Note: All coverage scans should be run in the same environment.
+          # Please see the coverage scan workflow for the reference environment.
           - {TEST_BUILD: debug, COVERAGE: 1}
           - {TEST_BUILD: nondebug, COVERAGE: 0}
     steps:
