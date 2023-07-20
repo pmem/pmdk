@@ -4,6 +4,13 @@ name: Main
 on:
   workflow_dispatch:
   pull_request:
+  push:
+    # It is just for developer convenience so pushes to forks triggers the same
+    # workflow as for pull requests. For branches that match the following
+    # ignore patterns, the workflow has to be triggered manually.
+    branches-ignore:
+      - master
+      - stable-*
 
 jobs:
   src_checkers:
