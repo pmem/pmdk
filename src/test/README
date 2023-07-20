@@ -65,7 +65,7 @@ RUNTESTS.sh takes options to limit what it runs.  The usage is:
  RUNTESTS.sh [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 	    [ -o timeout ] [ -s test-file ] [ -k skip-dir ]
 	    [[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] ||
-	      [ --force-enable memcheck|pmemcheck|helgrind|drd ]] [ -c ]
+	      [ --force-enable memcheck|pmemcheck|helgrind|drd|none ]] [ -c ]
 	    [tests...]
 
  Build types are: debug, nondebug, static_debug, static_nondebug, all (default)
