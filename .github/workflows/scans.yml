@@ -26,3 +26,6 @@ jobs:
   call-documentation:
     uses: ./.github/workflows/scan_documentation.yml
     name: Documentation
+  call-ubsan:
+    uses: ./.github/workflows/scan_ubsan.yml
+    name: UBSAN
