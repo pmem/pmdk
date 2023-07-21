@@ -37,7 +37,7 @@
 #  connection: local
   vars:
     testUser: pmdkuser
-    package_url: https://github.com/actions/runner/releases/download/v2.304.0/actions-runner-linux-x64-2.304.0.tar.gz
+    package_url: https://github.com/actions/runner/releases/download/v2.306.0/actions-runner-linux-x64-2.306.0.tar.gz
     runner_folder: /home/{{ testUser }}/actions-runner
     repo_url: https://github.com/pmem/pmdk
     vars_list: "{{ vars_gha.split(',') }}"
@@ -59,7 +59,18 @@
         remote_src: yes
 
     - name: "Change owner to {{ testUser }}"
-      shell: chown -R {{ testUser }} {{ runner_folder }}
+      shell: chown -R $(id -u {{ testUser }}):$(id -g {{ testUser }}) {{ runner_folder }}
+
+    # Make sure the following environment variables are present in the env
+    # to ensure propagation to the actions-runner's environment.
+    - name: "Add env variables into env.sh checklist"
+      lineinfile:
+        path: "{{ runner_folder }}/env.sh"
+        line: "    '{{ item.line }}'"
+        insertafter: "^varCheckList=\\("
+      loop:
+        - line: PKG_CONFIG_PATH
+        - line: HOME
 
     - name: "Add runner to GHA"
       shell: |

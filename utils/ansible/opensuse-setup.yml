@@ -145,9 +145,6 @@
     - name: "Install valgrind from source"
       script: ../docker/images/install-valgrind.sh
 
-    - name: "Run the install-libndctl script with arguments"
-      script: ../docker/images/install-libndctl.sh tags/v70.1
-
     # Disable AppArmor. 
     # AppArmor may block proper GHA runner installation and startup.
     # ==`Suse` condition is inherited from the original version of 
