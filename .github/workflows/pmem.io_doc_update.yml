@@ -1,0 +1,27 @@
+# Update the PMDK documentation on pmem.io
+name: pmem.io
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'doc/**'
+
+jobs:
+  doc_update:
+    if: github.ref_name == 'master' || startsWith(github.ref_name, 'stable-')
+    name: doc update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the git repo
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: sudo apt-get install libndctl-dev libdaxctl-dev pandoc
+
+      - name: Auto doc update
+        env:
+          DOC_UPDATE_GITHUB_TOKEN: ${{ secrets.DOC_UPDATE_GITHUB_TOKEN }}
+          TARGET_BRANCH: ${{ github.ref_name }}
+          WORKDIR: .
+        run: utils/run-doc-update.sh

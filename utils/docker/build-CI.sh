@@ -43,12 +43,6 @@ if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUIL
 if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_ENABLE=$NDCTL_ENABLE"; fi
 if [[ $UBSAN -eq 1 ]]; then for x in C CPP LD; do declare EXTRA_${x}FLAGS=-fsanitize=undefined; done; fi
 
-# Only run auto doc update on push events on "upstream" repo
-if [[ "${CI_EVENT_TYPE}" != "push" || "${CI_REPO_SLUG}" != "${GITHUB_REPO}" ]]; then
-	AUTO_DOC_UPDATE=0
-	echo "Skipping auto doc update"
-fi
-
 # Check if we are running on a CI (GitHub Actions)
 [ -n "$GITHUB_ACTIONS" ] && CI_RUN="YES" || CI_RUN="NO"
 
@@ -75,7 +69,6 @@ docker run --rm --name=$containerName -i \
 	$DNS_SETTING \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
-	--env AUTO_DOC_UPDATE=$AUTO_DOC_UPDATE \
 	--env CC=$PMDK_CC \
 	--env CXX=$PMDK_CXX \
 	--env VALGRIND=$VALGRIND \
