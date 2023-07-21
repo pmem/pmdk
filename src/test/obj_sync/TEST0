@@ -3,14 +3,15 @@
 # Copyright 2015-2023, Intel Corporation
 
 #
-# src/test/obj_sync/TEST0 -- unit test for PMEM-resident locks
+# src/test/obj_sync/TEST0 -- unit test for PMEM-resident locks without valgrind
 #
 
-. ../unittest/unittest.sh
+# Test cases "m", "r", "c" fail under valgrind.
+# This test verifies that the tests run normally
+# until these errors are fixed: https://github.com/pmem/pmdk/issues/5646
+# and https://github.com/pmem/pmdk/issues/5727
 
-# XXX disable the test until https://github.com/pmem/pmdk/issues/5727
-# and https://github.com/pmem/pmdk/issues/5643 are fixed.
-DISABLED
+. ../unittest/unittest.sh
 
 require_test_type medium
 
@@ -19,8 +20,28 @@ require_build_type debug nondebug
 
 setup
 
-expect_normal_exit ./obj_sync$EXESUFFIX m 50 5
+LOG=out${UNITTEST_NUM}.log
+LOG_TEMP=out${UNITTEST_NUM}_part.log
+ERR=err${UNITTEST_NUM}.log
+ERR_TEMP=err${UNITTEST_NUM}_part.log
 
+rm -f $LOG $LOG_TEMP $ERR $ERR_TEMP
+
+VALGRIND_DISABLED=y expect_normal_exit ./obj_sync$EXESUFFIX m 50 5
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
+VALGRIND_DISABLED=y expect_normal_exit ./obj_sync$EXESUFFIX r 50 5
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
+VALGRIND_DISABLED=y expect_normal_exit ./obj_sync$EXESUFFIX c 50 5
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
+VALGRIND_DISABLED=y expect_normal_exit ./obj_sync$EXESUFFIX t 50 5
+cat $LOG >> $LOG_TEMP
+cat $ERR >> $ERR_TEMP
+
+mv $LOG_TEMP $LOG
+mv $ERR_TEMP $ERR
 check
 
 pass
