@@ -1,4 +1,4 @@
 {$(nW)obj_sync.c:$(N) mutex_$(nW)_worker} obj_sync$(nW)TEST0: pmemobj_mutex_lock
-{$(nW)obj_sync.c:$(N) rwlock_$(nW)_worker} obj_sync$(nW)TEST0: pmemobj_rwlock_wrlock
-{$(nW)obj_sync.c:$(N) cond_$(nW)_worker} obj_sync$(nW)TEST0: pmemobj_cond_signal
+{$(nW)obj_sync.c:$(N) rwlock_$(nW)_worker} obj_sync$(nW)TEST0: pmemobj_rwlock_$(nW)
+{$(nW)obj_sync.c:$(N) cond_$(nW)_worker} obj_sync$(nW)TEST0: pmemobj_cond_$(nW)
 {$(nW)obj_sync.c:$(N) timed_$(nW)_worker} obj_sync$(nW)TEST0: pmemobj_mutex_timedlock: Invalid argument
