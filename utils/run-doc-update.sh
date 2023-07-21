@@ -3,9 +3,9 @@
 # Copyright 2019-2023, Intel Corporation
 
 #
-# run-doc-update.sh - is called inside a Docker container to build docs in the current repository,
-#		it checks if current branch is a 'valid' one (to only publish "merged" content, not from a PR),
-#		and it creates a pull request with an update of our docs (on 'main' branch of pmem.github.io repo).
+# run-doc-update.sh - builds docs and creates a pull request with an update to
+#		the pmem.github.io repository. The only supported branches are master
+#		and stable-*.
 #
 set -e
 
@@ -31,21 +31,19 @@ ARTIFACTS_DIR=$(mktemp -d -t ARTIFACTS-XXX)
 ORIGIN="https://${DOC_UPDATE_GITHUB_TOKEN}@github.com/${BOT_NAME}/${PAGES_REPO_NAME}"
 UPSTREAM="https://github.com/${USER_NAME}/${PAGES_REPO_NAME}"
 
-# Only 'master' or 'stable-*' branches are valid; determine docs location dir on gh-pages branch
-TARGET_BRANCH=${CI_BRANCH}
-if [[ "${TARGET_BRANCH}" == "master" ]]; then
+# Determine docs location dir on gh-pages branch
+case $TARGET_BRANCH in
+master)
 	TARGET_DOCS_DIR="master"
-elif [[ ${TARGET_BRANCH} == stable-* ]]; then
+	;;
+stable-*)
 	TARGET_DOCS_DIR=v$(echo ${TARGET_BRANCH} | cut -d"-" -f2 -s)
-else
-	echo "Skipping docs build, this script should be run only on master or stable-* branches."
+	;;
+*)
+	echo "ERROR: This script should be run only on master or stable-* branches."
 	echo "TARGET_BRANCH is set to: \'${TARGET_BRANCH}\'."
-	exit 0
-fi
-if [ -z "${TARGET_DOCS_DIR}" ]; then
-	echo "ERROR: Target docs location for branch: ${TARGET_BRANCH} is not set."
 	exit 1
-fi
+esac
 
 pushd ${WORKDIR}/doc
 echo "Build docs and copy man & web md"

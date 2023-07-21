@@ -35,10 +35,3 @@ make -j1 pycheck
 echo ""
 echo "## Running make source"
 make -j$(nproc) DESTDIR=/tmp source
-
-# Create PR with generated docs
-if [ "${AUTO_DOC_UPDATE}" == "1" ]; then
-	echo ""
-	echo "## Running auto doc update"
-	./utils/docker/run-doc-update.sh
-fi
