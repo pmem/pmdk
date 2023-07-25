@@ -4,7 +4,7 @@ This document contains all the steps required to make a new release of PMDK.
 
 After following steps 1-3 you should have 2 local commits. The first one is a new, tagged version
 of the PMDK repository. The second commit is required to restore a "default" state of the repository
-(for more details, on why this is required, please see section ["For curious readers"](#7-for-curious-readers)).
+(for more details, on why this is required, please see section ["For curious readers"](#8-for-curious-readers)).
 
 As a helper you can export these 2 variables in your bash - with proper version set:
 
@@ -66,14 +66,19 @@ Steps to make a package:
 
 ## 4. Publish changes
 - for major/minor release:
-  - git push upstream HEAD:master $VERSION
-  - create and push stable-$VER branch:
   ```bash
+    # push the tag
+    git push upstream $VERSION
+    # create and push a stable branch
     git checkout -b stable-$VER
     git push upstream stable-$VER
   ```
+  - create PR from stable-$VER to the next stable branch (or to master, if the release is from the last stable branch)
+
 - for patch release:
-  - git push upstream HEAD:stable-$VER $VERSION
+  ```bash
+    git push upstream HEAD:stable-$VER $VERSION
+  ```
   - create PR from stable-$VER to the next stable branch (or to master, if the release is from the last stable branch)
 
 ## 5. Publish package and make it official
@@ -83,15 +88,20 @@ Steps to make a package:
   - release title: PMDK Version $VERSION,
   - description: copy entry from the ChangeLog
   - upload prepared package (pmdk-$VERSION.tar.gz) and its detached signature (pmdk-$VERSION.tar.gz.asc) as an attachment
-- announce the release on the pmem group, Slack, and any other channels (if needed)
-  - this step is not recommended for rc versions
 
-## 6. Later, for major/minor release
+## 6. Announcement (only major/minor releases)
+
+Announce the release on the:
+- [pmem.io](https://pmem.io/announcements/)
+- [Slack](pmem-io.slack.com)
+- [Google group](https://groups.google.com/g/pmem )
+
+## 7. Later, for major/minor release
 - on the stable-$VER branch, bump the version of Docker images (`utils/docker/images/set-images-version.sh`) to $VER
 - once the pmem.github.io repository contains new documentation (thanks to `utils/docker/run-doc-update.sh` script run in CI),
   add a new tag ("$VER") in file `data/releases_linux.yml` based on previous tags in this file.
 
-## 7. For curious readers
+## 8. For curious readers
 
 ### PMDK version
 To understand why we need step 3. from the above instruction we'd have to understand how we establish
