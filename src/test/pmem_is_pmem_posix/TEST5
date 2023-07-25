@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 
 #
 # src/test/pmem_is_pmem_posix/TEST5 -- unit test for pmem_is_pmem
@@ -9,6 +9,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+set_test_labels fault_injection
 require_fs_type none
 require_dax_devices 1
 

@@ -121,6 +121,7 @@ fi
 [ "$CHECK_TYPE" ] || CHECK_TYPE=auto
 [ "$CHECK_POOL" ] || CHECK_POOL=0
 [ "$VERBOSE" ] || VERBOSE=0
+[ "$TEST_LABEL" ] || TEST_LABEL=
 [ -n "${SUFFIX+x}" ] || SUFFIX="😘⠏⠍⠙⠅ɗPMDKӜ⥺🙋"
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
@@ -1788,6 +1789,15 @@ function setup() {
 		fatal "error: required test type is not specified"
 	fi
 
+	# if no label is set
+	if [ "$set_test_labels_done" != "1" ]; then
+		# but some label is required then the test is skipped
+		if [ "$TEST_LABEL" ]; then
+			verbose_msg "$UNITTEST_NAME: SKIP test-label $TEST_LABEL required"
+			exit 0
+		fi
+	fi
+
 	# fs type "none" must be explicitly enabled
 	if [ "$FS" = "none" -a "$req_fs_type" != "1" ]; then
 		exit 0
@@ -2542,4 +2552,21 @@ function turn_on_checking_bad_blocks()
 	FILE=$1
 
 	expect_normal_exit "$PMEMPOOL feature -e CHECK_BAD_BLOCKS $FILE &>> $PREP_LOG_FILE"
+}
+
+#
+# set_test_labels -- if a certain label is required the test will be run only if
+#                    it is marked with the required label
+#
+function set_test_labels() {
+	set_test_labels_done=1
+	# no label has been required
+	[ "$TEST_LABEL" ] || return
+	# a label has been required
+	for label in $*
+	do
+		[ "$label" == "$TEST_LABEL" ] && return
+	done
+	verbose_msg "$UNITTEST_NAME: SKIP test-labels: $* ($TEST_LABEL required)"
+	exit 0
 }

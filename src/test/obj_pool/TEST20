@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # src/test/obj_pool/TEST20 -- unit test for pmemobj_open
@@ -9,6 +9,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+set_test_labels fault_injection
 
 setup
 umask 0
