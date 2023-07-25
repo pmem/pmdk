@@ -66,12 +66,14 @@ Steps to make a package:
 
 ## 4. Publish changes
 - for major/minor release:
-  - git push upstream HEAD:master $VERSION
+  - git push upstream $VERSION
   - create and push stable-$VER branch:
   ```bash
     git checkout -b stable-$VER
     git push upstream stable-$VER
   ```
+  - create PR from stable-$VER to the next stable branch (or to master, if the release is from the last stable branch)
+
 - for patch release:
   - git push upstream HEAD:stable-$VER $VERSION
   - create PR from stable-$VER to the next stable branch (or to master, if the release is from the last stable branch)
@@ -83,8 +85,13 @@ Steps to make a package:
   - release title: PMDK Version $VERSION,
   - description: copy entry from the ChangeLog
   - upload prepared package (pmdk-$VERSION.tar.gz) and its detached signature (pmdk-$VERSION.tar.gz.asc) as an attachment
-- announce the release on the pmem group, Slack, and any other channels (if needed)
-  - this step is not recommended for rc versions
+
+## 6. Announcement (only major/minor releases)
+
+Announce the release on the:
+- [pmem.io](https://pmem.io/announcements/)
+- [Slack](pmem-io.slack.com)
+- [Google group](https://groups.google.com/g/pmem )
 
 ## 6. Later, for major/minor release
 - on the stable-$VER branch, bump the version of Docker images (`utils/docker/images/set-images-version.sh`) to $VER
