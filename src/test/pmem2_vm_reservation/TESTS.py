@@ -167,11 +167,13 @@ class TEST13(PMEM2_VM_RESERVATION_DEVDAX):
 
 class TEST14(PMEM2_VM_RESERVATION):
     """create a vm reservation with with error injection"""
+    labels = ['fault_injection']
     test_case = "test_vm_reserv_new_alloc_enomem"
 
 
 class TEST15(PMEM2_VM_RESERVATION_DEVDAX):
     """DevDax create a vm reservation with with error injection"""
+    labels = ['fault_injection']
     test_case = "test_vm_reserv_new_alloc_enomem"
 
 

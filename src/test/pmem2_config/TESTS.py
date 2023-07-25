@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 
@@ -32,6 +32,7 @@ class TEST0(Pmem2ConfigNoDir):
 
 class TEST1(Pmem2ConfigNoDir):
     """allocation of pmem2_config in case of missing memory in system"""
+    labels = ['fault_injection']
     test_case = "test_alloc_cfg_enomem"
 
 
