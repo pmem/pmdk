@@ -1,16 +1,20 @@
 # **PMDK: Persistent Memory Development Kit**
 
-[![GHA build status](https://github.com/pmem/pmdk/workflows/PMDK/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions)
-[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/3015.svg)](https://scan.coverity.com/projects/pmem-pmdk)
-[![Coverage Status](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
-[![PMDK release version](https://img.shields.io/github/release/pmem/pmdk.svg?sort=semver)](https://github.com/pmem/pmdk/releases/latest)
-[![Packaging status](https://repology.org/badge/tiny-repos/pmdk.svg)](https://repology.org/project/pmdk/versions)
-[![CodeQL status](https://github.com/pmem/pmemstream/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/pmem/pmemstream/actions/workflows/codeql.yml)
-[![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/bandit.yml)
+[![Nightly](https://github.com/pmem/pmdk/actions/workflows/nightly.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/nightly.yml)
+[![Scans](https://github.com/pmem/pmdk/actions/workflows/scans.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/scans.yml)
+[![Coverage](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
+[![PMem test main](https://github.com/pmem/pmdk/actions/workflows/pmem_tests_main.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_tests_main.yml)
+[![Pmem long](https://github.com/pmem/pmdk/actions/workflows/pmem_long.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_long.yml)
+[![Pmem RAS](https://github.com/pmem/pmdk/actions/workflows/pmem_ras.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_ras.yml)
+[![Pmem valgrind](https://github.com/pmem/pmdk/actions/workflows/pmem_valgrind.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_valgrind.yml)
+[![pmem.io](https://github.com/pmem/pmdk/actions/workflows/pmem.io_doc_update.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem.io_doc_update.yml)
+[![Docker rebuild](https://github.com/pmem/pmdk/actions/workflows/docker_rebuild.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/docker_rebuild.yml)
 
 The **Persistent Memory Development Kit (PMDK)** is a collection of libraries and tools for System Administrators and Application Developers to simplify managing and accessing persistent memory devices. For more information, see https://pmem.io.
 
-To install PMDK libraries, either install pre-built packages, which we build for every stable release, or clone the tree and build it yourself. **Pre-built** packages can be found in popular Linux distribution package repositories, or you can check out our recent stable releases on our [github release page](https://github.com/pmem/pmdk/releases). Specific installation instructions are outlined below.
+To install PMDK libraries please clone the tree and build it yourself. Specific installation instructions are outlined below.
+
+Pre-built packages can be found in popular Linux distribution package repositories but we do not keep them anymore up to date because of the limited resources.
 
 Bugs and feature requests for this repo are tracked in our [GitHub Issues Database](https://github.com/pmem/pmdk/issues).
 
@@ -58,7 +62,6 @@ Additionally, we recommend reading [Introduction to Programming with Persistent 
 
 ## Version Conventions
 
-- **Builds** are tagged something like `0.2+b1`, which means _Build 1 on top of version 0.2_
 - **Release Candidates** have a '-rc{version}' tag, e.g. `0.2-rc3`, meaning _Release Candidate 3 for version 0.2_
 - **Stable Releases** use a _major.minor_ tag like `0.2`
 
@@ -110,6 +113,9 @@ information on this port, contact Rajalakshmi Srinivasaraghavan
 ## Contact Us
 
 For more information on this library, contact
+Tomasz Gromadzki (tomasz.gromadzki@intel.com),
+Jan Michalski (jan.michalski@intel.com),
+Oksana Sałyk (oksana.salyk@intel.com),
 Piotr Balcer (piotr.balcer@intel.com),
-Andy Rudoff (andy.rudoff@intel.com), or post to our
-[Google group](https://groups.google.com/group/pmem).
+Andy Rudoff (andy.rudoff@intel.com), or post to
+the [Persistent Memory Programming Google group](https://groups.google.com/group/pmem).
