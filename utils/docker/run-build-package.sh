@@ -68,15 +68,17 @@ make -j$(nproc)
 case "$OS" in
 "opensuse/leap" | "rockylinux/rockylinux")
 	PMDK_LIB_PATH_NONDEBUG=/usr/lib64
+	DEBUG_DIR=pmdk_debug
 	;;
 "ubuntu")
 	PMDK_LIB_PATH_NONDEBUG=/lib/x86_64-linux-gnu
+	DEBUG_DIR=pmdk_dbg
 	;;
 esac
 
 cat << EOF >> $WORKDIR/src/test/testconfig.sh
 PMDK_LIB_PATH_NONDEBUG=$PMDK_LIB_PATH_NONDEBUG
-PMDK_LIB_PATH_DEBUG=$PMDK_LIB_PATH_NONDEBUG/pmdk_debug
+PMDK_LIB_PATH_DEBUG=$PMDK_LIB_PATH_NONDEBUG/$DEBUG_DIR
 EOF
 
 ./RUNTESTS.sh -t check
