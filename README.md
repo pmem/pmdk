@@ -1,12 +1,15 @@
 # **PMDK: Persistent Memory Development Kit**
 
-[![GHA build status](https://github.com/pmem/pmdk/workflows/PMDK/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions)
-[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/3015.svg)](https://scan.coverity.com/projects/pmem-pmdk)
+[![GHA build status](https://github.com/pmem/pmdk/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions)
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/3015/badge.svg?flat=1)](https://scan.coverity.com/projects/pmem-pmdk)
 [![Coverage Status](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
 [![PMDK release version](https://img.shields.io/github/release/pmem/pmdk.svg?sort=semver)](https://github.com/pmem/pmdk/releases/latest)
 [![Packaging status](https://repology.org/badge/tiny-repos/pmdk.svg)](https://repology.org/project/pmdk/versions)
-[![CodeQL status](https://github.com/pmem/pmemstream/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/pmem/pmemstream/actions/workflows/codeql.yml)
-[![Security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/bandit.yml)
+
+[![Scans status](https://github.com/pmem/pmdk/actions/workflows/scans.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/scans.yml)
+[![Nightly build status](https://github.com/pmem/pmdk/actions/workflows/nightly.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/nightly.yml)
+[![Pmem tests status](https://github.com/pmem/pmdk/actions/workflows/pmem_tests_main.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_tests_main.yml)
+[![Pmem calgrind status](https://github.com/pmem/pmdk/actions/workflows/pmem_valgrind.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_valgrind.yml)
 
 The **Persistent Memory Development Kit (PMDK)** is a collection of libraries and tools for System Administrators and Application Developers to simplify managing and accessing persistent memory devices. For more information, see https://pmem.io.
 
@@ -97,100 +100,99 @@ see https://github.com/pmem/pmdk/issues/4207.
 ## Building PMDK
 
 To build from source, clone this tree:
-```
-	$ git clone https://github.com/pmem/pmdk
-	$ cd pmdk
+```bash
+git clone https://github.com/pmem/pmdk
+cd pmdk
 ```
 
 For a stable version, checkout a [release tag](https://github.com/pmem/pmdk/releases) as follows. Otherwise skip this step to build the latest development release.
-```
-	$ git checkout tags/1.13.1
+```bash
+git checkout tags/1.13.1
 ```
 
 Once the build system is setup, the Persistent Memory Development Kit is built using the `make` command at the top level:
-```
-	$ make
+```bash
+make
 ```
 
 By default, all code is built with the `-Werror` flag, which fails
 the whole build when the compiler emits any warning. This is very useful during
 development, but can be annoying in deployment. If you want to **disable -Werror**,
 use the EXTRA_CFLAGS variable:
-```
-	$ make EXTRA_CFLAGS="-Wno-error"
+```bash
+make EXTRA_CFLAGS="-Wno-error"
 ```
 >or
-```
-	$ make EXTRA_CFLAGS="-Wno-error=$(type-of-warning)"
+```bash
+make EXTRA_CFLAGS="-Wno-error=$(type-of-warning)"
 ```
 
 ### Make Options
 
 There are many options that follow `make`. If you want to invoke make with the same variables multiple times, you can create a user.mk file in the top level directory and put all variables there.
 For example:
-```
-	$ cat user.mk
-	EXTRA_CFLAGS_RELEASE = -ggdb -fno-omit-frame-pointer
-	PATH += :$HOME/valgrind/bin
+```bash
+cat user.mk
+EXTRA_CFLAGS_RELEASE = -ggdb -fno-omit-frame-pointer
+PATH += :$HOME/valgrind/bin
 ```
 This feature is intended to be used only by developers and it may not work for all variables. Please do not file bug reports about it. Just fix it and make a PR.
 
 **Built-in tests:** can be compiled and ran with different compiler. To do this, you must provide the `CC` and `CXX` variables. These variables are independent and setting `CC=clang` does not set `CXX=clang++`.
 For example:
-```
-	$ make CC=clang CXX=clang++
+```bash
+make CC=clang CXX=clang++
 ```
 Once make completes, all the libraries and examples are built. You can play with the library within the build tree, or install it locally on your machine. For information about running different types of tests, please refer to the [src/test/README](src/test/README).
 
 **Installing the library** is convenient since it installs man pages and libraries in the standard system locations:
-```
-	(as root...)
-	# make install
+```bash
+sudo make install
 ```
 
 To install this library into **other locations**, you can use the `prefix` variable, e.g.:
-```
-	$ make install prefix=/usr/local
+```bash
+make install prefix=/usr/local
 ```
 This will install files to /usr/local/lib, /usr/local/include /usr/local/share/man.
 
 **Prepare library for packaging** can be done using the DESTDIR variable, e.g.:
-```
-	$ make install DESTDIR=/tmp
+```bash
+make install DESTDIR=/tmp
 ```
 This will install files to /tmp/usr/lib, /tmp/usr/include /tmp/usr/share/man.
 
 **Man pages** (groff files) are generated as part of the `install` rule. To generate the documentation separately, run:
-```
-	$ make doc
+```bash
+make doc
 ```
 This call requires the following dependencies: **pandoc**.
 
 **Install copy of source tree** can be done by specifying the path where you want it installed.
-```
-	$ make source DESTDIR=some_path
+```bash
+make source DESTDIR=some_path
 ```
 For this example, it will be installed at $(DESTDIR)/pmdk.
 
 **Build rpm packages** on rpm-based distributions is done by:
-```
-	$ make rpm
+```bash
+make rpm
 ```
 
 To build rpm packages without running tests:
-```
-	$ make BUILD_PACKAGE_CHECK=n rpm
+```bash
+make BUILD_PACKAGE_CHECK=n rpm
 ```
 This requires **rpmbuild** to be installed.
 
 **Build dpkg packages** on Debian-based distributions is done by:
-```
-	$ make dpkg
+```bash
+make dpkg
 ```
 
 To build dpkg packages without running tests:
-```
-	$ make BUILD_PACKAGE_CHECK=n dpkg
+```bash
+make BUILD_PACKAGE_CHECK=n dpkg
 ```
 This requires **devscripts** to be installed.
 
@@ -202,18 +204,18 @@ You will need to install the following package to run unit tests:
 Before running the tests, you may need to prepare a test configuration file (src/test/testconfig.sh). Please see the available configuration settings in the example file [src/test/testconfig.sh.example](src/test/testconfig.sh.example).
 
 To build and run the **unit tests**:
-```
-	$ make check
+```bash
+make check
 ```
 
 To run a specific **subset of tests**, run for example:
-```
-	$ make check TEST_TYPE=short TEST_BUILD=debug TEST_FS=pmem
+```bash
+make check TEST_TYPE=short TEST_BUILD=debug TEST_FS=pmem
 ```
 
 To **modify the timeout** which is available for **check** type tests, run:
-```
-	$ make check TEST_TIME=1m
+```bash
+make check TEST_TIME=1m
 ```
 This will set the timeout to 1 minute.
 
@@ -224,8 +226,8 @@ run different types of tests.
 
 The PMDK libraries support standard Valgrind DRD, Helgrind and Memcheck, as well as a PM-aware version of [Valgrind](https://github.com/pmem/valgrind).
 By default, support for all tools is enabled. If you wish to disable it, supply the compiler with **VG_\<TOOL\>_ENABLED** flag set to 0, for example:
-```
-	$ make EXTRA_CFLAGS=-DVG_MEMCHECK_ENABLED=0
+```bash
+make EXTRA_CFLAGS=-DVG_MEMCHECK_ENABLED=0
 ```
 
 **VALGRIND_ENABLED** flag, when set to 0, disables all Valgrind tools
@@ -234,8 +236,8 @@ By default, support for all tools is enabled. If you wish to disable it, supply 
 The **SANITIZE** flag allows the libraries to be tested with various
 sanitizers. For example, to test the libraries with AddressSanitizer
 and UndefinedBehaviorSanitizer, run:
-```
-	$ make SANITIZE=address,undefined clobber check
+```bash
+make SANITIZE=address,undefined clobber check
 ```
 
 ## Debugging
@@ -253,8 +255,8 @@ those components are built but not installed (and thus not included in
 packages).
 
 If you want to build/install experimental packages run:
-```
-	$ make EXPERIMENTAL=y [install,rpm,dpkg]
+```bash
+make EXPERIMENTAL=y [install,rpm,dpkg]
 ```
 
 ### Experimental Support for 64-bit ARM and RISC-V
