@@ -273,6 +273,9 @@ class Configurator():
         parser.add_argument('--fail-on-skip', dest='fail_on_skip',
                             action='store_const', const=True,
                             help='Skipping tests also fail')
+        parser.add_argument('--test-label', dest='test_label', default='',
+                            action='store',
+                            help='Run only tests marked with the label')
 
         tracers = parser.add_mutually_exclusive_group()
         tracers.add_argument('--tracer', dest='tracer', help='run C binary '

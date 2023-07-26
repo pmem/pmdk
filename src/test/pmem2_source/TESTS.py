@@ -55,6 +55,7 @@ class TEST3(PMEM2_SOURCE):
 
 class TEST4(PMEM2_SOURCE):
     """allocation of pmem2_source in case of missing memory in system"""
+    labels = ['fault_injection']
     test_case = "test_alloc_src_enomem"
 
 

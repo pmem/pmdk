@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 
 #
 # src/test/util_poolset/TEST4 -- unit test for util_pool_open()
@@ -9,6 +9,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+set_test_labels fault_injection
 require_fs_type any
 
 setup

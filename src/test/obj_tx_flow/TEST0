@@ -10,6 +10,7 @@
 
 # this test verifies the correctness of the tx management functions only
 require_test_type medium
+set_test_labels fault_injection
 
 configure_valgrind pmemcheck force-disable
 

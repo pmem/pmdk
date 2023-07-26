@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2023, Intel Corporation
 #
 
 #
@@ -10,6 +10,7 @@
 . ../unittest/unittest.sh
 
 require_fs_type none
+set_test_labels fault_injection
 require_test_type medium
 
 setup

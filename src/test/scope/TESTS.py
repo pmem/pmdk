@@ -76,16 +76,19 @@ class Common(t.Test):
 
 class TEST2(Common):
     """Check scope of libpmem library (*nix)"""
+    labels = ['fault_injection']
     checked_lib = 'libpmem'
 
 
 class TEST5(Common):
     """Check scope of libpmemobj library (*nix)"""
+    labels = ['fault_injection']
     checked_lib = 'libpmemobj'
 
 
 class TEST6(Common):
     """Check scope of libpmempool library (*nix)"""
+    labels = ['fault_injection']
     checked_lib = 'libpmempool'
 
 

@@ -90,6 +90,10 @@ class TestRunner:
             if tc.test_type not in self.config.test_type:
                 continue
 
+            if self.config.test_label != '' and \
+                    self.config.test_label not in tc.labels:
+                continue
+
             if not tc.enabled:
                 continue
 

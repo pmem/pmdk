@@ -34,6 +34,7 @@ class TEST2(Pmem2_from_existing):
 
 class TEST3(Pmem2_from_existing):
     """inject enomem in to allocation of map object"""
+    labels = ['fault_injection']
     test_case = "test_map_allocation_enomem"
 
 

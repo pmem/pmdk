@@ -150,6 +150,7 @@ class BaseTest(metaclass=_TestCase):
     """
     enabled = True
     force_disabled = False
+    labels = []
 
     def __init__(self):
         self.ctx = None
