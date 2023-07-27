@@ -1,0 +1,55 @@
+name: PMEM test procedure
+description: PMDK testing procedure for self-hosted runners equipped with PMEM
+inputs:
+  build:
+    description: Build type to be tested
+    required: true
+  workdir:
+    description: Handy variable providing a path to most of the scripts
+    required: false
+    default: utils/gha-runners
+  fault_injection:
+    description: Build the PMDK with the fault injection capability
+    required: false
+    default: '0'
+  test_label:
+    description: Limit testing to tests that have the given label assigned
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Get system information
+      run: ${{ inputs.workdir }}/get-system-info.sh
+      shell: bash
+
+    - name: Build
+      env:
+        FAULT_INJECTION: ${{ inputs.fault_injection }}
+      run: ${{ inputs.workdir }}/build-pmdk.sh
+      shell: bash
+
+    - name: Create testconfig files
+      run: ${{ inputs.workdir }}/../create-testconfig.sh
+      shell: bash
+
+    - name: Run tests (Bash)
+      working-directory: src/test
+      env:
+        TEST_BUILD: ${{ inputs.build }}
+        TEST_LABEL: ${{ inputs.test_label }}
+      run: ./RUNTESTS.sh
+      shell: bash
+
+    - name: Run tests (Python)
+      if: inputs.test_label == ''
+      working-directory: src/test
+      run: ./RUNTESTS.py -b ${{ inputs.build }}
+      shell: bash
+
+    - name: Run tests (Python) (test_label=${{ inputs.test_label }})
+      if: inputs.test_label != ''
+      working-directory: src/test
+      run: ./RUNTESTS.py
+          -b ${{ inputs.build }} --test-label ${{ inputs.test_label }}
+      shell: bash
