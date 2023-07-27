@@ -9,8 +9,6 @@ jobs:
   src_checkers:
     name: Source checkers
     runs-on: ubuntu-latest
-    env:
-      NDCTL_ENABLE: n
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
@@ -22,17 +20,19 @@ jobs:
         run: sudo pip install flake8
 
       - name: Check licenses
+        env:
+          NDCTL_ENABLE: n # just to speed up the job
         run: make -j$(nproc) check-license
 
       - name: Check style
+        env:
+          NDCTL_ENABLE: n # just to speed up the job
         run: make -j$(nproc) cstyle
 
 
   basic_build:
     name: Basic build
     runs-on: ubuntu-latest
-    env:
-      NDCTL_ENABLE: n
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
@@ -41,6 +41,8 @@ jobs:
         run: sudo apt-get -y install pandoc
 
       - name: Build sources
+        env:
+          NDCTL_ENABLE: n # just to speed up the job
         run: make -j$(nproc) test
 
 
