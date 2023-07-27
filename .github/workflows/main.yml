@@ -50,3 +50,8 @@ jobs:
     needs: [src_checkers, basic_build]
     uses: ./.github/workflows/ubuntu.yml
     name: Ubuntu
+
+  coverage_scan:
+    needs: call-ubuntu
+    uses: ./.github/workflows/scan_coverage.yml
+    name: Coverage
