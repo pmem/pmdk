@@ -7,9 +7,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-env:
-  WORKDIR: utils/gha-runners
-
 jobs:
   linux:
     name: PMEM_check
@@ -26,20 +23,10 @@ jobs:
         with:
           repository: pmem/pmdk
 
-      - name: Get system information
-        run: ./$WORKDIR/get-system-info.sh
-
-      - name: Build
-        run: ./$WORKDIR/build-pmdk.sh
-
-      - name: Create testconfig files
-        run: ./$WORKDIR/../create-testconfig.sh
-
-      - name: Run tests (Bash)
-        run: cd src/test/ && ./RUNTESTS.sh -b ${{ matrix.build }}
-
-      - name: Run tests (Python)
-        run: cd src/test/ && ./RUNTESTS.py -b ${{ matrix.build }}
+      - name: Test procedure
+        uses: ./.github/actions/pmem_test_procedure
+        with:
+          build: ${{ matrix.build }}
 
 
   fault_injection:
@@ -49,9 +36,6 @@ jobs:
       fail-fast: false
       matrix:
         build: ['debug', 'nondebug']
-    env:
-      TEST_LABEL: fault_injection
-      TEST_BUILD: ${{ matrix.build }}
 
     steps:
       - name: Clone the git repo
@@ -59,20 +43,9 @@ jobs:
         with:
           repository: pmem/pmdk
 
-      - name: Get system information
-        run: ./$WORKDIR/get-system-info.sh
-
-      - name: Build
-        env:
-          FAULT_INJECTION: 1
-        run: ./$WORKDIR/build-pmdk.sh
-
-      - name: Create testconfig files
-        run: ./$WORKDIR/../create-testconfig.sh
-
-      - name: Run tests (Bash)
-        # TEST_BUILD and TEST_LABEL are taken directly from the environment
-        run: cd src/test/ && ./RUNTESTS.sh
-
-      - name: Run tests (Python)
-        run: cd src/test/ && ./RUNTESTS.py -b $TEST_BUILD --test-label $TEST_LABEL
+      - name: Test procedure
+        uses: ./.github/actions/pmem_test_procedure
+        with:
+          build: ${{ matrix.build }}
+          fault_injection: '1'
+          test_label: 'fault_injection'
