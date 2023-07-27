@@ -20,11 +20,13 @@ jobs:
         run: sudo pip install flake8
 
       - name: Check licenses
-        env:
-          NDCTL_ENABLE: n # just to speed up the job
+        # env:
+          # NDCTL_ENABLE: n # just to speed up the job
         run: make -j$(nproc) check-license
 
       - name: Check style
+        env:
+          NDCTL_ENABLE: n # just to speed up the job
         run: make -j$(nproc) cstyle
 
 
