@@ -29,13 +29,10 @@ jobs:
           build: ${{ matrix.build }}
 
 
+  # Test the fault injection scenarios on PMem
   fault_injection:
     name: PMEM fault injection
     runs-on: [self-hosted, rhel]
-    strategy:
-      fail-fast: false
-      matrix:
-        build: ['debug', 'nondebug']
 
     steps:
       - name: Clone the git repo
@@ -46,9 +43,9 @@ jobs:
       - name: Test procedure
         uses: ./.github/actions/pmem_test_procedure
         with:
-          build: ${{ matrix.build }}
+          build: nondebug # only the production build is considered
           fault_injection: '1'
-          test_label: 'fault_injection'
+          test_label: 'fault_injection' # only dedicated scenarios
 
 
   # This build is only viable as long as DAOS builds PMDK with NDCTL_ENABLE=n
