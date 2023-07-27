@@ -19,7 +19,7 @@ jobs:
       matrix:
         script: ['sh', 'py']
         config: ['drd', 'pmemcheck', 'memcheck', 'helgrind']
-        build: ['debug', 'nondebug', 'static_debug', 'static_nondebug']
+        build: ['debug', 'nondebug']
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
 
     env:

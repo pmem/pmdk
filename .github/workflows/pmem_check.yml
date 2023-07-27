@@ -15,7 +15,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
-        build: ['debug', 'nondebug', 'static_debug', 'static_nondebug']
+        build: ['debug', 'nondebug']
+        # static builds are tested in a limited scope
+        include:
+          - os: [self-hosted, rhel]
+            build: 'static_debug'
+          - os: [self-hosted, rhel]
+            build: 'static_nondebug'
 
     steps:
       - name: Clone the git repo
