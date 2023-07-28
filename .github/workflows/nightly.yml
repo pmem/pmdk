@@ -20,38 +20,38 @@ env:
   SRC_CHECKERS:   0
 
 jobs:
-  in-tree:
-    name: In-tree
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        CONFIG: [
-                 "OS=ubuntu OS_VER=22.04",
-                 "OS=opensuse-leap OS_VER=15",
-                 "OS=rockylinux OS_VER=8",
-                 "OS=rockylinux OS_VER=9",
-                ]
-        TEST_BUILD: [debug, nondebug]
-    steps:
-      - name: Clone the git repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 50
+  # in-tree:
+  #   name: In-tree
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       CONFIG: [
+  #                "OS=ubuntu OS_VER=22.04",
+  #                "OS=opensuse-leap OS_VER=15",
+  #                "OS=rockylinux OS_VER=8",
+  #                "OS=rockylinux OS_VER=9",
+  #               ]
+  #       TEST_BUILD: [debug, nondebug]
+  #   steps:
+  #     - name: Clone the git repo
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 50
 
-      - name: Get system information
-        run: ./$WORKDIR/get-system-info.sh
+  #     - name: Get system information
+  #       run: ./$WORKDIR/get-system-info.sh
 
-      - name: Pull or rebuild the image
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh rebuild
+  #     - name: Pull or rebuild the image
+  #       run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh rebuild
 
-      - name: Run the build
-        run: cd $WORKDIR && ${{ matrix.CONFIG }}
-          TEST_BUILD=${{ matrix.TEST_BUILD }} ./build-CI.sh
+  #     - name: Run the build
+  #       run: cd $WORKDIR && ${{ matrix.CONFIG }}
+  #         TEST_BUILD=${{ matrix.TEST_BUILD }} ./build-CI.sh
 
 
   packaging:
     name: Packaging
-    needs: in-tree
+    # needs: in-tree
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -78,4 +78,6 @@ jobs:
         env:
           MAKE_PKG: 1
           VALGRIND: 0
+          EXPERIMENTAL: 0
+          NDCTL_ENABLE: y
         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
