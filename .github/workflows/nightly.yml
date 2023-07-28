@@ -24,6 +24,7 @@ jobs:
     name: In-tree
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         CONFIG: [
                  "OS=ubuntu OS_VER=22.04",
@@ -41,8 +42,8 @@ jobs:
       - name: Get system information
         run: ./$WORKDIR/get-system-info.sh
 
-      - name: Pull or rebuild the image
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh rebuild
+      - name: Pull the image
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
       - name: Run the build
         run: cd $WORKDIR && ${{ matrix.CONFIG }}
@@ -54,6 +55,7 @@ jobs:
     needs: in-tree
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         CONFIG: [
                  "OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++",
@@ -71,8 +73,8 @@ jobs:
       - name: Get system information
         run: ./$WORKDIR/get-system-info.sh
 
-      - name: Pull or rebuild the image
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh rebuild
+      - name: Pull the image
+        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
       - name: Run the build
         env:
