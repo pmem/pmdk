@@ -19,7 +19,7 @@ jobs:
       matrix:
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
         script: ['sh', 'py']
-        build: [ 'debug', 'nondebug', 'static_debug', 'static_nondebug']
+        build: [ 'debug', 'nondebug']
 
     env:
       WORKDIR: utils/gha-runners
