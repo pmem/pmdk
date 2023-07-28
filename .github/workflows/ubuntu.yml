@@ -48,5 +48,11 @@ jobs:
       - name: Run the build
         env:
           TEST_BUILD: ${{ matrix.TEST_BUILD }}
-          COVERAGE: ${{ matrix.COVERAGE }}
+          # Pushes to branches on developer forks (please see the caller workflow)
+          # won't measure coverage. Coverage is meant to be measured only for
+          # pull requests.
+          # Note: Pull requests to forks will measure coverage as well.
+          # Note: github.event_name for a workflow which has been called by
+          # another workflow contains the triggering event of the caller workflow.
+          COVERAGE: ${{ github.event_name == 'pull_request' && matrix.COVERAGE || 0 }}
         run: cd $WORKDIR && ./build-CI.sh
