@@ -28,17 +28,17 @@ jobs:
     strategy:
       matrix:
         CONFIG: [
-                 "OS=ubuntu OS_VER=22.04 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0",
-                 "OS=ubuntu OS_VER=22.04 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0 PMDK_CC=clang PMDK_CXX=clang++",
+                 "OS=ubuntu OS_VER=22.04 MAKE_PKG=1 VALGRIND=0",
+                 "OS=ubuntu OS_VER=22.04 MAKE_PKG=1 VALGRIND=0 PMDK_CC=clang PMDK_CXX=clang++",
                  "OS=opensuse-leap OS_VER=15 TEST_BUILD=debug",
                  "OS=opensuse-leap OS_VER=15 TEST_BUILD=nondebug",
-                 "OS=opensuse-leap OS_VER=15 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0",
+                 "OS=opensuse-leap OS_VER=15 MAKE_PKG=1 VALGRIND=0",
                  "OS=rockylinux OS_VER=8 TEST_BUILD=debug",
                  "OS=rockylinux OS_VER=8 TEST_BUILD=nondebug",
-                 "OS=rockylinux OS_VER=8 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0",
+                 "OS=rockylinux OS_VER=8 MAKE_PKG=1 VALGRIND=0",
                  "OS=rockylinux OS_VER=9 TEST_BUILD=debug",
                  "OS=rockylinux OS_VER=9 TEST_BUILD=nondebug",
-                 "OS=rockylinux OS_VER=9 MAKE_PKG=1 EXPERIMENTAL=y VALGRIND=0",
+                 "OS=rockylinux OS_VER=9 MAKE_PKG=1 VALGRIND=0",
                 ]
     steps:
       - name: Clone the git repo
