@@ -29,7 +29,7 @@ After that you'd also have to add this new key to your GitHub account - please d
 To do a release:
 - add an entry to ChangeLog, remember to change the day of the week in the release date
   - for major releases mention compatibility with the previous release, if needed
-- update reference to stable release in README.md (update line `git checkout tags/$VERSION-1` to the new release $VERSION)
+- update reference to stable release in [INSTALL.md](INSTALL.md) (update line `git checkout tags/$VERSION-1` to the new release $VERSION)
   - omit this step for an rc version
 
 ```bash
