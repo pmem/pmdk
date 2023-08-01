@@ -1,16 +1,19 @@
 	* Unreleased *
 
 	This release:
-	- removes libpmempool/pmempool tests that use log/blk/btt pool types
-	- removes log/blk/btt support from (lib)pmempool, pmemspoil and pmemwrite
-	- removes btt specific test and related btt tests tools
-	- removes libpmemblk/libpmemlog tests and examples
-	- removes libpmemblk/libpmemlog source code and documentation
-	- removes support for Travis bulids
-	- removes libvmem and libvmmalloc folders
-  - reorganizes `make cstyle` command handling by addind separate steps
-	- adds explicit test failure when Valgrind is not installed but required
-	- ...
+	- Removes libpmemlog, libpmemblk, btt, and their support in (lib)pmempool
+	- Removes Windows support
+	- Removes FreeBSD support
+	- Removes all pmem2_async operations (experimental)
+	- Removes PowerPC and ARM architectures (experimental) from regular validation
+	- Limits PMDK's static builds validation scope
+	- Removes Fedora and Debian from regular validation
+	- Adds reference platform provisioning instructions for PMDK testing
+	- Identifies and temporarily disables tests permanently or sporadically failing in some configurations:
+		- obj_pmalloc_mt (#5726)
+		- obj_sync (#5643, #5646, #5699, #5705, #5706, #5727)
+		- pmem2_vm_reservation (#5707)
+		- pmempool_sync (#5708)
 
 Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
