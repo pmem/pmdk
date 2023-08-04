@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2020, Intel Corporation
+# Copyright 2017-2023, Intel Corporation
 
 #
 # run-coverity.sh - runs the Coverity scan build
@@ -69,3 +69,11 @@ export TRAVIS_BRANCH=${CI_BRANCH}
 wget https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh
 patch < utils/docker/0001-travis-fix-travisci_build_coverity_scan.sh.patch
 bash ./travisci_build_coverity_scan.sh
+
+COVERITY_LOG_FILE=/pmdk/cov-int/scm_log.txt
+if [ -f $COVERITY_LOG_FILE ]; then
+	echo "Coverity log file detected: $COVERITY_LOG_FILE"
+	cat $COVERITY_LOG_FILE
+else
+	echo "Coverity log not found ($COVERITY_LOG_FILE)"
+fi
