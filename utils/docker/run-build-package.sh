@@ -82,6 +82,8 @@ PMDK_LIB_PATH_DEBUG=$PMDK_LIB_PATH_NONDEBUG/$DEBUG_DIR
 EOF
 
 ./RUNTESTS.sh -t check
+# XXX The Python-based test framework is not able yet to run tests against
+# binaries installed in the system. https://github.com/pmem/pmdk/issues/5839
 popd
 
 popd
