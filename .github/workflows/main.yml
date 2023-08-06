@@ -28,6 +28,7 @@ jobs:
 
       - name: Check style
         env:
+          CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING: 1
           NDCTL_ENABLE: n # just to speed up the job
         run: make -j$(nproc) cstyle
 

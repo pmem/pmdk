@@ -37,8 +37,14 @@ function check_clang_version() {
 	grep "version 14\.0"\
 	&> /dev/null
 	if [ $? -ne 0 ]; then
-		echo "SKIP: requires clang-format version==14.0"
-		exit 0
+		MSG="requires clang-format version==14.0"
+		if [ "x$CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING" == "x1" ]; then
+			echo "FAIL: $MSG"
+			exit 1
+		else
+			echo "SKIP: $MSG"
+			exit 0
+		fi
 	fi
 	set -e
 }
