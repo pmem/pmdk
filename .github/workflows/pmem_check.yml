@@ -57,7 +57,7 @@ jobs:
   # This build is only viable as long as DAOS builds PMDK with NDCTL_ENABLE=n
   # https://github.com/daos-stack/pmdk/pull/12
   ndctl_enable_n:
-    name: PMEM NDCTL_ENABLE=n
+    name: PMEM without ndctl
     runs-on: [self-hosted, rhel]
 
     steps:
