@@ -1215,9 +1215,10 @@ scale_up_min_exe_time(struct benchmark *bench, struct benchmark_args *args,
 		 * scale up number of operations to get assumed minimal
 		 * execution time
 		 */
-		args->n_ops_per_thread = (size_t)(
-			(double)args->n_ops_per_thread *
-			(min_exe_time + MIN_EXE_TIME_E) / total_res->total.min);
+		args->n_ops_per_thread =
+			(size_t)((double)args->n_ops_per_thread *
+				 (min_exe_time + MIN_EXE_TIME_E) /
+				 total_res->total.min);
 
 		results_free(total_res);
 		*total_results = results_alloc(args);
