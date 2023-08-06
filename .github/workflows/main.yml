@@ -17,7 +17,9 @@ jobs:
           fetch-depth: 50
 
       - name: Install dependencies
-        run: sudo pip install flake8
+        run: |
+          sudo pip install flake8
+          sudo apt-get install clang-format-14
 
       - name: Check licenses
         env:
