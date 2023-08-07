@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2023, Intel Corporation
 
 #
 # src/test/ex_libpmemobj/TEST15 -- unit test for libpmemobj examples
+# This test is not let loose on GH Actions, as it requires
+# a terminal connection to a standard output.
 #
 
 . ../unittest/unittest.sh
