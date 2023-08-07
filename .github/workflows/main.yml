@@ -9,12 +9,23 @@ jobs:
   src_checkers:
     name: Source checkers
     runs-on: ubuntu-latest
+    permissions:
+      issues: read
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
         with:
           # required for `make check-license` to work properly
           fetch-depth: 50
+
+      - name: Check changelog
+        uses: Zomzog/changelog-checker@v1.3.0
+        with:
+          fileName: ChangeLog
+          noChangelogLabel: no changelog # the default
+          checkNotification: Simple
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: sudo pip install flake8
