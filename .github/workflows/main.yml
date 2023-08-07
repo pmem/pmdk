@@ -28,7 +28,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
-        run: sudo pip install flake8
+        run: |
+          sudo pip install flake8
+          sudo apt-get install clang-format-14
 
       - name: Check licenses
         env:
@@ -37,6 +39,7 @@ jobs:
 
       - name: Check style
         env:
+          CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING: 1
           NDCTL_ENABLE: n # just to speed up the job
         run: make -j$(nproc) cstyle
 
