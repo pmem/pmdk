@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2022, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 
 """Granularity context classes and utilities"""
@@ -156,9 +156,9 @@ class Granularity(metaclass=ctx.CtxType):
         if req_gran == Non:
             return [Non(**kwargs), ]
 
-        if req_gran == _CACHELINE_OR_LESS:
+        if req_gran == [_CACHELINE_OR_LESS]:
             tmp_req_gran = [Byte, CacheLine]
-        elif req_gran == _PAGE_OR_LESS:
+        elif req_gran == [_PAGE_OR_LESS]:
             tmp_req_gran = [Byte, CacheLine, Page]
         elif req_gran == [ctx.Any, ]:
             tmp_req_gran = ctx.Any.get(conf_defined)
@@ -169,8 +169,8 @@ class Granularity(metaclass=ctx.CtxType):
 
         kwargs['tc_dirname'] = tc.tc_dirname
 
-        if len(filtered) > 1 and req_gran == _CACHELINE_OR_LESS or \
-           req_gran == _PAGE_OR_LESS:
+        if len(filtered) > 1 and req_gran == [_CACHELINE_OR_LESS] or \
+           req_gran == [_PAGE_OR_LESS]:
 
             def order_by_smallest(elem):
                 ordered = [Byte, CacheLine, Page]
