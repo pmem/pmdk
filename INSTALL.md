@@ -39,7 +39,7 @@ cd pmdk
 For a stable version, checkout a [release tag](https://github.com/pmem/pmdk/releases) as follows. Otherwise skip this step to build the latest development release.
 
 ```sh
-git checkout tags/1.13.1
+git checkout tags/2.0.0
 ```
 
 Once all required [dependencies](#dependencies) are installed, PMDK is built using the
