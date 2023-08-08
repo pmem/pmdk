@@ -1,6 +1,13 @@
 	* Unreleased *
 
 	This release:
+	- ...
+
+Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
+
+	* Version 2.0.0
+
+	This release :
 	- Removes libpmemlog, libpmemblk, btt, and their support in (lib)pmempool
 	- Removes Windows support
 	- Removes FreeBSD support
