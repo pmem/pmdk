@@ -63,9 +63,6 @@ ENV PACKAGING_DEPS "debhelper \
 # Codecov (coverage measurement) dependencies (optional)
 ENV CODECOV_DEPS curl perl
 
-# Coverity (static analysis) dependencies (optional)
-ENV COVERITY_DEPS ruby gcc g++ wget
-
 # miscellaneous dependencies (mostly for CI)
 ENV MISC_DEPS "clang \
 	hub \
@@ -98,7 +95,6 @@ RUN apt-get update && apt-get dist-upgrade -y \
 	$TESTS_DEPS \
 	$PACKAGING_DEPS \
 	$CODECOV_DEPS \
-	$COVERITY_DEPS \
 	$MISC_DEPS \
 	&& ./install-valgrind.sh ubuntu \
 	&& ./download-scripts.sh \

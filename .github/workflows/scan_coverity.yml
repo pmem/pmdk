@@ -10,31 +10,25 @@ on:
       COVERITY_SCAN_TOKEN:
         required: true
 
-env:
-  GITHUB_REPO: pmem/pmdk
-  DOCKER_REPO: ghcr.io/pmem/pmdk
-  COVERITY_SCAN_NOTIFICATION_EMAIL:  ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
-  COVERITY_SCAN_TOKEN:               ${{ secrets.COVERITY_SCAN_TOKEN }}
-  HOST_WORKDIR: /home/runner/work/pmdk/pmdk
-  WORKDIR:      utils/docker
-  PMDK_CC:      gcc
-  PMDK_CXX:     g++
-  VALGRIND:     1
-  COVERITY:     1
-
 jobs:
   linux:
     name: Linux
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        CONFIG: ["OS=ubuntu OS_VER=22.04"]
+    permissions:
+      contents: none
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
 
-      - name: Pull or rebuild the image
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
+      - name: Install dependencies
+        run: sudo apt-get -y install libndctl-dev libdaxctl-dev
 
-      - name: Run the build
-        run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
+      - name: Skip building doc
+        run: touch .skip-doc
+
+      - name: Coverity scan
+        uses: vapier/coverity-scan-action@v1
+        with:
+          email: ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
+          token: ${{ secrets.COVERITY_SCAN_TOKEN }}
+          command: make -j all

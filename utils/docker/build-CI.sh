@@ -36,7 +36,6 @@ containerName=pmdk-${OS}-${OS_VER}
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; fi
-if [[ "$COVERITY" -eq 1 ]]; then command="./run-coverity.sh"; fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUILD_PACKAGE_CHECK=y; fi
@@ -86,8 +85,6 @@ docker run --rm --name=$containerName -i \
 	--env CI_BRANCH=$CI_BRANCH \
 	--env CI_EVENT_TYPE=$CI_EVENT_TYPE \
 	--env DOC_UPDATE_GITHUB_TOKEN=$DOC_UPDATE_GITHUB_TOKEN \
-	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
-	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
 	--env FAULT_INJECTION=$FAULT_INJECTION \
 	--env GITHUB_ACTIONS=$GITHUB_ACTIONS \
 	--env GITHUB_HEAD_REF=$GITHUB_HEAD_REF \
