@@ -1,0 +1,145 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This playbook is designed to configure SDLe scan host for pmem/pmdk.
+# Examples below show how to use this file:
+# 1) remotely
+# export TARGET_IP= # ip of the target
+# export USER_PASSWORD= # a password of non-root user on the target
+# ansible-playbook -i $TARGET_IP, configure-SDLe.yml --extra-vars \
+#   "host=all ansible_user=pmdkuser ansible_password=USER_PASSWORD"
+#
+# 2) locally
+# For a playbook to be used on a local server please:
+# a) comment out the first command: # -hosts: "{{ host }}"
+# b) uncomment the next two lines:
+# - hosts: localhost
+#   connection: local
+#
+# ansible-playbook configure-SDLe.yml"
+#
+
+- hosts: "{{ host }}"
+# - hosts: localhost
+#   connection: local
+  vars:
+    testUser: pmdkuser
+    SDLUser: sys_pmdk_sdle
+    runner_folder: /home/{{ testUser }}/actions-runner
+
+  tasks:
+    - name: "Install Coverity dependencies"
+      package:
+        state: present
+        name:
+          - krb5-devel
+          - python3-devel
+      become: true
+      become_user: root
+
+    - name: "Install podman dependencies"
+      package:
+        state: present
+        name:
+          - crun
+          - conmon
+      become: true
+      become_user: root
+
+    - name: "Install podman"
+      package:
+        state: present
+        name:
+          - podman
+          - podman-docker
+      become: true
+      become_user: root
+
+    - name: "Add docker group"
+      shell: |
+        if [ ! $(getent group docker) ]; then
+          sudo groupadd docker
+          newgrp docker
+        else
+          echo "docker group already exists... skipping group creation"
+        fi
+      become: true
+      become_user: root
+
+    - name: "Setup sys_pmdk_sdle user"
+      shell: |
+        if ! id "${{ SDLUser }}" &> /dev/null; then
+            # setup a local user for the GHA Runner to run as
+            useradd -m -u 10001 -G docker -m -s /bin/bash ${{ SDLUser }}
+        else
+            echo "sys_pmdk_sdle user already exists... skipping user creation"
+        fi
+
+        if ! grep -q "^${{ SDLUser }}" /etc/sudoers; then
+            echo "${{ SDLUser }} not found in /etc/sudoers...Setting up sudo permissions"
+
+            echo "${{ SDLUser }} ALL=(root)NOPASSWD:ALL" | sudo tee -a /etc/sudoers
+        fi
+      become: true
+      become_user: root
+
+    # https://docs.podman.io/en/latest/markdown/podman-system-service.1.html
+    - name: "Get $XDG_RUNTIME_DIR of {{ testUser}} to use with podman.sock path"
+      shell: echo /run/user/$(id -u {{ testUser }})
+      register: user_xdg_runtime_dir
+
+    - name: "Add permanent DOCKER_HOST variable to the system"
+      env:
+        state: present
+        name: DOCKER_HOST
+        value: unix://{{ user_xdg_runtime_dir.stdout }}/podman/podman.sock
+      become: true
+      become_user: root
+
+    - name: "Create podman's user socket for {{ testUser }}"
+      shell: |
+        loginctl enable-linger {{ testUser }}
+        systemctl --user enable --now podman.socket
+
+    - name: "Check if /etc/containers/containers.conf exists already"
+      stat: path=/etc/containers/containers.conf
+      register: containers_stat
+      become: true
+      become_user: root
+
+    - name: "Create backup copy of containers.conf"
+      command: mv /etc/containers/containers.conf /etc/containers/containers.conf.bak
+      when: containers_stat.stat.exists
+      become: true
+      become_user: root
+
+    - name: "Create new containers.conf"
+      file:
+        path: "/etc/containers/containers.conf"
+        state: touch
+      become: true
+      become_user: root
+
+    - name: "Override podman's container settings in /etc/containers/containers.conf"
+      # https://github.com/containers/common/blob/main/docs/containers.conf.5.md
+      copy:
+        dest: "/etc/containers/containers.conf"
+        content: |
+          env = [
+          "no_proxy=localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
+          ]
+          service_timeout=0
+      become: true
+      become_user: root
+
+    - name: "Change proxy for SDLe scan host"
+      replace:
+        path: "{{ runner_folder }}/runsvc.sh"
+        regexp: 'proxy-\w+\.XXX\.com'
+        replace: 'proxy-chain.XXX.com'
+
+    - name: "Restart runner service"
+      shell: |
+        systemctl restart actions.runner.pmem-pmdk.*.service
+      become: true
+      become_user: root
