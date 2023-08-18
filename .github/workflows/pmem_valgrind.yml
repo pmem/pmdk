@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         script: ['sh', 'py']
-        config: ['drd', 'pmemcheck', 'memcheck', 'helgrind']
+        config: ['none', 'drd', 'pmemcheck', 'memcheck', 'helgrind']
         build: ['debug', 'nondebug']
         os: [[self-hosted, rhel],[self-hosted, opensuse]]
 

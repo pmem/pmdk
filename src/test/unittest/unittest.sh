@@ -1441,6 +1441,10 @@ function valgrind_version_no_check() {
 #	valgrind package is installed
 #
 function require_valgrind() {
+	if [ "$FORCE_CHECK_TYPE" == "none" ]; then
+		msg "$UNITTEST_NAME: SKIP valgrind test"
+		exit 0
+	fi
 	# bc is used inside valgrind_version_no_check
 	require_command bc
 	require_no_asan
