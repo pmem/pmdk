@@ -77,7 +77,7 @@ class Valgrind:
     """
 
     def __init__(self, tool, cwd, testnum, force_enable):
-        self.tool = NONE if tool is None else tool
+        self.tool = NONE if tool is None or tool == 'none' else tool
         self.tool_name = self.tool.name.lower()
         self.cwd = cwd
 
