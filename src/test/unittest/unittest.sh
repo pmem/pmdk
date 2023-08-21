@@ -46,6 +46,10 @@ fi
 . ../testconfig.sh
 . ../envconfig.sh
 
+# Required for easy force-enable condition failure detection.
+# Please see require_valgrind() for details.
+CHECK_TYPE_COPY=$CHECK_TYPE
+
 if [ -t 1 ]; then
 	IS_TERMINAL_STDOUT=YES
 fi
@@ -1441,8 +1445,9 @@ function valgrind_version_no_check() {
 #	valgrind package is installed
 #
 function require_valgrind() {
-	if [ "$FORCE_CHECK_TYPE" == "none" ]; then
-		msg "$UNITTEST_NAME: SKIP valgrind test"
+	if [ "$DISABLE_VALGRIND_TESTS" == "1" ]; then
+		msg=$(interactive_yellow STDOUT "SKIP:")
+		echo -e "$UNITTEST_NAME: $msg all Valgrind tests are disabled"
 		exit 0
 	fi
 	# bc is used inside valgrind_version_no_check
@@ -1453,17 +1458,18 @@ function require_valgrind() {
 	local ret=$?
 	restore_exit_on_error
 	if [ $ret -ne 0 ]; then
-		# FORCE_CHECK_TYPE is basically a copy of CHECK_TYPE as it is provided by force-enable.
+		# CHECK_TYPE_COPY is a copy of CHECK_TYPE as it is provided by force-enable.
 		# This copy allowed us to workaround the overcomplicated legacy Valgrind processing logic
 		# and here just check whether any Valgrind tool has been force-enabled or not.
 		# Lack of Valgrind when it is force-enabled causes test failure.
 		# Lack of Valgrind, when it was just required by the given test, causes a skip.
-		if [ "$FORCE_CHECK_TYPE" != "none" ]; then
+		if [ "$CHECK_TYPE_COPY" != "none" ]; then
 			msg=$(interactive_red STDOUT "FAIL:")
-			echo -e "$UNITTEST_NAME: $msg valgrind not installed"
+			echo -e "$UNITTEST_NAME: $msg Valgrind not installed"
 			exit 1
 		else
-			msg "$UNITTEST_NAME: SKIP valgrind required"
+			msg=$(interactive_yellow STDOUT "SKIP:")
+			echo -e "$UNITTEST_NAME: $msg Valgrind required"
 			exit 0
 		fi
 	fi
