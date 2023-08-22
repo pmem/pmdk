@@ -72,7 +72,8 @@ function interactive_color() {
 	fd=$2
 	shift 2
 
-	if is_terminal ${fd} && command -v tput >/dev/null; then
+	if (is_terminal ${fd} || [ "$GITHUB_ACTIONS" == "true" ] ) && \
+			command -v tput >/dev/null; then
 		echo "$(tput setaf $color || :)$*$(tput sgr0 || :)"
 	else
 		echo "$*"
