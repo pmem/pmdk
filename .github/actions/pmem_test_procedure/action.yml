@@ -47,14 +47,10 @@ runs:
       shell: bash
 
     - name: Run tests (Python)
-      if: inputs.test_label == ''
       working-directory: src/test
-      run: ./RUNTESTS.py -b ${{ inputs.build }}
-      shell: bash
-
-    - name: Run tests (Python) (test_label=${{ inputs.test_label }})
-      if: inputs.test_label != ''
-      working-directory: src/test
-      run: ./RUNTESTS.py
-          -b ${{ inputs.build }} --test-label ${{ inputs.test_label }}
+      run: |
+        cmd="./RUNTESTS.py -b ${{ inputs.build }}";
+        [ "${{ inputs.test_label }}" != "" ] &&
+          cmd="$cmd --test-label ${{ inputs.test_label }}";
+        bash -c "$cmd"
       shell: bash
