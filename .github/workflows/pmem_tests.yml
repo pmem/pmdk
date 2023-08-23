@@ -5,6 +5,7 @@ name: PMEM tests
 
 on: 
   workflow_dispatch:
+  push:
   schedule:
     # run this job every 8 hours
     - cron:  '0 */8 * * *'
