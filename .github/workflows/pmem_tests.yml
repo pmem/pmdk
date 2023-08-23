@@ -1,0 +1,160 @@
+# Run all tests on PMEM.
+#
+# This workflow is run on 'self-hosted' runners.
+name: PMEM tests
+
+on: 
+  workflow_dispatch:
+  schedule:
+    # run this job every 8 hours
+    - cron:  '0 */8 * * *'
+
+jobs:
+  # Test the default build with the basic test suite.
+  basic:
+    name: Basic
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, "${{ matrix.os }}" ]
+    strategy:
+      fail-fast: false
+      matrix:
+        test_script: [sh, py]
+        os: [rhel, opensuse]
+        build: [debug, nondebug]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          test_script: ${{ matrix.test_script }}
+          build: ${{ matrix.build }}
+          # Exclude all Valgrind tests. All tests employing Valgrind tooling are
+          # run in the dedicated workflows below.
+          force_enable: none
+
+
+  # Test the default build with force-enabled Valgrind tooling for (persistent)
+  # memory error detection.
+  forced_xmemcheck:
+    name: Memory
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, "${{ matrix.os }}" ]
+    strategy:
+      fail-fast: false
+      matrix:
+        force_enable: [pmemcheck, memcheck]
+        test_script: [sh, py]
+        os: [rhel, opensuse]
+        build: [debug, nondebug]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          test_script: ${{ matrix.test_script }}
+          build: ${{ matrix.build }}
+          force_enable: ${{ matrix.force_enable }}
+
+
+  # Test the default build with force-enabled Valgrind tooling for thread error
+  # detection.
+  forced_drd_helgrind:
+    name: Thread
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, "${{ matrix.os }}" ]
+    strategy:
+      fail-fast: false
+      matrix:
+        force_enable: [drd, helgrind]
+        test_script: [sh, py]
+        os: [rhel, opensuse]
+        build: [debug, nondebug]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          test_script: ${{ matrix.test_script }}
+          build: ${{ matrix.build }}
+          force_enable: ${{ matrix.force_enable }}
+
+
+  # Static builds are tested in this limited scope only.
+  static:
+    name: Static
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, rhel]
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [static_debug, static_nondebug]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          build: ${{ matrix.build }}
+
+
+  # Testing the fault injection scenarios requires including this capability
+  # at compile time.
+  fault_injection:
+    name: Fault injection
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, rhel]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+        with:
+          fault_injection: '1'
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          build: nondebug # only the production build is considered
+          test_label: fault_injection # only dedicated scenarios
+
+
+  # By default, PMDK is built with NDCTL in order to provide RAS features.
+  # This build is only viable as long as DAOS builds PMDK with NDCTL_ENABLE=n
+  # https://github.com/daos-stack/pmdk/pull/12
+  ndctl_enable_n:
+    name: Without ndctl
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, rhel]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+        with:
+          ndctl_enable: n
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          build: nondebug # only the production build is considered

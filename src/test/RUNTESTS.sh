@@ -383,6 +383,7 @@ verbose_tests=
 [ -n "$TEST_BUILD" ] && def_buildtype=$TEST_BUILD
 [ -n "$TEST_TYPE" ] && testtype=$TEST_TYPE
 [ -n "$TEST_FS" ] && fstype=$TEST_FS
+[ -n "$CHECK_TYPE" ] && checktype=$CHECK_TYPE
 [ -n "$TEST_TIMEOUT" ] && runtest_timeout=$TEST_TIMEOUT
 [ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
 [ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
