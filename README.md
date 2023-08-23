@@ -53,10 +53,9 @@ See our [LICENSE](LICENSE) file for information on how these libraries are licen
 
 Getting Started with Persistent Memory Programming is a tutorial series created by Intel architect, Andy Rudoff. In this tutorial, you will be introduced to persistent memory programming and learn how to apply it to your applications.
 - Part 1: [What is Persistent Memory?](https://software.intel.com/en-us/persistent-memory/get-started/series)
-- Part 2: [Describing The SNIA Programming Model](https://software.intel.com/en-us/videos/the-nvm-programming-model-persistent-memory-programming-series)
-- Part 3: [Introduction to PMDK Libraries](https://software.intel.com/en-us/videos/intro-to-the-nvm-libraries-persistent-memory-programming-series)
-- Part 4: [Thinking Transactionally](https://software.intel.com/en-us/videos/thinking-transactionally-persistent-memory-programming-series)
-- Part 5: [A C++ Example](https://software.intel.com/en-us/videos/a-c-example-persistent-memory-programming-series)
+- Part 2: [Describing The SNIA Programming Model](https://www.intel.com/content/www/us/en/developer/videos/the-nvm-programming-model-persistent-memory-programming-series.html)
+- Part 3: [Introduction to PMDK Libraries](https://www.intel.com/content/www/us/en/developer/videos/intro-to-the-nvm-libraries-persistent-memory-programming-series.html)
+- Part 4: [Thinking Transactionally](https://www.intel.com/content/www/us/en/developer/videos/thinking-transactionally-persistent-memory-programming-series.html)
 
 Additionally, we recommend reading [Introduction to Programming with Persistent Memory from Intel](https://software.intel.com/en-us/articles/introduction-to-programming-with-persistent-memory-from-intel)
 
