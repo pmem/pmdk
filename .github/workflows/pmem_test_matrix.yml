@@ -1,0 +1,42 @@
+# A common matrix for running tests on PMEM.
+#
+# This workflow is run on 'self-hosted' runners.
+name: PMEM test matrix
+
+on: 
+  workflow_call:
+    inputs:
+      force_enable:
+        required: true
+        type: string
+      timeout_minutes:
+        required: false
+        type: number
+        default: 360 # The jobs.<job_id>.timeout-minutes default.
+
+jobs:
+  job:
+    name: ${{ matrix.force_enable }}, ${{ matrix.test_script }}, ${{ matrix.os }}, ${{ matrix.build }}
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, "${{ matrix.os }}"]
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    strategy:
+      fail-fast: false
+      matrix:
+        force_enable: ${{ fromJSON(inputs.force_enable) }}
+        test_script: [sh, py]
+        os: [rhel, opensuse]
+        build: [debug, nondebug]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          test_script: ${{ matrix.test_script }}
+          build: ${{ matrix.build }}
+          force_enable: ${{ matrix.force_enable }}
