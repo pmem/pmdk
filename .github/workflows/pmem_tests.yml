@@ -1,0 +1,146 @@
+# Run all tests on PMem.
+#
+# This workflow is run on 'self-hosted' runners.
+name: PMEM tests
+
+on: 
+  workflow_dispatch:
+  schedule:
+    # run this job every 8 hours
+    - cron:  '0 */8 * * *'
+
+jobs:
+  no_forced_Valgrind:
+    name: No forced Valgrind
+    if: github.repository == 'pmem/pmdk'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [[self-hosted, rhel],[self-hosted, opensuse]]
+        test_script: ['sh', 'py']
+        build: ['debug', 'nondebug']
+        force_enable: ['none']
+        # static builds are tested in a limited scope
+        include:
+          - os: [self-hosted, rhel]
+            build: 'static_debug'
+            force_enable: '' # include Valgrind tests
+          - os: [self-hosted, rhel]
+            build: 'static_nondebug'
+            force_enable: '' # include Valgrind tests
+    env:
+      WORKDIR: utils/gha-runners
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          test_script: ${{ matrix.test_script }}
+          build: ${{ matrix.build }}
+          force_enable: ${{ matrix.force_enable }}
+
+
+  # Test the fault injection scenarios
+  fault_injection:
+    name: Fault injection
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, rhel]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+        with:
+          fault_injection: '1'
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          build: nondebug # only the production build is considered
+          test_label: 'fault_injection' # only dedicated scenarios
+
+
+  # This build is only viable as long as DAOS builds PMDK with NDCTL_ENABLE=n
+  # https://github.com/daos-stack/pmdk/pull/12
+  ndctl_enable_n:
+    name: Without ndctl
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, rhel]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+        with:
+          ndctl_enable: n
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          build: nondebug # only the production build is considered
+
+
+  forced_xmemcheck:
+    name: Forced memcheck/pmemcheck
+    if: github.repository == 'pmem/pmdk'
+    needs: [no_forced_Valgrind, fault_injection, ndctl_enable_n]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [[self-hosted, rhel],[self-hosted, opensuse]]
+        test_script: ['sh', 'py']
+        build: ['debug', 'nondebug']
+        force_enable: ['pmemcheck', 'memcheck']
+    env:
+      WORKDIR: utils/gha-runners
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          test_script: ${{ matrix.test_script }}
+          build: ${{ matrix.build }}
+          force_enable: ${{ matrix.force_enable }}
+
+
+  forced_drd_helgrind:
+    name: Forced drd/helgrind
+    if: github.repository == 'pmem/pmdk'
+    needs: forced_xmemcheck
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [[self-hosted, rhel],[self-hosted, opensuse]]
+        test_script: ['sh', 'py']
+        build: ['debug', 'nondebug']
+        force_enable: ['drd', 'helgrind']
+    env:
+      WORKDIR: utils/gha-runners
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          test_script: ${{ matrix.test_script }}
+          build: ${{ matrix.build }}
+          force_enable: ${{ matrix.force_enable }}

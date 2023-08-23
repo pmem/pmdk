@@ -24,3 +24,7 @@ class Long(_TestType):
 
 class Check(_TestType):
     includes = [Short, Medium]
+
+
+class All(_TestType):
+    includes = [Short, Medium, Long]

@@ -1,0 +1,48 @@
+name: PMEM test procedure
+description: PMDK testing procedure for self-hosted runners equipped with PMEM
+inputs:
+  test_script:
+    description: |
+      'sh' for RUNTESTS.sh, 'py' for RUNTESTS.py. The default is 'both'.
+    required: false
+    default: 'both'
+  build:
+    description: Build type to be tested.
+    required: true
+  test_label:
+    description: Limit testing to tests that have the given label assigned.
+    required: false
+    default: ''
+  force_enable:
+    description: Force the use of a specific Valgrind tool.
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - run: echo 'TEST_TYPE=all' >> "$GITHUB_ENV"
+      shell: bash
+    - if: inputs.test_script != 'py' # run for 'sh' and 'both'
+      working-directory: src/test
+      env:
+        TEST_BUILD: ${{ inputs.build }}
+        TEST_LABEL: ${{ inputs.test_label }}
+        CHECK_TYPE: ${{ inputs.force_enable }}
+      run: |
+        echo '::group::Tests Bash'
+        ./RUNTESTS.sh
+        echo '::endgroup::'
+      shell: bash
+
+    - if: inputs.test_script != 'sh' # run for 'py' and 'both'
+      working-directory: src/test
+      run: |
+        echo '::group::Tests Python'
+        cmd="./RUNTESTS.py -b ${{ inputs.build }} -t $TEST_TYPE";
+        [ "${{ inputs.test_label }}" != '' ] &&
+          cmd="$cmd --test-label ${{ inputs.test_label }}";
+        [ "${{ inputs.force_enable }}" != '' ] &&
+          cmd="$cmd --force-enable ${{ inputs.force_enable }}";
+        bash -c "$cmd"
+        echo '::endgroup::'
+      shell: bash
