@@ -31,7 +31,7 @@ header: "pmemlog API version 1.1"
 
 >NOTE:
 Support for Windows and FreeBSD deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 # SYNOPSIS #
 
@@ -311,7 +311,7 @@ Thus, specifying replica sections in pool set files is not allowed.
 
 > NOTICE:
 The **libpmemlog** library is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 # ACKNOWLEDGEMENTS #
 
