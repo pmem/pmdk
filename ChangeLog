@@ -60,7 +60,7 @@ Wed Apr 26 2023 Łukasz Stolarczuk <lukasz.stolarczuk@intel.com>
 	Known issues:
 	- The latest validation cycle exposed previously unknown persistency issues
 	related to pmem2 async functions (DEPRECATED) and miniasync (EXPERIMENTAL):
-	#5596 and #5597. Both will be removed in the PMDK 1.14 release. These issues
+	#5596 and #5597. Both will be removed in the PMDK 2.0 release. These issues
 	do NOT affect any other PMDK library.
 
 Tue Aug 25 2022 Łukasz Plewa <lukasz.plewa@intel.com>

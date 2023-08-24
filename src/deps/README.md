@@ -12,4 +12,4 @@ and uploaded to the vcpkg repository.
 
 > NOTICE:
 Support for async functions is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release along with the miniasync dependency.
+and will be removed in the PMDK 2.0.0 release along with the miniasync dependency.

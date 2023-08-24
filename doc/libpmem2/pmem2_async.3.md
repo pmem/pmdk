@@ -25,7 +25,7 @@ header: "pmem2 API version 1.0"
 
 > NOTICE:
 Support for async functions is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release along with the miniasync dependency.
+and will be removed in the PMDK 2.0.0 release along with the miniasync dependency.
 
 # SYNOPSIS #
 
@@ -85,4 +85,3 @@ The **pmem2_memset_async** returns a new instance of **pmem2_future** performing
 **pmem2_get_memcpy_fn**(3), **pmem2_get_memset_fn**(3), **pmem2_map_new**(3),
 **pmem2_get_persist_fn**(3), **vdm_memcpy**(3), **miniasync**(7), **miniasync_future**(7),
 **libpmem2**(7) and **<https://pmem.io>**
-

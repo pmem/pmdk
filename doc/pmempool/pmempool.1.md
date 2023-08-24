@@ -27,7 +27,7 @@ header: "pmem Tools version 1.4"
 
 >NOTE:
 Support for Windows and FreeBSD deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 # SYNOPSIS #
 

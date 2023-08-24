@@ -47,7 +47,7 @@ Libraries available in this repository:
 
 > NOTICE:
 Support for async functions is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release along with the miniasync dependency.
+and will be removed in the PMDK 2.0.0 release along with the miniasync dependency.
 
 - [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
 
@@ -55,13 +55,13 @@ and will be removed in the PMDK 1.14.0 release along with the miniasync dependen
 
 > NOTICE:
 The **libpmemblk** library is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 - [libpmemlog](https://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file. (DEPRECATED)
 
 > NOTICE:
 The **libpmemlog** library is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 - [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
@@ -84,7 +84,7 @@ For information on how these libraries are licensed, see our [LICENSE](LICENSE) 
 
 > NOTICE:
 Support for Windows and FreeBSD are deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 ><sup>1</sup> Not supported on Windows.
 >
@@ -113,7 +113,7 @@ Additionally, we recommend reading [Introduction to Programming with Persistent 
 
 > NOTICE:
 Support for Windows is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 The recommended and easiest way to install PMDK on Windows is to use Microsoft vcpkg. Vcpkg is an open source tool and ecosystem created for library management.
 
@@ -169,7 +169,7 @@ see https://github.com/pmem/pmdk/issues/4207.
 
 > NOTICE:
 Support for Windows is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 * **MS Visual Studio 2022**
 * [Windows SDK 10.0.22000.0](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
@@ -181,7 +181,7 @@ and will be removed in the PMDK 1.14.0 release.
 
 > NOTICE:
 Support for FreeBSD is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 * **autoconf**
 * **bash**
@@ -199,7 +199,7 @@ and will be removed in the PMDK 1.14.0 release.
 
 > NOTICE:
 Support for FreeBSD is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 To build from source, clone this tree:
 ```
@@ -304,7 +304,7 @@ This requires **devscripts** to be installed.
 
 > NOTICE:
 Support for FreeBSD is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 You will need to install the following package to run unit tests:
 * **ndctl**
@@ -351,7 +351,7 @@ and UndefinedBehaviorSanitizer, run:
 
 > NOTICE:
 Support for Windows is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 Clone the PMDK tree and open the solution:
 ```
@@ -367,7 +367,7 @@ Select the desired configuration (Debug or Release) and build the solution
 
 > NOTICE:
 Support for Windows is deprecated since PMDK 1.13.0 release
-and will be removed in the PMDK 1.14.0 release.
+and will be removed in the PMDK 2.0.0 release.
 
 Before running the tests, you may need to prepare a test configuration file (src/test/testconfig.ps1). Please see the available configuration settings in the example file [src/test/testconfig.ps1.example](src/test/testconfig.ps1.example).
 
