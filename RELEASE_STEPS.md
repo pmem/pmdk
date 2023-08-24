@@ -9,8 +9,8 @@ of the PMDK repository. The second commit is required to restore a "default" sta
 As a helper you can export these 2 variables in your bash - with proper version set:
 
 ```bash
-export VERSION=1.14.0-rc1   # the full version of the new release; -rc1 included just as an example
-export VER=1.14             # the major+minor only version
+export VERSION=2.0.1-rc1   # the full version of the new release; -rc1 included just as an example
+export VER=2.0             # the major+minor only version
 ```
 
 ## 1. Make a release locally
