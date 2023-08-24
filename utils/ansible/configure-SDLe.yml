@@ -19,15 +19,21 @@
 # ansible-playbook configure-SDLe.yml"
 #
 
-- hosts: "{{ host }}"
-# - hosts: localhost
-#   connection: local
+# - hosts: "{{ host }}"
+- hosts: localhost
+  connection: local
   vars:
     testUser: pmdkuser
     SDLUser: sys_pmdk_sdle
     runner_folder: /home/{{ testUser }}/actions-runner
 
   tasks:
+    - name: "Stop runner service"
+      shell: |
+        {{ runner_folder }}/svc.sh stop
+      become: true
+      become_user: root
+
     - name: "Install Coverity dependencies"
       package:
         state: present
@@ -138,8 +144,8 @@
         regexp: 'proxy-\w+\.XXX\.com'
         replace: 'proxy-chain.XXX.com'
 
-    - name: "Restart runner service"
+    - name: "Start runner service"
       shell: |
-        systemctl restart actions.runner.pmem-pmdk.*.service
+        {{ runner_folder }}/svc.sh start
       become: true
       become_user: root
