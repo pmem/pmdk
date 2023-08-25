@@ -38,6 +38,8 @@ set -e
 export LC_ALL="C"
 #export LC_ALL="en_US.UTF-8"
 
+results_filedir=../results/test_results.txt
+
 if ! [ -f ../envconfig.sh ]; then
 	echo >&2 "envconfig.sh is missing -- is the tree built?"
 	exit 1
@@ -93,18 +95,17 @@ function interactive_yellow() {
 
 function verbose_msg() {
 	if [ "$UNITTEST_LOG_LEVEL" -ge 2 ]; then
-		echo "$*"
+		echo "$*" |tee -a $results_filedir
 	fi
 }
 
 function msg() {
 	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
-		echo "$*"
+		echo "$*" |tee -a $results_filedir
 	fi
 }
-
 function fatal() {
-	echo "$*" >&2
+	echo "$*" >&2 |tee -a $results_filedir
 	exit 1
 }
 
@@ -599,13 +600,13 @@ function dump_last_n_lines() {
 	if [ "$1" != "" -a -f "$1" ]; then
 		ln=`wc -l < $1`
 		if [ $ln -gt $UT_DUMP_LINES ]; then
-			echo -e "Last $UT_DUMP_LINES lines of $1 below (whole file has $ln lines)." >&2
+			echo -e "Last $UT_DUMP_LINES lines of $1 below (whole file has $ln lines)." >&2 |tee -a $results_filedir
 			ln=$UT_DUMP_LINES
 		else
-			echo -e "$1 below." >&2
+			echo -e "$1 below." >&2 |tee -a $results_filedir
 		fi
-		paste -d " " <(yes $UNITTEST_NAME $1 | head -n $ln) <(tail -n $ln $1) >&2
-		echo >&2
+		paste -d " " <(yes $UNITTEST_NAME $1 | head -n $ln) <(tail -n $ln $1) >&2 |tee -a $results_filedir
+		echo >&2 |tee -a $results_filedir
 	fi
 }
 
@@ -695,8 +696,8 @@ function validate_valgrind_log() {
 		$1 >/dev/null ;
 	then
 		msg=$(interactive_red STDERR "failed")
-		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. Last 20 lines below." >&2
-		paste -d " " <(yes $UNITTEST_NAME $1 | head -n 20) <(tail -n 20 $1) >&2
+		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. Last 20 lines below." >&2 |tee -a $results_filedir
+		paste -d " " <(yes $UNITTEST_NAME $1 | head -n 20) <(tail -n 20 $1) >&2 |tee -a $results_filedir
 		false
 	fi
 }
@@ -750,13 +751,13 @@ function expect_normal_exit() {
 
 		if [ -f $ERR_LOG_FILE ]; then
 			if [ "$UNITTEST_LOG_LEVEL" -ge "1" ]; then
-				echo -e "$UNITTEST_NAME $msg. $ERR_LOG_FILE below." >&2
+				echo -e "$UNITTEST_NAME $msg. $ERR_LOG_FILE below." >&2 |tee -a $results_filedir
 				cat $ERR_LOG_FILE >&2
 			else
-				echo -e "$UNITTEST_NAME $msg. $ERR_LOG_FILE above." >&2
+				echo -e "$UNITTEST_NAME $msg. $ERR_LOG_FILE above." >&2 |tee -a $results_filedir
 			fi
 		else
-			echo -e "$UNITTEST_NAME $msg." >&2
+			echo -e "$UNITTEST_NAME $msg." >&2 |tee -a $results_filedir
 		fi
 
 		# ignore Ctrl-C
@@ -797,7 +798,7 @@ function expect_abnormal_exit() {
 	if [ "$ret" -eq "0" ]; then
 		msg=$(interactive_red STDERR "succeeded")
 
-		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
+		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2 |tee -a $results_filedir
 
 		false
 	fi
@@ -811,7 +812,7 @@ function check_pool() {
 	then
 		if [ "$VERBOSE" != "0" ]
 		then
-			echo "$UNITTEST_NAME: checking consistency of pool ${1}"
+			echo "$UNITTEST_NAME: checking consistency of pool ${1}" |tee -a $results_filedir
 		fi
 		${PMEMPOOL}.static_nondebug check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
 	fi
@@ -1447,7 +1448,7 @@ function valgrind_version_no_check() {
 function require_valgrind() {
 	if [ "$DISABLE_VALGRIND_TESTS" == "1" ]; then
 		msg=$(interactive_yellow STDOUT "SKIP:")
-		echo -e "$UNITTEST_NAME: $msg all Valgrind tests are disabled"
+		echo -e "$UNITTEST_NAME: $msg all Valgrind tests are disabled" |tee -a $results_filedir
 		exit 0
 	fi
 	# bc is used inside valgrind_version_no_check
@@ -1465,11 +1466,11 @@ function require_valgrind() {
 		# Lack of Valgrind, when it was just required by the given test, causes a skip.
 		if [ "$FORCED_CHECK_TYPE" != "none" ]; then
 			msg=$(interactive_red STDOUT "FAIL:")
-			echo -e "$UNITTEST_NAME: $msg Valgrind not installed"
+			echo -e "$UNITTEST_NAME: $msg Valgrind not installed" |tee -a $results_filedir
 			exit 1
 		else
 			msg=$(interactive_yellow STDOUT "SKIP:")
-			echo -e "$UNITTEST_NAME: $msg Valgrind required"
+			echo -e "$UNITTEST_NAME: $msg Valgrind required" |tee -a $results_filedir
 			exit 0
 		fi
 	fi
@@ -1935,7 +1936,7 @@ function pass() {
 	fi
 	msg=$(interactive_green STDOUT "PASS")
 	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
-		echo -e "$UNITTEST_NAME: $msg$tm"
+		echo -e "$UNITTEST_NAME: $msg$tm" |tee -a $results_filedir
 	fi
 	if [ "$FS" != "none" ]; then
 		rm $RM_ONEFS -rf -- $DIR
@@ -1949,7 +1950,7 @@ function pass() {
 function DISABLED() {
 	msg=$(interactive_yellow STDOUT "DISABLED")
 	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
-		echo -e "$UNITTEST_NAME: $msg ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
+		echo -e "$UNITTEST_NAME: $msg ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)" |tee -a $results_filedir
 	fi
 	exit 0
 }
@@ -2316,12 +2317,12 @@ function pmreorder_expect_success()
 	ret=$(pmreorder_run_tool "$@" | tail -n1)
 
 	if [ "$ret" -ne "0" ]; then
-		msg=$(interactive_red STDERR "failed with exit code $ret")
+		msg=$(interactive_red STDERR "failed with exit code $ret"
 
 		# exit code 130 - script terminated by user (Control-C)
 		if [ "$ret" -ne "130" ]; then
 
-			echo -e "$UNITTEST_NAME $msg." >&2
+			echo -e "$UNITTEST_NAME $msg." >&2 |tee -a $results_filedir
 			dump_last_n_lines $PMREORDER_LOG_FILE
 		fi
 
@@ -2340,7 +2341,7 @@ function pmreorder_expect_failure()
 	if [ "$ret" -eq "0" ]; then
 		msg=$(interactive_red STDERR "succeeded")
 
-		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
+		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2 |tee -a $results_filedir
 
 		false
 	fi

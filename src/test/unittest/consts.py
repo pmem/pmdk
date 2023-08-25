@@ -11,6 +11,8 @@ LIBS_LIST = ('pmem', 'pmem2', 'pmemobj', 'pmempool')
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
 
+RESULTS_FILEDIR = abspath(join(ROOTDIR, '..', 'tests/results/test_results.txt'))
+
 DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
 NONDEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 

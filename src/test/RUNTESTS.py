@@ -27,7 +27,7 @@ import importlib.util as importutil  # noqa E402
 import subprocess as sp  # noqa E402
 
 import futils  # noqa E402
-from consts import ROOTDIR # noqa E402
+from consts import ROOTDIR, RESULTS_FILEDIR # noqa E402
 from basetest import get_testcases  # noqa E402
 from configurator import Configurator  # noqa E402
 from ctx_filter import CtxFilter  # noqa E402
@@ -116,12 +116,15 @@ class TestRunner:
                             else:
                                 self.msg.print('{}: SETUP\t({}/{})'
                                                .format(t, t.test_type, c))
+                                _append_result_to_file(t, 'SETUP\t({}/{})'
+                                                       .format(t.test_type, c))
                                 t._execute(c)
                         else:
                             continue
 
                     except futils.Skip as s:
                         self.msg.print('{}: SKIP: {}'.format(t, s))
+                        _append_result_to_file(t, 'SKIP: {})'.format(s))
 
                     except futils.Fail as f:
                         self._test_failed(t, c, f)
@@ -131,6 +134,7 @@ class TestRunner:
 
             except futils.Skip as s:
                 self.msg.print('{}: SKIP: {}'.format(tc, s))
+                _append_result_to_file('{}: SKIP: {}'.format(tc, s))
             except futils.Fail as f:
                 self._test_failed(tc, c, f)
                 ret = 1
@@ -146,7 +150,10 @@ class TestRunner:
         self.msg.print('{}: {}FAILED{}\t({}/{}) {}'
                        .format(tc, futils.Color.RED,
                                futils.Color.END, tc.test_type, ctx, tm))
+        _append_result_to_file('{}: FAILED\t({}/{}) {}'
+                               .format(tc, tc.test_type, ctx, tm))
         self.msg.print(fail)
+        _append_result_to_file(fail)
 
         if not self.config.keep_going:
             sys.exit(1)
@@ -160,12 +167,23 @@ class TestRunner:
 
         self.msg.print('{}: {}PASS{} {}'
                        .format(tc, futils.Color.GREEN, futils.Color.END, tm))
+        _append_result_to_file('{}: PASS {}'.format(tc, tm))
 
     def _test_disabled(self, tc, context):
         """Print message specific for disabled test"""
         self.msg.print('{}: {}DISABLED{}\t({}/{})'
                        .format(tc, futils.Color.YELLOW, futils.Color.END,
                                tc.test_type, context))
+        _append_result_to_file('{}: DISABLED\t({}/{})'
+                               .format(tc, tc.test_type, context))
+
+
+def _append_result_to_file(message, filepath=RESULTS_FILEDIR):
+    """
+    Writes test results related messages to a file in append mode.
+    """
+    with open(filepath, "a") as r:
+        r.write('{})'.format(message))
 
 
 def _import_testfiles():
