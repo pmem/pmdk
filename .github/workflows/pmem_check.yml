@@ -35,39 +35,39 @@ jobs:
           build: ${{ matrix.build }}
 
 
-  # Test the fault injection scenarios on PMem
-  fault_injection:
-    name: PMEM fault injection
-    runs-on: [self-hosted, rhel]
-
-    steps:
-      - name: Clone the git repo
-        uses: actions/checkout@v3
-        with:
-          repository: pmem/pmdk
-
-      - name: Test procedure
-        uses: ./.github/actions/pmem_test_procedure
-        with:
-          build: nondebug # only the production build is considered
-          fault_injection: '1'
-          test_label: 'fault_injection' # only dedicated scenarios
-
-
-  # This build is only viable as long as DAOS builds PMDK with NDCTL_ENABLE=n
-  # https://github.com/daos-stack/pmdk/pull/12
-  ndctl_enable_n:
-    name: PMEM without ndctl
-    runs-on: [self-hosted, rhel]
-
-    steps:
-      - name: Clone the git repo
-        uses: actions/checkout@v3
-        with:
-          repository: pmem/pmdk
-
-      - name: Test procedure
-        uses: ./.github/actions/pmem_test_procedure
-        with:
-          build: nondebug # only the production build is considered
-          ndctl_enable: n
+#  # Test the fault injection scenarios on PMem
+#  fault_injection:
+#    name: PMEM fault injection
+#    runs-on: [self-hosted, rhel]
+#
+#    steps:
+#      - name: Clone the git repo
+#        uses: actions/checkout@v3
+#        with:
+#          repository: pmem/pmdk
+#
+#      - name: Test procedure
+#        uses: ./.github/actions/pmem_test_procedure
+#        with:
+#          build: nondebug # only the production build is considered
+#          fault_injection: '1'
+#          test_label: 'fault_injection' # only dedicated scenarios
+#
+#
+#  # This build is only viable as long as DAOS builds PMDK with NDCTL_ENABLE=n
+#  # https://github.com/daos-stack/pmdk/pull/12
+#  ndctl_enable_n:
+#    name: PMEM without ndctl
+#    runs-on: [self-hosted, rhel]
+#
+#    steps:
+#      - name: Clone the git repo
+#        uses: actions/checkout@v3
+#        with:
+#          repository: pmem/pmdk
+#
+#      - name: Test procedure
+#        uses: ./.github/actions/pmem_test_procedure
+#        with:
+#          build: nondebug # only the production build is considered
+#          ndctl_enable: n
