@@ -3,7 +3,8 @@
 # This workflow is run on 'self-hosted' runners.
 name: PMEM check
 
-on: 
+on:
+  push:
   workflow_dispatch:
   workflow_call:
 
