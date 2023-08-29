@@ -4,6 +4,7 @@
 name: PMEM tests
 
 on:
+  push:
   workflow_dispatch:
   schedule:
     # run this job every 8 hours
