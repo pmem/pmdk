@@ -1,0 +1,41 @@
+name: PMEM test prepare
+description: PMDK testing procedure for self-hosted runners equipped with PMEM
+inputs:
+  ndctl_enable:
+    description: Build with RAS support
+    required: false
+    default: y
+  fault_injection:
+    description: Build with the fault injection capability
+    required: false
+    default: '0'
+runs:
+  using: composite
+  steps:
+    - run: echo 'WORKDIR=utils/gha-runners' >> "$GITHUB_ENV"
+      shell: bash
+    - run: |
+        echo '::group::Get system information'
+        $WORKDIR/get-system-info.sh
+        echo '::endgroup::'
+      shell: bash
+
+    - env:
+        FAULT_INJECTION: ${{ inputs.fault_injection }}
+        NDCTL_ENABLE: ${{ inputs.ndctl_enable }}
+      run: |
+        echo '::group::Build'
+        $WORKDIR/build-pmdk.sh
+        echo '::endgroup::'
+      shell: bash
+
+    - run: |
+        echo '::group::Create testconfig files'
+        $WORKDIR/../create-testconfig.sh
+        for testconfig in src/test/testconfig.sh src/test/testconfig.py; do
+          echo "$testconfig"
+          cat $testconfig
+          echo
+        done
+        echo '::endgroup::'
+      shell: bash
