@@ -2,7 +2,6 @@
 name: UBSAN
 
 on:
-  workflow_dispatch:
   workflow_call:
 
 env:
