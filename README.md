@@ -3,10 +3,8 @@
 [![Nightly](https://github.com/pmem/pmdk/actions/workflows/nightly.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/nightly.yml)
 [![Scans](https://github.com/pmem/pmdk/actions/workflows/scans.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/scans.yml)
 [![Coverage](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
-[![PMem test main](https://github.com/pmem/pmdk/actions/workflows/pmem_tests_main.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_tests_main.yml)
-[![Pmem long](https://github.com/pmem/pmdk/actions/workflows/pmem_long.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_long.yml)
+[![PMem test](https://github.com/pmem/pmdk/actions/workflows/pmem_tests.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_tests.yml)
 [![Pmem RAS](https://github.com/pmem/pmdk/actions/workflows/pmem_ras.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_ras.yml)
-[![Pmem valgrind](https://github.com/pmem/pmdk/actions/workflows/pmem_valgrind.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_valgrind.yml)
 [![pmem.io](https://github.com/pmem/pmdk/actions/workflows/pmem.io_doc_update.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem.io_doc_update.yml)
 [![Docker rebuild](https://github.com/pmem/pmdk/actions/workflows/docker_rebuild.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/docker_rebuild.yml)
 
