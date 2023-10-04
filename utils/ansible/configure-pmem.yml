@@ -123,7 +123,7 @@
         fi
 
         sudo mkfs.ext4 -F /dev/${pmem_name}
-        sudo mount -o dax /dev/${pmem_name} ${MOUNT_POINT}
+        sudo mount -o dax=always /dev/${pmem_name} ${MOUNT_POINT}
         sudo chown -R {{ testUser }} ${MOUNT_POINT}
 
         sudo chmod 777 /dev/dax* || true
@@ -133,3 +133,17 @@
       register: script
 
     - debug: var=script
+
+    - name: Get PMEM device name for /dev/pmem0 mount point
+      shell: |
+        mount | sed -nr "s/^.*(\/dev\/\S+) on \/mnt\/pmem0.*$/\1/p"
+      register: pmem_name
+
+    - name: Add /etc/fstab entry for PMEM
+      ansible.posix.mount:
+        path: /mnt/pmem0
+        src: "{{ pmem_name.stdout }}"
+        fstype: ext4
+        opts: rw,relatime,dax=always
+        state: present
+        backup: true
