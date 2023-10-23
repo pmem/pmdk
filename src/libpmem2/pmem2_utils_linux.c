@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -14,6 +14,7 @@
 #include "pmem2_utils.h"
 #include "region_namespace.h"
 #include "source.h"
+#include "alloc.h"
 
 /*
  * pmem2_get_type_from_stat -- determine type of file based on output of stat
@@ -37,8 +38,17 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
-	char spath[PATH_MAX];
-	int ret = util_snprintf(spath, PATH_MAX,
+	int ret = 0;
+	char *spath = NULL;
+	char *npath = NULL;
+
+	spath = Malloc(PATH_MAX * sizeof(char));
+	if (spath == NULL) {
+		ERR("!Malloc");
+		return PMEM2_E_ERRNO;
+	}
+
+	ret = util_snprintf(spath, PATH_MAX,
 			"/sys/dev/char/%u:%u/subsystem",
 			os_major(st->st_rdev), os_minor(st->st_rdev));
 
@@ -46,25 +56,40 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 		/* impossible */
 		ERR("!snprintf");
 		ASSERTinfo(0, "snprintf failed");
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	LOG(4, "device subsystem path \"%s\"", spath);
 
-	char npath[PATH_MAX];
+	npath = Malloc(PATH_MAX * sizeof(char));
+	if (npath == NULL) {
+		ERR("!Malloc");
+		ret = PMEM2_E_ERRNO;
+		goto end;
+	}
+
 	char *rpath = realpath(spath, npath);
 	if (rpath == NULL) {
 		ERR("!realpath \"%s\"", spath);
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	char *basename = strrchr(rpath, '/');
 	if (!basename || strcmp("dax", basename + 1) != 0) {
 		LOG(3, "%s path does not match device dax prefix path", rpath);
-		return PMEM2_E_INVALID_FILE_TYPE;
+		ret = PMEM2_E_INVALID_FILE_TYPE;
+		goto end;
 	}
 
 	*type = PMEM2_FTYPE_DEVDAX;
 
-	return 0;
+end:
+	if (npath)
+		Free(npath);
+	if (spath)
+		Free(spath);
+
+	return ret;
 }

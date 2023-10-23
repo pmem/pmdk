@@ -2,6 +2,8 @@
 
 	This release:
 	- Significantly reduces the libpmem's stack usage.
+	- Decrease stack usage by allocating paths' buffers on heap
+	
 
 Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
