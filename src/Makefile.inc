@@ -33,6 +33,7 @@ DEFAULT_CFLAGS += -Wpointer-arith
 DEFAULT_CFLAGS += -Wsign-conversion
 DEFAULT_CFLAGS += -Wsign-compare
 DEFAULT_CFLAGS += -Wunused-parameter
+DEFAULT_CFLAGS += -fstack-usage
 
 ifeq ($(WCONVERSION_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wconversion
