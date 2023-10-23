@@ -64,10 +64,6 @@ SOURCE += $(LIBPMEM2_ARCH_SOURCE)
 
 include ../Makefile.inc
 
-ifeq ($(OS_DIMM),ndctl)
-CFLAGS += $(LIBNDCTL_CFLAGS)
-endif
-
 include $(PMEM2)/$(ARCH)/flags.inc
 
 CFLAGS += -I. $(LIBNDCTL_CFLAGS)
