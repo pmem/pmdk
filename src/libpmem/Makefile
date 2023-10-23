@@ -50,7 +50,6 @@ ifeq ($(OS_DIMM),ndctl)
 SOURCE +=\
 	region_namespace_ndctl.c\
 	numa_ndctl.c
-CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += $(LIBNDCTL_LIBS)
 else
 SOURCE +=\
@@ -65,6 +64,10 @@ include ../libpmem2/$(ARCH)/sources.inc
 SOURCE += $(LIBPMEM2_ARCH_SOURCE)
 
 include ../Makefile.inc
+
+ifeq ($(OS_DIMM),ndctl)
+CFLAGS += $(LIBNDCTL_CFLAGS)
+endif
 
 include $(PMEM2)/$(ARCH)/flags.inc
 
