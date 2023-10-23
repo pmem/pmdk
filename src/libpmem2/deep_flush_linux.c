@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * deep_flush_linux.c -- deep_flush functionality
@@ -18,6 +18,7 @@
 #include "persist.h"
 #include "pmem2_utils.h"
 #include "region_namespace.h"
+#include "alloc.h"
 
 /*
  * pmem2_deep_flush_write -- perform write to deep_flush file
@@ -28,19 +29,28 @@ pmem2_deep_flush_write(unsigned region_id)
 {
 	LOG(3, "region_id %d", region_id);
 
-	char deep_flush_path[PATH_MAX];
-	int deep_flush_fd;
+	int ret = 0;
+	char *deep_flush_path = NULL;
+	int deep_flush_fd = -1;
 	char rbuf[2];
+
+	deep_flush_path  = Malloc(PATH_MAX);
+	if (deep_flush_path == NULL) {
+		ERR("!Malloc");
+		ret = -1;
+		goto end;
+	}
 
 	if (util_snprintf(deep_flush_path, PATH_MAX,
 		"/sys/bus/nd/devices/region%u/deep_flush", region_id) < 0) {
 		ERR("!snprintf");
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_RDONLY)) < 0) {
 		LOG(1, "!os_open(\"%s\", O_RDONLY)", deep_flush_path);
-		return 0;
+		goto end;
 	}
 
 	if (read(deep_flush_fd, rbuf, sizeof(rbuf)) != 2) {
@@ -54,11 +64,12 @@ pmem2_deep_flush_write(unsigned region_id)
 	}
 
 	os_close(deep_flush_fd);
+	deep_flush_fd = -1;
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
 		LOG(1, "Cannot open deep_flush file %s to write",
 			deep_flush_path);
-		return 0;
+		goto end;
 	}
 
 	if (write(deep_flush_fd, "1", 1) != 1) {
@@ -67,8 +78,11 @@ pmem2_deep_flush_write(unsigned region_id)
 	}
 
 end:
-	os_close(deep_flush_fd);
-	return 0;
+	if (deep_flush_fd > -1)
+		os_close(deep_flush_fd);
+	if (deep_flush_path)
+		Free(deep_flush_path);
+	return ret;
 }
 
 /*

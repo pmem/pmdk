@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2022, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * region_namespace_ndctl.c -- common ndctl functions
@@ -16,6 +16,7 @@
 #include "region_namespace_ndctl.h"
 #include "region_namespace.h"
 #include "out.h"
+#include "alloc.h"
 
 /*
  * ndctl_match_devdax -- (internal) returns 0 if the devdax matches
@@ -27,30 +28,44 @@ ndctl_match_devdax(dev_t st_rdev, const char *devname)
 {
 	LOG(3, "st_rdev %lu devname %s", st_rdev, devname);
 
+	int ret = 0;
+	char *path;
+	os_stat_t stat;
+
 	if (*devname == '\0')
 		return 1;
 
-	char path[PATH_MAX];
-	os_stat_t stat;
+	path = Malloc(PATH_MAX);
+	if (path == NULL) {
+		errno = ENOMEM;
+		ERR("!Malloc");
+		return PMEM2_E_ERRNO;
+
+	}
 
 	if (util_snprintf(path, PATH_MAX, "/dev/%s", devname) < 0) {
 		ERR("!snprintf");
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	if (os_stat(path, &stat)) {
 		ERR("!stat %s", path);
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	if (st_rdev != stat.st_rdev) {
 		LOG(10, "skipping not matching device: %s", path);
-		return 1;
+		ret = 1;
+		goto end;
 	}
 
 	LOG(4, "found matching device: %s", path);
+end:
+	Free(path);
 
-	return 0;
+	return ret;
 }
 
 #define BUFF_LENGTH 64
@@ -65,27 +80,38 @@ ndctl_match_fsdax(dev_t st_dev, const char *devname)
 {
 	LOG(3, "st_dev %lu devname %s", st_dev, devname);
 
+	int ret = 0;
+	char *path;
+	char dev_id[BUFF_LENGTH];
+
 	if (*devname == '\0')
 		return 1;
 
-	char path[PATH_MAX];
-	char dev_id[BUFF_LENGTH];
+	path = Malloc(PATH_MAX);
+	if (path == NULL) {
+		errno = ENOMEM;
+		ERR("!Malloc");
+		return PMEM2_E_ERRNO;
+	}
 
 	if (util_snprintf(path, PATH_MAX, "/sys/block/%s/dev", devname) < 0) {
 		ERR("!snprintf");
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	if (util_snprintf(dev_id, BUFF_LENGTH, "%d:%d",
 			major(st_dev), minor(st_dev)) < 0) {
 		ERR("!snprintf");
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	int fd = os_open(path, O_RDONLY);
 	if (fd < 0) {
 		ERR("!open \"%s\"", path);
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	char buff[BUFF_LENGTH];
@@ -95,31 +121,38 @@ ndctl_match_fsdax(dev_t st_dev, const char *devname)
 		int oerrno = errno; /* save the errno */
 		os_close(fd);
 		errno = oerrno;
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto end;
 	}
 
 	os_close(fd);
 
 	if (nread == 0) {
 		ERR("%s is empty", path);
-		return PMEM2_E_INVALID_DEV_FORMAT;
+		ret = PMEM2_E_INVALID_DEV_FORMAT;
+		goto end;
 	}
 
 	if (buff[nread - 1] != '\n') {
 		ERR("%s doesn't end with new line", path);
-		return PMEM2_E_INVALID_DEV_FORMAT;
+		ret = PMEM2_E_INVALID_DEV_FORMAT;
+		goto end;
 	}
 
 	buff[nread - 1] = '\0';
 
 	if (strcmp(buff, dev_id) != 0) {
 		LOG(10, "skipping not matching device: %s", path);
-		return 1;
+		ret = 1;
+		goto end;
 	}
 
 	LOG(4, "found matching device: %s", path);
 
-	return 0;
+end:
+	Free(path);
+
+	return ret;
 }
 
 /*
