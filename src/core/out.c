@@ -161,7 +161,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 				log_file[0] != '\0') {
 
 		/* reserve more than enough space for a PID + '\0' */
-		char log_file_pid[PATH_MAX];
+		static char log_file_pid[PATH_MAX];
 		size_t len = strlen(log_file);
 		if (len > 0 && log_file[len - 1] == '-') {
 			if (util_snprintf(log_file_pid, PATH_MAX, "%s%d",
