@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2023, Intel Corporation */
 
 #include <immintrin.h>
 #include <stddef.h>
@@ -254,7 +254,7 @@ memmove_mov1x64b(char *dest, const char *src, flush64b_fn flush64b)
 	flush64b(dest + 0 * 64);
 }
 
-static force_inline void
+static void
 memmove_mov_avx512f_fw(char *dest, const char *src, size_t len,
 		flush_fn flush, flush64b_fn flush64b)
 {
@@ -319,7 +319,7 @@ memmove_mov_avx512f_fw(char *dest, const char *src, size_t len,
 		memmove_small_avx512f(dest, src, len, flush);
 }
 
-static force_inline void
+static void
 memmove_mov_avx512f_bw(char *dest, const char *src, size_t len,
 		flush_fn flush, flush64b_fn flush64b)
 {
