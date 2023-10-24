@@ -179,7 +179,7 @@ memset_mov1x64b(char *dest, __m512i zmm, flush64b_fn flush64b)
 	flush64b(dest + 0 * 64);
 }
 
-static force_inline void
+static void
 memset_mov_avx512f(char *dest, int c, size_t len,
 		flush_fn flush, flush64b_fn flush64b)
 {
