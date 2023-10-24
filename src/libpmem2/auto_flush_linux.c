@@ -91,7 +91,7 @@ check_domain_in_region(const char *region_path)
 	char *domain_path = NULL;
 	int cpu_cache = 0;
 
-	domain_path  = Malloc(PATH_MAX);
+	domain_path = Malloc(PATH_MAX * sizeof(char));
 	if (domain_path == NULL) {
 		ERR("!Malloc");
 		cpu_cache = -1;

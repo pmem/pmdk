@@ -42,7 +42,7 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 	char *spath = NULL;
 	char *npath = NULL;
 
-	spath = Malloc(PATH_MAX);
+	spath = Malloc(PATH_MAX * sizeof(char));
 	if (spath == NULL) {
 		errno = ENOMEM;
 		ERR("!Malloc");
@@ -63,7 +63,7 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 
 	LOG(4, "device subsystem path \"%s\"", spath);
 
-	npath = Malloc(PATH_MAX);
+	npath = Malloc(PATH_MAX * sizeof(char));
 	if (npath == NULL) {
 		errno = ENOMEM;
 		ERR("!Malloc");

@@ -35,7 +35,7 @@ ndctl_match_devdax(dev_t st_rdev, const char *devname)
 	if (*devname == '\0')
 		return 1;
 
-	path = Malloc(PATH_MAX);
+	path = Malloc(PATH_MAX * sizeof(char));
 	if (path == NULL) {
 		errno = ENOMEM;
 		ERR("!Malloc");
@@ -87,7 +87,7 @@ ndctl_match_fsdax(dev_t st_dev, const char *devname)
 	if (*devname == '\0')
 		return 1;
 
-	path = Malloc(PATH_MAX);
+	path = Malloc(PATH_MAX * sizeof(char));
 	if (path == NULL) {
 		errno = ENOMEM;
 		ERR("!Malloc");
