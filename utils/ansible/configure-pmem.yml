@@ -29,10 +29,17 @@
   vars:
     newRegions: false
     testUser: pmdkuser
+    mountPoint: /mnt/pmem0
 
   tasks:
     - name: "Test if ndctl is installed"
       shell: which ndctl
+
+    - name: "Remove fstab entry if it exist"
+      ansible.posix.mount:
+        path: "{{ mountPoint }}"
+        state: absent_from_fstab
+        backup: true
 
     - name: "Unmount namespaces if they exist"
       shell: sudo umount /dev/pmem* || true
@@ -64,7 +71,6 @@
         #!/usr/bin/env bash
         DEV_DAX_R=0x0000
         FS_DAX_R=0x0001
-        MOUNT_POINT="/mnt/pmem0"
 
         function check_alignment() {
           local size=$1
@@ -118,13 +124,13 @@
 
         pmem_name=$(create_fsdax)
 
-        if [ ! -d "${MOUNT_POINT}" ]; then
-          sudo mkdir ${MOUNT_POINT}
+        if [ ! -d "{{ mountPoint }}" ]; then
+          sudo mkdir {{ mountPoint }}
         fi
 
         sudo mkfs.ext4 -F /dev/${pmem_name}
-        sudo mount -o dax /dev/${pmem_name} ${MOUNT_POINT}
-        sudo chown -R {{ testUser }} ${MOUNT_POINT}
+        sudo mount -o dax=always /dev/${pmem_name} {{ mountPoint }}
+        sudo chown -R {{ testUser }} {{ mountPoint }}
 
         sudo chmod 777 /dev/dax* || true
         sudo chmod a+rw /sys/bus/nd/devices/region*/deep_flush
@@ -133,3 +139,17 @@
       register: script
 
     - debug: var=script
+
+    - name: "Get PMEM device name for {{ mountPoint }} mount point"
+      shell: |
+        mount | sed -nr "s/^.*(\/dev\/\S+) on \/mnt\/pmem0.*$/\1/p"
+      register: pmem_name
+
+    - name: "Add /etc/fstab entry for PMEM"
+      ansible.posix.mount:
+        path: "{{ mountPoint }}"
+        src: "{{ pmem_name.stdout }}"
+        fstype: ext4
+        opts: rw,relatime,dax=always
+        state: present
+        backup: true
