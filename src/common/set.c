@@ -1791,46 +1791,60 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	ASSERTne(attr, NULL);
 
+	int ret = 0;
+
 	struct pool_replica *rep = set->replica[repidx];
 
 	/* opaque info lives at the beginning of mapped memory pool */
 	struct pool_hdr *hdrp = rep->part[partidx].hdr;
-	struct pool_hdr hdr;
+	struct pool_hdr *hdr;
 
-	memcpy(&hdr, hdrp, sizeof(hdr));
+	hdr = Malloc(sizeof(struct pool_hdr));
+	if (hdr == NULL) {
+		ERR("!Malloc");
+		errno = ENOMEM;
+		return -1;
+	}
 
-	util_convert2h_hdr_nocheck(&hdr);
+	memcpy(hdr, hdrp, sizeof(*hdr));
+
+	util_convert2h_hdr_nocheck(hdr);
 
 	/* to be valid, a header must have a major version of at least 1 */
-	if (hdr.major == 0) {
+	if (hdr->major == 0) {
 		ERR("invalid major version (0)");
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	/* check signature */
-	if (memcmp(hdr.signature, attr->signature, POOL_HDR_SIG_LEN)) {
-		ERR("wrong pool type: \"%.8s\"", hdr.signature);
+	if (memcmp(hdr->signature, attr->signature, POOL_HDR_SIG_LEN)) {
+		ERR("wrong pool type: \"%.8s\"", hdr->signature);
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	/* check format version number */
-	if (hdr.major != attr->major) {
-		ERR("pool version %d (library expects %d)", hdr.major,
+	if (hdr->major != attr->major) {
+		ERR("pool version %d (library expects %d)", hdr->major,
 				attr->major);
-		if (hdr.major < attr->major)
+		if (hdr->major < attr->major)
 			ERR(
 				"Please run the pmdk-convert utility to upgrade the pool.");
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	rep->part[partidx].rdonly = 0;
 
-	int retval = util_feature_check(&hdr, attr->features);
-	if (retval < 0)
-		return -1;
+	int retval = util_feature_check(hdr, attr->features);
+	if (retval < 0) {
+		ret = -1;
+		goto end;
+	}
 
 	if (retval == 0)
 		rep->part[partidx].rdonly = 1;
@@ -1843,44 +1857,49 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	 * we want to report it as incompatible feature, rather than
 	 * invalid checksum.
 	 */
-	if (!util_checksum(&hdr, sizeof(hdr), &hdr.checksum,
-			0, POOL_HDR_CSUM_END_OFF(&hdr))) {
+	if (!util_checksum(hdr, sizeof(*hdr), &hdr->checksum,
+			0, POOL_HDR_CSUM_END_OFF(hdr))) {
 		ERR("invalid checksum of pool header");
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
-	LOG(3, "valid header, signature \"%.8s\"", hdr.signature);
+	LOG(3, "valid header, signature \"%.8s\"", hdr->signature);
 
-	if (util_check_arch_flags(&hdr.arch_flags)) {
+	if (util_check_arch_flags(&hdr->arch_flags)) {
 		ERR("wrong architecture flags");
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	/* check pool set UUID */
-	if (memcmp(HDR(REP(set, 0), 0)->poolset_uuid, hdr.poolset_uuid,
+	if (memcmp(HDR(REP(set, 0), 0)->poolset_uuid, hdr->poolset_uuid,
 						POOL_HDR_UUID_LEN)) {
 		ERR("wrong pool set UUID");
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	/* check pool set linkage */
-	if (memcmp(HDRP(rep, partidx)->uuid, hdr.prev_part_uuid,
+	if (memcmp(HDRP(rep, partidx)->uuid, hdr->prev_part_uuid,
 						POOL_HDR_UUID_LEN) ||
-	    memcmp(HDRN(rep, partidx)->uuid, hdr.next_part_uuid,
+	    memcmp(HDRN(rep, partidx)->uuid, hdr->next_part_uuid,
 						POOL_HDR_UUID_LEN)) {
 		ERR("wrong part UUID");
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	/* check format version */
 	if (HDR(rep, 0)->major != hdrp->major) {
 		ERR("incompatible pool format");
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	/* check compatibility features */
@@ -1889,15 +1908,20 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	    HDR(rep, 0)->features.ro_compat != hdrp->features.ro_compat) {
 		ERR("incompatible feature flags");
 		errno = EINVAL;
-		return -1;
+		ret = -1;
+		goto end;
 	}
 
 	/* check poolset options */
 	if (util_poolset_check_header_options(set,
-			HDR(rep, 0)->features.incompat))
-		return -1;
+			HDR(rep, 0)->features.incompat)) {
+		ret = -1;
+		goto end;
+			}
+end:
+	Free(hdr);
 
-	return 0;
+	return ret;
 }
 
 /*

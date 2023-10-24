@@ -28,9 +28,6 @@
 4224 check_domain_in_region : src/nondebug/libpmem/auto_flush_linux.su:auto_flush_linux.c dynamic,bounded
 4224 check_domain_in_region : src/nondebug/libpmem2/auto_flush_linux.su:auto_flush_linux.c dynamic,bounded
 4224 check_domain_in_region : src/nondebug/common/auto_flush_linux.su:auto_flush_linux.c dynamic,bounded
-4176 util_header_check : src/nondebug/libpmempool/set.su:set.c static
-4176 util_header_check : src/nondebug/libpmemobj/set.su:set.c static
-4176 util_header_check : src/nondebug/common/set.su:set.c static
 4176 features_check : src/nondebug/libpmempool/feature.su:feature.c static
 4176 check_pool_hdr_uuids : src/nondebug/libpmempool/check_pool_hdr.su:check_pool_hdr.c static
 4176 check_pool_hdr : src/nondebug/libpmempool/check_pool_hdr.su:check_pool_hdr.c static
@@ -44,10 +41,6 @@
 4112 pool_set_type : src/nondebug/libpmempool/pool.su:pool.c static
 3840 memset_mov_avx512f_empty : src/nondebug/libpmem/memset_t_avx512f.su:memset_t_avx512f.c static
 3840 memset_mov_avx512f_empty : src/nondebug/libpmem2/memset_t_avx512f.su:memset_t_avx512f.c static
-2144 util_map_hint_unused : src/nondebug/libpmempool/mmap_posix.su:mmap_posix.c static
-2144 util_map_hint_unused : src/nondebug/libpmemobj/mmap_posix.su:mmap_posix.c static
-2144 util_map_hint_unused : src/nondebug/libpmem/mmap_posix.su:mmap_posix.c static
-2144 util_map_hint_unused : src/nondebug/common/mmap_posix.su:mmap_posix.c static
 2016 memmove_mov_avx_empty : src/nondebug/libpmem/memcpy_t_avx.su:memcpy_t_avx.c static
 2016 memmove_mov_avx_empty : src/nondebug/libpmem2/memcpy_t_avx.su:memcpy_t_avx.c static
 1184 heap_init : src/nondebug/libpmemobj/heap.su:heap.c static
@@ -230,6 +223,9 @@
 208 pmem2_vm_reservation_map_find : src/nondebug/libpmem2/vm_reservation.su:vm_reservation.c dynamic,bounded
 208 memblock_huge_init : src/nondebug/libpmemobj/memblock.su:memblock.c static
 208 list_insert : src/nondebug/libpmemobj/list.su:list.c static
+192 util_pool_open : src/nondebug/libpmempool/set.su:set.c static
+192 util_pool_open : src/nondebug/libpmemobj/set.su:set.c static
+192 util_pool_open : src/nondebug/common/set.su:set.c static
 192 util_map_part : src/nondebug/libpmempool/set.su:set.c dynamic,bounded
 192 util_map_part : src/nondebug/libpmemobj/set.su:set.c dynamic,bounded
 192 util_map_part : src/nondebug/common/set.su:set.c dynamic,bounded
@@ -283,9 +279,6 @@
 192 heap_get_bestfit_block : src/nondebug/libpmemobj/heap.su:heap.c static
 184 operation_init : src/nondebug/libpmemobj/memops.su:memops.c static
 176 vm_reservation_map_find_acquire : src/nondebug/libpmem2/vm_reservation.su:vm_reservation.c static
-176 util_pool_open : src/nondebug/libpmempool/set.su:set.c static
-176 util_pool_open : src/nondebug/libpmemobj/set.su:set.c static
-176 util_pool_open : src/nondebug/common/set.su:set.c static
 176 util_map_hdr : src/nondebug/libpmempool/set.su:set.c dynamic,bounded
 176 util_map_hdr : src/nondebug/libpmemobj/set.su:set.c dynamic,bounded
 176 util_map_hdr : src/nondebug/common/set.su:set.c dynamic,bounded
@@ -468,6 +461,10 @@
 96 util_pool_extend : src/nondebug/libpmempool/set.su:set.c static
 96 util_pool_extend : src/nondebug/libpmemobj/set.su:set.c static
 96 util_pool_extend : src/nondebug/common/set.su:set.c static
+96 util_map_hint_unused : src/nondebug/libpmempool/mmap_posix.su:mmap_posix.c static
+96 util_map_hint_unused : src/nondebug/libpmemobj/mmap_posix.su:mmap_posix.c static
+96 util_map_hint_unused : src/nondebug/libpmem/mmap_posix.su:mmap_posix.c static
+96 util_map_hint_unused : src/nondebug/common/mmap_posix.su:mmap_posix.c static
 96 ulog_free_next : src/nondebug/libpmemobj/ulog.su:ulog.c static
 96 tx_undo_entry_apply : src/nondebug/libpmemobj/tx.su:tx.c static
 96 tx_flush_range : src/nondebug/libpmemobj/tx.su:tx.c static

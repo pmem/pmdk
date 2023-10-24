@@ -182,9 +182,6 @@
 4288 ndctl_match_devdax : src/debug/libpmemobj/region_namespace_ndctl.su:region_namespace_ndctl.c dynamic,bounded
 4288 ndctl_match_devdax : src/debug/libpmem2/region_namespace_ndctl.su:region_namespace_ndctl.c dynamic,bounded
 4288 ndctl_match_devdax : src/debug/common/region_namespace_ndctl.su:region_namespace_ndctl.c dynamic,bounded
-4208 util_header_check : src/debug/libpmempool/set.su:set.c dynamic,bounded
-4208 util_header_check : src/debug/libpmemobj/set.su:set.c dynamic,bounded
-4208 util_header_check : src/debug/common/set.su:set.c dynamic,bounded
 4176 features_check : src/debug/libpmempool/feature.su:feature.c static
 4160 pool_hdr_default_fix : src/debug/libpmempool/check_pool_hdr.su:check_pool_hdr.c dynamic,bounded
 4160 pmem2_deep_flush_write : src/debug/libpmempool/deep_flush_linux.su:deep_flush_linux.c static
@@ -231,10 +228,6 @@
 2704 memset_movnt_movdir64b_clflush : src/debug/libpmem2/memset_nt_movdir64b.su:memset_nt_movdir64b.c dynamic,bounded
 2704 memset_movnt_movdir64b_clflushopt : src/debug/libpmem/memset_nt_movdir64b.su:memset_nt_movdir64b.c dynamic,bounded
 2704 memset_movnt_movdir64b_clflushopt : src/debug/libpmem2/memset_nt_movdir64b.su:memset_nt_movdir64b.c dynamic,bounded
-2144 util_map_hint_unused : src/debug/libpmempool/mmap_posix.su:mmap_posix.c dynamic,bounded
-2144 util_map_hint_unused : src/debug/libpmemobj/mmap_posix.su:mmap_posix.c dynamic,bounded
-2144 util_map_hint_unused : src/debug/libpmem/mmap_posix.su:mmap_posix.c dynamic,bounded
-2144 util_map_hint_unused : src/debug/common/mmap_posix.su:mmap_posix.c dynamic,bounded
 1056 heap_write_header : src/debug/libpmemobj/heap.su:heap.c static
 864 ulog_entry_buf_create : src/debug/libpmemobj/ulog.su:ulog.c dynamic
 864 memblock_run_init : src/debug/libpmemobj/memblock.su:memblock.c dynamic,bounded
@@ -769,6 +762,9 @@
 144 util_map : src/debug/libpmemobj/mmap.su:mmap.c dynamic,bounded
 144 util_map : src/debug/libpmem/mmap.su:mmap.c dynamic,bounded
 144 util_map : src/debug/common/mmap.su:mmap.c dynamic,bounded
+144 util_header_check : src/debug/libpmempool/set.su:set.c dynamic,bounded
+144 util_header_check : src/debug/libpmemobj/set.su:set.c dynamic,bounded
+144 util_header_check : src/debug/common/set.su:set.c dynamic,bounded
 144 ulog_entry_val_create : src/debug/libpmemobj/ulog.su:ulog.c static
 144 tx_flush_range : src/debug/libpmemobj/tx.su:tx.c static
 144 tx_alloc_common : src/debug/libpmemobj/tx.su:tx.c dynamic,bounded
@@ -886,6 +882,10 @@
 112 util_poolset_append_new_part : src/debug/libpmempool/set.su:set.c dynamic,bounded
 112 util_poolset_append_new_part : src/debug/libpmemobj/set.su:set.c dynamic,bounded
 112 util_poolset_append_new_part : src/debug/common/set.su:set.c dynamic,bounded
+112 util_map_hint_unused : src/debug/libpmempool/mmap_posix.su:mmap_posix.c dynamic,bounded
+112 util_map_hint_unused : src/debug/libpmemobj/mmap_posix.su:mmap_posix.c dynamic,bounded
+112 util_map_hint_unused : src/debug/libpmem/mmap_posix.su:mmap_posix.c dynamic,bounded
+112 util_map_hint_unused : src/debug/common/mmap_posix.su:mmap_posix.c dynamic,bounded
 112 util_file_zero : src/debug/libpmempool/file.su:file.c dynamic,bounded
 112 util_file_zero : src/debug/libpmemobj/file.su:file.c dynamic,bounded
 112 util_file_zero : src/debug/libpmem/file.su:file.c dynamic,bounded

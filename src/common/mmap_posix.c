@@ -11,6 +11,7 @@
 #include "mmap.h"
 #include "out.h"
 #include "os.h"
+#include "alloc.h"
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
 
@@ -31,6 +32,8 @@ static const char * const sscanf_os = "%p-%p";
  * Asking for aligned address like this will allow the DAX code to use large
  * mappings.  It is not an error if mmap() ignores the hint and chooses
  * different address.
+ *
+ * Return MAP_FAILED in case of an error.
  */
 char *
 util_map_hint_unused(void *minaddr, size_t len, size_t align)
@@ -44,10 +47,17 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 		return MAP_FAILED;
 	}
 
-	char line[PROCMAXLEN];	/* for fgets() */
+	char *line = NULL;	/* for fgets() */
 	char *lo = NULL;	/* beginning of current range in maps file */
 	char *hi = NULL;	/* end of current range in maps file */
 	char *raddr = minaddr;	/* ignore regions below 'minaddr' */
+
+	line = Malloc(PROCMAXLEN);
+	if (line == NULL) {
+		ERR("!Malloc");
+		errno = ENOMEM;
+		return MAP_FAILED;
+	}
 
 	if (raddr == NULL)
 		raddr += Pagesize;
@@ -93,6 +103,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 
 	fclose(fp);
 
+	Free(line);
 	LOG(3, "returning %p", raddr);
 	return raddr;
 }

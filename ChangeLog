@@ -2,6 +2,8 @@
 
 	This release:
 	- Significantly reduces the libpmem's stack usage.
+	- Use Malloc for big local data structure to avoid huge stack usage
+	
 
 Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
