@@ -4,6 +4,9 @@
 # src/Makefile.inc -- common Makefile rules for PMDK
 #
 
+# Note: Please do not set CFLAGS before this file is included unless you do not
+# want to use default CFLAGS.
+
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 
 include $(TOP)/src/common.inc
