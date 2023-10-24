@@ -2,6 +2,7 @@
 
 	This release:
 	- Significantly reduces the libpmem's stack usage.
+	- Make memmove_mov_* function non-inline to prevent huge stack consumption.
 
 Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
