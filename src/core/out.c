@@ -20,7 +20,6 @@
 #include "os_thread.h"
 #include "valgrind_internal.h"
 #include "util.h"
-#include "alloc.h"
 
 static const char *Log_prefix;
 static int Log_level;
@@ -162,18 +161,12 @@ out_init(const char *log_prefix, const char *log_level_var,
 				log_file[0] != '\0') {
 
 		/* reserve more than enough space for a PID + '\0' */
-		char *log_file_pid;
-		log_file_pid = Malloc(PATH_MAX);
-		if (log_file_pid == NULL) {
-			fprintf(stderr, "out_init !Malloc\n");
-			abort();
-		}
+		static char log_file_pid[PATH_MAX];
 		size_t len = strlen(log_file);
 		if (len > 0 && log_file[len - 1] == '-') {
 			if (util_snprintf(log_file_pid, PATH_MAX, "%s%d",
 					log_file, getpid()) < 0) {
 				ERR("snprintf: %d", errno);
-				Free(log_file_pid);
 				abort();
 			}
 			log_file = log_file_pid;
@@ -185,10 +178,8 @@ out_init(const char *log_prefix, const char *log_level_var,
 			fprintf(stderr, "Error (%s): %s=%s: %s\n",
 				log_prefix, log_file_var,
 				log_file, buff);
-			Free(log_file_pid);
 			abort();
 		}
-		Free(log_file_pid);
 	}
 #endif	/* DEBUG */
 
@@ -205,12 +196,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		setlinebuf(Out_fp);
 
 #ifdef DEBUG
-	char *namepath;
-	namepath = Malloc(PATH_MAX);
-	if (namepath == NULL) {
-		fprintf(stderr, "out_init !Malloc\n");
-		abort();
-	}
+	static char namepath[PATH_MAX];
 	LOG(1, "pid %d: program: %s", getpid(),
 		util_getexecname(namepath, PATH_MAX));
 #endif
