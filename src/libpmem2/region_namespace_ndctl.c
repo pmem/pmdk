@@ -37,7 +37,6 @@ ndctl_match_devdax(dev_t st_rdev, const char *devname)
 
 	path = Malloc(PATH_MAX * sizeof(char));
 	if (path == NULL) {
-		errno = ENOMEM;
 		ERR("!Malloc");
 		return PMEM2_E_ERRNO;
 
@@ -89,7 +88,6 @@ ndctl_match_fsdax(dev_t st_dev, const char *devname)
 
 	path = Malloc(PATH_MAX * sizeof(char));
 	if (path == NULL) {
-		errno = ENOMEM;
 		ERR("!Malloc");
 		return PMEM2_E_ERRNO;
 	}

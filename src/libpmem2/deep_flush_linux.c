@@ -37,7 +37,6 @@ pmem2_deep_flush_write(unsigned region_id)
 	deep_flush_path = Malloc(PATH_MAX * sizeof(char));
 	if (deep_flush_path == NULL) {
 		ERR("!Malloc");
-		errno = ENOMEM;
 		ret = PMEM2_E_ERRNO;
 		goto end;
 	}

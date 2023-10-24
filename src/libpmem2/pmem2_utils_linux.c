@@ -44,7 +44,6 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 
 	spath = Malloc(PATH_MAX * sizeof(char));
 	if (spath == NULL) {
-		errno = ENOMEM;
 		ERR("!Malloc");
 		return PMEM2_E_ERRNO;
 	}
@@ -65,7 +64,6 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 
 	npath = Malloc(PATH_MAX * sizeof(char));
 	if (npath == NULL) {
-		errno = ENOMEM;
 		ERR("!Malloc");
 		ret = PMEM2_E_ERRNO;
 		goto end;
@@ -88,10 +86,10 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 	*type = PMEM2_FTYPE_DEVDAX;
 
 end:
-	if (spath)
-		Free(spath);
 	if (npath)
 		Free(npath);
+	if (spath)
+		Free(spath);
 
 	return ret;
 }
