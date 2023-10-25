@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * auto_flush_linux.c -- Linux auto flush detection
@@ -16,6 +16,7 @@
 #include "os.h"
 #include "fs.h"
 #include "auto_flush.h"
+#include "alloc.h"
 
 #define BUS_DEVICE_PATH "/sys/bus/nd/devices"
 #define PERSISTENCE_DOMAIN "persistence_domain"
@@ -87,8 +88,15 @@ check_domain_in_region(const char *region_path)
 
 	struct fs *reg = NULL;
 	struct fs_entry *reg_entry;
-	char domain_path[PATH_MAX];
+	char *domain_path = NULL;
 	int cpu_cache = 0;
+
+	domain_path = Malloc(PATH_MAX * sizeof(char));
+	if (domain_path == NULL) {
+		ERR("!Malloc");
+		cpu_cache = -1;
+		goto end;
+	}
 
 	reg = fs_new(region_path);
 	if (reg == NULL) {
@@ -122,6 +130,8 @@ check_domain_in_region(const char *region_path)
 end:
 	if (reg)
 		fs_delete(reg);
+	if (domain_path)
+		Free(domain_path);
 	return cpu_cache;
 }
 
