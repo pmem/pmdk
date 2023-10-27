@@ -550,7 +550,7 @@ obj_vg_check_no_undef(struct pmemobjpool *pop)
 {
 	LOG(4, "pop %p", pop);
 
-	struct {
+	static struct {
 		void *start, *end;
 	} undefs[MAX_UNDEFS];
 	int num_undefs = 0;

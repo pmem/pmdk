@@ -78,7 +78,6 @@
 19024 memset_mov_avx512f_clflush : src/debug/libpmem2/memset_t_avx512f.su:memset_t_avx512f.c dynamic,bounded
 19024 memset_mov_avx512f_clflushopt : src/debug/libpmem/memset_t_avx512f.su:memset_t_avx512f.c dynamic,bounded
 19024 memset_mov_avx512f_clflushopt : src/debug/libpmem2/memset_t_avx512f.su:memset_t_avx512f.c dynamic,bounded
-16480 obj_vg_check_no_undef : src/debug/libpmemobj/obj.su:obj.c static
 13840 memmove_mov_avx_noflush : src/debug/libpmem/memcpy_t_avx.su:memcpy_t_avx.c dynamic,bounded
 13840 memmove_mov_avx_noflush : src/debug/libpmem2/memcpy_t_avx.su:memcpy_t_avx.c dynamic,bounded
 13840 memmove_mov_avx_empty : src/debug/libpmem/memcpy_t_avx.su:memcpy_t_avx.c dynamic,bounded
@@ -252,6 +251,7 @@
 496 util_init : src/debug/libpmemobj/util.su:util.c static
 496 util_init : src/debug/libpmem2/util.su:util.c static
 496 util_init : src/debug/core/util.su:util.c static
+480 obj_vg_check_no_undef : src/debug/libpmemobj/obj.su:obj.c static
 448 heap_vg_open : src/debug/libpmemobj/heap.su:heap.c dynamic,bounded
 416 run_vg_init : src/debug/libpmemobj/memblock.su:memblock.c dynamic,bounded
 416 pmemobj_tx_begin : src/debug/libpmemobj/tx.su:tx.c dynamic,bounded
