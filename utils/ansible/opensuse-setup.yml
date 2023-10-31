@@ -3,7 +3,8 @@
 
 # This playbook is designed to install all required packages and configure
 # OpenSUSE to execute tests.
-# The playbook description and how to use it are available in the README.md file.
+# The playbook description and how to use it are available
+# in the README.md file.
 
 - hosts: "{{ host }}"
 # - hosts: localhost
