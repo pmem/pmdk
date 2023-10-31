@@ -5,9 +5,9 @@ on:
   workflow_call:
 
 env:
-  # Set path to the pmreorder tool. At the moment pmreorder is the only
-  # Python-based tool released in the PMDK.
-  SCAN_DIR: src/tools/pmreorder
+  # Python-based tools.
+  PMREORDER: src/tools/pmreorder/*.py
+  CALL_STACKS_ANALYSIS: utils/call_stacks_analysis/*.py
 
 jobs:
   bandit:
@@ -21,4 +21,4 @@ jobs:
         run: sudo apt-get -y install bandit
 
       - name: Bandit scan
-        run: bandit --version && bandit -r "$SCAN_DIR"
+        run: bandit --version && bandit $PMREORDER $CALL_STACKS_ANALYSIS
