@@ -3,8 +3,7 @@
 # Copyright 2023, Intel Corporation
 #
 #
-# utils/stack-usage-stat.sh -- combine stack usage into a file
-# The script shall be run from the main PMDK folder.
+# Combine stack usage into a file. The script shall be run from the main PMDK folder.
 #
 
 if [ ! -d "src/stats" ]; then
