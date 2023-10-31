@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2022, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * usc_ndctl.c -- pmem2 usc function for platforms using ndctl
  */
 #include <ndctl/libndctl.h>
-#include <daxctl/libdaxctl.h>
 #include <sys/types.h>
 #include <sys/sysmacros.h>
 #include <fcntl.h>
