@@ -5,7 +5,6 @@
  * usc_ndctl.c -- pmem2 usc function for platforms using ndctl
  */
 #include <ndctl/libndctl.h>
-#include <daxctl/libdaxctl.h>
 #include <sys/types.h>
 #include <sys/sysmacros.h>
 #include <fcntl.h>
