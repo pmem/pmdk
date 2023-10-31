@@ -1,0 +1,19 @@
+{
+    "__comment": "only consider stack usage for functions listed in the src/(non)debug/<library_name>/ directory",
+    "filter": "library_name",
+    "api": [
+        "api_call_1"
+    ],
+    "dead_end": [
+        "not_called_function_1"
+    ],
+    "extra_calls": {
+        "caller_1": [
+            "callee_1",
+            "callee_2"
+        ]
+    },
+    "white_list": [
+       "irrelevant_function_1"
+    ]
+}
