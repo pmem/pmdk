@@ -171,6 +171,8 @@ def validate(stack_usage: StackUsage, calls: Calls, config: Config, skip_thresho
                         continue
                 if k in config['api']:
                         continue
+                if k in config['dead_end']:
+                        continue
                 if k in config['white_list']:
                         continue
                 if v['size'] <= skip_threshold:

@@ -21,6 +21,8 @@ If succesfull, it produces:
 - `call_stacks_all.json` with call stacks ordered descending by call stack consumption.
 - `stack_usage.json` with the data extracted from the provided `src/stats/stack-usage-nondebug.txt` but limited to a single library according to the `config.json` filter value.
 
+**Note**:  If too many functions ought to be added to a white list it might be useful to ignore functions having a certain stack usage or lower. Please see `-t` option to set a desired threshold.
+
 4. (Optional) Break down a call stack's stack consumption per function. Use the `stack_usage.json` as produced in the previous step and extract a single call stack and put it into a file (name `call_stack.json` below). Please see the examples directory for an example.
 
 ```sh
