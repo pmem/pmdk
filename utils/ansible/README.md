@@ -22,6 +22,13 @@ sudo zypper install ansible
 # or
 sudo apt install ansible-core
 ```
+
+Additionally, install the ansible.posix module to be able to run
+the configure-pmem.yml and rockylinux-setup.yml scripts
+```sh
+sudo ansible-galaxy collection install ansible.posix
+```
+
 # Provisioning basics
 ## Provisioning the target platform
 Use the command below to setup the PMDK software development environment:
@@ -84,7 +91,7 @@ export ROOT_PASSWORD= # a password of root on the target
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME= # host's name that will be visible on GitHub
 export LABELS= # rhel or opensuse
-export VARS_GHA= # e.g. proxy settings: http_proxy=http://proxy-dmz.XXX.com:911,https_proxy=http://proxy-dmz.XXX.com:912
+export VARS_GHA= # e.g. proxy settings: http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars
   "host=all ansible_user=root ansible_password=$ROOT_PASSWORD testUser=pmdkuser \
   runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
@@ -135,6 +142,7 @@ GHA runner without a control node.
 # as root:
 dnf install git-core -y
 dnf install ansible-core -y
+ansible-galaxy collection install ansible.posix
 git clone https://github.com/pmem/pmdk.git
 cd pmdk/utils/ansible
 ```
@@ -158,7 +166,7 @@ ansible-playbook configure-pmem.yml --extra-vars "testUser=pmdkuser"
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME=`hostname`
 export LABELS= rhel
-export VARS_GHA=http_proxy=http://proxy-dmz.XXX.com:911,https_proxy=http://proxy-dmz.XXX.com:912
+export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 ansible-playbook configure-self-hosted-runner.yml -extra-vars \
 "testUser=pmdkuser runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 cd
@@ -193,7 +201,7 @@ ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME=`hostname`
 export LABELS= opensuse
-export VARS_GHA=http_proxy=http://proxy-dmz.XXX.com:911,https_proxy=http://proxy-dmz.XXX.com:912
+export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 ansible-playbook configure-self-hosted-runner.yml -extra-vars \
 "testUser=pmdkuser runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 cd
