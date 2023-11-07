@@ -3,12 +3,16 @@
 # Copyright 2023, Intel Corporation
 #
 #
-# Combine stack usage into a file. The script shall be run from the main PMDK folder.
+# Combine stack usage into a file.
 #
 
+TOP=$(realpath $(dirname $0)/../..)
+
 for build in debug nondebug; do
-	grep -v ^$ src/$build/core/*.su src/$build/common/*.su \
-			src/$build/libpmem/*.su src/$build/libpmemobj/*.su | \
+	SU_FILES="$TOP/src/$build/core/*.su $TOP/src/$build/common/*.su \
+		$TOP/src/$build/libpmem/*.su $TOP/src/$build/libpmemobj/*.su"
+
+	grep -v ^$ $SU_FILES | \
 		gawk -F "[:\t]" '{print $6 " " $5 " : " $1 ":" $2 " " $7}' | \
 		sort -n -r > $(dirname "$0")/stack_usage_$build.txt
 done

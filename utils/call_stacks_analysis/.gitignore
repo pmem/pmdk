@@ -1,3 +1,8 @@
 *.txt
 !stack_usage_nondebug.txt
 *.err
+extra_calls.json
+all_callees.json
+calls.json
+not_called.json
+stack_usage.json
