@@ -1,1 +1,2 @@
 *.txt
+!stack-usage-nondebug.txt
