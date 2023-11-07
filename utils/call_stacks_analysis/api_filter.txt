@@ -1,0 +1,26 @@
+# Sample api_filter file containing libpmemobj API calls used in DAOS
+
+pmemobj_alloc
+pmemobj_cancel
+pmemobj_close
+pmemobj_create
+pmemobj_ctl_get
+pmemobj_ctl_set
+pmemobj_defer_free
+pmemobj_direct
+pmemobj_flush
+pmemobj_free
+pmemobj_memcpy_persist
+pmemobj_open
+pmemobj_reserve
+pmemobj_root
+pmemobj_tx_abort
+pmemobj_tx_add_range
+pmemobj_tx_begin
+pmemobj_tx_commit
+pmemobj_tx_end
+pmemobj_tx_free
+pmemobj_tx_publish
+pmemobj_tx_stage
+pmemobj_tx_xadd_range
+pmemobj_tx_xalloc
