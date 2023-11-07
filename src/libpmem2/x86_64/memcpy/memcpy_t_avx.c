@@ -227,7 +227,7 @@ memmove_mov_avx_bw(char *dest, const char *src, size_t len,
 		memmove_small_avx(dest - len, src - len, len, flush);
 }
 
-static force_inline void
+static void
 memmove_mov_avx(char *dest, const char *src, size_t len,
 		flush_fn flush, flush64b_fn flush64b)
 {
