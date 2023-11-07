@@ -6,12 +6,9 @@
 # Combine stack usage into a file. The script shall be run from the main PMDK folder.
 #
 
-if [ ! -d "src/stats" ]; then
-	mkdir src/stats
-fi
-
 for build in debug nondebug; do
-	grep -v ^$ src/$build/*/*.su | \
+	grep -v ^$ src/$build/core/*.su src/$build/common/*.su \
+			src/$build/libpmem/*.su src/$build/libpmemobj/*.su | \
 		gawk -F "[:\t]" '{print $6 " " $5 " : " $1 ":" $2 " " $7}' | \
-		sort -n -r > src/stats/stack-usage-$build.txt
+		sort -n -r > $(dirname "$0")/stack_usage_$build.txt
 done
