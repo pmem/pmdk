@@ -2,24 +2,25 @@
 
 > XXX This document requires more details.
 
-1. `stack_usage_stats.sh` generate `src/stats/stack-usage-$build.txt` files.
-2. Collect [cflow](https://savannah.gnu.org/git/?group=cflow) data.
+1. Generate stack usage file using `stack_usage_stats.sh`.
+2. Generate call stack graph using `cflow.sh`.
 3. Generate all possible call stacks given the data provided.
 
 ```sh
 # -u, --stack-usage-stat-file
 # -f, --cflow-output-file
 # -i, --config-file
-./utils/call_stacks_analysis/generate_call_stacks.py \
-        -u src/stats/stack-usage-nondebug.txt \
-        -f src/libpmem/cflow.txt \
-        -i utils/call_stacks_analysis/libpmem/config.json
+./generate_call_stacks.py \
+        -u stack-usage-nondebug.txt \
+        -f cflow.txt \
+        -e extra_calls.json \
+        -w white_list.json
 ```
 
 If succesfull, it produces:
 
 - `call_stacks_all.json` with call stacks ordered descending by call stack consumption.
-- `stack_usage.json` with the data extracted from the provided `src/stats/stack-usage-nondebug.txt` but limited to a single library according to the `config.json` filter value.
+- `stack_usage.json` with the data extracted from the provided `src/stats/stack-usage-nondebug.txt`.
 
 **Note**:  If too many functions ought to be added to a white list it might be useful to ignore functions having a certain stack usage or lower. Please see `-t` option to set a desired threshold.
 

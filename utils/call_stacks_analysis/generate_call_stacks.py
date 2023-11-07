@@ -18,18 +18,17 @@ from typing import List, Dict, Any
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('-u', '--stack-usage-stat-file', required=True)
 PARSER.add_argument('-f', '--cflow-output-file', required=True)
-PARSER.add_argument('-i', '--config-file', required=True)
+PARSER.add_argument('-e', '--extra-calls', required=True)
+PARSER.add_argument('-w', '--white-list') # XXX
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
 PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
         help='Ignore non-reachable function if its stack usage <= threshold')
 
-# class Config(TypedDict): # for Python >= 3.8
-#     filter: str
-#     api: list[str]
-#     dead_end: list[str]
-#     extra_calls: dict[str, list[str]]
-#     white_list: list[str]
-Config = Dict[str, Any] # for Python < 3.8
+# API: TypeAlias = List[str] # for Python >= 3.10
+API = List[str] # for Python < 3.8
+
+# WhiteList: TypeAlias = List[str] # for Python >= 3.10
+WhiteList = List[str] # for Python < 3.8
 
 # class StackUsageRecord(TypedDict): # for Python >= 3.8
 #     size: int
@@ -59,19 +58,18 @@ def dump(var, name: str, force: bool = False) -> None:
         with open(f'{name}.json', 'w') as outfile:
                 json.dump(var, outfile, indent = 4)
 
-def load_config(config_file: str) -> Config:
-        with open(config_file, 'r') as file:
+def load_from_json(file_name: str) -> Any:
+        with open(file_name, 'r') as file:
                 return json.load(file)
 
-def parse_stack_usage(stack_usage_stat_file: str, filter: str) -> StackUsage:
+def parse_stack_usage(stack_usage_stat_file: str) -> StackUsage:
         funcs = {}
         with open(stack_usage_stat_file, 'r') as file:
                 for line in file:
                         # 8432 out_common : src/nondebug/libpmem/out.su:out.c dynamic,bounded
                         found = re.search('([0-9]+) ([a-zA-Z0-9_]+)(.[a-z0-9.]+)* : ([a-z0-9.:/_-]+) ([a-z,]+)', line)
                         if found:
-                                if filter in found.group(4):
-                                        funcs[found.group(2)] = {'size': int(found.group(1)), 'type': found.group(5)}
+                                funcs[found.group(2)] = {'size': int(found.group(1)), 'type': found.group(5)}
                         else:
                                 print(f'An unexpected line format: {line}')
                                 exit(1)
@@ -121,15 +119,15 @@ def dict_extend(dict_, key, values):
                 dict_[key].extend(values)
         return dict_
 
-def include_extra_calls(calls: Calls, config: Config) -> Calls:
-        for k, v in config['extra_calls'].items():
+def include_extra_calls(calls: Calls, extra_calls: Calls) -> Calls:
+        for k, v in extra_calls.items():
                 if k not in calls.keys():
                         calls[k] = v
                 else:
                         calls[k].extend(v)
         return calls
 
-def find_api_callers(func: str, calls: Calls, config: Config):
+def find_api_callers(func: str, calls: Calls, api: API):
         callers = [func]
         visited = [func] # loop breaker
         apis = []
@@ -143,7 +141,7 @@ def find_api_callers(func: str, calls: Calls, config: Config):
                                 # it is part of the API
                                 if k in visited:
                                         continue
-                                if k in config['api'] or k in config['dead_end']:
+                                if k in api:
                                         apis.append(k)
                                 else:
                                         callers_new.append(k)
@@ -157,7 +155,7 @@ def find_api_callers(func: str, calls: Calls, config: Config):
         # assert(len(apis) > 0)
         return apis
 
-def validate(stack_usage: StackUsage, calls: Calls, config: Config, skip_threshold: int) -> None:
+def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteList, skip_threshold: int) -> None:
         all_callees = []
         for _, v in calls.items():
                 all_callees.extend(v)
@@ -169,11 +167,9 @@ def validate(stack_usage: StackUsage, calls: Calls, config: Config, skip_thresho
         for k, v in stack_usage.items():
                 if k in all_callees:
                         continue
-                if k in config['api']:
+                if k in api:
                         continue
-                if k in config['dead_end']:
-                        continue
-                if k in config['white_list']:
+                if k in white_list:
                         continue
                 if v['size'] <= skip_threshold:
                         continue
@@ -186,15 +182,13 @@ def validate(stack_usage: StackUsage, calls: Calls, config: Config, skip_thresho
         # all known functions are expected to be reachable from the API
         no_api_connection = {}
         for k, v in stack_usage.items():
-                if k in config['api']:
+                if k in api:
                         continue
-                if k in config['dead_end']:
-                        continue
-                if k in config['white_list']:
+                if k in white_list:
                         continue
                 if v['size'] <= skip_threshold:
                         continue
-                callers = find_api_callers(k, calls, config)
+                callers = find_api_callers(k, calls, api)
                 if len(callers) == 0:
                         no_api_connection[k] = v['size']
         dump(no_api_connection, 'no_api_connection')
@@ -212,7 +206,7 @@ def prepare_rcalls(calls: Calls) -> Calls:
         dump(rcalls, 'rcalls')
         return rcalls
 
-def generate_call_stacks(func: str, stack_usage: StackUsage, calls: Calls, rcalls: RCalls, config: Config) -> List[CallStack]:
+def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api: API) -> List[CallStack]:
         call_stacks = [
                 {
                         'stack': [func],
@@ -226,7 +220,7 @@ def generate_call_stacks(func: str, stack_usage: StackUsage, calls: Calls, rcall
                 call_stacks_new_end = []
                 for call_stack in call_stacks:
                         callee = call_stack['stack'][0]
-                        if callee in config['api']:
+                        if callee in api:
                                 call_stacks_new_end.append(call_stack)
                                 continue
                         if callee not in rcalls.keys():
@@ -253,18 +247,18 @@ def generate_call_stacks(func: str, stack_usage: StackUsage, calls: Calls, rcall
 def call_stack_key(e):
         return e['size']
 
-def generate_all_call_stacks(stack_usage: StackUsage, calls: Calls, rcalls: RCalls, config: Config, debug: bool = False) -> List[CallStack]:
+def generate_all_call_stacks(stack_usage: StackUsage, calls: Calls, rcalls: RCalls, api: API, white_list: WhiteList, debug: bool = False) -> List[CallStack]:
         call_stacks = []
         # loop over called functions
         for func in rcalls.keys():
-                if func in config['white_list']:
+                if func in white_list:
                         continue
                 # if a function calls something else, call stack generation will start from its callees
                 if func in calls.keys():
                         continue
                 if debug:
                         print(f'Generating call stacks ending at - {func}')
-                call_stacks.extend(generate_call_stacks(func, stack_usage, calls, rcalls, config))
+                call_stacks.extend(generate_call_stacks(func, stack_usage, rcalls, api))
         call_stacks.sort(reverse=True, key=call_stack_key)
         return call_stacks
 
@@ -273,26 +267,29 @@ def main():
         global DUMP
         DUMP = args.dump # pass the argument value to a global variable
 
-        config = load_config(args.config_file)
+        extra_calls = load_from_json(args.extra_calls)
         print('Load config - done')
 
-        stack_usage = parse_stack_usage(args.stack_usage_stat_file, config['filter'])
+        api = []
+        white_list = []
+
+        stack_usage = parse_stack_usage(args.stack_usage_stat_file)
         # dumping stack_usage.json to allow further processing
         dump(stack_usage, 'stack_usage', True)
         print('Stack usage - done')
 
         calls = parse_cflow_output(args.cflow_output_file)
-        calls = include_extra_calls(calls, config)
+        calls = include_extra_calls(calls, extra_calls)
         dump(calls, 'calls')
         print('Function calls - done')
 
-        validate(stack_usage, calls, config, args.skip_threshold)
+        validate(stack_usage, calls, api, white_list, args.skip_threshold)
         print('Validation - done')
 
         rcalls = prepare_rcalls(calls)
         print('Reverse calls - done')
 
-        call_stacks = generate_all_call_stacks(stack_usage, calls, rcalls, config)
+        call_stacks = generate_all_call_stacks(stack_usage, calls, rcalls, api, white_list)
         dump(call_stacks, 'call_stacks_all', True)
         print('Number of found call stacks: {}'.format(len(call_stacks)))
         print('Call stack generation - done')
