@@ -1,0 +1,27 @@
+# Sample api_filter file
+# containing used obj API calls  in DAOS.
+
+pmemobj_ctl_set
+pmemobj_create
+pmemobj_close
+pmemobj_open
+pmemobj_root
+pmemobj_direct
+pmemobj_ctl_get
+pmemobj_tx_stage
+pmemobj_tx_free
+pmemobj_tx_xalloc
+pmemobj_tx_add_range
+pmemobj_tx_xadd_range
+pmemobj_tx_abort
+pmemobj_tx_end
+pmemobj_tx_begin
+pmemobj_tx_commit
+pmemobj_defer_free
+pmemobj_reserve
+pmemobj_cancel
+pmemobj_tx_publish
+pmemobj_memcpy_persist
+pmemobj_alloc
+pmemobj_free
+pmemobj_flush
