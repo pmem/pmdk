@@ -21,6 +21,7 @@ PARSER.add_argument('-f', '--cflow-output-file', required=True)
 PARSER.add_argument('-e', '--extra-calls', required=True)
 PARSER.add_argument('-a', '--api-file', required=True)
 PARSER.add_argument('-w', '--white-list') # XXX
+PARSER.add_argument('-i', '--api-filter-file')
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
 PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
         help='Ignore non-reachable function if its stack usage <= threshold')
@@ -30,6 +31,9 @@ API = List[str] # for Python < 3.8
 
 # WhiteList: TypeAlias = List[str] # for Python >= 3.10
 WhiteList = List[str] # for Python < 3.8
+
+# APIFilter: TypeAlias = List[str] # for Python >= 3.10
+APIFilter = List[str] # for Python < 3.8
 
 # class StackUsageRecord(TypedDict): # for Python >= 3.8
 #     size: int
@@ -64,7 +68,7 @@ def load_from_json(file_name: str) -> Any:
                 return json.load(file)
 
 def txt_filter(line: str) -> bool:
-        if len(line) == 0: # drop empty lines
+        if line == '\n': # drop empty lines
                 return False
         if line[0] == '#': # drop comment lines
                 return False
@@ -277,6 +281,17 @@ def generate_all_call_stacks(stack_usage: StackUsage, calls: Calls, rcalls: RCal
         call_stacks.sort(reverse=True, key=call_stack_key)
         return call_stacks
 
+def filter_call_stacks(call_stacks: List[CallStack], api_filter: APIFilter) -> List[CallStack]:
+        api_filter = load_from_txt(api_filter)
+        dump(api_filter, 'api_filter')
+        print('Load APIFilter - done')
+
+        call_stacks_filtered = []
+        for call_stack in call_stacks:
+                if call_stack['stack'][0] in api_filter:
+                        call_stacks_filtered.append(call_stack)
+        return call_stacks_filtered
+
 def main():
         args = PARSER.parse_args()
         global DUMP
@@ -311,6 +326,12 @@ def main():
         dump(call_stacks, 'call_stacks_all', True)
         print('Number of found call stacks: {}'.format(len(call_stacks)))
         print('Call stack generation - done')
+
+        if args.api_filter is not None:
+                call_stacks_filtered = filter_call_stacks(call_stacks, args.api_filter)
+                dump(call_stacks_filtered, 'call_stacks_filtered', True)
+                print('Number of found call stacks (filtered): {}'.format(len(call_stacks_filtered)))
+                print('Call stacks filtering - done')
 
 if __name__ == '__main__':
         main()
