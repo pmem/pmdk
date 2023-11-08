@@ -19,6 +19,7 @@ PARSER = argparse.ArgumentParser()
 PARSER.add_argument('-u', '--stack-usage-file', required=True)
 PARSER.add_argument('-f', '--cflow-output-file', required=True)
 PARSER.add_argument('-e', '--extra-calls', required=True)
+PARSER.add_argument('-a', '--api-file', required=True)
 PARSER.add_argument('-w', '--white-list') # XXX
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
 PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
@@ -62,9 +63,23 @@ def load_from_json(file_name: str) -> Any:
         with open(file_name, 'r') as file:
                 return json.load(file)
 
-def parse_stack_usage(stack_usage_stat_file: str) -> StackUsage:
+def txt_filter(line: str) -> bool:
+        if len(line) == 0: # drop empty lines
+                return False
+        if line[0] == '#': # drop comment lines
+                return False
+        return True
+
+def load_from_txt(file_name: str) -> List[str]:
+        with open(file_name, 'r') as file:
+                ret = file.readlines()
+        ret = list(filter(txt_filter, ret))
+        # remove end-line characters
+        return [line[:-1] for line in ret]
+
+def parse_stack_usage(stack_usage_file: str) -> StackUsage:
         funcs = {}
-        with open(stack_usage_stat_file, 'r') as file:
+        with open(stack_usage_file, 'r') as file:
                 for line in file:
                         # 8432 out_common : src/nondebug/libpmem/out.su:out.c dynamic,bounded
                         found = re.search('([0-9]+) ([a-zA-Z0-9_]+)(.[a-z0-9.]+)* : ([a-z0-9.:/_-]+) ([a-z,]+)', line)
@@ -268,12 +283,15 @@ def main():
         DUMP = args.dump # pass the argument value to a global variable
 
         extra_calls = load_from_json(args.extra_calls)
-        print('Load config - done')
+        print('Load extra calls - done')
 
-        api = []
+        api = load_from_txt(args.api_file)
+        dump(api, 'api')
+        print('Load API - done')
+
         white_list = []
 
-        stack_usage = parse_stack_usage(args.stack_usage_stat_file)
+        stack_usage = parse_stack_usage(args.stack_usage_file)
         # dumping stack_usage.json to allow further processing
         dump(stack_usage, 'stack_usage', True)
         print('Stack usage - done')

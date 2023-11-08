@@ -1,3 +1,4 @@
-*.txt
 *.err
+*.json
+*.txt
 !stack_usage.txt
