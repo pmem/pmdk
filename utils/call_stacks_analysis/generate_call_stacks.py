@@ -20,7 +20,7 @@ PARSER.add_argument('-u', '--stack-usage-file', default='stack_usage.txt')
 PARSER.add_argument('-f', '--cflow-output-file', default='cflow.txt')
 PARSER.add_argument('-e', '--extra-calls', default='extra_calls.json')
 PARSER.add_argument('-a', '--api-file', default='api.txt')
-PARSER.add_argument('-w', '--white-list') # XXX
+PARSER.add_argument('-w', '--white-list', default='white_list.json')
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
 PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
         help='Ignore non-reachable function if its stack usage <= threshold')
@@ -289,7 +289,10 @@ def main():
         dump(api, 'api')
         print('Load API - done')
 
-        white_list = []
+        if args.white_list is not None:
+                white_list = load_from_json(args.white_list)
+        else:
+                white_list = None
 
         stack_usage = parse_stack_usage(args.stack_usage_file)
         # dumping stack_usage.json to allow further processing
@@ -301,8 +304,11 @@ def main():
         dump(calls, 'calls')
         print('Function calls - done')
 
-        validate(stack_usage, calls, api, white_list, args.skip_threshold)
-        print('Validation - done')
+        if white_list is not None:
+                validate(stack_usage, calls, api, white_list, args.skip_threshold)
+                print('Validation - done')
+        else:
+                print('Validation - skip - no white list provided')
 
         rcalls = prepare_rcalls(calls)
         print('Reverse calls - done')
