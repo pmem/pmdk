@@ -16,7 +16,7 @@ from typing import List, Dict, Any
 
 
 PARSER = argparse.ArgumentParser()
-PARSER.add_argument('-u', '--stack-usage-stat-file', required=True)
+PARSER.add_argument('-u', '--stack-usage-file', required=True)
 PARSER.add_argument('-f', '--cflow-output-file', required=True)
 PARSER.add_argument('-i', '--config-file', required=True)
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
