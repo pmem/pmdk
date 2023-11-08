@@ -1,2 +1,2 @@
 *.txt
-!stack_usage_nondebug.txt
+!stack_usage.txt
