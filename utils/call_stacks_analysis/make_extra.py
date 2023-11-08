@@ -162,6 +162,10 @@ def pmem_function_pointers(calls: Calls) -> Calls:
                             memsetfuncs['nt']['empty'] + \
                             memsetfuncs['t']['empty']
 
+        is_pmem_all = ['is_pmem_never', 'is_pmem_always', 'is_pmem_detect']
+
+        calls = dict_extend(calls, 'pmem_is_pmem', is_pmem_all)
+
         return calls
 
 def pmemobj_function_pointers(calls: Calls) -> Calls:
@@ -175,7 +179,19 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
 
         calls = dict_extend(calls, 'bucket_insert_block', insert_all)
 
+        calls = dict_extend(calls, 'bucket_remove_block', get_rm_exact_all)
+
+        calls = dict_extend(calls, 'bucket_alloc_block', get_rm_bestfit_all)
+
+        calls = dict_extend(calls, 'bucket_attach_run', rm_all_all)
+        calls = dict_extend(calls, 'bucket_detach_run', rm_all_all)
+
         calls = dict_extend(calls, 'bucket_fini', destroy_all)
+
+        compare_all = ['ravl_interval_compare']
+
+        calls = dict_extend(calls, 'ravl_emplace', compare_all)
+        calls = dict_extend(calls, 'ravl_find', compare_all)
 
         # memory_block_ops
         block_size_all = ['huge_block_size', 'run_block_size']
@@ -200,8 +216,50 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
         get_bitmap_all = ['run_get_bitmap']
         fill_pct_all = ['huge_fill_pct', 'run_fill_pct']
 
+        calls = dict_extend(calls, 'memblock_header_none_get_size', block_size_all)
+        calls = dict_extend(calls, 'block_get_real_size', block_size_all)
+        calls = dict_extend(calls, 'memblock_from_offset_opt', block_size_all)
+
         calls = dict_extend(calls, 'heap_free_chunk_reuse', prep_hdr_all)
         calls = dict_extend(calls, 'palloc_heap_action_exec', prep_hdr_all)
+
+        calls = dict_extend(calls, 'bucket_attach_run', get_lock_all)
+        calls = dict_extend(calls, 'heap_run_into_free_chunk', get_lock_all)
+        calls = dict_extend(calls, 'palloc_reservation_create', get_lock_all)
+        calls = dict_extend(calls, 'palloc_defer_free_create', get_lock_all)
+        calls = dict_extend(calls, 'palloc_defrag', get_lock_all)
+        calls = dict_extend(calls, 'recycler_element_new', get_lock_all)
+
+        calls = dict_extend(calls, 'container_ravl_insert_block', get_user_data_all)
+        calls = dict_extend(calls, 'block_invalidate', get_user_data_all)
+        calls = dict_extend(calls, 'alloc_prep_block', get_user_data_all)
+        calls = dict_extend(calls, 'palloc_heap_action_on_cancel', get_user_data_all)
+        calls = dict_extend(calls, 'palloc_heap_action_on_process', get_user_data_all)
+        calls = dict_extend(calls, 'palloc_first', get_user_data_all)
+        calls = dict_extend(calls, 'palloc_next', get_user_data_all)
+        calls = dict_extend(calls, 'palloc_vg_register_alloc', get_user_data_all)
+
+        calls = dict_extend(calls, 'bucket_insert_block', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_legacy_get_size', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_compact_get_size', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_legacy_get_extra', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_compact_get_extra', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_legacy_get_flags', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_compact_get_flags', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_legacy_write', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_compact_write', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_legacy_invalidate', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_compact_invalidate', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_legacy_reinit', get_real_data_all)
+        calls = dict_extend(calls, 'memblock_header_compact_reinit', get_real_data_all)
+        calls = dict_extend(calls, 'block_get_user_data', get_real_data_all)
+
+        calls = dict_extend(calls, 'block_invalidate', get_user_size_all)
+        calls = dict_extend(calls, 'alloc_prep_block', get_user_size_all)
+        calls = dict_extend(calls, 'palloc_operation', get_user_size_all)
+        calls = dict_extend(calls, 'palloc_defrag', get_user_size_all)
+        calls = dict_extend(calls, 'palloc_usable_size', get_user_size_all)
+        calls = dict_extend(calls, 'palloc_vg_register_alloc', get_user_size_all)
 
         calls = dict_extend(calls, 'alloc_prep_block', write_header_all)
 
@@ -217,7 +275,11 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
 
         calls = dict_extend(calls, 'heap_zone_foreach_object', iterate_used_all)
 
+        calls = dict_extend(calls, 'heap_reclaim_zone_garbage', reinit_chunk_all)
+
         calls = dict_extend(calls, 'recycler_element_new', calc_free_all)
+
+        calls = dict_extend(calls, 'palloc_defrag', fill_pct_all)
 
         # memblock_header_ops
         get_size_all = ['memblock_header_legacy_get_size', 'memblock_header_compact_get_size', 'memblock_header_none_get_size']
@@ -227,6 +289,11 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
         invalidate_all = ['memblock_header_legacy_invalidate', 'memblock_header_compact_invalidate', 'memblock_header_none_invalidate']
         reinit_all = ['memblock_header_legacy_reinit', 'memblock_header_compact_reinit', 'memblock_header_none_reinit']
 
+        calls = dict_extend(calls, 'block_get_real_size', get_size_all)
+        calls = dict_extend(calls, 'memblock_from_offset_opt', get_size_all)
+
+        calls = dict_extend(calls, 'block_get_extra', get_extra_all)
+        calls = dict_extend(calls, 'block_get_flags', get_flags_all)
         calls = dict_extend(calls, 'block_write_header', write_all)
         calls = dict_extend(calls, 'block_invalidate', invalidate_all)
         calls = dict_extend(calls, 'block_reinit_header', reinit_all)
@@ -236,6 +303,8 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
         on_cancel_all = ['palloc_heap_action_on_cancel', 'palloc_mem_action_noop']
         on_process_all = ['palloc_heap_action_on_process', 'palloc_mem_action_noop']
         on_unlock_all = ['palloc_heap_action_on_unlock', 'palloc_mem_action_noop']
+
+        calls = dict_extend(calls, 'palloc_exec_actions', exec_all)
 
         calls = dict_extend(calls, 'palloc_cancel', on_cancel_all)
 
@@ -303,12 +372,25 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
 
         return calls
 
+def get_callees(calls):
+        callees = []
+        for _, v in calls.items():
+                callees.extend(v)
+        return list(set(callees))
+
 def main():
         extra_calls = inlines({})
         extra_calls = pmem_function_pointers(extra_calls)
         extra_calls = pmemobj_function_pointers(extra_calls)
         with open("extra_calls.json", "w") as outfile:
                 json.dump(extra_calls, outfile, indent = 4)
+
+        # All functions accessed via function pointers have to be provided
+        # on top of regular API calls for cflow to process their call stacks.
+        extra_entry_points = get_callees(extra_calls)
+        extra_entry_points.sort()
+        with open("extra_entry_points.txt", "w") as outfile:
+                outfile.write("\n".join(extra_entry_points))
 
 if __name__ == '__main__':
         main()
