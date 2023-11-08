@@ -12,110 +12,6 @@ from typing import Dict, List
 # Calls: TypeAlias = dict[str, list[str]] # for Python >= 3.10
 Calls = Dict[str, List[str]] # for Python < 3.10
 
-API = [
-        'libpmemobj_init',
-        'pmem_init',
-        'pmemobj_alloc_usable_size',
-        'pmemobj_alloc',
-        'pmemobj_cancel',
-        'pmemobj_check_version',
-        'pmemobj_check',
-        'pmemobj_close',
-        'pmemobj_cond_broadcast',
-        'pmemobj_cond_signal',
-        'pmemobj_cond_wait',
-        'pmemobj_cond_zero',
-        'pmemobj_create',
-        'pmemobj_ctl_exec',
-        'pmemobj_ctl_get',
-        'pmemobj_ctl_set',
-        'pmemobj_defer_free',
-        'pmemobj_defrag',
-        'pmemobj_direct',
-        'pmemobj_drain',
-        'pmemobj_errormsg',
-        'pmemobj_first',
-        'pmemobj_flush',
-        'pmemobj_free',
-        'pmemobj_get_user_data',
-        'pmemobj_list_insert',
-        'pmemobj_list_move',
-        'pmemobj_list_remove',
-        'pmemobj_memcpy_persist',
-        'pmemobj_memcpy',
-        'pmemobj_memmove',
-        'pmemobj_memset_persist',
-        'pmemobj_memset',
-        'pmemobj_mutex_timedlock',
-        'pmemobj_mutex_trylock',
-        'pmemobj_mutex_zero',
-        'pmemobj_next',
-        'pmemobj_oid',
-        'pmemobj_open',
-        'pmemobj_persist',
-        'pmemobj_publish',
-        'pmemobj_realloc',
-        'pmemobj_reserve',
-        'pmemobj_root_size',
-        'pmemobj_root',
-        'pmemobj_rwlock_rdlock',
-        'pmemobj_rwlock_timedrdlock',
-        'pmemobj_rwlock_timedwrlock',
-        'pmemobj_rwlock_tryrdlock',
-        'pmemobj_rwlock_trywrlock',
-        'pmemobj_rwlock_zero',
-        'pmemobj_set_funcs',
-        'pmemobj_set_user_data',
-        'pmemobj_set_value',
-        'pmemobj_strdup',
-        'pmemobj_tx_abort',
-        'pmemobj_tx_add_range_direct',
-        'pmemobj_tx_add_range',
-        'pmemobj_tx_begin',
-        'pmemobj_tx_commit',
-        'pmemobj_tx_end',
-        'pmemobj_tx_errno',
-        'pmemobj_tx_free',
-        'pmemobj_tx_get_failure_behavior',
-        'pmemobj_tx_get_user_data',
-        'pmemobj_tx_lock',
-        'pmemobj_tx_log_append_buffer',
-        'pmemobj_tx_log_auto_alloc',
-        'pmemobj_tx_log_intents_max_size',
-        'pmemobj_tx_log_snapshots_max_size',
-        'pmemobj_tx_process',
-        'pmemobj_tx_publish',
-        'pmemobj_tx_realloc',
-        'pmemobj_tx_set_failure_behavior',
-        'pmemobj_tx_set_user_data',
-        'pmemobj_tx_stage',
-        'pmemobj_tx_strdup',
-        'pmemobj_tx_wcsdup',
-        'pmemobj_tx_xadd_range_direct',
-        'pmemobj_tx_xadd_range',
-        'pmemobj_tx_xalloc',
-        'pmemobj_tx_xlock',
-        'pmemobj_tx_xlog_append_buffer',
-        'pmemobj_tx_xstrdup',
-        'pmemobj_tx_xwcsdup',
-        'pmemobj_tx_zalloc',
-        'pmemobj_tx_zrealloc',
-        'pmemobj_type_num',
-        'pmemobj_volatile',
-        'pmemobj_xreserve',
-        'pmemobj_tx_alloc',
-        'pmemobj_wcsdup',
-        'pmemobj_xalloc',
-        'pmemobj_zalloc',
-        'pmemobj_zrealloc',
-        "pmemobj_xflush",
-        "pmemobj_xpersist",
-]
-
-DEAD_END = [
-        'prealloc'
-]
-
 def dict_extend(dict_, key, values):
         if key not in dict_.keys():
                 dict_[key] = values
@@ -123,7 +19,8 @@ def dict_extend(dict_, key, values):
                 dict_[key].extend(values)
         return dict_
 
-def inlines(calls):
+def inlines(calls: Calls) -> Calls:
+        # common
         calls['core_init'] = ['util_init', 'out_init']
         calls['core_fini'] = ['out_fini']
         calls['ERR'] = ['out_err']
@@ -132,20 +29,142 @@ def inlines(calls):
         calls['common_fini'] = ['util_mmap_fini', 'core_fini']
         calls['Last_errormsg_key_alloc'] = ['_Last_errormsg_key_alloc']
         calls['_Last_errormsg_key_alloc'] = ['os_once', 'os_tls_key_create']
+        calls['out_common'] = ['out_snprintf']
+
+        # libpmem
         calls['flush_empty'] = ['flush_empty_nolog']
 
-        calls = dict_extend(calls, 'libpmemobj_init', ['common_init'])
-        calls = dict_extend(calls, 'out_common', ['out_snprintf'])
-        calls = dict_extend(calls, 'run_vg_init', ['run_iterate_used'])
-
-        calls = dict_extend(calls, 'palloc_heap_action_on_unlock', ['palloc_reservation_clear'])
-        calls = dict_extend(calls, 'palloc_heap_action_on_cancel', ['palloc_reservation_clear'])
-
-        calls = dict_extend(calls, 'util_uuid_generate', ['util_uuid_from_string'])
+        # libpmemobj
+        calls['libpmemobj_init'] = ['common_init']
+        calls['run_vg_init'] = ['run_iterate_used']
+        calls['palloc_heap_action_on_unlock'] = ['palloc_reservation_clear']
+        calls['palloc_heap_action_on_cancel'] = ['palloc_reservation_clear']
+        calls['util_uuid_generate'] = ['util_uuid_from_string']
 
         return calls
 
-def function_pointers(calls):
+def pmem_function_pointers(calls: Calls) -> Calls:
+        calls['pmem_drain'] = ['fence_empty', 'memory_barrier']
+
+        flush_all = ['flush_empty', 'flush_clflush', 'flush_clflushopt', 'flush_clwb']
+        calls['pmem_deep_flush'] = flush_all
+        calls['pmem_flush'] = flush_all
+
+        # '.static' suffix added to differentiate between libpmem API function and a static helper.
+        memmove_nodrain_all = ['memmove_nodrain_libc', 'memmove_nodrain_generic', 'pmem_memmove_nodrain.static', 'pmem_memmove_nodrain_eadr.static']
+        calls['pmem_memmove'] = memmove_nodrain_all
+        calls['pmem_memcpy'] = memmove_nodrain_all
+        calls['pmem_memmove_nodrain'] = memmove_nodrain_all
+        calls['pmem_memcpy_nodrain'] = memmove_nodrain_all
+        calls['pmem_memmove_persist'] = memmove_nodrain_all
+        calls['pmem_memcpy_persist'] = memmove_nodrain_all
+
+        memset_nodrain_all = ['memset_nodrain_libc', 'memset_nodrain_generic', 'pmem_memset_nodrain.static', 'pmem_memset_nodrain_eadr.static']
+        calls['pmem_memset'] = memset_nodrain_all
+        calls['pmem_memset_nodrain'] = memset_nodrain_all
+        calls['pmem_memset_persist'] = memset_nodrain_all
+
+        memmove_funcs = {
+                't': {
+                        func: [ f'memmove_mov_{trick}_{func}'
+                                for trick in ['sse2', 'avx', 'avx512f']
+                        ] for func in ['noflush', 'empty']
+                },
+                'nt': {
+                        'empty': [ f'memmove_movnt_{trick}_empty_{drain}'
+                                for trick in ['sse2', 'avx']
+                                        for drain in ['wcbarrier', 'nobarrier']
+                        ],
+                        'flush': [ f'memmove_movnt_{trick}_{flush}_{drain}'
+                                for trick in ['sse2', 'avx']
+                                        for flush in ['clflush', 'clflushopt', 'clwb']
+                                                for drain in ['wcbarrier', 'nobarrier']
+                        ]
+                }
+        }
+        memmove_funcs_extras = {
+                't': {
+                        'flush': [ f'memmove_mov_{trick}_{flush}'
+                                for trick in ['sse2', 'avx', 'avx512f']
+                                        for flush in ['clflush', 'clflushopt', 'clwb']
+                        ]
+                },
+                'nt': {
+                        'empty': [ f'memmove_movnt_{trick}_empty'
+                                for trick in ['avx512f', 'movdir64b']
+                        ],
+                        'flush': [ f'memmove_movnt_{trick}_{flush}'
+                                for trick in ['avx512f', 'movdir64b']
+                                        for flush in ['clflush', 'clflushopt', 'clwb']
+                        ]
+                }
+        }
+        memmove_funcs['t']['flush'] = memmove_funcs_extras['t']['flush']
+        memmove_funcs['nt']['empty'].extend(memmove_funcs_extras['nt']['empty'])
+        memmove_funcs['nt']['flush'].extend(memmove_funcs_extras['nt']['flush'])
+
+        calls['pmem_memmove_nodrain.static'] = \
+                            memmove_funcs['t']['noflush'] + \
+                            memmove_funcs['nt']['flush'] + \
+                            memmove_funcs['t']['flush']
+
+        calls['pmem_memmove_nodrain_eadr.static'] = \
+                            memmove_funcs['t']['noflush'] + \
+                            memmove_funcs['nt']['empty'] + \
+                            memmove_funcs['t']['empty']
+
+        memsetfuncs = {
+                't': {
+                        func: [ f'memset_mov_{trick}_{func}'
+                                for trick in ['sse2', 'avx', 'avx512f']
+                        ] for func in ['noflush', 'empty']
+                },
+                'nt': {
+                        'empty': [ f'memset_movnt_{trick}_empty_{drain}'
+                                for trick in ['sse2', 'avx']
+                                        for drain in ['wcbarrier', 'nobarrier']
+                        ],
+                        'flush': [ f'memset_movnt_{trick}_{flush}_{drain}'
+                                for trick in ['sse2', 'avx']
+                                        for flush in ['clflush', 'clflushopt', 'clwb']
+                                                for drain in ['wcbarrier', 'nobarrier']
+                        ]
+                }
+        }
+        memsetfuncs_extras = {
+                't': {
+                        'flush': [ f'memset_mov_{trick}_{flush}'
+                                for trick in ['sse2', 'avx', 'avx512f']
+                                        for flush in ['clflush', 'clflushopt', 'clwb']
+                        ]
+                },
+                'nt': {
+                        'empty': [ f'memset_movnt_{trick}_empty'
+                                for trick in ['avx512f', 'movdir64b']
+                        ],
+                        'flush': [ f'memset_movnt_{trick}_{flush}'
+                                for trick in ['avx512f', 'movdir64b']
+                                        for flush in ['clflush', 'clflushopt', 'clwb']
+                        ]
+                }
+        }
+        memsetfuncs['t']['flush'] = memsetfuncs_extras['t']['flush']
+        memsetfuncs['nt']['empty'].extend(memsetfuncs_extras['nt']['empty'])
+        memsetfuncs['nt']['flush'].extend(memsetfuncs_extras['nt']['flush'])
+
+        calls['pmem_memset_nodrain.static'] = \
+                            memsetfuncs['t']['noflush'] + \
+                            memsetfuncs['nt']['flush'] + \
+                            memsetfuncs['t']['flush']
+
+        calls['pmem_memset_nodrain_eadr.static'] = \
+                            memsetfuncs['t']['noflush'] + \
+                            memsetfuncs['nt']['empty'] + \
+                            memsetfuncs['t']['empty']
+
+        return calls
+
+def pmemobj_function_pointers(calls: Calls) -> Calls:
         # block_container_ops
         insert_all = ['container_ravl_insert_block', 'container_seglists_insert_block']
         get_rm_exact_all = ['container_ravl_get_rm_block_exact']
@@ -285,19 +304,11 @@ def function_pointers(calls):
         return calls
 
 def main():
-        with open("white_list.json", 'r') as file:
-                white_list = json.load(file)
         extra_calls = inlines({})
-        extra_calls = function_pointers(extra_calls)
-        config = {
-                'filter': 'libpmemobj',
-                'api': API,
-                'dead_end': DEAD_END,
-                'extra_calls': extra_calls,
-                'white_list': white_list
-        }
-        with open("config.json", "w") as outfile:
-                json.dump(config, outfile, indent = 4)
+        extra_calls = pmem_function_pointers(extra_calls)
+        extra_calls = pmemobj_function_pointers(extra_calls)
+        with open("extra_calls.json", "w") as outfile:
+                json.dump(extra_calls, outfile, indent = 4)
 
 if __name__ == '__main__':
         main()
