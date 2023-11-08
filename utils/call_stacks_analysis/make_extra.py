@@ -162,6 +162,10 @@ def pmem_function_pointers(calls: Calls) -> Calls:
                             memsetfuncs['nt']['empty'] + \
                             memsetfuncs['t']['empty']
 
+        is_pmem_all = ['is_pmem_never', 'is_pmem_always', 'is_pmem_detect']
+
+        calls = dict_extend(calls, 'pmem_is_pmem', is_pmem_all)
+
         return calls
 
 def pmemobj_function_pointers(calls: Calls) -> Calls:
@@ -175,7 +179,27 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
 
         calls = dict_extend(calls, 'bucket_insert_block', insert_all)
 
+        calls = dict_extend(calls, 'bucket_remove_block', get_rm_exact_all)
+
+        calls = dict_extend(calls, 'bucket_alloc_block', get_rm_bestfit_all)
+
+        callers = [
+                'bucket_attach_run',
+                'bucket_detach_run'
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, rm_all_all)
+
         calls = dict_extend(calls, 'bucket_fini', destroy_all)
+
+        compare_all = ['ravl_interval_compare']
+
+        callers = [
+                'ravl_emplace',
+                'ravl_find'
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, compare_all)
 
         # memory_block_ops
         block_size_all = ['huge_block_size', 'run_block_size']
@@ -200,8 +224,74 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
         get_bitmap_all = ['run_get_bitmap']
         fill_pct_all = ['huge_fill_pct', 'run_fill_pct']
 
-        calls = dict_extend(calls, 'heap_free_chunk_reuse', prep_hdr_all)
-        calls = dict_extend(calls, 'palloc_heap_action_exec', prep_hdr_all)
+        callers = [
+                'memblock_header_none_get_size',
+                'block_get_real_size',
+                'memblock_from_offset_opt',
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, block_size_all)
+
+        callers = [
+                'heap_free_chunk_reuse',
+                'palloc_heap_action_exec',
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, prep_hdr_all)
+
+        callers = [
+                'bucket_attach_run',
+                'heap_run_into_free_chunk',
+                'palloc_reservation_create',
+                'palloc_defer_free_create',
+                'palloc_defrag',
+                'recycler_element_new',
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, get_lock_all)
+
+        callers = [
+                'container_ravl_insert_block',
+                'block_invalidate',
+                'alloc_prep_block',
+                'palloc_heap_action_on_cancel',
+                'palloc_heap_action_on_process',
+                'palloc_first',
+                'palloc_next',
+                'palloc_vg_register_alloc',
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, get_user_data_all)
+
+        callers = [
+                'bucket_insert_block',
+                'memblock_header_legacy_get_size',
+                'memblock_header_compact_get_size',
+                'memblock_header_legacy_get_extra',
+                'memblock_header_compact_get_extra',
+                'memblock_header_legacy_get_flags',
+                'memblock_header_compact_get_flags',
+                'memblock_header_legacy_write',
+                'memblock_header_compact_write',
+                'memblock_header_legacy_invalidate',
+                'memblock_header_compact_invalidate',
+                'memblock_header_legacy_reinit',
+                'memblock_header_compact_reinit',
+                'block_get_user_data',
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, get_real_data_all)
+
+        callers = [
+                'block_invalidate',
+                'alloc_prep_block',
+                'palloc_operation',
+                'palloc_defrag',
+                'palloc_usable_size',
+                'palloc_vg_register_alloc',
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, get_user_size_all)
 
         calls = dict_extend(calls, 'alloc_prep_block', write_header_all)
 
@@ -217,7 +307,11 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
 
         calls = dict_extend(calls, 'heap_zone_foreach_object', iterate_used_all)
 
+        calls = dict_extend(calls, 'heap_reclaim_zone_garbage', reinit_chunk_all)
+
         calls = dict_extend(calls, 'recycler_element_new', calc_free_all)
+
+        calls = dict_extend(calls, 'palloc_defrag', fill_pct_all)
 
         # memblock_header_ops
         get_size_all = ['memblock_header_legacy_get_size', 'memblock_header_compact_get_size', 'memblock_header_none_get_size']
@@ -227,6 +321,15 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
         invalidate_all = ['memblock_header_legacy_invalidate', 'memblock_header_compact_invalidate', 'memblock_header_none_invalidate']
         reinit_all = ['memblock_header_legacy_reinit', 'memblock_header_compact_reinit', 'memblock_header_none_reinit']
 
+        callers = [
+                'block_get_real_size',
+                'memblock_from_offset_opt',
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, get_size_all)
+
+        calls = dict_extend(calls, 'block_get_extra', get_extra_all)
+        calls = dict_extend(calls, 'block_get_flags', get_flags_all)
         calls = dict_extend(calls, 'block_write_header', write_all)
         calls = dict_extend(calls, 'block_invalidate', invalidate_all)
         calls = dict_extend(calls, 'block_reinit_header', reinit_all)
@@ -236,6 +339,8 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
         on_cancel_all = ['palloc_heap_action_on_cancel', 'palloc_mem_action_noop']
         on_process_all = ['palloc_heap_action_on_process', 'palloc_mem_action_noop']
         on_unlock_all = ['palloc_heap_action_on_unlock', 'palloc_mem_action_noop']
+
+        calls = dict_extend(calls, 'palloc_exec_actions', exec_all)
 
         calls = dict_extend(calls, 'palloc_cancel', on_cancel_all)
 
@@ -290,10 +395,14 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
         calls = dict_extend(calls, 'obj_norep_drain', drain_local_all)
         calls = dict_extend(calls, 'obj_rep_drain', drain_local_all)
 
-        calls = dict_extend(calls, 'obj_norep_memcpy', memcpy_local_all)
-        calls = dict_extend(calls, 'obj_rep_memcpy', memcpy_local_all)
-        calls = dict_extend(calls, 'obj_rep_flush', memcpy_local_all)
-        calls = dict_extend(calls, 'obj_replicas_check_basic', memcpy_local_all)
+        callers = [
+                'obj_norep_memcpy',
+                'obj_rep_memcpy',
+                'obj_rep_flush',
+                'obj_replicas_check_basic',
+        ]
+        for caller in callers:
+                calls = dict_extend(calls, caller, memcpy_local_all)
 
         calls = dict_extend(calls, 'obj_norep_memmove', memmove_local_all)
         calls = dict_extend(calls, 'obj_rep_memmove', memmove_local_all)
@@ -303,12 +412,25 @@ def pmemobj_function_pointers(calls: Calls) -> Calls:
 
         return calls
 
+def get_callees(calls):
+        callees = []
+        for _, v in calls.items():
+                callees.extend(v)
+        return list(set(callees))
+
 def main():
         extra_calls = inlines({})
         extra_calls = pmem_function_pointers(extra_calls)
         extra_calls = pmemobj_function_pointers(extra_calls)
         with open("extra_calls.json", "w") as outfile:
                 json.dump(extra_calls, outfile, indent = 4)
+
+        # All functions accessed via function pointers have to be provided
+        # on top of regular API calls for cflow to process their call stacks.
+        extra_entry_points = get_callees(extra_calls)
+        extra_entry_points.sort()
+        with open("extra_entry_points.txt", "w") as outfile:
+                outfile.write("\n".join(extra_entry_points))
 
 if __name__ == '__main__':
         main()
