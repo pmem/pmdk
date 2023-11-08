@@ -20,7 +20,7 @@ PARSER.add_argument('-u', '--stack-usage-file', default='stack_usage.txt')
 PARSER.add_argument('-f', '--cflow-output-file', default='cflow.txt')
 PARSER.add_argument('-e', '--extra-calls', default='extra_calls.json')
 PARSER.add_argument('-a', '--api-file', default='api.txt')
-PARSER.add_argument('-w', '--white-list') # XXX
+PARSER.add_argument('-w', '--white-list', default='white_list.json')
 PARSER.add_argument('-i', '--api-filter-file')
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
 PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
@@ -29,8 +29,9 @@ PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
 # API: TypeAlias = List[str] # for Python >= 3.10
 API = List[str] # for Python < 3.8
 
-# WhiteList: TypeAlias = List[str] # for Python >= 3.10
-WhiteList = List[str] # for Python < 3.8
+# class WhiteList(TypedDict): # for Python >= 3.8
+#     not_called: List[str]
+WhiteList = Dict[str, List[str]] # for Python < 3.8
 
 # APIFilter: TypeAlias = List[str] # for Python >= 3.10
 APIFilter = List[str] # for Python < 3.8
@@ -188,7 +189,7 @@ def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteLi
                         continue
                 if k in api:
                         continue
-                if k in white_list:
+                if k in white_list['not_called']:
                         continue
                 if v['size'] <= skip_threshold:
                         continue
@@ -203,7 +204,7 @@ def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteLi
         for k, v in stack_usage.items():
                 if k in api:
                         continue
-                if k in white_list:
+                if k in white_list['not_called']:
                         continue
                 if v['size'] <= skip_threshold:
                         continue
@@ -266,12 +267,10 @@ def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api
 def call_stack_key(e):
         return e['size']
 
-def generate_all_call_stacks(stack_usage: StackUsage, calls: Calls, rcalls: RCalls, api: API, white_list: WhiteList, debug: bool = False) -> List[CallStack]:
+def generate_all_call_stacks(stack_usage: StackUsage, calls: Calls, rcalls: RCalls, api: API, debug: bool = False) -> List[CallStack]:
         call_stacks = []
         # loop over called functions
         for func in rcalls.keys():
-                if func in white_list:
-                        continue
                 # if a function calls something else, call stack generation will start from its callees
                 if func in calls.keys():
                         continue
@@ -304,7 +303,8 @@ def main():
         dump(api, 'api')
         print('Load API - done')
 
-        white_list = []
+        white_list = load_from_json(args.white_list)
+        print('White List - done')
 
         stack_usage = parse_stack_usage(args.stack_usage_file)
         # dumping stack_usage.json to allow further processing
@@ -322,7 +322,7 @@ def main():
         rcalls = prepare_rcalls(calls)
         print('Reverse calls - done')
 
-        call_stacks = generate_all_call_stacks(stack_usage, calls, rcalls, api, white_list)
+        call_stacks = generate_all_call_stacks(stack_usage, calls, rcalls, api)
         dump(call_stacks, 'call_stacks_all', True)
         print('Number of found call stacks: {}'.format(len(call_stacks)))
         print('Call stack generation - done')

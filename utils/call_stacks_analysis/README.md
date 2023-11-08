@@ -2,29 +2,33 @@
 
 > XXX This document requires more details.
 
-1. Generate stack usage file using `stack_usage_stats.sh`.
-2. Generate call stack graph using `cflow.sh`.
-3. Generate all possible call stacks given the data provided.
+## Pre-requisites
+
+- built PMDK
+- `cflow` command available in the system. Available [here](https://www.gnu.org/software/cflow/).
+
+## Generating call stacks
 
 ```sh
-# -u, --stack-usage-stat-file
-# -f, --cflow-output-file
-# -i, --config-file
-./generate_call_stacks.py \
-        -u stack-usage-nondebug.txt \
-        -f cflow.txt \
-        -e extra_calls.json \
-        -w white_list.json
+./make_stack_usage.sh
+./make_api.sh
+./make_extra.py
+./make_cflow.sh
+./generate_call_stacks.py
 ```
 
 If succesfull, it produces:
 
 - `call_stacks_all.json` with call stacks ordered descending by call stack consumption.
-- `stack_usage.json` with the data extracted from the provided `src/stats/stack-usage-nondebug.txt`.
+- `stack_usage.json` with call stack usages per function.
 
 **Note**:  If too many functions ought to be added to a white list it might be useful to ignore functions having a certain stack usage or lower. Please see `-t` option to set a desired threshold.
 
-4. (Optional) Break down a call stack's stack consumption per function. Use the `stack_usage.json` as produced in the previous step and extract a single call stack and put it into a file (name `call_stack.json` below). Please see the examples directory for an example.
+## Optional
+
+### Call stack's stack consumption per function
+
+Use the `stack_usage.json` as produced in the previous step and extract a single call stack and put it into a file (name `call_stack.json` below). Please see the examples directory for an example.
 
 ```sh
 # -s, --stack-usage-file
@@ -49,7 +53,9 @@ If successful, it prints out on the screen a list of functions along with their 
 224     out_snprintf
 ```
 
-5. (Optional) List all API calls which call stacks contains a given function. Use the `stack_usage.json` as produced in the previous step.
+### List all API calls which call stacks contains a given function
+
+Use the `stack_usage.json` as produced in the previous step.
 
 ```sh
 # -a, --all-call-stacks-file
