@@ -22,6 +22,8 @@ PARSER.add_argument('-e', '--extra-calls', default='extra_calls.json')
 PARSER.add_argument('-a', '--api-file', default='api.txt')
 PARSER.add_argument('-w', '--white-list') # XXX
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
+PARSER.add_argument('-l', '--lower-limit', type=int, default=0,
+        help='Exclude call stacks of stack usage lower than the limit. Excluded call stacks won\'t appear in both "all" and "filtered" call stacks lists.')
 PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
         help='Ignore non-reachable function if its stack usage <= threshold')
 
@@ -308,9 +310,25 @@ def main():
         print('Reverse calls - done')
 
         call_stacks = generate_all_call_stacks(stack_usage, calls, rcalls, api, white_list)
-        dump(call_stacks, 'call_stacks_all', True)
+        print('Generate call stacks - done')
+
+        if args.lower_limit > 0:
+                def above_limit(call_stack: CallStack) -> bool:
+                        return call_stack['size'] > args.lower_limit
+                too_big = [call_stack
+                           for call_stack in call_stacks
+                                if above_limit(call_stack)]
+                small_enough = [call_stack
+                           for call_stack in call_stacks
+                                if not above_limit(call_stack)]
+                # Note: Both call_stacks_excluded and call_stacks .json files
+                # are needed when the user wants to list all API calls making
+                # use of a particular function in their call stacks.
+                dump(small_enough, 'call_stacks_excluded', True)
+                call_stacks = too_big
+                print('Exclude small enough call stacks - done')
+        dump(call_stacks, 'call_stacks', True)
         print('Number of found call stacks: {}'.format(len(call_stacks)))
-        print('Call stack generation - done')
 
 if __name__ == '__main__':
         main()
