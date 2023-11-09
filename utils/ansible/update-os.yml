@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This playbook is designed to install all required packages and
+# configure Rocky Linux to execute tests.
+# The playbook description and how to use it are available
+# in the README.md file.
+
+#- hosts: "{{ host }}"
+- hosts: localhost
+  connection: local
+
+  become: true
+  roles:
+    - { role: update_suse, when: ansible_os_family == "Suse" }
+    - { role: update_rocky, when: ansible_os_family == "RedHat" or ansible_os_family == "Rocky" }
+  handlers:
+    - include: handlers/reboot.yml
