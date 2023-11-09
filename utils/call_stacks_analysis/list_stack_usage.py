@@ -14,7 +14,7 @@ from typing import Dict, Any
 # Print out stack usage per function call for a given call stack.
 
 PARSER = argparse.ArgumentParser()
-PARSER.add_argument('-s', '--stack-usage-file', required=True)
+PARSER.add_argument('-s', '--stack-usage-file', default='stack_usage.json')
 PARSER.add_argument('-c', '--call-stack', required=True)
 
 # class StackUsageRecord(TypedDict): # for Python >= 3.8
