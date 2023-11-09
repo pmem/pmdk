@@ -19,8 +19,11 @@
 
 If succesfull, it produces:
 
-- `call_stacks_all.json` with call stacks ordered descending by call stack consumption.
-- `stack_usage.json` with call stack usages per function.
+- `call_stacks_all.json` containing all found call stacks.
+- `call_stacks_final.json` containing all call stacks that met criteria (e.g. `--lower-limit` and/or `--api-filter-file`).
+- `stack_usage.json` with the data extracted from the provided `src/stats/stack-usage.txt`.
+
+`call_stacks_*.json` files are ordered in descending order by call stack use.
 
 **Note**:  If too many functions ought to be added to a white list it might be useful to ignore functions having a certain stack usage or lower. Please see `-t` option to set a desired threshold.
 
