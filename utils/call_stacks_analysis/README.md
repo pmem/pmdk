@@ -19,7 +19,7 @@
 
 If succesfull, it produces:
 
-- `call_stacks_all.json` with call stacks ordered descending by call stack consumption.
+- `call_stacks.json` containing call stacks whose call stack use is above the lower limit (the condition applicable only if `--lower-limit` is used) and `call_stacks_excluded.json` whose call stack use is below the limit. Both files are ordered in descending order by call stack use.
 - `stack_usage.json` with the data extracted from the provided `src/stats/stack-usage-nondebug.txt`.
 
 **Note**:  If too many functions ought to be added to a white list it might be useful to ignore functions having a certain stack usage or lower. Please see `-t` option to set a desired threshold.
