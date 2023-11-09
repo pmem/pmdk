@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This is used e.g. by the update-os playbook. Please see the respective playbook
+# and README for details.
+# This handler will reboot the platform if requested.
+
+- name: Reboot platform to apply updates
+  # Calling `shutdown -r now` fails the playbook and causes a loss of logs and
+  # a hang of the GitHub run for about 10 minutes. To allow the playbook to finish
+  # the reboot is executed in a subshell in the background. The 5-second delay
+  # gives the playbook enough time to complete.
+  shell: |
+    (sleep 5 && sudo shutdown -r now 'Ansible will reboot the platform to apply the updates.') &
