@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This playbook is designed to update all installed packages at
+# Rocky Linux / OpenSUSE and reboot the platform if required.
+# The playbook description and how to use it are available
+# in the README.md file.
+
+    - name: "Reboot platform to apply updates"
+      shell: |
+        (sleep 5 && sudo shutdown -r now 'Ansible will reboot the platform to apply the updates.') &
+        disown
+      async: 30
+      poll: 0
