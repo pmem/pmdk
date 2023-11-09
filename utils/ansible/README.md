@@ -208,3 +208,11 @@ cd
 rm -rf pmdk
 ```
 
+### Update kernel and OS packages
+This playbook is designed to work as a composite action during test preparation steps
+but can be also used directly on the target.
+If the playbook detects core libraries or services have been updated, it will restart the platform.
+```sh
+# as root
+ansible-playbook update-os.yml
+```

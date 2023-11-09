@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This is the part of update-os playbook. It is designed to reboot the platform if required.
+# The playbook description and how to use it are available
+# in the README.md file.
+
+- name: Reboot platform to apply updates
+  shell: |
+    (sleep 5 && sudo shutdown -r now 'Ansible will reboot the platform to apply the updates.') &
+    disown
