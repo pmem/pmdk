@@ -34,11 +34,7 @@ If succesfull, it produces:
 Use the `stack_usage.json` as produced in the previous step and extract a single call stack and put it into a file (name `call_stack.json` below). Please see the examples directory for an example.
 
 ```sh
-# -s, --stack-usage-file
-# -c, --call-stack
-./utils/call_stacks_analysis/stack_usage.py \
-        -s stack_usage.json \
-        -c call_stack.json
+./list_stack_usage.py --call-stack call_stack.json
 ```
 
 If successful, it prints out on the screen a list of functions along with their stack consumption e.g.
@@ -61,11 +57,7 @@ If successful, it prints out on the screen a list of functions along with their 
 Use the `stack_usage.json` as produced in the previous step.
 
 ```sh
-# -a, --all-call-stacks-file
-# -f, --function-name
-./utils/call_stacks_analysis/api_callers.py \
-        -a call_stacks_all.json \
-        -f pmem2_get_type_from_stat
+./list_api_callers.py --function-name pmem2_get_type_from_stat
 ```
 
 If successful, it prints out on screen a list of API calls that met the condition e.g.
