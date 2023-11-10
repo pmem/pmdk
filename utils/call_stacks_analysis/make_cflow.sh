@@ -7,6 +7,8 @@
 # the cflow tool.
 #
 
+UNSAFE=$1 # unsafe to omit security checks
+
 WD=$(realpath $(dirname "$0"))
 SRC=$(realpath $WD/../../src)
 
@@ -26,6 +28,27 @@ SOURCES=`find $SRC -name *.[ch] | grep -v -e '_other.c' -e '_none.c' \
 		-e '/tools/' -e '/test/' -e '/aarch64/' -e '/examples/'\
 		-e '/ppc64/' -e '/riscv64/' -e '/loongarch64/' \
 		-e '/libpmempool/'`
+
+ABORT=yes
+UNCOMMITED=$(git status -s)
+
+if [ "Z$UNSAFE" == "Zunsafe" ]; then
+	ABORT=no
+elif [ -z "$UNCOMMITED" ]; then
+	ABORT=no
+fi
+
+if [ $ABORT == "yes" ]; then
+	echo "The repository has uncommitted changes. Can't continue without overwriting them."
+	echo "Call '$0 unsafe' to continue regardless."
+	exit 1
+fi
+
+# Note: cflow cannot process correctly a for-loop if the initialization step of
+# the loop declares a variable. It doesn't care if a variable is not defined.
+# So, removing the initialization step from all the for-loops works around
+# the problem.
+sed -i 's/for ([^;]\+;/for (;/' $SOURCES
 
 # Note: --symbol list has been defined based on cflow manual
 # https://www.gnu.org/software/cflow/manual/cflow.html
@@ -74,3 +97,5 @@ cflow -o $WD/cflow.txt \
 	$STARTS $SOURCES 2> $WD/cflow.err
 
 echo "Done."
+
+echo "Note: $0 probably modified the source code."
