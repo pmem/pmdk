@@ -9,11 +9,16 @@
 BUILD=${1-nondebug} # debug or nondebug
 
 WD=$(realpath $(dirname $0))
-SRC=$(realpath $WD/../../src)
+TOP=$(realpath $WD/../..)
+SRC=src/$BUILD
 
-SU_FILES="$SRC/$BUILD/core/*.su $SRC/$BUILD/common/*.su \
-	$SRC/$BUILD/libpmem/*.su $SRC/$BUILD/libpmemobj/*.su"
+cd $TOP
+
+SU_FILES="$SRC/core/*.su $SRC/common/*.su \
+	$SRC/libpmem/*.su $SRC/libpmemobj/*.su"
 
 grep -v ^$ $SU_FILES | \
 	gawk -F "[:\t]" '{print $6 " " $5 " : " $1 ":" $2 " " $7}' | \
 	sort -n -r > $WD/stack_usage.txt
+
+cd - > /dev/null
