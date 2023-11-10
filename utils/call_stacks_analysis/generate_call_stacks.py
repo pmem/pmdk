@@ -227,10 +227,18 @@ def prepare_rcalls(calls: Calls) -> Calls:
         return rcalls
 
 def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api: API) -> List[CallStack]:
+        # Assumed ndctl_ call's stack estimate
+        NDCTL_CALL_STACK_ESTIMATE = 4096
+        size = 0;
+        if func.find("ndctl_", 0) == 0:
+                size = NDCTL_CALL_STACK_ESTIMATE
+        elif func in stack_usage.keys():
+                size = stack_usage[func]['size']
+
         call_stacks = [
                 {
                         'stack': [func],
-                        'size': int(stack_usage[func]['size']) if func in stack_usage.keys() else 0
+                        'size': size
                 }
         ]
         # call stack generation loop
