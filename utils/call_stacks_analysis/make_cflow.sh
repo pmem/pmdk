@@ -13,14 +13,19 @@ WD=$(realpath $(dirname "$0"))
 SRC=$(realpath $WD/../../src)
 
 API=$WD/api.txt
-
 if [ ! -f "$API" ]; then
 	echo "$API is missing"
 	exit 1
 fi
 
+EXTRA_ENTRY_POINTS=$WD/extra_entry_points.txt
+if [ ! -f "$EXTRA_ENTRY_POINTS" ]; then
+	echo "$EXTRA_ENTRY_POINTS is missing"
+	exit 1
+fi
+
 STARTS=
-for start in `cat $API`; do
+for start in `cat $API $EXTRA_ENTRY_POINTS`; do
 	STARTS="$STARTS --start $start"
 done
 
