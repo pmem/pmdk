@@ -23,6 +23,8 @@ PARSER.add_argument('-a', '--api-file', default='api.txt')
 PARSER.add_argument('-w', '--white-list', default='white_list.json')
 PARSER.add_argument('-i', '--api-filter-file')
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
+PARSER.add_argument('-l', '--lower-limit', type=int, default=0,
+        help='Exclude call stacks of stack usage lower than the limit. Excluded call stacks won\'t appear in both "all" and "filtered" call stacks lists.')
 PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
         help='Ignore non-reachable function if its stack usage <= threshold')
 
@@ -283,7 +285,7 @@ def generate_all_call_stacks(stack_usage: StackUsage, calls: Calls, rcalls: RCal
 def filter_call_stacks(call_stacks: List[CallStack], api_filter_file: APIFilter) -> List[CallStack]:
         api_filter = load_from_txt(api_filter_file)
         dump(api_filter, 'api_filter')
-        print('Load APIFilter - done')
+        print('Load API Filter - done')
 
         call_stacks_filtered = []
         for call_stack in call_stacks:
@@ -324,14 +326,25 @@ def main():
 
         call_stacks = generate_all_call_stacks(stack_usage, calls, rcalls, api)
         dump(call_stacks, 'call_stacks_all', True)
-        print('Number of found call stacks: {}'.format(len(call_stacks)))
-        print('Call stack generation - done')
+        print('Generate call stacks - done')
+        print('Number of call stacks: {}'.format(len(call_stacks)))
+
+        if args.lower_limit > 0:
+                def above_limit(call_stack: CallStack) -> bool:
+                        return call_stack['size'] > args.lower_limit
+                too_big = [call_stack
+                           for call_stack in call_stacks
+                                if above_limit(call_stack)]
+                call_stacks = too_big
+                print('Filter out call stacks <= {} - done'.format(args.lower_limit))
+                print('Number of call stacks: {}'.format(len(call_stacks)))
 
         if args.api_filter_file is not None:
-                call_stacks_filtered = filter_call_stacks(call_stacks, args.api_filter_file)
-                dump(call_stacks_filtered, 'call_stacks_filtered', True)
-                print('Number of found call stacks (filtered): {}'.format(len(call_stacks_filtered)))
-                print('Call stacks filtering - done')
+                call_stacks = filter_call_stacks(call_stacks, args.api_filter_file)
+                print('Filter our call stacks not in the API filter - done')
+                print('Number of call stacks: {}'.format(len(call_stacks)))
+
+        dump(call_stacks, 'call_stacks_final', True)
 
 if __name__ == '__main__':
         main()
