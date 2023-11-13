@@ -14,13 +14,13 @@
 ./make_api.sh
 ./make_extra.py
 ./make_cflow.sh
-./generate_call_stacks.py
+./make_call_stacks.py
 ```
 
 If succesfull, it produces:
 
 - `call_stacks_all.json` containing all found call stacks.
-- `call_stacks_final.json` containing all call stacks that met criteria (e.g. `--lower-limit` and/or `--api-filter-file`).
+- `call_stacks_filtered.json` containing all call stacks that met criteria (e.g. `--filter-lower-limit` and/or `--filter-api-file`).
 - `stack_usage.json` with the data extracted from the provided `src/stats/stack-usage.txt`.
 
 `call_stacks_*.json` files are ordered in descending order by call stack use.
