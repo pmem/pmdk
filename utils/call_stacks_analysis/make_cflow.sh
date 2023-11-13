@@ -30,12 +30,12 @@ for start in `cat $API $EXTRA_ENTRY_POINTS`; do
 done
 
 SOURCES=`find $SRC -name *.[ch] | grep -v -e '_other.c' -e '_none.c' \
-		-e '/tools/' -e '/test/' -e '/aarch64/' -e '/examples/'\
+		-e '/tools/' -e '/test/' -e '/aarch64/' -e '/examples/' \
 		-e '/ppc64/' -e '/riscv64/' -e '/loongarch64/' \
 		-e '/libpmempool/'`
 
 ABORT=yes
-UNCOMMITED=$(git status -s)
+UNCOMMITED=$(git status -s $SOURCES)
 
 if [ "z$UNSAFE" == "z-f" ]; then
 	ABORT=no
@@ -103,4 +103,10 @@ cflow -o $WD/cflow.txt \
 
 echo "Done."
 
-echo "Note: $0 probably modified the source code."
+# Restore the state of the files that have been modified to work around
+# the cflow's for-loop problem. Please see the note above for details.
+if [ ! "z$UNSAFE" == "z-f" ]; then
+	git restore $SOURCES
+else
+	echo "Note: $0 probably modified the source code."
+fi
