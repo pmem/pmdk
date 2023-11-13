@@ -14,7 +14,7 @@
 ./make_api.sh
 ./make_extra.py
 ./make_cflow.sh
-./generate_call_stacks.py
+./make_call_stacks.py
 ```
 
 If succesfull, it produces:
