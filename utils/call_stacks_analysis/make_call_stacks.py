@@ -201,8 +201,11 @@ def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteLi
                 not_called.append(k)
         # Use --dump to see the list of not called functions.
         # Investigate and either fix the call graph or add it to the white list.
+        if len(not_called) > 0:
+                dump(not_called, 'not_called', True)
+                raise Exception("There are some non reachable function.",
+                        "See the not_called.json file")
         dump(not_called, 'not_called')
-        assert(len(not_called) == 0)
 
         # all known functions are expected to be reachable from the API
         no_api_connection = {}
@@ -216,8 +219,11 @@ def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteLi
                 callers = find_api_callers(k, calls, api)
                 if len(callers) == 0:
                         no_api_connection[k] = v['size']
+        if len(no_api_connection) > 0:
+                dump(no_api_connection, 'no_api_connection', True)
+                raise Exception("There are some function not reachable from API.",
+                        "See the no_api_connection.json file")
         dump(no_api_connection, 'no_api_connection')
-        assert(len(no_api_connection) == 0)
 
 def prepare_rcalls(calls: Calls) -> Calls:
         # preparing a reverse call dictionary
