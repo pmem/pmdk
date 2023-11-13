@@ -14,7 +14,7 @@ from typing import List, Dict, Any
 # List all API calls which start call stacks containing a particular function name.
 
 PARSER = argparse.ArgumentParser()
-PARSER.add_argument('-a', '--all-call-stacks-file', required=True)
+PARSER.add_argument('-a', '--call-stacks-all', default='call_stacks_all.json')
 PARSER.add_argument('-f', '--function-name', required=True)
 
 # class CallStack(TypedDict): # for Python >= 3.8
@@ -22,13 +22,13 @@ PARSER.add_argument('-f', '--function-name', required=True)
 #     size: int
 CallStack = Dict[str, Any] # for Python < 3.8
 
-def load_all_call_stacks(all_call_stacks_file: str) -> List[CallStack]:
-        with open(all_call_stacks_file, 'r') as file:
+def load_call_stacks_from_json(file_name: str) -> List[CallStack]:
+        with open(file_name, 'r') as file:
                 return json.load(file)
 
 def main():
         args = PARSER.parse_args()
-        call_stacks = load_all_call_stacks(args.all_call_stacks_file)
+        call_stacks = load_call_stacks_from_json(args.call_stacks_all)
         apis = []
         # lookup all call stacks in which the function of interest is mentioned
         for call_stack in call_stacks:
