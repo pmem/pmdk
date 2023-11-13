@@ -23,10 +23,11 @@ PARSER.add_argument('-f', '--cflow-output-file', default='cflow.txt')
 PARSER.add_argument('-e', '--extra-calls', default='extra_calls.json')
 PARSER.add_argument('-a', '--api-file', default='api.txt')
 PARSER.add_argument('-w', '--white-list', default='white_list.json')
-PARSER.add_argument('-i', '--api-filter-file')
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
-PARSER.add_argument('-l', '--lower-limit', type=int, default=0,
-        help='Exclude call stacks of stack usage lower than the limit. Excluded call stacks won\'t appear in both "all" and "filtered" call stacks lists.')
+PARSER.add_argument('-l', '--filter-lower-limit', type=int, default=0,
+        help='Include only call stacks of stack usage above the limit.')
+PARSER.add_argument('-i', '--filter-api-file',
+        help='Include only call stacks starting from API calls enumerated in the provided file.')
 PARSER.add_argument('-t', '--skip-threshold', type=int, default=0,
         help='Ignore non-reachable function if its stack usage <= threshold')
 
@@ -352,7 +353,7 @@ def main():
                 print('Filter our call stacks not in the API filter - done')
                 print('Number of call stacks: {}'.format(len(call_stacks)))
 
-        dump(call_stacks, 'call_stacks_final', True)
+        dump(call_stacks, 'call_stacks_filtered', True)
 
 if __name__ == '__main__':
         main()
