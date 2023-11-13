@@ -14,6 +14,8 @@ from typing import List, Dict, Any
 # https://peps.python.org/pep-0613/ requires Python >= 3.10
 # from typing import TypeAlias
 
+# Assumed ndctl_ call's stack estimate
+NDCTL_CALL_STACK_ESTIMATE = 4096
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('-u', '--stack-usage-file', default='stack_usage.txt')
@@ -229,10 +231,16 @@ def prepare_rcalls(calls: Calls) -> Calls:
         return rcalls
 
 def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api: API) -> List[CallStack]:
+        size = 0;
+        if func.find("ndctl_", 0) == 0:
+                size = NDCTL_CALL_STACK_ESTIMATE
+        elif func in stack_usage.keys():
+                size = stack_usage[func]['size']
+
         call_stacks = [
                 {
                         'stack': [func],
-                        'size': int(stack_usage[func]['size']) if func in stack_usage.keys() else 0
+                        'size': size
                 }
         ]
         # call stack generation loop
