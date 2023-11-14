@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2023, Intel Corporation
 
-# This playbook is designed to install all required packages and
-# configure Rocky Linux to execute tests.
+# This playbook is designed to update all installed packages at
+# Rocky Linux and reboot the platform if required.
 # The playbook description and how to use it are available
 # in the README.md file.
 
