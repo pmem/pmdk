@@ -2,6 +2,7 @@
 
 	This release:
 	- Significantly reduces the libpmem's stack usage.
+	- pmemobj_open() stack usage reduction below 12kB threshold.
 
 Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
