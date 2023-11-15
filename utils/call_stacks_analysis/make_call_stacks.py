@@ -92,6 +92,8 @@ def parse_stack_usage(stack_usage_file: str) -> StackUsage:
         with open(stack_usage_file, 'r') as file:
                 for line in file:
                         # 8432 out_common : src/nondebug/libpmem/out.su:out.c dynamic,bounded
+                        # 336 __iomem_get_dev_resource : ./build/daxctl/lib/libdaxctl.so.1.2.5.p/.._.._util_iomem.c.su:iomem.c dynamic,bounded
+                        # 112 ctl_find_node.isra.5 : src/nondebug/common/ctl.su:ctl.c static
                         found = re.search('([0-9]+) ([a-zA-Z0-9_]+)(.[a-zA-Z0-9.]+)* : ([a-zA-Z0-9.:/_-]+) ([a-z,]+)', line)
                         if found:
                                 funcs[found.group(2)] = {'size': int(found.group(1)), 'type': found.group(5)}
