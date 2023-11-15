@@ -245,10 +245,10 @@ def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api
                 }
         ]
         # call stack generation loop
+        # list of call stacks which cannot grow any more
+        call_stacks_new_end = []
         while True:
                 call_stacks_new = []
-                # list of call stacks which cannot grow any more
-                call_stacks_new_end = []
                 for call_stack in call_stacks:
                         callee = call_stack['stack'][0]
                         if callee in api:
@@ -272,8 +272,8 @@ def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api
                                 })
                 if len(call_stacks_new) == 0:
                         break
-                call_stacks = call_stacks_new + call_stacks_new_end
-        return call_stacks
+                call_stacks = call_stacks_new
+        return call_stacks_new_end
 
 def call_stack_key(e):
         return e['size']
