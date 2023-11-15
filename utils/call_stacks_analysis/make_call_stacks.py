@@ -338,18 +338,18 @@ def main():
         print('Generate call stacks - done')
         print('Number of call stacks: {}'.format(len(call_stacks)))
 
-        if args.lower_limit > 0:
+        if args.filter_lower_limit > 0:
                 def above_limit(call_stack: CallStack) -> bool:
-                        return call_stack['size'] > args.lower_limit
+                        return call_stack['size'] > args.filter_lower_limit
                 too_big = [call_stack
                            for call_stack in call_stacks
                                 if above_limit(call_stack)]
                 call_stacks = too_big
-                print('Filter out call stacks <= {} - done'.format(args.lower_limit))
+                print('Filter out call stacks <= {} - done'.format(args.filter_lower_limit))
                 print('Number of call stacks: {}'.format(len(call_stacks)))
 
-        if args.api_filter_file is not None:
-                call_stacks = filter_call_stacks(call_stacks, args.api_filter_file)
+        if args.filter_api_file is not None:
+                call_stacks = filter_call_stacks(call_stacks, args.filter_api_file)
                 print('Filter our call stacks not in the API filter - done')
                 print('Number of call stacks: {}'.format(len(call_stacks)))
 
