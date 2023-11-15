@@ -92,7 +92,7 @@ def parse_stack_usage(stack_usage_file: str) -> StackUsage:
         with open(stack_usage_file, 'r') as file:
                 for line in file:
                         # 8432 out_common : src/nondebug/libpmem/out.su:out.c dynamic,bounded
-                        found = re.search('([0-9]+) ([a-zA-Z0-9_]+)(.[a-z0-9.]+)* : ([a-z0-9.:/_-]+) ([a-z,]+)', line)
+                        found = re.search('([0-9]+) ([a-zA-Z0-9_]+)(.[a-zA-Z0-9.]+)* : ([a-zA-Z0-9.:/_-]+) ([a-z,]+)', line)
                         if found:
                                 funcs[found.group(2)] = {'size': int(found.group(1)), 'type': found.group(5)}
                         else:
@@ -201,8 +201,11 @@ def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteLi
                 not_called.append(k)
         # Use --dump to see the list of not called functions.
         # Investigate and either fix the call graph or add it to the white list.
-        dump(not_called, 'not_called')
-        assert(len(not_called) == 0)
+        file_name = 'not_called'
+        if len(not_called) > 0:
+                dump(not_called, file_name, True)
+                raise Exception("There are some unreachable functions. See the {}.json file.".format(file_name))
+        dump(not_called, file_name)
 
         # all known functions are expected to be reachable from the API
         no_api_connection = {}
@@ -216,8 +219,11 @@ def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteLi
                 callers = find_api_callers(k, calls, api)
                 if len(callers) == 0:
                         no_api_connection[k] = v['size']
-        dump(no_api_connection, 'no_api_connection')
-        assert(len(no_api_connection) == 0)
+        file_name = 'no_api_connection'
+        if len(no_api_connection) > 0:
+                dump(no_api_connection, file_name, True)
+                raise Exception("There are some functions unreachable from API. See the {}.json file.".format(file_name))
+        dump(no_api_connection, file_name)
 
 def prepare_rcalls(calls: Calls) -> Calls:
         # preparing a reverse call dictionary
