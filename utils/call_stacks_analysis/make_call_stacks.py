@@ -237,8 +237,66 @@ def prepare_rcalls(calls: Calls) -> Calls:
         dump(rcalls, 'rcalls')
         return rcalls
 
-def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api: API) -> List[CallStack]:
-        size = 0;
+def call_stacks_find_the_biggest_starting_at(call_stacks: List[CallStack], api_func: str):
+        call_stack_max = {
+                'size': 0
+        }
+        for call_stack in call_stacks:
+                if api_func == call_stack['stack'][0]:
+                        if call_stack['size'] > call_stack_max['size']:
+                                call_stack_max = call_stack
+        assert('stack' in call_stack_max.keys())
+        return call_stack_max
+
+def generate_call_stacks_calling_api(call_stack_max: CallStack, callers: List[str], call_stacks: List[CallStack]) -> List[CallStack]:
+        call_stacks_new = []
+        for call_stack in call_stacks:
+                # If the caller is the last position in the stack it means
+                # the stack can continue through the API call.
+                if call_stack['stack'][-1] in callers:
+                        new_call_stack = {
+                                'stack': call_stack['stack'] + call_stack_max['stack'],
+                                'size': call_stack['size'] + call_stack_max['size']
+                        }
+                        call_stacks_new.append(new_call_stack)
+        return call_stacks_new
+
+def generate_call_stacks_calling_apis(apis_called_internally: List[str], rcalls: RCalls, call_stacks: List[CallStack], debug: bool):
+        # list of call stacks which can grow
+        call_stacks_called: List[CallStack] = [
+                call_stacks_find_the_biggest_starting_at(call_stacks, api)
+                        for api in apis_called_internally
+        ]
+        # list of call stacks which cannot grow any more
+        call_stacks_new_end = []
+        while len(call_stacks_called) > 0:
+                call_stacks_new = []
+                for call_stack in call_stacks_called:
+                        api_func = call_stack['stack'][0]
+                        callers = rcalls[api_func]
+                        call_stacks_generated = generate_call_stacks_calling_api(call_stack, callers, call_stacks)
+                        call_stacks_new.extend(
+                                [cs for cs in call_stacks_generated
+                                 if cs['stack'][0] in apis_called_internally])
+                        call_stacks_new_end.extend(
+                                [cs for cs in call_stacks_generated
+                                 if cs['stack'][0] not in apis_called_internally])
+                # reduce - keep only the max stack for each API call
+                apis = list(set([cs['stack'][0] for cs in call_stacks_new]))
+                call_stacks_new_reduced = []
+                for api in apis:
+                        cs_max = call_stacks_find_the_biggest_starting_at(call_stacks_new, api)
+                        call_stacks_new_reduced.append(cs_max)
+                if debug:
+                        print('end: {}, new: {}, reduced: {}'.format(
+                                len(call_stacks_new_end),
+                                len(call_stacks_new),
+                                len(call_stacks_new_reduced)))
+                call_stacks_called = call_stacks_new_reduced
+        return call_stacks_new_end
+
+def generate_call_stacks_basic(func: str, stack_usage: StackUsage, rcalls: RCalls, api: API) -> List[CallStack]:
+        size = 0
         if func.find("ndctl_", 0) == 0:
                 size = NDCTL_CALL_STACK_ESTIMATE
         elif func in stack_usage.keys():
@@ -284,16 +342,50 @@ def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api
 def call_stack_key(e):
         return e['size']
 
-def generate_all_call_stacks(stack_usage: StackUsage, calls: Calls, rcalls: RCalls, api: API, debug: bool = False) -> List[CallStack]:
-        call_stacks = []
+def generate_call_stacks(stack_usage: StackUsage, calls: Calls, rcalls: RCalls, api: API, debug: bool = False) -> List[CallStack]:
+        # Find all APIs called internally
+        apis_called_internally = []
+        for api_func in api:
+                if api_func in rcalls.keys():
+                        apis_called_internally.append(api_func)
+        dump(apis_called_internally, 'apis_called_internally')
+
+        internal_api_callers = []
+        for api_func in apis_called_internally:
+                internal_api_callers.extend(rcalls[api_func])
+        internal_api_callers = list(set(internal_api_callers))
+        dump(internal_api_callers, 'internal_api_callers')
+
+        if debug:
+                print('Basic call stack generation')
+
         # loop over called functions
+        call_stacks = []
         for func in rcalls.keys():
-                # if a function calls something else, call stack generation will start from its callees
-                if func in calls.keys():
+                # If a function calls something else, call stack generation will
+                # start from its callees unless it is an internal API caller and
+                # does not call non-API functions. For simplicity, it is assumed
+                # an internal API caller can start a call stack no matter if it
+                # also calls non-API callees.
+                if func in calls.keys() and func not in internal_api_callers:
                         continue
                 if debug:
                         print(f'Generating call stacks ending at - {func}')
-                call_stacks.extend(generate_call_stacks(func, stack_usage, rcalls, api))
+                # Note: generate_call_stacks stop further processing of a call
+                # stacks when an API function is found. API functions called
+                # internally are handled below.
+                call_stacks.extend(generate_call_stacks_basic(func, stack_usage, rcalls, api))
+        dump(call_stacks, 'call_stacks_basic')
+
+        if debug:
+                print('Call stacks calling APIs generation')
+
+        call_stacks_calling_apis = generate_call_stacks_calling_apis(apis_called_internally, rcalls, call_stacks, debug)
+        if debug:
+                call_stacks_calling_apis.sort(reverse=True, key=call_stack_key)
+        dump(call_stacks_calling_apis, 'call_stacks_calling_apis')
+
+        call_stacks.extend(call_stacks_calling_apis)
         call_stacks.sort(reverse=True, key=call_stack_key)
         return call_stacks
 
@@ -339,7 +431,7 @@ def main():
         rcalls = prepare_rcalls(calls)
         print('Reverse calls - done')
 
-        call_stacks = generate_all_call_stacks(stack_usage, calls, rcalls, api)
+        call_stacks = generate_call_stacks(stack_usage, calls, rcalls, api, DUMP)
         dump(call_stacks, 'call_stacks_all', True)
         print('Generate call stacks - done')
         print('Number of call stacks: {}'.format(len(call_stacks)))
