@@ -27,6 +27,8 @@ PARSER.add_argument('-e', '--extra-calls', default='extra_calls.json')
 PARSER.add_argument('-a', '--api-file', default='api.txt')
 PARSER.add_argument('-w', '--white-list', default='white_list.json')
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
+PARSER.add_argument('-s', '--dump-all-stacks', action='store_true',
+                    help='Dump call_stacks_all.json files. Should be used with caution because the file can be >2GB and dumping takes a significant amount of time.')
 PARSER.add_argument('-l', '--filter-lower-limit', type=int, default=0,
         help='Include only call stacks of stack usage above the limit.')
 PARSER.add_argument('-i', '--filter-api-file',
@@ -437,7 +439,7 @@ def main():
         print('Reverse calls - done')
 
         call_stacks = generate_call_stacks(stack_usage, calls, rcalls, api, DUMP)
-        dump(call_stacks, 'call_stacks_all', True)
+        dump(call_stacks, 'call_stacks_all', args.dump_all_stacks)
         print('Generate call stacks - done')
         print('Number of call stacks: {}'.format(len(call_stacks)))
 
