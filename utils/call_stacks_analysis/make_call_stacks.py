@@ -310,18 +310,18 @@ def generate_call_stacks_basic(func: str, stack_usage: StackUsage, rcalls: RCall
                         'size': size
                 }
         ]
+        # list of call stacks which cannot grow any more
+        call_stacks_completed = []
         # call stack generation loop
-        while True:
-                call_stacks_new = []
-                # list of call stacks which cannot grow any more
-                call_stacks_new_end = []
+        while len(call_stacks) > 0:
+                call_stacks_in_progress = []
                 for call_stack in call_stacks:
                         callee = call_stack['stack'][0]
                         if callee in api:
-                                call_stacks_new_end.append(call_stack)
+                                call_stacks_completed.append(call_stack)
                                 continue
                         if callee not in rcalls.keys():
-                                call_stacks_new_end.append(call_stack)
+                                call_stacks_completed.append(call_stack)
                                 continue
                         for caller in rcalls[callee]:
                                 # Note: Breaking the loop does not spoil generating
@@ -332,14 +332,12 @@ def generate_call_stacks_basic(func: str, stack_usage: StackUsage, rcalls: RCall
                                         caller_stack_size = int(stack_usage[caller]['size'])
                                 else:
                                         caller_stack_size = 0
-                                call_stacks_new.append({
+                                call_stacks_in_progress.append({
                                         'stack': [caller] + call_stack['stack'],
                                         'size': call_stack['size'] + caller_stack_size
                                 })
-                if len(call_stacks_new) == 0:
-                        break
-                call_stacks = call_stacks_new + call_stacks_new_end
-        return call_stacks
+                call_stacks = call_stacks_in_progress
+        return call_stacks_completed
 
 def call_stack_key(e):
         return e['size']
