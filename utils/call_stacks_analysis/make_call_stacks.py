@@ -181,9 +181,8 @@ def find_api_callers(func: str, calls: Calls, api: API):
         return apis
 
 def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteList, skip_threshold: int) -> None:
-        all_callees = []
-        for _, v in calls.items():
-                all_callees.extend(v)
+        all_callees = [v for _, vs in calls.items()
+                       for v in vs]
         all_callees = list(set(all_callees))
         dump(all_callees, 'all_callees')
 
@@ -224,6 +223,18 @@ def validate(stack_usage: StackUsage, calls:Calls, api: API, white_list: WhiteLi
                 dump(no_api_connection, file_name, True)
                 raise Exception("There are some functions unreachable from API. See the {}.json file.".format(file_name))
         dump(no_api_connection, file_name)
+
+        # dump all zero-sized functions for further assesment
+        all_callers = [k for k, _ in calls.items()]
+        all_funcs = list(set(all_callees + all_callers))
+        zero_funcs = [func for func in all_funcs if func not in stack_usage.keys()]
+        zero_funcs = list(filter(lambda f: len(f) > 0, zero_funcs))
+        zero_funcs_grep = [func for func in zero_funcs]
+        dump(zero_funcs, 'zero_funcs')
+        global DUMP
+        if DUMP:
+                with open('zero_funcs.txt', 'w') as outfile:
+                        outfile.write('\n'.join(zero_funcs_grep))
 
 def prepare_rcalls(calls: Calls) -> Calls:
         # preparing a reverse call dictionary

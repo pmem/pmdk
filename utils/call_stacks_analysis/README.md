@@ -27,6 +27,15 @@ If succesfull, it produces:
 
 **Note**:  If too many functions ought to be added to a white list it might be useful to ignore functions having a certain stack usage or lower. Please see `-t` option to set a desired threshold.
 
+## Validation
+
+XXX
+
+```sh
+./make_call_stacks.py -d
+./check_stack_usage.sh
+```
+
 ## Optional
 
 ### Call stack's stack consumption per function
