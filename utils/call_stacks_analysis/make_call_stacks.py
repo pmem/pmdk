@@ -17,6 +17,9 @@ from typing import List, Dict, Any
 # Assumed ndctl_ call's stack estimate
 NDCTL_CALL_STACK_ESTIMATE = 4096
 
+# Assumed daxctl_ call's stack estimate
+DAXCTL_CALL_STACK_ESTIMATE = 3072
+
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('-u', '--stack-usage-file', default='stack_usage.txt')
 PARSER.add_argument('-f', '--cflow-output-file', default='cflow.txt')
@@ -241,6 +244,8 @@ def generate_call_stacks(func: str, stack_usage: StackUsage, rcalls: RCalls, api
         size = 0;
         if func.find("ndctl_", 0) == 0:
                 size = NDCTL_CALL_STACK_ESTIMATE
+        elif func.find("daxctl_", 0) == 0:
+                size = DAXCTL_CALL_STACK_ESTIMATE
         elif func in stack_usage.keys():
                 size = stack_usage[func]['size']
 
