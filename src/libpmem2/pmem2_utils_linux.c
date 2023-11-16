@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -14,6 +14,13 @@
 #include "pmem2_utils.h"
 #include "region_namespace.h"
 #include "source.h"
+
+#define SUBSYSTEM_STR_FORMAT "/sys/dev/char/%u:%u/subsystem"
+/*
+ * Both major and minor are 32-bit unsigned numbers. The length of
+ * the decimal representation of the biggest 32-bit unsigned number is 10.
+ */
+#define SPATH_MAX (sizeof(SUBSYSTEM_STR_FORMAT) + 2 * 10)
 
 /*
  * pmem2_get_type_from_stat -- determine type of file based on output of stat
@@ -37,11 +44,9 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
-	char spath[PATH_MAX];
-	int ret = util_snprintf(spath, PATH_MAX,
-			"/sys/dev/char/%u:%u/subsystem",
+	char spath[SPATH_MAX];
+	int ret = util_snprintf(spath, SPATH_MAX, SUBSYSTEM_STR_FORMAT,
 			os_major(st->st_rdev), os_minor(st->st_rdev));
-
 	if (ret < 0) {
 		/* impossible */
 		ERR("!snprintf");
@@ -68,3 +73,6 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 
 	return 0;
 }
+
+#undef SPATH_MAX
+#undef SUBSYSTEM_STR_FORMAT
