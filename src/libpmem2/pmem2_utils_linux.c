@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2023, Intel Corporation */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -37,9 +37,15 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
-	char spath[PATH_MAX];
-	int ret = util_snprintf(spath, PATH_MAX,
-			"/sys/dev/char/%u:%u/subsystem",
+	const char *subsystem_str_format = "/sys/dev/char/%u:%u/subsystem";
+/*
+ * Both major and minor are 32-bit unsigned numbers. The length of the
+ * decimal representation of the biggest 32-bit unsigned number is 10.
+ */
+#define SPATH_MAX (sizeof(subsystem_str_format) + 2 * 10)
+	char spath[SPATH_MAX];
+
+	int ret = util_snprintf(spath, SPATH_MAX, subsystem_str_format,
 			os_major(st->st_rdev), os_minor(st->st_rdev));
 
 	if (ret < 0) {
