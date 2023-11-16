@@ -28,7 +28,7 @@ PARSER.add_argument('-a', '--api-file', default='api.txt')
 PARSER.add_argument('-w', '--white-list', default='white_list.json')
 PARSER.add_argument('-d', '--dump', action='store_true', help='Dump debug files')
 PARSER.add_argument('-s', '--dump-all-stacks', action='store_true',
-                    help='Dump call_stack_all.json files. Should be used with caution because the file can be huge >5GB')
+                    help='Dump call_stacks_all.json files. Should be used with caution because the file can be >2GB and dumping takes a significant amount of time.')
 PARSER.add_argument('-l', '--filter-lower-limit', type=int, default=0,
         help='Include only call stacks of stack usage above the limit.')
 PARSER.add_argument('-i', '--filter-api-file',
