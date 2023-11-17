@@ -15,10 +15,10 @@ from typing import List, Dict, Any
 # from typing import TypeAlias
 
 # Assumed ndctl_ call's stack estimate
-NDCTL_CALL_STACK_ESTIMATE = 4096
+NDCTL_CALL_STACK_ESTIMATE = 4608
 
 # Assumed daxctl_ call's stack estimate
-DAXCTL_CALL_STACK_ESTIMATE = 3072
+DAXCTL_CALL_STACK_ESTIMATE = 7344
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('-u', '--stack-usage-file', default='stack_usage.txt')
