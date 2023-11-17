@@ -14,11 +14,11 @@ from typing import List, Dict, Any
 # https://peps.python.org/pep-0613/ requires Python >= 3.10
 # from typing import TypeAlias
 
-# Assumed ndctl_ call's stack estimate
-NDCTL_CALL_STACK_ESTIMATE = 4096
+# Max empirically measured call stacks' size for ndctl_* calls (v78)
+NDCTL_CALL_STACK_ESTIMATE = 4608
 
-# Assumed daxctl_ call's stack estimate
-DAXCTL_CALL_STACK_ESTIMATE = 3072
+# Max empirically measured call stacks' size for daxctl_* calls (v78)
+DAXCTL_CALL_STACK_ESTIMATE = 7344
 
 PARSER = argparse.ArgumentParser()
 PARSER.add_argument('-u', '--stack-usage-file', default='stack_usage.txt')
