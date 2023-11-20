@@ -1,9 +1,6 @@
 8432 out_common : src/nondebug/libpmem/out.su:out.c dynamic,bounded
 8432 out_common : src/nondebug/libpmemobj/out.su:out.c dynamic,bounded
 8432 out_common : src/nondebug/core/out.su:out.c dynamic,bounded
-8224 pmem2_get_type_from_stat : src/nondebug/libpmem/pmem2_utils_linux.su:pmem2_utils_linux.c static
-8224 pmem2_get_type_from_stat : src/nondebug/libpmemobj/pmem2_utils_linux.su:pmem2_utils_linux.c static
-8224 pmem2_get_type_from_stat : src/nondebug/common/pmem2_utils_linux.su:pmem2_utils_linux.c static
 7424 memmove_mov_avx512f_empty : src/nondebug/libpmem/memcpy_t_avx512f.su:memcpy_t_avx512f.c static
 4272 pmem2_fsdax_match : src/nondebug/libpmem/region_namespace_ndctl.su:region_namespace_ndctl.c static
 4272 pmem2_fsdax_match : src/nondebug/libpmemobj/region_namespace_ndctl.su:region_namespace_ndctl.c static
@@ -14,6 +11,9 @@
 4224 check_domain_in_region : src/nondebug/libpmemobj/auto_flush_linux.su:auto_flush_linux.c dynamic,bounded
 4224 check_domain_in_region : src/nondebug/libpmem/auto_flush_linux.su:auto_flush_linux.c dynamic,bounded
 4224 check_domain_in_region : src/nondebug/common/auto_flush_linux.su:auto_flush_linux.c dynamic,bounded
+4192 pmem2_get_type_from_stat : src/nondebug/libpmem/pmem2_utils_linux.su:pmem2_utils_linux.c static
+4192 pmem2_get_type_from_stat : src/nondebug/libpmemobj/pmem2_utils_linux.su:pmem2_utils_linux.c static
+4192 pmem2_get_type_from_stat : src/nondebug/common/pmem2_utils_linux.su:pmem2_utils_linux.c static
 4176 util_header_check : src/nondebug/libpmemobj/set.su:set.c static
 4176 util_header_check : src/nondebug/common/set.su:set.c static
 4144 pmem2_deep_flush_write : src/nondebug/libpmemobj/deep_flush_linux.su:deep_flush_linux.c static
