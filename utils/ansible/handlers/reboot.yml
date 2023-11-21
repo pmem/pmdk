@@ -7,4 +7,4 @@
 # in the README.md file.
 
     - name: "Reboot platform to apply updates"
-      reboot:
+      shell: sudo reboot -f

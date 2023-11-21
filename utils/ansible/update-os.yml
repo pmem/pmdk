@@ -5,8 +5,11 @@
 # Rocky Linux / OpenSUSE and reboot the platform if required.
 # The playbook description and how to use it are available
 # in the README.md file.
+#
+# Note: This playbook is designed to work as composite action during test prepare steps.
+# Local usage with shell reboot method will fail the playbook run and currently running
+# GHA job.
 
-#- hosts: "{{ host }}"
 - hosts: localhost
   connection: local
 

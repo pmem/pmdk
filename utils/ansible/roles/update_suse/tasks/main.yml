@@ -21,5 +21,4 @@
       register: needs_restarting
       changed_when: needs_restarting.rc == 102 or needs_restarting.rc == 103
       failed_when: needs_restarting.rc in [1, 2, 3, 4, 5, 6, 7, 8]
-      notify:
-      - reboot
+      notify: "Reboot platform to apply updates"

@@ -26,7 +26,6 @@
       register: needs_restarting
       changed_when: needs_restarting.rc == 1
       failed_when: needs_restarting.rc != 0 and needs_restarting.rc != 1
-      notify:
-      - reboot
+      notify: "Reboot platform to apply updates"
 
 
