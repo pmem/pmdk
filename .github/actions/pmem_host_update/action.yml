@@ -11,7 +11,7 @@ runs:
     #
     # Update-os playbook checks needs-restarting -r command status after packages update
     # to determine if platform reboot is required and triggers it immediately. This will fail
-    # currently running workflow due to runner service restart.
+    # currently running workflow job due to runner service restart.
     - name: Run ansible update-os playbook (platform reboot may be performed)
       working-directory: utils/ansible
       run: |
