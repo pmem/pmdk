@@ -7,4 +7,8 @@
 # in the README.md file.
 
     - name: "Reboot platform to apply updates"
-      shell: sudo reboot -f
+      shell: |
+        (sleep 5 && sudo shutdown -r now 'Ansible will reboot the platform to apply the updates.') &
+        disown
+      async: 30
+      poll: 0
