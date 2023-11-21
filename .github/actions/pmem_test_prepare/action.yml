@@ -12,6 +12,11 @@ inputs:
 runs:
   using: composite
   steps:
+
+    - name: Update OS
+      # Note: Currently running job fail is expected if reboot is triggered after core packages update.
+      uses: ./.github/actions/pmem_host_update
+
     - run: echo 'WORKDIR=utils/gha-runners' >> "$GITHUB_ENV"
       shell: bash
     - run: |
