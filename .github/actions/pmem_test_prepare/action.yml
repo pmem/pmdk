@@ -12,6 +12,10 @@ inputs:
 runs:
   using: composite
   steps:
+
+    - name: Update OS (may reboot the system and fail the run)
+      uses: ./.github/actions/pmem_host_update
+
     - run: echo 'WORKDIR=utils/gha-runners' >> "$GITHUB_ENV"
       shell: bash
     - run: |
