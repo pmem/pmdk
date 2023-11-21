@@ -1,10 +1,6 @@
 name: PMEM host update
 description: PMDK update host kernel and OS packages
-inputs:
-  input_1:
-    description: Input_1 description
-    required: false
-    default: y
+
 runs:
   using: composite
   steps:
