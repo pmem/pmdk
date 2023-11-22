@@ -96,6 +96,12 @@
 
   tasks:
 
+    - name: "Ensure cmake availability in the system"
+      package:
+        state: present
+        name:
+          - cmake
+
     - name: "Namespace and pmem configuration"
       block:
         - name: "Unmount all pmems"

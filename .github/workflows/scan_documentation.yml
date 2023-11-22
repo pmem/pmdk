@@ -18,7 +18,6 @@ jobs:
       - name: Install required packages
         run: |
           export BASE_DEPS="build-essential \
-            cmake \
             libdaxctl-dev \
             libndctl-dev \
             pandoc \

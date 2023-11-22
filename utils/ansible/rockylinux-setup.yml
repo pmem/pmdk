@@ -64,7 +64,6 @@
       package:
         state: present
         name:
-          - cmake
           - git
           - daxctl-devel
           - make
