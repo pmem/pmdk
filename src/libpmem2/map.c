@@ -165,13 +165,16 @@ static struct pmem2_state {
 void
 pmem2_map_init()
 {
+	struct ravl_interval *range_map = NULL;
+
 	util_rwlock_init(&State.range_map_lock);
 
 	util_rwlock_wrlock(&State.range_map_lock);
 	State.range_map = ravl_interval_new(mapping_min, mapping_max);
+	range_map = State.range_map;
 	util_rwlock_unlock(&State.range_map_lock);
 
-	if (!State.range_map)
+	if (!range_map)
 		abort();
 }
 
