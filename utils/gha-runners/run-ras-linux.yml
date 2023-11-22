@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022, Intel Corporation
+# Copyright 2022-2023, Intel Corporation
 
 # Ansible playbook which is executing PMDK RAS test: Unsafe Shutdown Local on Linux.
 
@@ -95,6 +95,13 @@
         target_dir: "{{ working_dir_path }}/pmdk-tests"
 
   tasks:
+
+#pmdk-tests is the only PMDK project that requires cmake for building.
+    - name: "Ensure cmake availability in the system"
+      package:
+        state: present
+        name:
+          - cmake
 
     - name: "Namespace and pmem configuration"
       block:

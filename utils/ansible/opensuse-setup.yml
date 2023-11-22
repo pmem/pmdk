@@ -62,7 +62,6 @@
       package:
         state: present
         name:
-          - cmake
           - gcc
           - gcc-c++
           - git

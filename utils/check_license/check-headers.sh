@@ -90,7 +90,7 @@ FILES=$($GIT $GIT_COMMAND | ${SOURCE_ROOT}/utils/check_license/file-exceptions.s
 	grep    -E -e '\.[chs]$' -e '\.[ch]pp$' -e '\.sh$' \
 		   -e '\.py$' -e '\.link$' -e 'Makefile*' -e 'TEST*' \
 		   -e '/common.inc$' -e '/match$' -e '/check_whitespace$' \
-		   -e 'LICENSE$' -e 'CMakeLists.txt$' -e '\.cmake$' | \
+		   -e 'LICENSE$' -e 'CMakeLists.txt$' | \
 	xargs)
 
 RV=0
