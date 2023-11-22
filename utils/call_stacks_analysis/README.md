@@ -10,11 +10,16 @@
 ## Generating call stacks
 
 ```sh
-./make_stack_usage.sh
-./make_api.sh
-./make_extra.py
-./make_cflow.sh
-./make_call_stacks.py
+# Run in the main PMDK folder
+make -j 48 clean && make -j 48 && \
+cd utils/call_stacks_analysis && \
+./make_stack_usage.sh && \
+./make_api.sh && \
+./make_extra.py && \
+./make_cflow.sh && \
+./make_call_stacks.py --dump --filter-api-file examples/api_filter.txt \
+    --filter-lower-limit 8192 --dump-all-stacks && \
+cd ../..
 ```
 
 If succesfull, it produces:
