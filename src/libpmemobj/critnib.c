@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2021, Intel Corporation */
+/* Copyright 2018-2023, Intel Corporation */
 
 /*
  * critnib.c -- implementation of critnib tree
@@ -357,8 +357,7 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 
 	struct critnib_node *n = c->root;
 	if (!n) {
-		c->root = kn;
-
+		load(&kn, &c->root);
 		util_mutex_unlock(&c->mutex);
 
 		return 0;
