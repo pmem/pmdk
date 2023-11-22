@@ -18,7 +18,6 @@ ENV NOTTY 1
 
 # PMDK basic dependencies
 ENV BASE_DEPS "\
-	cmake \
 	git \
 	daxctl-devel \
 	make \
