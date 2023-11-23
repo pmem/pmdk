@@ -1,0 +1,118 @@
+# Verify the stack usage is below the assumed limit
+name: Stack usage
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  CALL_STACKS_TOOLS_PATH: pmdk/utils/call_stacks_analysis
+
+jobs:
+  stack-usage:
+    name: Stack usage
+    env:
+      FILTERED_PREFIX: call_stacks_filtered
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the git repo
+        uses: actions/checkout@v3
+        with:
+          path: pmdk
+
+      - name: Install PMDK's dependencies
+        run: |
+          sudo apt-get install libdaxctl-dev libndctl-dev
+
+      - name: Build PMDK
+        env:
+          # just to speed up the job
+          BUILD_EXAMPLES: n
+          BUILD_BENCHMARKS: n
+        run: |
+          cd pmdk/src
+          make -j$(nproc)
+
+      - name: Install cflow
+        run: |
+          wget https://mirror.easyname.at/gnu/cflow/cflow-latest.tar.gz
+          tar -xzf cflow-latest.tar.gz
+          rm cflow-latest.tar.gz
+          echo cflow-*
+          cd cflow-*
+          ./configure
+          make
+          sudo make install
+
+      - name: Re-build stack_usage.txt
+        working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
+        run: |
+          ./make_stack_usage.sh
+          git diff stack_usage.txt > stack_usage_diff.txt
+
+      - name: Upload stack_usage.txt and its diff
+        uses: actions/upload-artifact@v3
+        with:
+          name: stack_usage
+          path: |
+            ${{ env.CALL_STACKS_TOOLS_PATH }}/stack_usage.txt
+            ${{ env.CALL_STACKS_TOOLS_PATH }}/stack_usage_diff.txt
+
+      # XXX A per-function stack usage fluctuates a lot depending on
+      # software configuration rendering its contents basically unfit for
+      # being validated. If we decide to keep it in the repo, we must agree
+      # on a golden software configuration on which it will be generated
+      # and be prepared for regular false positives whenever an update comes.
+      - name: Validate stack_usage.txt
+        working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
+        run: |
+          git status -s stack_usage.txt
+          if [ ! -z "$(git status -s stack_usage.txt)" ]; then
+            cat stack_usage_diff.txt
+            # exit 1 # XXX
+          fi
+
+      - name: Generate call stacks
+        working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
+        run: |
+          ./make_api.sh
+          ./make_extra.py
+          ./make_cflow.sh
+          # The lower limit comes up from the DAOS memory requirements.
+          # 16kB - 4kB - 1kB = 11kB
+          # 16kB = Stack allocated for a single Argobot's ULT
+          #  4kB = a maximum DAOS' stack usage up to calling a PMDK API calls
+          #  1kB = safety margin
+          ./make_call_stacks.py --filter-api-file examples/api_filter.txt --filter-lower-limit 11264
+
+      - name: List per-function stack usage for all call stacks of interest
+        working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
+        env:
+          TEMP: call_stack.json
+        run: |
+          touch ${{ env.FILTERED_PREFIX }}.txt
+          jq -c '.[]' ${{ env.FILTERED_PREFIX }}.json | while read i; do
+              echo $i > ${{ env.TEMP }}
+              {
+                ./list_stack_usage.py -c ${{ env. TEMP }};
+                echo $i | jq '.size';
+                echo;
+              } >> ${{ env.FILTERED_PREFIX }}.txt
+          done
+          rm ${{ env.TEMP }}
+
+      - name: Upload call_stacks_filtered.(json|txt)
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.FILTERED_PREFIX }}
+          path: ${{ env.CALL_STACKS_TOOLS_PATH }}/${{ env.FILTERED_PREFIX }}.*
+
+      - name: Make sure no call stack falls above the limit
+        working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
+        run: |
+          if [ $(wc -l < ${{ env.FILTERED_PREFIX }}.txt) -gt 0 ]; then
+            cat ${{ env.FILTERED_PREFIX }}.json
+            echo
+            cat ${{ env.FILTERED_PREFIX }}.txt
+            exit 1
+          fi

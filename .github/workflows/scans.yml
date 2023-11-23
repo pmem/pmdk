@@ -29,3 +29,6 @@ jobs:
   call-ubsan:
     uses: ./.github/workflows/scan_ubsan.yml
     name: UBSAN
+  call-stack-usage:
+    uses: ./.github/workflows/scan_stack_usage.yml
+    name: Stack usage
