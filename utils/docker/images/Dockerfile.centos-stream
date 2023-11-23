@@ -21,7 +21,6 @@ ENV BASE_DEPS "\
 	git \
 	daxctl-devel \
 	make \
-	cmake \
 	ndctl-devel \
 	pkg-config"
 
