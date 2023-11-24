@@ -263,7 +263,8 @@ def call_stacks_find_the_biggest_starting_at(call_stacks: List[CallStack], api_f
                 if api_func == call_stack['stack'][0]:
                         if call_stack['size'] > call_stack_max['size']:
                                 call_stack_max = call_stack
-        assert('stack' in call_stack_max.keys())
+        if 'stack' not in call_stack_max.keys():
+                raise AssertionError("call_stack_max does not include key 'stack'")
         return call_stack_max
 
 def generate_call_stacks_calling_api(call_stack_max: CallStack, callers: List[str], call_stacks: List[CallStack]) -> List[CallStack]:
