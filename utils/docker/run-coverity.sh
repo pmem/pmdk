@@ -34,9 +34,11 @@ echo -n | openssl s_client -connect scan.coverity.com:443 | \
 echo $USERPASS | sudo -S mv $TEMP_CF $CERT_FILE
 
 export COVERITY_SCAN_PROJECT_NAME="$CI_REPO_SLUG"
-[[ "$CI_EVENT_TYPE" == "cron" ]] \
-	&& export COVERITY_SCAN_BRANCH_PATTERN="master" \
-	|| export COVERITY_SCAN_BRANCH_PATTERN="coverity_scan"
+if [[ "$CI_EVENT_TYPE" == "cron" || "$CI_EVENT_TYPE" == "workflow_dispatch" ]]; then
+	export COVERITY_SCAN_BRANCH_PATTERN="master"
+else
+	export COVERITY_SCAN_BRANCH_PATTERN="coverity_scan"
+fi
 export COVERITY_SCAN_BUILD_COMMAND="make -j$(nproc) all"
 
 cd $WORKDIR
