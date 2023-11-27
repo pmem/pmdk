@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2022, Intel Corporation
+# Copyright 2018-2023, Intel Corporation
 #
 # Makefile -- Makefile for extents tool
 #
@@ -23,11 +23,7 @@ else
 OBJS += region_namespace_none.o
 endif
 
-ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS += extent_linux.o
-else
-OBJS += extent_none.o
-endif
 
 LIBPMEMCORE=y
 

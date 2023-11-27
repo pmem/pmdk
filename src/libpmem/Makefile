@@ -31,20 +31,11 @@ SOURCE =\
 	$(PMEM2)/config.c\
 	$(PMEM2)/persist_posix.c\
 	$(PMEM2)/source.c\
-	$(PMEM2)/source_posix.c
-
-ifeq ($(OS_KERNEL_NAME),Linux)
-SOURCE +=\
+	$(PMEM2)/source_posix.c\
 	$(PMEM2)/pmem2_utils_linux.c\
 	$(PMEM2)/pmem2_utils_$(OS_DIMM).c\
 	$(PMEM2)/auto_flush_linux.c\
 	$(PMEM2)/deep_flush_linux.c
-else
-SOURCE +=\
-	$(PMEM2)/pmem2_utils_other.c\
-	$(PMEM2)/auto_flush_none.c\
-	$(PMEM2)/deep_flush_other.c
-endif
 
 ifeq ($(OS_DIMM),ndctl)
 SOURCE +=\

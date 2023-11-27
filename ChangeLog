@@ -3,6 +3,7 @@
 	This release:
 	- Significantly reduces the libpmem's stack usage.
 	- pmemobj_open() stack usage reduction below 12kB threshold.
+	- remove non-Linux support from all compilation paths (OS_KERNEL_NAME)
 
 Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
