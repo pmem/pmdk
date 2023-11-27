@@ -33,17 +33,9 @@ SOURCE =\
 	deep_flush_linux.c\
 	extent_linux.c\
 	pmem2_utils_linux.c\
-	pmem2_utils_$(OS_DIMM).c
-
-ifeq ($(OS_DIMM),ndctl)
-SOURCE +=\
-	region_namespace_ndctl.c\
-	numa_ndctl.c
-else
-SOURCE +=\
-	region_namespace_none.c\
-	numa_none.c
-endif
+	pmem2_utils_$(OS_DIMM).c\
+	region_namespace_$(OS_DIMM).c\
+	numa_$(OS_DIMM).c
 
 include $(ARCH)/sources.inc
 
