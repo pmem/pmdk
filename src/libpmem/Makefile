@@ -35,17 +35,9 @@ SOURCE =\
 	$(PMEM2)/pmem2_utils_linux.c\
 	$(PMEM2)/pmem2_utils_$(OS_DIMM).c\
 	$(PMEM2)/auto_flush_linux.c\
-	$(PMEM2)/deep_flush_linux.c
-
-ifeq ($(OS_DIMM),ndctl)
-SOURCE +=\
-	region_namespace_ndctl.c\
-	numa_ndctl.c
-else
-SOURCE +=\
-	region_namespace_none.c\
-	numa_none.c
-endif
+	$(PMEM2)/deep_flush_linux.c\
+	$(PMEM2)/region_namespace_$(OS_DIMM).c\
+	$(PMEM2)/numa_$(OS_DIMM).c
 
 INCS += -I$(TOP)/src/libpmem2
 

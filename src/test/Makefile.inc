@@ -162,17 +162,9 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/auto_flush_linux.o\
 	$(TOP)/src/debug/libpmem2/deep_flush_linux.o\
 	$(TOP)/src/debug/libpmem2/extent_linux.o\
-	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o
-
-ifeq ($(OS_DIMM),ndctl)
-OBJS +=\
-	$(TOP)/src/debug/libpmem2/region_namespace_ndctl.o\
-	$(TOP)/src/debug/libpmem2/numa_ndctl.o
-else
-OBJS +=\
-	$(TOP)/src/debug/libpmem2/region_namespace_none.o\
-	$(TOP)/src/debug/libpmem2/numa_none.o
-endif
+	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/debug/libpmem2/region_namespace_$(OS_DIMM).o\
+	$(TOP)/src/debug/libpmem2/numa_$(OS_DIMM).o
 
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
 OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
@@ -208,17 +200,9 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o\
 	$(TOP)/src/nondebug/libpmem2/deep_flush_linuc.o\
 	$(TOP)/src/nondebug/libpmem2/extent_linux.o\
-	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o
-
-ifeq ($(OS_DIMM),ndctl)
-OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/region_namespace_ndctl.o\
-	$(TOP)/src/nondebug/libpmem2/numa_ndctl.o
-else
-OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/region_namespace_none.o\
-	$(TOP)/src/nondebug/libpmem2/numa_none.o
-endif
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/nondebug/libpmem2/region_namespace_$(OS_DIMM).o\
+	$(TOP)/src/nondebug/libpmem2/numa_$(OS_DIMM).o
 
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
 OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
@@ -276,17 +260,9 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o\
 	$(TOP)/src/nondebug/libpmem2/deep_flush_linux.o\
 	$(TOP)/src/nondebug/libpmem2/extent_linux.o\
-	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o
-
-ifeq ($(OS_DIMM),ndctl)
-OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/region_namespace_ndctl.o\
-	$(TOP)/src/nondebug/libpmem2/numa_ndctl.o
-else
-OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/region_namespace_none.o\
-	$(TOP)/src/nondebug/libpmem2/numa_none.o
-endif
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/nondebug/libpmem2/region_namespace_$(OS_DIMM).o\
+	$(TOP)/src/nondebug/libpmem2/numa_$(OS_DIMM).o
 
 INCS += -I$(TOP)/src/common
 endif
@@ -323,17 +299,9 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/auto_flush_linux.o\
 	$(TOP)/src/debug/libpmem2/deep_flush_linux.o\
 	$(TOP)/src/debug/libpmem2/extent_linux.o\
-	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o
-
-ifeq ($(OS_DIMM),ndctl)
-OBJS +=\
-	$(TOP)/src/debug/libpmem2/region_namespace_ndctl.o\
-	$(TOP)/src/debug/libpmem2/numa_ndctl.o
-else
-OBJS +=\
-	$(TOP)/src/debug/libpmem2/region_namespace_none.o\
-	$(TOP)/src/debug/libpmem2/numa_none.o
-endif
+	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/debug/libpmem2/region_namespace_$(OS_DIMM).o\
+	$(TOP)/src/debug/libpmem2/numa_$(OS_DIMM).o
 
 INCS += -I$(TOP)/src/common
 endif
