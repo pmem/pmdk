@@ -35,14 +35,6 @@ SOURCE +=\
 	$(PMEM2)/deep_flush_linux.c\
 	$(PMEM2)/extent_linux.c\
 	$(PMEM2)/pmem2_utils_linux.c\
-	$(PMEM2)/pmem2_utils_$(OS_DIMM).c
-
-ifeq ($(OS_DIMM),ndctl)
-SOURCE +=\
-	$(PMEM2)/region_namespace_ndctl.c\
-	$(PMEM2)/numa_ndctl.c
-else
-SOURCE +=\
-	$(PMEM2)/region_namespace_none.c\
-	$(PMEM2)/numa_none.c
-endif
+	$(PMEM2)/pmem2_utils_$(OS_DIMM).c\
+	$(PMEM2)/region_namespace_$(OS_DIMM).c\
+	$(PMEM2)/numa_$(OS_DIMM).c

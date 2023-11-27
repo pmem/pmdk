@@ -15,13 +15,8 @@ vpath %.c $(TOP)/src/libpmem2
 TARGET = extents
 OBJS = extents.o\
 	pmem2_utils_linux.o\
-	pmem2_utils.o
-
-ifeq ($(OS_DIMM),ndctl)
-OBJS += region_namespace_ndctl.o
-else
-OBJS += region_namespace_none.o
-endif
+	pmem2_utils.o\
+	region_namespace_$(OS_DIMM).o
 
 OBJS += extent_linux.o
 
