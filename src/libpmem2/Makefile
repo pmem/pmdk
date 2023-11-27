@@ -28,22 +28,12 @@ SOURCE =\
 	source.c\
 	source_posix.c\
 	vm_reservation.c\
-	vm_reservation_posix.c
-
-ifeq ($(OS_KERNEL_NAME),Linux)
-SOURCE +=\
+	vm_reservation_posix.c\
 	auto_flush_linux.c\
 	deep_flush_linux.c\
 	extent_linux.c\
 	pmem2_utils_linux.c\
 	pmem2_utils_$(OS_DIMM).c
-else
-SOURCE +=\
-	auto_flush_none.c\
-	deep_flush_other.c\
-	extent_none.c\
-	pmem2_utils_other.c
-endif
 
 ifeq ($(OS_DIMM),ndctl)
 SOURCE +=\

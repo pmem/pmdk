@@ -1,3 +1,9 @@
+XXX
+
+	* Version X.X.X
+
+	- remove non-Linux support from all compilation paths (OS_KERNEL_NAME)
+
 Thu May 23 2024 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 2.1.0
