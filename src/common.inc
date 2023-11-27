@@ -332,9 +332,7 @@ NDCTL_ENABLE ?= y
 ifeq ($(NDCTL_ENABLE),y)
     ifeq ($(LIBNDCTL_LIBS),)
         HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
-        ifeq ($(HAS_NDCTL),y)
-            OS_DIMM_CFLAG=-DNDCTL_ENABLED=1
-        else
+        ifeq ($(HAS_NDCTL),n)
             $(error Please install libndctl-dev/libndctl-devel/ndctl-devel >= $(NDCTL_MIN_VERSION))
         endif
         HAS_DAXCTL := $(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION))
@@ -348,8 +346,10 @@ ifeq ($(NDCTL_ENABLE),y)
         LIBNDCTL_LIBS := $(shell $(PKG_CONFIG) --libs $(LIBNDCTL_PKG_CONFIG_DEPS))
     endif
     OS_DIMM := ndctl
+    OS_DIMM_CFLAG=-DNDCTL_ENABLED=1
 else
     OS_DIMM := none
+    OS_DIMM_CFLAG=-DNDCTL_ENABLED=0
 endif
 export OS_DIMM
 export LIBNDCTL_PKG_CONFIG_DEPS
