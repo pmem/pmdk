@@ -4,6 +4,7 @@ Tue Dec 5 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
 	This release :
 	- Exclude Valgrind checks during compilation time when VG_XXX_ENABLED is set to 0
+	- Fix an issue with PMDK compilation with Valgrind tools disabled separately
 
 Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
