@@ -7,6 +7,7 @@ XXX
 	  - PMEMOBJ_IGNORE_DIRTY_SHUTDOWN and PMEMOBJ_IGNORE_BAD_BLOCKS are required to acknowledge the understanding of what production-critical functions are missing for the build without NDCTL
 	- does not allow opening pmem pool without unsafe shoutdown counter if not explicitly disabled
 	- remove support for build time define NO_LIBPTHREAD
+	- Exclude Valgrind checks during compilation time when VALGRIND env. variable is set to 0
 
 Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
@@ -17,7 +18,6 @@ Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 	- Reduces libpmemobj's stack usage below the 11kB threshold.
 	- Fixing minor Coverity issues
 	- Add a new toolset for stack usage analysis (https://github.com/pmem/pmdk/tree/master/utils/call_stacks_analysis)
-	
 
 Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 

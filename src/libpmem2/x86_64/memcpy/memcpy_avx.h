@@ -87,10 +87,13 @@ memmove_small_avx(char *dest, const char *src, size_t len, flush_fn flush)
 	 * path) in the optimized version.
 	 * libc's memcpy also does that, so we can't use it here.
 	 */
+#if VG_PMEMCHECK_ENABLED
 	if (On_pmemcheck) {
 		memmove_nodrain_generic(dest, src, len, PMEM2_F_MEM_NOFLUSH,
 				NULL, NULL);
-	} else {
+	} else
+#endif
+	{
 		memmove_small_avx_noflush(dest, src, len);
 	}
 
