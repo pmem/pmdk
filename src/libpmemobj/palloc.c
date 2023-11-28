@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * palloc.c -- implementation of pmalloc POSIX-like API
@@ -397,10 +397,14 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 				act->m.m_ops->get_real_size(&act->m));
 		}
 	} else if (act->new_state == MEMBLOCK_FREE) {
+#if VG_MEMCHECK_ENABLED
 		if (On_memcheck) {
 			void *ptr = act->m.m_ops->get_user_data(&act->m);
 			VALGRIND_DO_MEMPOOL_FREE(heap->layout, ptr);
-		} else if (On_pmemcheck) {
+		} else
+#endif
+#if VG_PMEMCHECK_ENABLED
+		if (On_pmemcheck) {
 			/*
 			 * The sync module, responsible for implementations of
 			 * persistent memory resident volatile variables,
@@ -417,6 +421,7 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 			size_t size = act->m.m_ops->get_real_size(&act->m);
 			VALGRIND_REGISTER_PMEM_MAPPING(ptr, size);
 		}
+#endif
 
 		STATS_SUB(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));

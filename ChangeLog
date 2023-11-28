@@ -1,3 +1,10 @@
+Tue Dec 5 2023 Oksana Sałyk <oksana.salyk@intel.com>
+
+	* Unreleased *
+
+	This release :
+	- Exclude Valgrind checks during compilation time when VG_XXX_ENABLED is set to 0
+
 Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 2.0.1
