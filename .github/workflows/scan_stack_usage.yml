@@ -44,37 +44,10 @@ jobs:
           make
           sudo make install
 
-      - name: Re-build stack_usage.txt
+      - name: Make call stacks
         working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
         run: |
           ./make_stack_usage.sh
-          git diff stack_usage.txt > stack_usage_diff.txt
-
-      - name: Upload stack_usage.txt and its diff
-        uses: actions/upload-artifact@v3
-        with:
-          name: stack_usage
-          path: |
-            ${{ env.CALL_STACKS_TOOLS_PATH }}/stack_usage.txt
-            ${{ env.CALL_STACKS_TOOLS_PATH }}/stack_usage_diff.txt
-
-      # XXX A per-function stack usage fluctuates a lot depending on
-      # software configuration rendering its contents basically unfit for
-      # being validated. If we decide to keep it in the repo, we must agree
-      # on a golden software configuration on which it will be generated
-      # and be prepared for regular false positives whenever an update comes.
-      - name: Validate stack_usage.txt
-        working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
-        run: |
-          git status -s stack_usage.txt
-          if [ ! -z "$(git status -s stack_usage.txt)" ]; then
-            cat stack_usage_diff.txt
-            # exit 1 # XXX
-          fi
-
-      - name: Generate call stacks
-        working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
-        run: |
           ./make_api.sh
           ./make_extra.py
           ./make_cflow.sh
@@ -103,11 +76,13 @@ jobs:
           done
           rm -f ${{ env.TEMP }}
 
-      - name: Upload call_stacks_filtered.(json|txt)
+      - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ env.FILTERED_PREFIX }}
-          path: ${{ env.CALL_STACKS_TOOLS_PATH }}/${{ env.FILTERED_PREFIX }}.*
+          name: call_stacks_data
+          path: |
+            ${{ env.CALL_STACKS_TOOLS_PATH }}/stack_usage.txt
+            ${{ env.CALL_STACKS_TOOLS_PATH }}/${{ env.FILTERED_PREFIX }}.*
 
       - name: Make sure no call stack falls above the limit
         working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
