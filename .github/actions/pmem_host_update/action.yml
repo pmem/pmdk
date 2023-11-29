@@ -1,0 +1,16 @@
+name: PMEM host update
+description: Update host kernel and OS packages
+
+runs:
+  using: composite
+  steps:
+    # Some packages will require a system reboot after an update.
+    # https://access.redhat.com/solutions/27943
+    # https://www.suse.com/support/kb/doc/?id=000020544
+    #
+    # If a platform reboot is required it is triggered immediately.
+    # This will fail the currently running run due to the runner service restart.
+    - name: Run ansible update-os playbook (platform reboot may be performed)
+      working-directory: utils/ansible
+      run: ansible-playbook ./update-os.yml
+      shell: bash
