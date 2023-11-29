@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This is the part of update-os playbook. It is designed to update all installed
+# packages at Rocky Linux and check if a reboot is required to apply changes.
+# The playbook description and how to use it are available
+# in the README.md file.
+
+- name: Install yum-utils needed to check if a reboot is required
+  package:
+    name: yum-utils
+    state: latest
+
+- name: Update kernel packages
+  package:
+    name: kernel.x86_64
+    state: latest
+
+- name: Update OS packages
+  package:
+    name: "*"
+    state: latest
+
+- name: Check if a reboot is required
+  command: needs-restarting -r
+  register: needs_restarting
+  changed_when: needs_restarting.rc == 1
+  failed_when: needs_restarting.rc != 0 and needs_restarting.rc != 1
+  notify: Reboot platform to apply updates

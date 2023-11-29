@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2023, Intel Corporation
+
+# This is the part of update-os playbook. It is designed to update all installed
+# packages at OpenSUSE and check if a reboot is required to apply changes.
+# The playbook description and how to use it are available
+# in the README.md file.
+
+- name: Update kernel packages
+  package:
+    name: kernel-default
+    state: latest
+
+- name: Update OS packages
+  package:
+    name: "*"
+    state: latest
+
+- name: Check if a reboot required
+  command: zypper -sss
+  register: needs_restarting
+  changed_when: needs_restarting.rc == 102 or needs_restarting.rc == 103
+  failed_when: needs_restarting.rc in [1, 2, 3, 4, 5, 6, 7, 8]
+  notify: Reboot platform to apply updates
