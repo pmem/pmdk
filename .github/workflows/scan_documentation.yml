@@ -2,7 +2,6 @@
 name: Documentation
 
 on:
-  workflow_dispatch:
   workflow_call:
 
 jobs:
@@ -19,7 +18,6 @@ jobs:
       - name: Install required packages
         run: |
           export BASE_DEPS="build-essential \
-            cmake \
             libdaxctl-dev \
             libndctl-dev \
             pandoc \

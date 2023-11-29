@@ -100,14 +100,6 @@ RUN yum install -y  \
 
 RUN pip3 install $PYTHON_DEPS
 
-# Install cmake 3*
-RUN wget https://cmake.org/files/v3.12/cmake-3.12.3.tar.gz \
-	&& tar zxvf cmake-3.* \
-	&& cd cmake-3.* \
-	&& ./bootstrap --prefix=/usr/local \
-	&& make -j$(nproc) \
-	&& make install -j$(nproc)
-
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
 RUN ./install-valgrind.sh centos

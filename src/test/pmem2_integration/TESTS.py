@@ -22,12 +22,13 @@ class PMEM2_INTEGRATION(t.Test):
         ctx.exec('pmem2_integration', self.test_case, filepath)
 
 
-@t.require_devdax(t.DevDax('devdax'))
+@t.require_devdax(t.DevDax('devdax'), max_size=1 * t.GiB)
 class PMEM2_INTEGRATION_DEV_DAXES(t.Test):
     test_type = t.Medium
 
     def run(self, ctx):
         dd = ctx.devdaxes.devdax
+        print(dd.path)
         ctx.exec('pmem2_integration', self.test_case, dd.path)
 
 
@@ -249,27 +250,37 @@ class TEST32(PMEM2_INTEGRATION):
     test_case = "test_source_anon_zero_len"
 
 
-class TEST33(PMEM2_INTEGRATION_DEV_DAXES):
+# The Valgrind pmemcheck tool does not have a notion of a deep flush.
+# Whereas from the persistency point of view, the deep flush test cases are
+# trivial so running them under pmemcheck produces little value.
+# At the same time, they touch a whole provided device DAX space hence running
+# them under pmemcheck is extensively time-consuming.
+@t.require_valgrind_disabled('pmemcheck')
+class PMEM2_INTEGRATION_DEV_DAXES_NO_PMEMCHECK(PMEM2_INTEGRATION_DEV_DAXES):
+    pass
+
+
+class TEST33(PMEM2_INTEGRATION_DEV_DAXES_NO_PMEMCHECK):
     """test valid case of pmem2_deep_sflush"""
     test_case = "test_deep_flush_valid"
 
 
-class TEST34(PMEM2_INTEGRATION_DEV_DAXES):
+class TEST34(PMEM2_INTEGRATION_DEV_DAXES_NO_PMEMCHECK):
     """test deep flush with range out of map"""
     test_case = "test_deep_flush_e_range_behind"
 
 
-class TEST35(PMEM2_INTEGRATION_DEV_DAXES):
+class TEST35(PMEM2_INTEGRATION_DEV_DAXES_NO_PMEMCHECK):
     """test deep flush with range out of map"""
     test_case = "test_deep_flush_e_range_before"
 
 
-class TEST36(PMEM2_INTEGRATION_DEV_DAXES):
+class TEST36(PMEM2_INTEGRATION_DEV_DAXES_NO_PMEMCHECK):
     """test deep flush with part of map"""
     test_case = "test_deep_flush_slice"
 
 
-class TEST37(PMEM2_INTEGRATION_DEV_DAXES):
+class TEST37(PMEM2_INTEGRATION_DEV_DAXES_NO_PMEMCHECK):
     """test deep flush with overlapping part"""
     test_case = "test_deep_flush_overlap"
 

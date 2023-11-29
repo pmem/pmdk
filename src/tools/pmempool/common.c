@@ -348,7 +348,7 @@ util_parse_ranges(const char *ptr, struct ranges *rangesp, struct range entire)
 			*next = '\0';
 			next++;
 		}
-		struct range range;
+		struct range range = {0};
 		if (util_parse_range(str, &range, entire)) {
 			ret = -1;
 			goto out;

@@ -19,7 +19,6 @@ ENV DEBIAN_FRONTEND noninteractive
 
 # PMDK basic dependencies
 ENV BASE_DEPS "build-essential \
-	cmake \
 	git \
 	libdaxctl-dev \
 	libndctl-dev \

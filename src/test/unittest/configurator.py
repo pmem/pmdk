@@ -136,7 +136,7 @@ def _str2ctx(config):
     convert_internal('test_type', test_types._TestType)
     convert_internal('granularity', granularity.Granularity)
 
-    if config['force_enable'] is not None:
+    if config['force_enable'] is not None and config['force_enable'] != 'none':
         config['force_enable'] = next(
             t for t in vg.TOOLS
             if t.name.lower() == config['force_enable'])
@@ -288,7 +288,10 @@ class Configurator():
         tracers.add_argument('--cgdb', dest='tracer', action='store_const',
                              const='cgdb --args', help='run cgdb as a tracer')
 
-        fe_choices = [str(t) for t in vg.TOOLS]
-        parser.add_argument('--force-enable', choices=fe_choices, default=None)
+        fe_choices = [str(t) for t in vg.TOOLS] + ['none']
+        parser.add_argument('--force-enable', choices=fe_choices, default=None,
+                            help='allows to force the use of a specific '
+                            'valgrind tool, but skips tests where the tool is '
+                            'explicitly disabled')
 
         return parser

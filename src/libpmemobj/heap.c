@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2023, Intel Corporation */
 
 /*
  * heap.c -- heap implementation
@@ -1375,9 +1375,10 @@ heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 {
 	util_mutex_lock(&heap->rt->arenas.lock);
 	struct arena *a = heap_get_arena_by_id(heap, arena_id);
+	int ret = a->automatic;
 	util_mutex_unlock(&heap->rt->arenas.lock);
 
-	return a->automatic;
+	return ret;
 }
 
 /*

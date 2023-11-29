@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2023, Intel Corporation
 #
 """Test type context classes"""
 
@@ -24,3 +24,7 @@ class Long(_TestType):
 
 class Check(_TestType):
     includes = [Short, Medium]
+
+
+class All(_TestType):
+    includes = [Short, Medium, Long]

@@ -109,7 +109,7 @@ git commit --reset-author
 
 Announce the release on the:
 - [pmem.io](https://pmem.io/announcements/)
-- [Slack](pmem-io.slack.com)
+- [Slack](https://pmem-io.slack.com)
 - [Google group](https://groups.google.com/g/pmem )
 
 ## 7. Later, for major/minor release

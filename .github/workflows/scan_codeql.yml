@@ -2,7 +2,6 @@
 name: CodeQL
 
 on:
-  workflow_dispatch:
   workflow_call:
 
 jobs:
@@ -24,7 +23,6 @@ jobs:
           automake"
 
         export BASE_DEPS="build-essential \
-          cmake \
           git \
           libdaxctl-dev \
           libndctl-dev \

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2022, Intel Corporation */
+/* Copyright 2020-2023, Intel Corporation */
 
 /*
  * region_namespace_ndctl.c -- common ndctl functions
@@ -17,13 +17,18 @@
 #include "region_namespace.h"
 #include "out.h"
 
+#define FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns)	\
+	ndctl_bus_foreach(ctx, bus)				\
+	ndctl_region_foreach(bus, region)			\
+	ndctl_namespace_foreach(region, ndns)
+
 /*
- * ndctl_match_devdax -- (internal) returns 0 if the devdax matches
+ * pmem2_devdax_match -- (internal) returns 0 if the devdax matches
  *                       with the given file, 1 if it doesn't match,
  *                       and a negative value in case of an error.
  */
 static int
-ndctl_match_devdax(dev_t st_rdev, const char *devname)
+pmem2_devdax_match(dev_t st_rdev, const char *devname)
 {
 	LOG(3, "st_rdev %lu devname %s", st_rdev, devname);
 
@@ -56,12 +61,12 @@ ndctl_match_devdax(dev_t st_rdev, const char *devname)
 #define BUFF_LENGTH 64
 
 /*
- * ndctl_match_fsdax -- (internal) returns 0 if the device matches
+ * pmem2_fsdax_match -- (internal) returns 0 if the device matches
  *                      with the given file, 1 if it doesn't match,
  *                      and a negative value in case of an error.
  */
 static int
-ndctl_match_fsdax(dev_t st_dev, const char *devname)
+pmem2_fsdax_match(dev_t st_dev, const char *devname)
 {
 	LOG(3, "st_dev %lu devname %s", st_dev, devname);
 
@@ -171,7 +176,7 @@ pmem2_region_namespace(struct ndctl_ctx *ctx,
 			struct daxctl_dev *dev;
 			daxctl_dev_foreach(dax_region, dev) {
 				devname = daxctl_dev_get_devname(dev);
-				int ret = ndctl_match_devdax(src->value.st_rdev,
+				int ret = pmem2_devdax_match(src->value.st_rdev,
 					devname);
 				if (ret < 0)
 					return ret;
@@ -200,7 +205,7 @@ pmem2_region_namespace(struct ndctl_ctx *ctx,
 					ndctl_namespace_get_block_device(ndns);
 			}
 
-			int ret = ndctl_match_fsdax(src->value.st_dev, devname);
+			int ret = pmem2_fsdax_match(src->value.st_dev, devname);
 			if (ret < 0)
 				return ret;
 

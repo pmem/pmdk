@@ -16,7 +16,7 @@ usage()
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 		[ -o timeout ] [ -s test-file | -u test-sequence ] [-k skip-dir ]
 		[[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] ||
-		[ --force-enable memcheck|pmemcheck|helgrind|drd ]]
+		[ --force-enable memcheck|pmemcheck|helgrind|drd|none ]]
 		[ -c ] [tests...]
 -h			print this help message
 -n			dry run
@@ -53,7 +53,7 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			drd: auto (default, enable/disable based on test requirements),
 			force-enable (enable when test does not require drd, but
 			obey test's explicit drd disable)
---force-enable memcheck|pmemcheck|helgrind|drd
+--force-enable memcheck|pmemcheck|helgrind|drd|none
 			allows to force the use of a specific valgrind tool,
 			but skips tests where the tool is explicitly disabled
 			Can not be use with -m, -p, -e, -d.
@@ -315,10 +315,8 @@ runtest() {
 			do
 				export RUNTEST_DIR=$1
 				export RUNTEST_PARAMS="TEST=$ttype FS=$fs BUILD=$build"
-				# FORCE_CHECK_TYPE is required for easy force-enable condition failure detection.
-				# Please see require_valgrind() for details.
 				export RUNTEST_EXTRA="CHECK_TYPE=$checktype \
-					FORCE_CHECK_TYPE=$checktype \
+					DISABLE_VALGRIND_TESTS=$disable_valgrind_tests \
 					CHECK_POOL=$check_pool \
 					$special_params"
 				export RUNTEST_SCRIPT="$runscript"
@@ -369,6 +367,7 @@ testfile=all
 testseq=all
 check_pool=0
 checktype="none"
+disable_valgrind_tests=0
 skip_dir=""
 keep_going=n
 keep_going_skip=n
@@ -455,13 +454,16 @@ do
 
 		case "$receivetype"
 		in
+		none)
+			disable_valgrind_tests=1
+			;;
 		memcheck|pmemcheck|helgrind|drd)
+			checktype=$receivetype
 			;;
 		*)
 			usage "bad force-enable: $receivetype"
 			;;
 		esac
-		checktype=$receivetype
 		;;
 	-k)
 		skip_dir="$skip_dir $2"

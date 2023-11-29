@@ -1,0 +1,5 @@
+*.err
+*.json
+*.txt
+!white_list.json
+!examples/*

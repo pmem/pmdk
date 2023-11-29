@@ -1,0 +1,15 @@
+{
+        "stack": [
+            "pmem_map_file",
+            "pmem_map_fileU",
+            "pmem_map_register",
+            "util_range_register",
+            "util_ddax_region_find",
+            "pmem2_get_type_from_stat",
+            "ERR",
+            "out_err",
+            "out_error",
+            "out_snprintf"
+        ],
+        "size": 9424
+    }
