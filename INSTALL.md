@@ -20,7 +20,7 @@ You will need to install the following required packages on the build system:
 The following packages are required only by selected PMDK components
 or features:
 
-PMDK depends on libndctl to support RAS features. It is possible
+PMDK depends on libndctl and libdaxctl to support RAS features. It is possible
 to disable this support by passing `NDCTL_ENABLE=n` to `make`, but we strongly
 discourage users from doing that. Disabling NDCTL strips PMDK from ability to
 detect hardware failures, which may lead to silent data corruption.
