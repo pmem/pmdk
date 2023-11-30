@@ -1,3 +1,10 @@
+	* Unreleased *
+
+	This release:
+	- Fixing minor Coverity issues
+	- Enable test execution with default Valgrind configuration
+	- Add new toolset for stack usage analisys (https://github.com/pmem/pmdk/tree/master/utils/call_stacks_analysis)
+
 Tue Nov 28 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 2.0.1-rc1
