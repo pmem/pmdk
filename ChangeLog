@@ -3,8 +3,10 @@ Tue Nov 28 2023 Oksana Sałyk <oksana.salyk@intel.com>
 	* Version 2.0.1-rc1
 
 	This release :
+	- Fixing minor Coverity issues
+	- Add a new toolset for stack usage analysis (https://github.com/pmem/pmdk/tree/master/utils/call_stacks_analysis)
 	- Significantly reduces the libpmem's stack usage.
-	- pmemobj_open() stack usage reduction below 12kB threshold.
+	- Reduces libpmemobj's stack usage below the 11kB threshold.
 
 Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
