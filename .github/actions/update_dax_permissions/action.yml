@@ -1,0 +1,14 @@
+name: PMEM update DAX permissions
+description: Update DAX and related sysfs nodes' permissions to prevent permission-denied errors
+
+runs:
+  using: composite
+  steps:
+    # After platform reboot /dev/dax* permissions are reset back to 600.
+    - name: Update DAX and related devices permissions
+      run: |
+        sudo chmod 777 /dev/dax*
+        sudo chmod +rw /sys/bus/nd/devices/region*/deep_flush
+        sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/resource
+        sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+      shell: bash

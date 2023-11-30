@@ -132,10 +132,10 @@
         sudo mount -o dax=always /dev/${pmem_name} {{ mountPoint }}
         sudo chown -R {{ testUser }} {{ mountPoint }}
 
-        sudo chmod 777 /dev/dax* || true
-        sudo chmod a+rw /sys/bus/nd/devices/region*/deep_flush
+        sudo chmod 777 /dev/dax*
+        sudo chmod +rw /sys/bus/nd/devices/region*/deep_flush
         sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/resource
-        sudo chmod +r  /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+        sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/dax*/resource
       register: script
 
     - debug: var=script
