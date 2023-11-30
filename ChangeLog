@@ -1,6 +1,8 @@
-	* Unreleased *
+Tue Nov 28 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
-	This release:
+	* Version 2.0.1-rc1
+
+	This release :
 	- Significantly reduces the libpmem's stack usage.
 	- pmemobj_open() stack usage reduction below 12kB threshold.
 
