@@ -1,6 +1,6 @@
-Tue Nov 28 2023 Oksana Sałyk <oksana.salyk@intel.com>
+Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
-	* Version 2.0.1-rc1
+	* Version 2.0.1
 
 	This release :
 	- Significantly reduces the libpmem's stack usage.
