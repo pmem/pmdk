@@ -31,7 +31,14 @@ sudo ansible-galaxy collection install ansible.posix
 
 # Provisioning basics
 ## Provisioning the target platform
-Use the command below to setup the PMDK software development environment:
+### Update kernel and OS packages
+**Note**: If necessary the command below will restart the platform.
+```sh
+ansible-playbook update-os.yml
+```
+This playbook can be used periodically in order to keep the platform up-to-date.
+
+### Setup the PMDK software development environment
 ```sh
 export TARGET_IP= # ip of the target
 export ROOT_PASSWORD= # a password of root on the target
@@ -207,4 +214,3 @@ ansible-playbook configure-self-hosted-runner.yml -extra-vars \
 cd
 rm -rf pmdk
 ```
-
