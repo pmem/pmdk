@@ -12,11 +12,15 @@ on:
 jobs:
   # Test the default build with the basic test suite.
   Basic:
+    strategy:
+      matrix:
+        VALGRIND: [0, 1]
     uses: ./.github/workflows/pmem_test_matrix.yml
     with:
       # Exclude all Valgrind tests. All tests employing Valgrind tooling are run
       # in the dedicated workflows below.
       force_enable: '["none"]'
+      valgrind: ${{ matrix.VALGRIND }}
 
 
   # Test the default build with force-enabled Valgrind tooling for (persistent)
@@ -25,6 +29,7 @@ jobs:
     uses: ./.github/workflows/pmem_test_matrix.yml
     with:
       force_enable: '["pmemcheck", "memcheck"]'
+      valgrind: 1
 
 
   # Test the default build with force-enabled Valgrind tooling for thread error
@@ -33,6 +38,7 @@ jobs:
     uses: ./.github/workflows/pmem_test_matrix.yml
     with:
       force_enable: '["drd", "helgrind"]'
+      valgrind: 1
       # 9h = 7h20m (the longest workflow execution time) + ~20% leeway.
       timeout_minutes: 540
 
@@ -52,6 +58,8 @@ jobs:
 
       - name: Test prepare
         uses: ./.github/actions/pmem_test_prepare
+        with:
+          valgrid: 1
 
       - name: Test run
         uses: ./.github/actions/pmem_test_run
@@ -73,6 +81,7 @@ jobs:
         uses: ./.github/actions/pmem_test_prepare
         with:
           fault_injection: '1'
+          valgrind: 1
 
       - name: Test run
         uses: ./.github/actions/pmem_test_run
@@ -84,6 +93,8 @@ jobs:
   # By default, PMDK is built with NDCTL in order to provide RAS features.
   # This build is only viable as long as DAOS builds PMDK with NDCTL_ENABLE=n
   # https://github.com/daos-stack/pmdk/pull/12
+  # It should be removed as soon as following PR is merged
+  # https://github.com/daos-stack/pmdk/pull/35
   ndctl_enable_n:
     name: Without ndctl
     if: github.repository == 'pmem/pmdk'
@@ -96,8 +107,17 @@ jobs:
         uses: ./.github/actions/pmem_test_prepare
         with:
           ndctl_enable: n
+          valgrind: 0
 
       - name: Test run
         uses: ./.github/actions/pmem_test_run
         with:
           build: nondebug # only the production build is considered
+
+  # Test the default build with the basic test suite.
+  Basic_w_Valgrind:
+    uses: ./.github/workflows/pmem_test_matrix.yml
+    with:
+      # Exclude all Valgrind tests but keep Valgrind tools built-in.
+      force_enable: '["none"]'
+      valgrind: 1
