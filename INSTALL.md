@@ -114,8 +114,11 @@ By default, support for all tools is enabled. If you wish to disable it, supply 
 make EXTRA_CFLAGS=-DVG_MEMCHECK_ENABLED=0
 ```
 
-`VALGRIND_ENABLED` flag, when set to 0, disables all Valgrind tools
-(drd, helgrind, memcheck and pmemcheck).
+If you want to disables all Valgrind tools run:
+
+```sh
+make VALGRIND=0
+```
 
 The `SANITIZE` flag allows the libraries to be tested with various
 sanitizers. For example, to test the libraries with AddressSanitizer
