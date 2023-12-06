@@ -102,11 +102,25 @@ jobs:
         with:
           build: nondebug # only the production build is considered
 
+  no_valgrind:
+    name: Without Valgrind
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, "${{ matrix.os }}"]
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [rhel, opensuse]
 
-  # Test the default build with the basic test suite.
-  Basic_w_Valgrind:
-    uses: ./.github/workflows/pmem_test_matrix.yml
-    with:
-      # Exclude all Valgrind tests but keep Valgrind tools built-in.
-      force_enable: '["none"]'
-      valgrind: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+        with:
+          ndctl_enable: y
+          valgrind: 0
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          build: nondebug # only the production build is considered
