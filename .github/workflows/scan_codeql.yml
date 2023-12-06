@@ -41,7 +41,7 @@ jobs:
         languages: cpp, python
 
     - name: Build PMDK
-      run: make EXTRA_CFLAGS=-DUSE_VALGRIND test -j$(nproc)
+      run: make EXTRA_CFLAGS=-DVALGRIND_ENABLED=1 test -j$(nproc)
 
     - name: CodeQL scan
       uses: github/codeql-action/analyze@v2
