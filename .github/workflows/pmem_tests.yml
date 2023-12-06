@@ -101,3 +101,25 @@ jobs:
         uses: ./.github/actions/pmem_test_run
         with:
           build: nondebug # only the production build is considered
+
+  no_valgrind:
+    name: Without Valgrind
+    if: github.repository == 'pmem/pmdk'
+    runs-on: [self-hosted, "${{ matrix.os }}"]
+    strategy:
+      matrix:
+        os: [rhel, opensuse]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Test prepare
+        uses: ./.github/actions/pmem_test_prepare
+        with:
+          ndctl_enable: n
+          valgrind: 0
+
+      - name: Test run
+        uses: ./.github/actions/pmem_test_run
+        with:
+          build: nondebug # only the production build is considered
