@@ -121,7 +121,9 @@ class TestRunner:
                             continue
 
                     except futils.Skip as s:
-                        self.msg.print('{}: SKIP: {}'.format(t, s))
+                        self.msg.print('{}: {}SKIP{}: {}'.
+                                       format(t, futils.Color.YELLOW,
+                                              futils.Color.END, s))
 
                     except futils.Fail as f:
                         self._test_failed(t, c, f)
@@ -130,7 +132,9 @@ class TestRunner:
                         self._test_passed(t)
 
             except futils.Skip as s:
-                self.msg.print('{}: SKIP: {}'.format(tc, s))
+                self.msg.print('{}: {}SKIP{}: {}'.
+                               format(tc, futils.Color.YELLOW,
+                                      futils.Color.END, s))
             except futils.Fail as f:
                 self._test_failed(tc, c, f)
                 ret = 1
