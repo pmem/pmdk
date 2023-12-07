@@ -201,9 +201,9 @@ class Valgrind:
                 raise futils.Skip('Valgrind not found')
 
         try:
-            _ = sp.check_output('../valgrind_check/valgrind_check',
-                                  shell=True, universal_newlines=True,
-                                  stderr=sp.STDOUT)
+            _ = sp.check_output('./valgrind_check/valgrind_check',
+                                shell=True, universal_newlines=True,
+                                stderr=sp.STDOUT)
         except sp.CalledProcessError:
             raise futils.Skip(
                 'Valgrind is required but the Valgrind support has been disabled at compile time')  # noqa: E501
