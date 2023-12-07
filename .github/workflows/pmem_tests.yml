@@ -11,14 +11,6 @@ on:
     - cron:  '0 18 * * *'
 
 jobs:
-  # Test the default build with the basic test suite.
-  Basic:
-    uses: ./.github/workflows/pmem_test_matrix.yml
-    with:
-      # Exclude all Valgrind tests. All tests employing Valgrind tooling are run
-      # in the dedicated workflows below.
-      force_enable: '["none"]'
-
   no_valgrind:
     name: Without Valgrind
     if: github.repository == 'pmem/pmdk'
