@@ -1,0 +1,7 @@
+Persistent Memory Development Kit
+
+This is src/test/valgrind_check/README.
+
+This directory contains a unit test for Valgrind enabling.
+
+The program in valgrind_check.c verifies if Valgrind was enabled during build.
