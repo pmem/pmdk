@@ -205,7 +205,7 @@ class Valgrind:
                                   shell=True, universal_newlines=True,
                                   stderr=sp.STDOUT)
         except sp.CalledProcessError:
-            raise futils.Skip('Valgrind tool required but not enabled'\
+            raise futils.Skip('Valgrind tool required but not enabled'
                               + ' in the source code')
 
         valgrind_bin = path.join(path.dirname(out), 'valgrind.bin')
