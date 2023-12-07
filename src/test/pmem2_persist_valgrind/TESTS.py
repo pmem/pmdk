@@ -34,6 +34,7 @@ class TEST1(PMEM2_PERSIST):
     test_case = "test_persist_discontinuous_range"
 
 
+@t.require_valgrind_enabled('pmemcheck')
 class TEST2(PMEM2_PERSIST):
     """persist part of discontinuous data in a range of pmem"""
     test_case = "test_persist_discontinuous_range_partially"
