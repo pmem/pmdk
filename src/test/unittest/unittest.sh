@@ -1475,6 +1475,17 @@ function require_valgrind() {
 			exit 0
 		fi
 	fi
+
+	#Check if Valgrind is enabeld in test build
+	disable_exit_on_error
+	../valgrind_check/valgrind_check
+	local ret1=$?
+	restore_exit_on_error
+	if [ $ret1 -ne 0 ]; then
+		msg=$(interactive_yellow STDOUT "SKIP:")
+		echo -e "$UNITTEST_NAME: $msg Valgrind tool required but not enabled in the source code"
+		exit 0
+	fi
 }
 
 #
