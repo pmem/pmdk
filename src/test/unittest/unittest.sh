@@ -1475,6 +1475,17 @@ function require_valgrind() {
 			exit 0
 		fi
 	fi
+
+	# Check if Valgrind is enabled in the test build
+	disable_exit_on_error
+	../valgrind_check/valgrind_check
+	ret=$?
+	restore_exit_on_error
+	if [ $ret -ne 0 ]; then
+		msg=$(interactive_yellow STDOUT "SKIP:")
+		echo -e "$UNITTEST_NAME: $msg Valgrind is required but the Valgrind support has been disabled at compile time"
+		exit 0
+	fi
 }
 
 #
