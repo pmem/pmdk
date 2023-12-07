@@ -7,6 +7,4 @@
 TARGET = valgrind_check
 OBJS = valgrind_check.o
 
-LIBPMEM=n
-
 include ../Makefile.inc
