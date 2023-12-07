@@ -107,6 +107,7 @@ jobs:
     if: github.repository == 'pmem/pmdk'
     runs-on: [self-hosted, "${{ matrix.os }}"]
     strategy:
+      fail-fast: true
       matrix:
         os: [rhel, opensuse]
 
@@ -116,7 +117,7 @@ jobs:
       - name: Test prepare
         uses: ./.github/actions/pmem_test_prepare
         with:
-          ndctl_enable: n
+          ndctl_enable: y
           valgrind: 0
 
       - name: Test run
