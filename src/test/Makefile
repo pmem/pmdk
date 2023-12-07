@@ -147,7 +147,8 @@ OTHER_TESTS = \
 	util_uuid_generate\
 	util_vec\
 	util_vecq\
-	log_errno
+	log_errno\
+	valgrind_check
 
 ifeq ($(ARCH), x86_64)
 OTHER_TESTS += \
