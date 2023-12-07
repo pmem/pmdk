@@ -1478,7 +1478,7 @@ function require_valgrind() {
 
 	#Check if Valgrind is enabeld in test build
 	disable_exit_on_error
-	../valgrind_check/valgrind_check
+	./valgrind_check/valgrind_check
 	local ret1=$?
 	restore_exit_on_error
 	if [ $ret1 -ne 0 ]; then

@@ -201,7 +201,7 @@ class Valgrind:
                 raise futils.Skip('Valgrind not found')
 
         try:
-            out = sp.check_output('../valgrind_check/valgrind_check',
+            out = sp.check_output('./valgrind_check/valgrind_check',
                                   shell=True, universal_newlines=True,
                                   stderr=sp.STDOUT)
         except sp.CalledProcessError:
