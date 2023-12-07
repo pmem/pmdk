@@ -200,6 +200,14 @@ class Valgrind:
             else:
                 raise futils.Skip('Valgrind not found')
 
+        try:
+            out = sp.check_output('../valgrind_check/valgrind_check',
+                                  shell=True, universal_newlines=True,
+                                  stderr=sp.STDOUT)
+        except sp.CalledProcessError:
+            raise futils.Skip('Valgrind tool required but not enabled',
+                              'in the source code')
+
         valgrind_bin = path.join(path.dirname(out), 'valgrind.bin')
         if path.isfile(valgrind_bin):
             return valgrind_bin
