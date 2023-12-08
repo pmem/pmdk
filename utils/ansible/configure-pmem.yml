@@ -17,10 +17,10 @@
 # Below are examples of how to use this file:
 #
 # 1) setup PMem for the first time (establish regions):
-# sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions='true'"
+# ansible-playbook configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions=true"
 #
 # 2) setup PMem if it already has been initialized before:
-# sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
+# ansible-playbook configure-pmem.yml --extra-vars "testUser=pmdkuser"
 #
 
 - hosts: "{{ host }}"
@@ -28,45 +28,45 @@
 #   connection: local
   vars:
     newRegions: false
-    testUser: pmdkuser
     mountPoint: /mnt/pmem0
 
   tasks:
-    - name: "Test if ndctl is installed"
+    - name: Test if ndctl is installed
       shell: which ndctl
 
-    - name: "Remove fstab entry if it exist"
+    - name: Remove fstab entry if it exist
       ansible.posix.mount:
         path: "{{ mountPoint }}"
         state: absent_from_fstab
         backup: true
+      become: true
 
-    - name: "Unmount namespaces if they exist"
+    - name: Unmount namespaces if they exist
       shell: sudo umount /dev/pmem* || true
 
-    - name: "Disable current namespaces"
+    - name: Disable current namespaces
       shell: sudo ndctl disable-namespace all || true
       register: namespaces
 
-    - name: "Destroy current namespaces"
+    - name: Destroy current namespaces
       shell: sudo ndctl destroy-namespace all || true
       register: namespaces
 
     - debug: var=namespaces
 
-    - name: "Create new regions"
+    - name: Create new regions
       block:
-      - name: "Test if ipmctl is installed"
+      - name: Test if ipmctl is installed
         shell: which ipmctl
 
-      - name: "Create goal in AppDirectInterleaved mode"
+      - name: Create goal in AppDirectInterleaved mode
         shell: ipmctl create -f -goal
 
-      - name: "Reboot machine in order to apply new AppDirectInterleaved goal"
+      - name: Reboot machine in order to apply new AppDirectInterleaved goal
         reboot:
       when: newRegions == 'true'
 
-    - name: "Create new namespace configuration"
+    - name: Create new namespace configuration
       shell: |
         #!/usr/bin/env bash
         DEV_DAX_R=0x0000
@@ -130,22 +130,22 @@
 
         sudo mkfs.ext4 -F /dev/${pmem_name}
         sudo mount -o dax=always /dev/${pmem_name} {{ mountPoint }}
-        sudo chown -R {{ testUser }} {{ mountPoint }}
+        sudo chown -R $(id -u {{ ansible_user }}):$(id -g {{ ansible_user }}) {{ mountPoint }}
 
-        sudo chmod 777 /dev/dax* || true
-        sudo chmod a+rw /sys/bus/nd/devices/region*/deep_flush
+        sudo chmod 777 /dev/dax*
+        sudo chmod +rw /sys/bus/nd/devices/region*/deep_flush
         sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/resource
-        sudo chmod +r  /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+        sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/dax*/resource
       register: script
 
     - debug: var=script
 
-    - name: "Get PMEM device name for {{ mountPoint }} mount point"
+    - name: Get PMEM device name for {{ mountPoint }} mount point
       shell: |
-        mount | sed -nr "s/^.*(\/dev\/\S+) on \/mnt\/pmem0.*$/\1/p"
+        mount | sed -nr 's/^.*(\/dev\/\S+) on \/mnt\/pmem0.*$/\1/p'
       register: pmem_name
 
-    - name: "Add /etc/fstab entry for PMEM"
+    - name: Add /etc/fstab entry for PMEM
       ansible.posix.mount:
         path: "{{ mountPoint }}"
         src: "{{ pmem_name.stdout }}"
@@ -153,3 +153,4 @@
         opts: rw,relatime,dax=always
         state: present
         backup: true
+      become: true
