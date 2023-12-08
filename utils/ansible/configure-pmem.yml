@@ -16,11 +16,26 @@
 #
 # Below are examples of how to use this file:
 #
-# 1) setup PMem for the first time (establish regions):
-# sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions='true'"
+# 1) remotely
+# export TARGET_IP= # ip of the target
+# export USER_PASSWORD= # a password on the target
+# a) setup PMem for the first time (establish regions):
+# ansible-playbook -i $TARGET_IP, configure-pmem.yml --extra-vars \
+#   "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD newRegions=true"
+# b) setup PMem if it already has been initialized before:
+# ansible-playbook -i $TARGET_IP, configure-pmem.yml --extra-vars \
+#   "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD"
 #
-# 2) setup PMem if it already has been initialized before:
-# sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
+# 2) locally
+# For a playbook to be used on a local server please log in as pmdkuser:
+# a) comment out the first command: # -hosts: "{{ host }}"
+# b) uncomment the next two lines:
+# - hosts: localhost
+#   connection: local
+# c) setup PMem for the first time (establish regions):
+# ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
+# d) setup PMem if it already has been initialized before:
+# ansible-playbook configure-pmem.yml
 #
 
 - hosts: "{{ host }}"
@@ -28,45 +43,50 @@
 #   connection: local
   vars:
     newRegions: false
-    testUser: pmdkuser
     mountPoint: /mnt/pmem0
 
   tasks:
-    - name: "Test if ndctl is installed"
+    - name: Test if ndctl is installed
       shell: which ndctl
 
-    - name: "Remove fstab entry if it exist"
+    - name: Remove fstab entry if it exist
       ansible.posix.mount:
         path: "{{ mountPoint }}"
         state: absent_from_fstab
         backup: true
+      become: true
 
-    - name: "Unmount namespaces if they exist"
-      shell: sudo umount /dev/pmem* || true
+    - name: Unmount namespaces if they exist
+      shell: umount /dev/pmem* || true
+      become: true
 
-    - name: "Disable current namespaces"
-      shell: sudo ndctl disable-namespace all || true
+    - name: Disable current namespaces
+      shell: ndctl disable-namespace all || true
       register: namespaces
+      become: true
 
-    - name: "Destroy current namespaces"
-      shell: sudo ndctl destroy-namespace all || true
+    - name: Destroy current namespaces
+      shell: ndctl destroy-namespace all || true
       register: namespaces
+      become: true
 
     - debug: var=namespaces
 
-    - name: "Create new regions"
+    - name: Create new regions
       block:
-      - name: "Test if ipmctl is installed"
+      - name: Test if ipmctl is installed
         shell: which ipmctl
 
-      - name: "Create goal in AppDirectInterleaved mode"
+      - name: Create goal in AppDirectInterleaved mode
         shell: ipmctl create -f -goal
+        become: true
 
-      - name: "Reboot machine in order to apply new AppDirectInterleaved goal"
+      - name: Reboot machine in order to apply new AppDirectInterleaved goal
         reboot:
       when: newRegions == 'true'
+      become: true
 
-    - name: "Create new namespace configuration"
+    - name: Create new namespace configuration
       shell: |
         #!/usr/bin/env bash
         DEV_DAX_R=0x0000
@@ -74,7 +94,7 @@
 
         function check_alignment() {
           local size=$1
-          local interleave_width=$(sudo ipmctl show -dimm -socket 1 | grep "0x1" | wc -l)
+          local interleave_width=$(ipmctl show -dimm -socket 1 | grep "0x1" | wc -l)
           local size_alignment=$(expr $size % $interleave_width)
 
           if [ "$size_alignment" -gt "0" ]; then
@@ -93,7 +113,7 @@
             size_option=""
           fi
 
-          local cmd="sudo ndctl create-namespace --mode devdax -a ${align} ${size_option} -r ${DEV_DAX_R} -f"
+          local cmd="ndctl create-namespace --mode devdax -a ${align} ${size_option} -r ${DEV_DAX_R} -f"
           result=$(${cmd})
           if [ $? -ne 0 ]; then
             exit 1;
@@ -101,7 +121,7 @@
         }
 
         function create_fsdax() {
-          local cmd="sudo ndctl create-namespace --mode fsdax -r ${FS_DAX_R} -f"
+          local cmd="ndctl create-namespace --mode fsdax -r ${FS_DAX_R} -f"
           result=$(${cmd})
           if [ $? -ne 0 ]; then
             exit 1;
@@ -125,27 +145,28 @@
         pmem_name=$(create_fsdax)
 
         if [ ! -d "{{ mountPoint }}" ]; then
-          sudo mkdir {{ mountPoint }}
+          mkdir {{ mountPoint }}
         fi
 
-        sudo mkfs.ext4 -F /dev/${pmem_name}
-        sudo mount -o dax=always /dev/${pmem_name} {{ mountPoint }}
-        sudo chown -R {{ testUser }} {{ mountPoint }}
+        mkfs.ext4 -F /dev/${pmem_name}
+        mount -o dax=always /dev/${pmem_name} {{ mountPoint }}
+        chown -R $(id -u {{ ansible_user }}):$(id -g {{ ansible_user }}) {{ mountPoint }}
 
-        sudo chmod 777 /dev/dax* || true
-        sudo chmod a+rw /sys/bus/nd/devices/region*/deep_flush
-        sudo chmod +r /sys/bus/nd/devices/ndbus*/region*/resource
-        sudo chmod +r  /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+        chmod 777 /dev/dax*
+        chmod +rw /sys/bus/nd/devices/region*/deep_flush
+        chmod +r /sys/bus/nd/devices/ndbus*/region*/resource
+        chmod +r /sys/bus/nd/devices/ndbus*/region*/dax*/resource
       register: script
+      become: true
 
     - debug: var=script
 
-    - name: "Get PMEM device name for {{ mountPoint }} mount point"
+    - name: Get PMEM device name for {{ mountPoint }} mount point
       shell: |
-        mount | sed -nr "s/^.*(\/dev\/\S+) on \/mnt\/pmem0.*$/\1/p"
+        mount | sed -nr 's/^.*(\/dev\/\S+) on \/mnt\/pmem0.*$/\1/p'
       register: pmem_name
 
-    - name: "Add /etc/fstab entry for PMEM"
+    - name: Add /etc/fstab entry for PMEM
       ansible.posix.mount:
         path: "{{ mountPoint }}"
         src: "{{ pmem_name.stdout }}"
@@ -153,3 +174,4 @@
         opts: rw,relatime,dax=always
         state: present
         backup: true
+      become: true
