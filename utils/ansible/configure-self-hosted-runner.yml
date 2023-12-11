@@ -5,7 +5,7 @@
 # Examples below show how to use this file:
 # 1) remotely
 # export TARGET_IP= # ip of the target
-# export USER_PASSWORD= # a password of pmdkuser on the target
+# export USER_PASSWORD= # a password on the target
 # export GHA_TOKEN= # a GitHub token generated for a new self-hosted runner
 # export HOST_NAME= # host's name that will be visible on GitHub
 # export LABELS= # rhel or opensuse

@@ -18,7 +18,7 @@
 #
 # 1) remotely
 # export TARGET_IP= # ip of the target
-# export USER_PASSWORD= # a password of root on the target
+# export USER_PASSWORD= # a password on the target
 # a) setup PMem for the first time (establish regions):
 # ansible-playbook -i $TARGET_IP, configure-pmem.yml --extra-vars \
 #   "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD newRegions=true"

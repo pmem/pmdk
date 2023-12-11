@@ -56,7 +56,7 @@ Use the below command to configure persistent memory on Intel servers to be
 used for PMDK libraries tests execution.
 ```sh
 export TARGET_IP= # ip of the target
-export USER_PASSWORD= # a password of pmdkuser on the target
+export USER_PASSWORD= # a password on the target
 ansible-playbook -i $TARGET_IP, configure-pmem.yml \
   --extra-vars "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD \
   newRegions=true"
@@ -81,7 +81,7 @@ the test environment.
 parameter in this case.
 ```sh
 export TARGET_IP= # ip of the target
-export USER_PASSWORD= # a password of pmdkuser on the target
+export USER_PASSWORD= # a password on the target
 ansible-playbook -i $TARGET_IP, configure-pmem.yml \
   --extra-vars "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD"
 ```
@@ -93,7 +93,7 @@ the pmem/pmdk repository.
 
 ```sh
 export TARGET_IP= # ip of the target
-export USER_PASSWORD= # a password of pmdkuser on the target
+export USER_PASSWORD= # a password on the target
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME= # host's name that will be visible on GitHub
 export LABELS= # rhel or opensuse
