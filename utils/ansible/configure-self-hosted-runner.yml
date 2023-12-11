@@ -5,7 +5,7 @@
 # Examples below show how to use this file:
 # 1) remotely
 # export TARGET_IP= # ip of the target
-# export USER_PASSWORD= # a password of root on the target
+# export USER_PASSWORD= # a password of pmdkuser on the target
 # export GHA_TOKEN= # a GitHub token generated for a new self-hosted runner
 # export HOST_NAME= # host's name that will be visible on GitHub
 # export LABELS= # rhel or opensuse
@@ -15,7 +15,7 @@
 #   runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 #
 # 2) locally
-# For a playbook to be used on a local server please:
+# For a playbook to be used on a local server please log in as pmdkuser:
 # a) comment out the first command: # -hosts: "{{ host }}"
 # b) uncomment the next two lines:
 # - hosts: localhost
@@ -72,8 +72,6 @@
       shell: |
         cd {{ runner_folder }}
         ./config.sh --url {{ repo_url }} --token {{ token }} --name {{ runner_name }} --labels {{ labels }} --runnergroup Default --work _work
-      become: yes
-      become_user: "{{ ansible_user }}"
 
     - name: Install runner service
       shell: ./svc.sh install {{ ansible_user }}
@@ -89,6 +87,9 @@
       loop: "{{ vars_list }}"
 
     - name: Enable and restart runner service
+      # Note: The service name must match the repo_url.
+      # repo_url: https://github.com/{OWNER}/{REPO}
+      # service: actions.runner.{OWNER}-{REPO}.{{ runner_name }}.service
       shell: |
         systemctl enable actions.runner.pmem-pmdk.{{ runner_name }}.service
         systemctl restart actions.runner.pmem-pmdk.{{ runner_name }}.service
