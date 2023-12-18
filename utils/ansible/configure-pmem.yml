@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 # This playbook is designed to configure regions and namespaces on DIMMs
 # so users can execute tests later. Playbook usage is described in
@@ -33,9 +33,9 @@
 # - hosts: localhost
 #   connection: local
 # c) setup PMem for the first time (establish regions):
-# ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
+# ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser newRegions=true"
 # d) setup PMem if it already has been initialized before:
-# ansible-playbook configure-pmem.yml
+# ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser"
 #
 
 - hosts: "{{ host }}"

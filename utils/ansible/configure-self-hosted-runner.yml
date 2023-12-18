@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 # This playbook is designed to add a new self-hosted runner to pmem/pmdk.
 # Examples below show how to use this file:
@@ -26,7 +26,7 @@
 # export LABELS= # rhel or opensuse
 # export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 # ansible-playbook configure-self-hosted-runner.yml --extra-vars \
-#   "runner_name=$HOST_NAME labels=$LABELS vars_gha=$VARS_GHA token=$GHA_TOKEN"
+#   "ansible_user=pmdkuser runner_name=$HOST_NAME labels=$LABELS vars_gha=$VARS_GHA token=$GHA_TOKEN"
 #
 
 #
