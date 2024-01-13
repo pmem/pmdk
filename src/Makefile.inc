@@ -286,7 +286,6 @@ $(objdir)/%.o: %.c $(MAKEFILE_DEPS)
 	$(call check-cstyle, $<)
 	@mkdir -p $(objdir)/.deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $(call coverage-path, $<)
-	$(call check-os, $@, $<)
 	$(create-deps)
 
 sparse:

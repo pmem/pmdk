@@ -27,6 +27,8 @@
 #include "sync.h"
 #include "tx.h"
 #include "sys_util.h"
+#include "librpma.h"
+#include "log_internal.h"
 
 /*
  * The variable from which the config is directly loaded. The string
@@ -212,6 +214,8 @@ obj_init(void)
 		FATAL("error: %s", pmemobj_errormsg());
 
 	lane_info_boot();
+
+	rpma_log_init();
 }
 
 /*
@@ -223,6 +227,8 @@ void
 obj_fini(void)
 {
 	LOG(3, NULL);
+
+	rpma_log_fini();
 
 	if (pools_ht)
 		critnib_delete(pools_ht);
@@ -1052,8 +1058,9 @@ PMEMobjpool *
 pmemobj_createU(const char *path, const char *layout,
 		size_t poolsize, mode_t mode)
 {
-	LOG(3, "path %s layout %s poolsize %zu mode %o",
-			path, layout, poolsize, mode);
+	LOG(3, "path %s layout %s poolsize %zu mode %o", path, layout, poolsize, mode);
+
+	RPMA_LOG_ALWAYS("path %s layout %s poolsize %zu mode %o", path, layout, poolsize, mode);
 
 	PMEMobjpool *pop;
 	struct pool_set *set;
