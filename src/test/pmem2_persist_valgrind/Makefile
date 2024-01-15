@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2024, Intel Corporation
 
 #
 # src/test/pmem2_persist_valgrind/Makefile -- build pmem2_persist_valgrind test
@@ -15,7 +15,9 @@ OBJS = alloc.o\
 	pmem2_persist_valgrind.o\
 	util.o\
 	util_posix.o\
-	ut_pmem2_utils.o
+	ut_pmem2_utils.o\
+	log.o\
+	log_default.o
 
 LIBPMEM2=y
 
