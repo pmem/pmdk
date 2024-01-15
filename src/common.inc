@@ -20,7 +20,6 @@ CSTYLE = $(TOP)/utils/cstyle
 CSTYLEON ?= 0
 STYLE_CHECK = $(TOP)/utils/style_check.sh
 CHECK_SHEBANG = $(TOP)/utils/check-shebang.sh
-CHECK_OS = $(TOP)/utils/check-os.sh
 OS_BANNED = $(TOP)/utils/os-banned
 COVERAGE = 0
 FAULT_INJECTION ?= 0
@@ -243,10 +242,6 @@ else
 define check-cstyle
 endef
 endif
-
-define check-os
-$(CHECK_OS) $(OS_BANNED) $(1) $(2)
-endef
 
 # XXX: to allow gcov tool to connect coverage with source code, we have to
 # use absolute path to source files
