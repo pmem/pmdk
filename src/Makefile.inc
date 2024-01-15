@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 # src/Makefile.inc -- common Makefile rules for PMDK
 #
@@ -286,7 +286,6 @@ $(objdir)/%.o: %.c $(MAKEFILE_DEPS)
 	$(call check-cstyle, $<)
 	@mkdir -p $(objdir)/.deps
 	$(CC) -MD -c -o $@ $(CFLAGS) $(INCS) -fPIC $(call coverage-path, $<)
-	$(call check-os, $@, $<)
 	$(create-deps)
 
 sparse:

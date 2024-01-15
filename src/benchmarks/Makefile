@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 #
 # src/benchmarks/Makefile -- build all benchmarks
@@ -148,7 +148,6 @@ objdir=.
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CXX) -MD -c -o $@ $(CXXFLAGS) $(call coverage-path, $<)
-	$(call check-os, $@, $<)
 	$(create-deps)
 
 %.htmp: %.h

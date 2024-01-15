@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 
 #
@@ -580,14 +580,12 @@ objdir=.
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CC) -MD -c $(CFLAGS) $(INCS) $(call coverage-path, $<) -o $@
-	$(call check-os, $@, $<)
 	$(create-deps)
 
 %.o: %.cpp $(MAKEFILE_DEPS)
 	$(call check-cstyle, $<)
 	@mkdir -p .deps
 	$(CXX) -MD -c $(CXXFLAGS) $(INCS) $(call coverage-path, $<) -o $@
-	$(call check-os, $@, $<)
 	$(create-deps)
 
 %.htmp: %.h
