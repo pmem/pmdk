@@ -138,13 +138,9 @@ core_log_default_function(enum core_log_level level, const char *file_name,
 		(void) fprintf(stderr, "%s[%ld] %s%s%s", times_tamp,
 			syscall(SYS_gettid),
 			log_level_names[(level == CORE_LOG_LEVEL_ALWAYS) ?
-				CORE_LOG_LEVEL_DEBUG : level],
+						CORE_LOG_LEVEL_NOTICE : level],
 			file_info, message);
 	}
-
-	/* do not log to syslog in case of CORE_LOG_LEVEL_ALWAYS */
-	if (CORE_LOG_LEVEL_ALWAYS == level)
-		return;
 
 	/* assumed: level <= Core_log_threshold[CORE_LOG_THRESHOLD] */
 	syslog(log_level_syslog_severity[level], "%s%s%s",

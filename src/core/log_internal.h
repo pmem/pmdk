@@ -111,8 +111,7 @@ void core_log_default_function(enum core_log_level level, const char *file_name,
 	const char *message_format, ...);
 
 #define CORE_LOG_ALWAYS(format, ...) \
-	core_log_default_function(CORE_LOG_LEVEL_ALWAYS, __FILE__, __LINE__, \
-		__func__, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format "\n", ##__VA_ARGS__)
 
 /*
  * Set of macros that should be used as the primary API for logging.
