@@ -96,10 +96,9 @@ void core_log_fini(void);
 
 #define CORE_LOG(level, format, ...) \
 	do { \
-		if (level <= Core_log_threshold[RPMA_LOG_THRESHOLD] && \
-				0 != Core_log_function) { \
-			((log_function *)Core_log_function)(level, __FILE__, \
-				__LINE__, __func__, format, ##__VA_ARGS__); \
+		if (level <= Core_log_threshold[CORE_LOG_THRESHOLD] && 0 != Core_log_function) { \
+			((core_log_function *)Core_log_function)(level, __FILE__, __LINE__, \
+					__func__, format, ##__VA_ARGS__); \
 		} \
 	} while (0)
 
@@ -110,8 +109,7 @@ void core_log_default_function(enum core_log_level level, const char *file_name,
 	const char *message_format, ...);
 
 #define CORE_LOG_ALWAYS(format, ...) \
-	core_log_default_function(CORE_LOG_LEVEL_ALWAYS, __FILE__, __LINE__, \
-		__func__, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format "\n", ##__VA_ARGS__)
 
 /*
  * Set of macros that should be used as the primary API for logging.
