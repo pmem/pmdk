@@ -10,6 +10,8 @@
 #include "unittest.h"
 #include "pool_hdr.h"
 #include "pmemcommon.h"
+#include "log_internal.h"
+#include "out.h"
 
 #define FATAL_USAGE()\
 UT_FATAL(\
@@ -95,7 +97,7 @@ arch_flags_log_function(enum core_log_level level, const char *file_name,
 int
 main(int argc, char *argv[])
 {
-	core_log_set_function(ut_log_function);
+	core_log_set_function(arch_flags_log_function);
 	START(argc, argv, "arch_flags");
 
 	common_init(ARCH_FLAGS_LOG_PREFIX,

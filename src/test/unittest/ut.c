@@ -11,8 +11,6 @@
  */
 
 #include "unittest.h"
-#include "out.h"
-
 
 int
 ut_get_uuid_str(char *uu)
@@ -142,7 +140,7 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
  * out -- printf-like output controlled by flags
  */
 static void
-out_local(int flags, const char *fmt, ...)
+out(int flags, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
@@ -158,7 +156,7 @@ out_local(int flags, const char *fmt, ...)
 static void
 prefix(const char *file, int line, const char *func, int flags)
 {
-	out_local(OF_NONL|OF_TRACE|flags, "{%s:%d %s} ", file, line, func);
+	out(OF_NONL|OF_TRACE|flags, "{%s:%d %s} ", file, line, func);
 }
 
 /*
@@ -440,10 +438,10 @@ ut_start(const char *file, int line, const char *func,
 	va_list ap;
 	va_start(ap, fmt);
 	ut_start_common(file, line, func, fmt, ap);
-	out_local(OF_NONL, 0, "     args:");
+	out(OF_NONL, 0, "     args:");
 	for (int i = 0; i < argc; i++)
-		out_local(OF_NONL, " %s", argv[i]);
-	out_local(0, NULL);
+		out(OF_NONL, " %s", argv[i]);
+	out(0, NULL);
 
 	va_end(ap);
 	// XXX TG Custom log function
@@ -458,7 +456,7 @@ ut_end(const char *file, int line, const char *func, int ret)
 	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
 		check_open_files();
 	prefix(file, line, func, 0);
-	out_local(OF_NAME, "END %d", ret);
+	out(OF_NAME, "END %d", ret);
 
 	close_output_files();
 	exit(ret);
@@ -715,35 +713,4 @@ ut_snprintf(const char *file, int line, const char *func,
 	}
 
 	return ret;
-}
-
-void
-ut_log_function(enum core_log_level level, const char *file_name,
-	const int line_no, const char *function_name,
-	const char *message_format, ...)
-{
-	if (file_name) {
-		/* extract base_file_name */
-		const char *base_file_name = strrchr(file_name, '/');
-		if (!base_file_name)
-			base_file_name = file_name;
-		else
-			/* skip '/' */
-			base_file_name++;
-
-		char message[1024] = "";
-		va_list arg;
-		va_start(arg, message_format);
-		if (vsnprintf(message, sizeof(message), message_format, arg) < 0) {
-			va_end(arg);
-			return;
-		}
-		va_end(arg);
-
-		/* remove '\n' from the end of the line,
-		as it is added by out_log */
-		message[strlen(message)-1] = '\0';
-
-		out_log(base_file_name, line_no, function_name, 1, message);
-	}
 }
