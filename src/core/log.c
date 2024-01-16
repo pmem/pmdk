@@ -38,7 +38,7 @@
 #ifdef ATOMIC_OPERATIONS_SUPPORTED
 _Atomic
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
-uintptr_t Core_log_function;
+uintptr_t Core_log_function = 0;
 
 /* the logging function's context */
 #ifdef ATOMIC_OPERATIONS_SUPPORTED
@@ -105,6 +105,11 @@ core_log_set_function(core_log_function *log_function, void *context)
 	return 0;
 #else
 	uintptr_t core_log_function_old = Core_log_function;
+
+	if (Core_log_function &&
+		Core_log_function != (uintptr_t)core_log_default_function)
+		return 0;
+
 	if (__sync_bool_compare_and_swap(&Core_log_function,
 			core_log_function_old, (uintptr_t)log_function))
 		return 0;
