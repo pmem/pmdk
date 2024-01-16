@@ -13,6 +13,7 @@
 #include "unittest.h"
 #include "out.h"
 
+
 int
 ut_get_uuid_str(char *uu)
 {
