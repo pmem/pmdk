@@ -26,6 +26,7 @@ SOURCE +=\
 	memblock.c\
 	memops.c\
 	obj.c\
+	obj_log.c\
 	palloc.c\
 	pmalloc.c\
 	recycler.c\

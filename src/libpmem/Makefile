@@ -18,6 +18,8 @@ SOURCE =\
 	$(CORE)/out.c\
 	$(CORE)/util.c\
 	$(CORE)/util_posix.c\
+	$(CORE)/log.c\
+	$(CORE)/log_default.c\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/mmap.c\
