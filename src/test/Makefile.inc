@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 
 #
@@ -388,6 +388,8 @@ ifeq ($(LIBPMEMCORE), internal-nondebug)
 OBJS +=\
 	$(TOP)/src/nondebug/core/alloc.o\
 	$(TOP)/src/nondebug/core/fs_posix.o\
+	$(TOP)/src/nondebug/core/log.o\
+	$(TOP)/src/nondebug/core/log_default.o\
 	$(TOP)/src/nondebug/core/os_posix.o\
 	$(TOP)/src/nondebug/core/os_thread_posix.o\
 	$(TOP)/src/nondebug/core/out.o\
@@ -403,6 +405,8 @@ ifeq ($(LIBPMEMCORE), internal-debug)
 OBJS +=\
 	$(TOP)/src/debug/core/alloc.o\
 	$(TOP)/src/debug/core/fs_posix.o\
+	$(TOP)/src/debug/core/log.o\
+	$(TOP)/src/debug/core/log_default.o\
 	$(TOP)/src/debug/core/os_posix.o\
 	$(TOP)/src/debug/core/os_thread_posix.o\
 	$(TOP)/src/debug/core/out.o\
