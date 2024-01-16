@@ -444,6 +444,7 @@ ut_start(const char *file, int line, const char *func,
 	out(0, NULL);
 
 	va_end(ap);
+	// XXX TG Custom log function
 }
 
 /*
