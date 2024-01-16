@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * arch_flags.c -- unit test for architecture flags
@@ -10,6 +10,8 @@
 #include "unittest.h"
 #include "pool_hdr.h"
 #include "pmemcommon.h"
+#include "log_internal.h"
+#include "out.h"
 
 #define FATAL_USAGE()\
 UT_FATAL(\
@@ -59,9 +61,43 @@ read_arch_flags(char *opts, struct arch_flags *arch_flags)
 	return 0;
 }
 
+static void
+arch_flags_log_function(enum core_log_level level, const char *file_name,
+	const int line_no, const char *function_name,
+	const char *message_format, ...)
+{
+	if (file_name) {
+		/* extract base_file_name */
+		const char *base_file_name = strrchr(file_name, '/');
+		if (!base_file_name)
+			base_file_name = file_name;
+		else
+			/* skip '/' */
+			base_file_name++;
+
+		char message[1024] = "";
+		va_list arg;
+		va_start(arg, message_format);
+		if (vsnprintf(message, sizeof(message), message_format, arg)
+			< 0) {
+			va_end(arg);
+			return;
+		}
+		va_end(arg);
+
+		/* remove '\n' from the end of the line, */
+		/* as it is added by out_log */
+		message[strlen(message)-1] = '\0';
+
+		out_log(base_file_name, line_no, function_name, 1, "%s",
+			message);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
+	core_log_set_function(arch_flags_log_function);
 	START(argc, argv, "arch_flags");
 
 	common_init(ARCH_FLAGS_LOG_PREFIX,
