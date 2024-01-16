@@ -40,4 +40,7 @@ SOURCE +=\
 	$(CORE)/ravl.c\
 	$(CORE)/ravl_interval.c\
 	$(CORE)/util.c\
-	$(CORE)/util_posix.c
+	$(CORE)/util_posix.c \
+	$(CORE)/log.c \
+	$(CORE)/log_default.c
+
