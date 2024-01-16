@@ -88,8 +88,6 @@ extern "C" {
 #include "os_thread.h"
 #include "util.h"
 
-#include "log_internal.h"
-
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
 #define UT_POOL_HDR_UUID_STR_LEN 37 /* uuid string length */
@@ -734,10 +732,6 @@ void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
 #define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
 	((void)(addr), (void)(size))
 #endif
-
-void ut_log_function(enum core_log_level level, const char *file_name,
-	const int line_no, const char *function_name,
-	const char *message_format, ...);
 
 #ifdef __cplusplus
 }
