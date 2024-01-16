@@ -111,7 +111,8 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem/libpmem.o\
 	$(TOP)/src/nondebug/libpmem/memops_generic.o\
 	$(TOP)/src/nondebug/libpmem/pmem.o\
-	$(TOP)/src/nondebug/libpmem/pmem_posix.o
+	$(TOP)/src/nondebug/libpmem/pmem_posix.o\
+	$(TOP)/src/nondebug/libpmem/out.o
 
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
 OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
@@ -127,7 +128,8 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem/libpmem.o\
 	$(TOP)/src/debug/libpmem/memops_generic.o\
 	$(TOP)/src/debug/libpmem/pmem.o\
-	$(TOP)/src/debug/libpmem/pmem_posix.o
+	$(TOP)/src/debug/libpmem/pmem_posix.o\
+	$(TOP)/src/debug/libpmem/out.o
 
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
 OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
@@ -397,6 +399,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/core/ravl_interval.o\
 	$(TOP)/src/nondebug/core/util.o\
 	$(TOP)/src/nondebug/core/util_posix.o
+
 
 INCS += -I$(TOP)/src/core
 endif

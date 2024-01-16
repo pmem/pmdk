@@ -66,6 +66,7 @@ vsnprintf_custom_function(char *str, size_t size, const char *format,
 int
 main(int argc, char *argv[])
 {
+	core_log_set_function(ut_log_function);
 	START(argc, argv, "traces_custom_function");
 
 	if (argc != 2)

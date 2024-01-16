@@ -16,7 +16,8 @@ vpath %.h $(TOP)/src/core
 
 TARGET_UT = libut.a
 OBJS_UT = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
-	os_posix.o os_thread_posix.o util.o alloc.o rand.o ut_fh.o ut_mt.o
+	os_posix.o os_thread_posix.o util.o alloc.o rand.o ut_fh.o ut_mt.o\
+	out.o
 
 TARGET_UT_PMEM2 = ut_pmem2.a
 OBJS_UT_PMEM2 = ut_pmem2_config.o ut_pmem2_utils.o
@@ -34,6 +35,7 @@ CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -Wsign-conversion
 CFLAGS += -Wsign-compare
+CFLAGS += -DSRCVERSION=""
 ifeq ($(WCONVERSION_AVAILABLE), y)
 CFLAGS += -Wconversion
 endif
