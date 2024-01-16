@@ -56,6 +56,9 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_list_insert_new;
 		pmemobj_list_remove;
 		pmemobj_list_move;
+		pmemobj_log_get_threshold;
+		pmemobj_log_set_function;
+		pmemobj_log_set_threshold;
 		pmemobj_tx_begin;
 		pmemobj_tx_stage;
 		pmemobj_tx_abort;

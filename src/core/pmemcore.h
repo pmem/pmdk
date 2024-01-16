@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * pmemcore.h -- definitions for "core" module
@@ -10,6 +10,7 @@
 
 #include "util.h"
 #include "out.h"
+#include "log_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,6 +25,7 @@ core_init(const char *log_prefix, const char *log_level_var,
 		int minor_version)
 {
 	util_init();
+	core_log_init(log_prefix);
 	out_init(log_prefix, log_level_var, log_file_var, major_version,
 		minor_version);
 }
@@ -35,6 +37,7 @@ static inline void
 core_fini(void)
 {
 	out_fini();
+	core_log_fini();
 }
 
 #ifdef __cplusplus
