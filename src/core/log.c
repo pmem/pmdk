@@ -38,7 +38,7 @@
 #ifdef ATOMIC_OPERATIONS_SUPPORTED
 _Atomic
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
-uintptr_t Core_log_function;
+uintptr_t Core_log_function = 0;
 
 /* the logging function's context */
 #ifdef ATOMIC_OPERATIONS_SUPPORTED
@@ -61,6 +61,13 @@ enum core_log_level Core_log_threshold[] = {
 void
 core_log_init()
 {
+	/*
+	 * The core log might be already initialized.
+	 * It might happen in the case of some unit tests.
+	 */
+	if (Core_log_function != 0)
+		return;
+
 	/* enable the default logging function */
 	core_log_default_init();
 	while (EAGAIN ==
@@ -105,6 +112,7 @@ core_log_set_function(core_log_function *log_function, void *context)
 	return 0;
 #else
 	uintptr_t core_log_function_old = Core_log_function;
+
 	if (__sync_bool_compare_and_swap(&Core_log_function,
 			core_log_function_old, (uintptr_t)log_function))
 		return 0;
