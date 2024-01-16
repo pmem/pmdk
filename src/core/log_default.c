@@ -131,8 +131,8 @@ core_log_default_function(enum core_log_level level, const char *file_name,
 		}
 	}
 
-	if (level <= Core_log_threshold[CORE_LOG_THRESHOLD_AUX] ||
-	    level == CORE_LOG_LEVEL_ALWAYS) {
+	if (level <= Core_log_threshold[CORE_LOG_THRESHOLD_AUX] &&
+	    level != CORE_LOG_LEVEL_ALWAYS) {
 		char times_tamp[45] = "";
 		get_timestamp_prefix(times_tamp, sizeof(times_tamp));
 		(void) fprintf(stderr, "%s[%ld] %s%s%s", times_tamp,
