@@ -167,5 +167,5 @@ core_log_default_init(const char *prefix)
 void
 core_log_default_fini(void)
 {
-	closelog();
+	;
 }
