@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 #
 # src/libpmemobj/Makefile -- Makefile for libpmemobj
@@ -26,6 +26,7 @@ SOURCE +=\
 	memblock.c\
 	memops.c\
 	obj.c\
+	obj_log.c\
 	palloc.c\
 	pmalloc.c\
 	recycler.c\
