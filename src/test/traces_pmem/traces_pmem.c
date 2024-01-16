@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * traces_pmem.c -- unit test traces for libraries pmem
  */
 
 #include "unittest.h"
+#include "log_internal.h"
+#include "out.h"
 
 static void
 ut_log_function(enum core_log_level level, const char *file_name,
@@ -24,17 +26,19 @@ ut_log_function(enum core_log_level level, const char *file_name,
 		char message[1024] = "";
 		va_list arg;
 		va_start(arg, message_format);
-		if (vsnprintf(message, sizeof(message), message_format, arg) < 0) {
+		if (vsnprintf(message, sizeof(message), message_format, arg)
+				< 0) {
 			va_end(arg);
 			return;
 		}
 		va_end(arg);
 
-		/* remove '\n' from the end of the line,
-		as it is added by out_log */
+		/* remove '\n' from the end of the line */
+		/* '\n' is added by out_log */
 		message[strlen(message)-1] = '\0';
 
-		out_log(base_file_name, line_no, function_name, 1, message);
+		out_log(base_file_name, line_no, function_name, 1, "%s",
+			message);
 	}
 }
 
