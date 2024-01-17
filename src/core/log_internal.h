@@ -96,8 +96,10 @@ void core_log_fini(void);
 
 #define CORE_LOG(level, format, ...) \
 	do { \
-		if (level <= Core_log_threshold[CORE_LOG_THRESHOLD] && 0 != Core_log_function) { \
-			((core_log_function *)Core_log_function)(level, __FILE__, __LINE__, \
+		if (level <= Core_log_threshold[CORE_LOG_THRESHOLD] && \
+			Core_log_function != 0) { \
+			((core_log_function *) \
+			Core_log_function)(level, __FILE__, __LINE__, \
 					__func__, format, ##__VA_ARGS__); \
 		} \
 	} while (0)
