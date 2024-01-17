@@ -36,8 +36,29 @@ ut_log_function(enum core_log_level level, const char *file_name,
 		/* remove '\n' from the end of the line */
 		/* '\n' is added by out_log */
 		message[strlen(message)-1] = '\0';
+		int log_level = 0;
+		switch (level)
+		{
+		case CORE_LOG_LEVEL_WARNING:
+			log_level = 2;
+			break;
 
-		out_log(base_file_name, line_no, function_name, 1, "%s",
+		case CORE_LOG_LEVEL_NOTICE:
+			log_level = 3;
+			break;
+
+		case CORE_LOG_LEVEL_INFO:
+		case CORE_LOG_LEVEL_DEBUG:
+			log_level = 4;
+			break;
+		
+		case CORE_LOG_LEVEL_FATAL:
+		case CORE_LOG_LEVEL_ERROR:
+		default: /* icnlude CORE_LOG_LEVEL_ALWAYS */
+			log_level = 1;
+			break;
+		}
+		out_log(base_file_name, line_no, function_name, log_level, "%s",
 			message);
 	}
 }
