@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * out.h -- definitions for "out" module
@@ -198,10 +198,6 @@ void out_err(const char *file, int line, const char *func,
 	const char *fmt, ...) FORMAT_PRINTF(4, 5);
 void NORETURN out_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...) FORMAT_PRINTF(4, 5);
-void out_set_print_func(void (*print_func)(const char *s));
-void out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
-	const char *format, va_list ap));
-
 const char *out_get_errormsg(void);
 
 #ifdef __cplusplus

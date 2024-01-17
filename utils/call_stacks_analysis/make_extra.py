@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 import json
 from typing import Dict, List
@@ -24,7 +24,6 @@ def inlines(calls: Calls) -> Calls:
         calls['core_init'] = ['util_init', 'out_init']
         calls['core_fini'] = ['out_fini']
         calls['ERR'] = ['out_err']
-        calls['Print'] = ['out_print_func']
         calls['common_init'] = ['core_init', 'util_mmap_init']
         calls['common_fini'] = ['util_mmap_fini', 'core_fini']
         calls['Last_errormsg_key_alloc'] = ['_Last_errormsg_key_alloc']

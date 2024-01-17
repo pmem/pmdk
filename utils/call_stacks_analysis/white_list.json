@@ -128,8 +128,6 @@
         "out_fatal",
         "out_log",
         "out_nonl",
-        "out_set_print_func",
-        "out_set_vsnprintf_func",
         "pmalloc_operation_hold_no_start",
         "pmalloc",
         "pmem2_badblock_clear",
