@@ -7,7 +7,8 @@
 #
 
 TARGET = util_ravl
-OBJS = util_ravl.o alloc.o ravl.o out.o util_posix.o util.o log.o log_default.o
+OBJS = util_ravl.o
+LIBPMEMCORE = y
 INCS += -I$(TOP)/src/common
 
 include ../Makefile.inc
