@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * unittest.h -- the mundane stuff shared by all unit tests
@@ -87,6 +87,7 @@ extern "C" {
 #include "os.h"
 #include "os_thread.h"
 #include "util.h"
+#include "log_internal.h"
 
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
@@ -115,9 +116,19 @@ void ut_err(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
 
+#ifdef USE_LOG_PMEMCORE
+#define LOG_SET_PMEMCORE_FUNC core_log_set_function(ut_log_function, NULL);
+#else
+#define LOG_SET_PMEMCORE_FUNC
+#endif
+
 /* indicate the start of the test */
 #define START(argc, argv, ...)\
-    ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
+	do {\
+		ut_start(__FILE__, __LINE__, __func__, argc, argv,\
+			__VA_ARGS__);\
+		LOG_SET_PMEMCORE_FUNC\
+	} while (0)
 
 /* normal exit from test */
 #define DONE(...)\
@@ -733,7 +744,6 @@ void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
 	((void)(addr), (void)(size))
 #endif
 
-#include "log_internal.h"
 void
 ut_log_function(void *context, enum core_log_level level, const char *file_name,
 	const int line_no, const char *function_name,

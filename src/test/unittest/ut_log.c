@@ -29,6 +29,6 @@ ut_log_function(void *context, enum core_log_level level, const char *file_name,
 	va_list arg;
 	va_start(arg, message_format);
 	out_log_va(file_name, line_no, function_name,
-		core_log_level_to_out_level[(int)level],message_format, arg);
+		core_log_level_to_out_level[(int)level], message_format, arg);
 	va_end(arg);
 }
