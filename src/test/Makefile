@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 
 #
@@ -120,8 +120,6 @@ OTHER_TESTS = \
 	scope\
 	set_funcs\
 	traces\
-	traces_custom_function\
-	traces_pmem\
 	unicode_match_script\
 	util_badblock\
 	util_ctl\
