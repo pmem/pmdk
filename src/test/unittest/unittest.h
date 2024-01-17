@@ -88,6 +88,7 @@ extern "C" {
 #include "os_thread.h"
 #include "util.h"
 #include "log_internal.h"
+#include "libpmemobj/log.h"
 
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
@@ -126,13 +127,26 @@ ut_log_function(void *context, enum core_log_level level, const char *file_name,
 #define LOG_SET_PMEMCORE_FUNC
 #endif
 
+#ifdef USE_LOG_PMEMOBJ
+void
+ut_log_function_pmemobj(void *context, enum pmemobj_log_level level,
+	const char *file_name, const int line_no, const char *function_name,
+	const char *message_format, ...);
+
+#define LOG_SET_PMEMOBJ_FUNC pmemobj_log_set_function(ut_log_function_pmemobj, NULL);
+#else
+#define LOG_SET_PMEMOBJ_FUNC
+#endif
+
 /* indicate the start of the test */
 #define START(argc, argv, ...)\
 	do {\
 		ut_start(__FILE__, __LINE__, __func__, argc, argv,\
 			__VA_ARGS__);\
-		LOG_SET_PMEMCORE_FUNC\
+		LOG_SET_PMEMCORE_FUNC; \
+		LOG_SET_PMEMOBJ_FUNC
 	} while (0)
+
 
 /* normal exit from test */
 #define DONE(...)\

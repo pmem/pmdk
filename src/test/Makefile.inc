@@ -50,6 +50,7 @@ LIBPMEM=y
 DYNAMIC_LIBS += -lpmemobj
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
+USE_LOG_PMEMOBJ=y
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
@@ -74,9 +75,11 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/ulog.o\
 	$(TOP)/src/debug/libpmemobj/sync.o\
 	$(TOP)/src/debug/libpmemobj/tx.o\
-	$(TOP)/src/debug/libpmemobj/stats.o
+	$(TOP)/src/debug/libpmemobj/stats.o\
+	$(TOP)/src/debug/libpmemobj/log.o
 
 INCS += -I$(TOP)/src/libpmemobj
+USE_LOG_PMEMOBJ=y
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
@@ -101,9 +104,11 @@ OBJS +=	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/ulog.o\
 	$(TOP)/src/nondebug/libpmemobj/sync.o\
 	$(TOP)/src/nondebug/libpmemobj/tx.o\
-	$(TOP)/src/nondebug/libpmemobj/stats.o
+	$(TOP)/src/nondebug/libpmemobj/stats.o\
+	$(TOP)/src/nondebug/libpmemobj/log.o
 
 INCS += -I$(TOP)/src/libpmemobj
+USE_LOG_PMEMOBJ=y
 endif
 
 ifeq ($(LIBPMEM), internal-nondebug)
@@ -527,6 +532,10 @@ endif
 ifeq ($(USE_LOG_PMEMCORE),y)
 CFLAGS += -DUSE_LOG_PMEMCORE
 OBJS +=	$(TOP)/src/test/unittest/ut_log.o
+endif
+
+ifeq ($(USE_LOG_PMEMOBJ),y)
+CFLAGS += -DUSE_LOG_PMEMOBJ
 endif
 
 ifneq ($(SANITIZE),)
