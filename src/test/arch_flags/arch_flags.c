@@ -62,7 +62,6 @@ read_arch_flags(char *opts, struct arch_flags *arch_flags)
 int
 main(int argc, char *argv[])
 {
-	core_log_set_function(ut_log_function);
 	START(argc, argv, "arch_flags");
 
 	common_init(ARCH_FLAGS_LOG_PREFIX,
