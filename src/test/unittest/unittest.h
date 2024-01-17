@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * unittest.h -- the mundane stuff shared by all unit tests
@@ -115,9 +115,16 @@ void ut_err(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
 
+#ifdef USE_LOG_PMEMCORE
+#define LOG_SET_PMEMCORE_FUNC core_log_set_function(ut_log_function, NULL);
+#else
+#define LOG_SET_PMEMCORE_FUNC
+#endif
+
 /* indicate the start of the test */
 #define START(argc, argv, ...)\
-    ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
+	ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__);\
+	LOG_SET_PMEMCORE_FUNC
 
 /* normal exit from test */
 #define DONE(...)\
@@ -738,7 +745,6 @@ void
 ut_log_function(void *context, enum core_log_level level, const char *file_name,
 	const int line_no, const char *function_name,
 	const char *message_format, ...);
-
 
 #ifdef __cplusplus
 }
