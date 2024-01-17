@@ -473,19 +473,25 @@ out_nonl(int level, const char *fmt, ...)
 }
 
 /*
- * out_log -- output a log line if Log_level >= level
+ * out_log_va/out_log -- output a log line if Log_level >= level
  */
+void
+out_log_va(const char *file, int line, const char *func, int level,
+		const char *fmt, va_list ap)
+{
+	if (Log_level < level)
+		return;
+	out_common(file, line, func, level, "\n", fmt, ap);
+}
+
 void
 out_log(const char *file, int line, const char *func, int level,
 		const char *fmt, ...)
 {
 	va_list ap;
 
-	if (Log_level < level)
-		return;
-
 	va_start(ap, fmt);
-	out_common(file, line, func, level, "\n", fmt, ap);
+	out_log_va(file, line, func, level, fmt, ap);
 
 	va_end(ap);
 }
