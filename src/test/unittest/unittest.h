@@ -733,6 +733,13 @@ void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
 	((void)(addr), (void)(size))
 #endif
 
+#include "log_internal.h"
+void
+ut_log_function(void *context, enum core_log_level level, const char *file_name,
+	const int line_no, const char *function_name,
+	const char *message_format, ...);
+
+
 #ifdef __cplusplus
 }
 #endif
