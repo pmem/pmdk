@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * out.c -- support for logging, tracing, and assertion output
@@ -260,7 +260,7 @@ out_fini(void)
 }
 
 /*
- * out_print_func -- default print_func, goes to stderr or Out_fp
+ * out_print_func -- print function, goes to Out_fp (stderr by default)
  */
 static void
 out_print_func(const char *s)
@@ -279,38 +279,6 @@ out_print_func(const char *s)
 }
 
 /*
- * calling Print(s) calls the current print_func...
- */
-typedef void (*Print_func)(const char *s);
-typedef int (*Vsnprintf_func)(char *str, size_t size, const char *format,
-		va_list ap);
-static Print_func Print = out_print_func;
-static Vsnprintf_func Vsnprintf = vsnprintf;
-
-/*
- * out_set_print_func -- allow override of print_func used by out module
- */
-void
-out_set_print_func(void (*print_func)(const char *s))
-{
-	LOG(3, "print %p", print_func);
-
-	Print = (print_func == NULL) ? out_print_func : print_func;
-}
-
-/*
- * out_set_vsnprintf_func -- allow override of vsnprintf_func used by out module
- */
-void
-out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
-				const char *format, va_list ap))
-{
-	LOG(3, "vsnprintf %p", vsnprintf_func);
-
-	Vsnprintf = (vsnprintf_func == NULL) ? vsnprintf : vsnprintf_func;
-}
-
-/*
  * out_snprintf -- (internal) custom snprintf implementation
  */
 FORMAT_PRINTF(3, 4)
@@ -321,7 +289,7 @@ out_snprintf(char *str, size_t size, const char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
-	ret = Vsnprintf(str, size, format, ap);
+	ret = vsnprintf(str, size, format, ap);
 	va_end(ap);
 
 	return (ret);
@@ -351,7 +319,7 @@ out_common(const char *file, int line, const char *func, int level,
 				"<%s>: <%d> [%s:%d %s] ",
 				Log_prefix, level, file, line, func);
 		if (ret < 0) {
-			Print("out_snprintf failed");
+			out_print_func("out_snprintf failed");
 			goto end;
 		}
 		cc += (unsigned)ret;
@@ -375,9 +343,9 @@ out_common(const char *file, int line, const char *func, int level,
 			}
 
 		}
-		ret = Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+		ret = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (ret < 0) {
-			Print("Vsnprintf failed");
+			out_print_func("vsnprintf failed");
 			goto end;
 		}
 		cc += (unsigned)ret;
@@ -385,7 +353,7 @@ out_common(const char *file, int line, const char *func, int level,
 
 	out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, suffix);
 
-	Print(buf);
+	out_print_func(buf);
 
 end:
 	errno = oerrno;
@@ -408,7 +376,7 @@ out_error(const char *file, int line, const char *func,
 	char *errormsg = (char *)out_get_errormsg();
 
 	if (errormsg == NULL) {
-		Print("There's no memory to properly format error strings.");
+		out_print_func("No memory to properly format error strings.");
 		return;
 	}
 
@@ -426,9 +394,9 @@ out_error(const char *file, int line, const char *func,
 			}
 		}
 
-		ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
+		ret = vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
 		if (ret < 0) {
-			strcpy(errormsg, "Vsnprintf failed");
+			strcpy(errormsg, "vsnprintf failed");
 			goto end;
 		}
 		cc += (unsigned)ret;
@@ -449,7 +417,7 @@ out_error(const char *file, int line, const char *func,
 					"<%s>: <1> [%s:%d %s] ",
 					Log_prefix, file, line, func);
 			if (ret < 0) {
-				Print("out_snprintf failed");
+				out_print_func("out_snprintf failed");
 				goto end;
 			}
 			cc += (unsigned)ret;
@@ -462,7 +430,7 @@ out_error(const char *file, int line, const char *func,
 		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
 				suffix);
 
-		Print(buf);
+		out_print_func(buf);
 	}
 #else
 	/* suppress unused-parameter errors */
