@@ -11,11 +11,7 @@ vpath %.c $(TOP)/src/test/unittest
 
 TARGET = pmem2_persist_valgrind
 OBJS = pmem2_persist_valgrind.o\
-	ut_pmem2_utils.o\
-	out.o\
-	util_posix.o\
-	log.o\
-	log_default.o
+	ut_pmem2_utils.o
 
 LIBPMEM2=y
 
