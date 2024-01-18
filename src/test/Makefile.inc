@@ -526,6 +526,7 @@ endif
 
 ifeq ($(USE_LOG_PMEMCORE),y)
 CFLAGS += -DUSE_LOG_PMEMCORE
+OBJS +=	$(TOP)/src/test/unittest/ut_log.o
 endif
 
 ifneq ($(SANITIZE),)

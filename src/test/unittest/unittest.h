@@ -117,6 +117,10 @@ void ut_err(const char *file, int line, const char *func,
 	__attribute__((format(printf, 4, 5)));
 
 #ifdef USE_LOG_PMEMCORE
+void
+ut_log_function(void *context, enum core_log_level level, const char *file_name,
+	const int line_no, const char *function_name,
+	const char *message_format, ...);
 #define LOG_SET_PMEMCORE_FUNC core_log_set_function(ut_log_function, NULL);
 #else
 #define LOG_SET_PMEMCORE_FUNC
@@ -743,11 +747,6 @@ void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
 #define ASAN_UNPOISON_MEMORY_REGION(addr, size) \
 	((void)(addr), (void)(size))
 #endif
-
-void
-ut_log_function(void *context, enum core_log_level level, const char *file_name,
-	const int line_no, const char *function_name,
-	const char *message_format, ...);
 
 #ifdef __cplusplus
 }
