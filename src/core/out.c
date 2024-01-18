@@ -20,6 +20,7 @@
 #include "os_thread.h"
 #include "valgrind_internal.h"
 #include "util.h"
+#include "log_internal.h"
 
 static const char *Log_prefix;
 static int Log_level;
@@ -197,14 +198,15 @@ out_init(const char *log_prefix, const char *log_level_var,
 
 #ifdef DEBUG
 	static char namepath[PATH_MAX];
-	LOG(1, "pid %d: program: %s", getpid(),
+	CORE_LOG_ALWAYS("pid %d: program: %s", getpid(),
 		util_getexecname(namepath, PATH_MAX));
 #endif
-	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
+	CORE_LOG_ALWAYS("%s version %d.%d", log_prefix, major_version,
+		minor_version);
 
 	static __attribute__((used)) const char *version_msg =
 			"src version: " SRCVERSION;
-	LOG(1, "%s", version_msg);
+	CORE_LOG_ALWAYS("%s", version_msg);
 #if VG_PMEMCHECK_ENABLED
 	/*
 	 * Attribute "used" to prevent compiler from optimizing out the variable
@@ -212,32 +214,32 @@ out_init(const char *log_prefix, const char *log_level_var,
 	 */
 	static __attribute__((used)) const char *pmemcheck_msg =
 			"compiled with support for Valgrind pmemcheck";
-	LOG(1, "%s", pmemcheck_msg);
+	CORE_LOG_ALWAYS("%s", pmemcheck_msg);
 #endif /* VG_PMEMCHECK_ENABLED */
 #if VG_HELGRIND_ENABLED
 	static __attribute__((used)) const char *helgrind_msg =
 			"compiled with support for Valgrind helgrind";
-	LOG(1, "%s", helgrind_msg);
+	CORE_LOG_ALWAYS("%s", helgrind_msg);
 #endif /* VG_HELGRIND_ENABLED */
 #if VG_MEMCHECK_ENABLED
 	static __attribute__((used)) const char *memcheck_msg =
 			"compiled with support for Valgrind memcheck";
-	LOG(1, "%s", memcheck_msg);
+	CORE_LOG_ALWAYS("%s", memcheck_msg);
 #endif /* VG_MEMCHECK_ENABLED */
 #if VG_DRD_ENABLED
 	static __attribute__((used)) const char *drd_msg =
 			"compiled with support for Valgrind drd";
-	LOG(1, "%s", drd_msg);
+	CORE_LOG_ALWAYS("%s", drd_msg);
 #endif /* VG_DRD_ENABLED */
 #if SDS_ENABLED
 	static __attribute__((used)) const char *shutdown_state_msg =
 			"compiled with support for shutdown state";
-	LOG(1, "%s", shutdown_state_msg);
+	CORE_LOG_ALWAYS("%s", shutdown_state_msg);
 #endif
 #if NDCTL_ENABLED
 	static __attribute__((used)) const char *ndctl_ge_63_msg =
 		"compiled with libndctl 63+";
-	LOG(1, "%s", ndctl_ge_63_msg);
+	CORE_LOG_ALWAYS("%s", ndctl_ge_63_msg);
 #endif
 
 	Last_errormsg_key_alloc();
@@ -473,19 +475,25 @@ out_nonl(int level, const char *fmt, ...)
 }
 
 /*
- * out_log -- output a log line if Log_level >= level
+ * out_log_va/out_log -- output a log line if Log_level >= level
  */
+void
+out_log_va(const char *file, int line, const char *func, int level,
+		const char *fmt, va_list ap)
+{
+	if (Log_level < level)
+		return;
+	out_common(file, line, func, level, "\n", fmt, ap);
+}
+
 void
 out_log(const char *file, int line, const char *func, int level,
 		const char *fmt, ...)
 {
 	va_list ap;
 
-	if (Log_level < level)
-		return;
-
 	va_start(ap, fmt);
-	out_common(file, line, func, level, "\n", fmt, ap);
+	out_log_va(file, line, func, level, fmt, ap);
 
 	va_end(ap);
 }

@@ -382,6 +382,7 @@ ifeq ($(LIBPMEMCORE), y)
 LIBPMEM=y
 OBJS += $(LIBS_DIR)/debug/libpmemcore.a
 INCS += -I$(TOP)/src/core
+USE_LOG_PMEMCORE=y
 endif
 
 ifeq ($(LIBPMEMCORE), internal-nondebug)
@@ -399,6 +400,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/core/util_posix.o
 
 INCS += -I$(TOP)/src/core
+USE_LOG_PMEMCORE=y
 endif
 
 ifeq ($(LIBPMEMCORE), internal-debug)
@@ -416,6 +418,7 @@ OBJS +=\
 	$(TOP)/src/debug/core/util_posix.o
 
 INCS += -I$(TOP)/src/core
+USE_LOG_PMEMCORE=y
 endif
 
 ifeq ($(LIBPMEM),y)
@@ -519,6 +522,11 @@ endif
 ifeq ($(FAULT_INJECTION),1)
 CFLAGS += -DFAULT_INJECTION=1
 CXXFLAGS += -DFAULT_INJECTION=1
+endif
+
+ifeq ($(USE_LOG_PMEMCORE),y)
+CFLAGS += -DUSE_LOG_PMEMCORE
+OBJS += $(TOP)/src/test/unittest/ut_log.o
 endif
 
 ifneq ($(SANITIZE),)

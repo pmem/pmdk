@@ -134,24 +134,21 @@ core_log_default_function(void *context, enum core_log_level level,
 		}
 	}
 
-	if (level <= Core_log_threshold[CORE_LOG_THRESHOLD_AUX] ||
-	    level == CORE_LOG_LEVEL_ALWAYS) {
+	if (level <= Core_log_threshold[CORE_LOG_THRESHOLD_AUX] &&
+	    level != CORE_LOG_LEVEL_ALWAYS) {
 		char times_tamp[45] = "";
 		get_timestamp_prefix(times_tamp, sizeof(times_tamp));
-		(void) fprintf(stderr, "%s[%ld] %s%s%s", times_tamp,
-			syscall(SYS_gettid),
-			log_level_names[(level == CORE_LOG_LEVEL_ALWAYS) ?
-				CORE_LOG_LEVEL_DEBUG : level],
-			file_info, message);
+		(void) fprintf(stderr, "%s[%ld] %s%s%s\n", times_tamp,
+			syscall(SYS_gettid), log_level_names[level], file_info,
+			message);
 	}
 
-	/* do not log to syslog in case of CORE_LOG_LEVEL_ALWAYS */
-	if (CORE_LOG_LEVEL_ALWAYS == level)
-		return;
-
+	level = (level == CORE_LOG_LEVEL_ALWAYS)? CORE_LOG_LEVEL_NOTICE: level;
 	/* assumed: level <= Core_log_threshold[CORE_LOG_THRESHOLD] */
-	syslog(log_level_syslog_severity[level], "%s%s%s",
-		log_level_names[level], file_info, message);
+	syslog(log_level_syslog_severity[level],
+		"%s%s%s",
+		log_level_names[level],
+		file_info, message);
 }
 
 /*

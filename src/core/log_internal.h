@@ -103,9 +103,9 @@ void core_log_fini(void);
 
 #define CORE_LOG(level, format, ...) \
 	do { \
-		if (level <= Core_log_threshold[RPMA_LOG_THRESHOLD] && \
+		if (level <= Core_log_threshold[CORE_LOG_THRESHOLD] && \
 				0 != Core_log_function) { \
-			((log_function *)Core_log_function)( \
+			((core_log_function *)Core_log_function)( \
 				Core_log_function_context, level, __FILE__, \
 				__LINE__, __func__, format, ##__VA_ARGS__); \
 		} \
@@ -122,25 +122,25 @@ void core_log_default_function(void *context, enum core_log_level level,
  * Direct call to log shall be used only in exceptional, corner cases.
  */
 #define CORE_LOG_DEBUG(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_DEBUG, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
 
 #define CORE_LOG_INFO(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_INFO, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_INFO, format, ##__VA_ARGS__)
 
 #define CORE_LOG_NOTICE(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_NOTICE, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_NOTICE, format, ##__VA_ARGS__)
 
 #define CORE_LOG_WARNING(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_WARNING, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
 
 #define CORE_LOG_ERROR(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_ERROR, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
 
 #define CORE_LOG_FATAL(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_FATAL, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
 
 #define CORE_LOG_ALWAYS(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format "\n", ##__VA_ARGS__)
+	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format, ##__VA_ARGS__)
 
 /*
  * 'f' stands here for 'function' or 'format' where the latter may accept
