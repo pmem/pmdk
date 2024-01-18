@@ -10,12 +10,12 @@ vpath %.c $(TOP)/src/core
 vpath %.c $(TOP)/src/test/unittest
 
 TARGET = pmem2_persist_valgrind
-OBJS = alloc.o\
+OBJS = pmem2_persist_valgrind.o\
+	ut_pmem2_utils.o\
 	out.o\
-	pmem2_persist_valgrind.o\
-	util.o\
 	util_posix.o\
-	ut_pmem2_utils.o
+	log.o\
+	log_default.o
 
 LIBPMEM2=y
 
