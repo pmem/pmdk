@@ -144,7 +144,7 @@ ut_log_function_pmemobj(void *context, enum pmemobj_log_level level,
 		ut_start(__FILE__, __LINE__, __func__, argc, argv,\
 			__VA_ARGS__);\
 		LOG_SET_PMEMCORE_FUNC; \
-		LOG_SET_PMEMOBJ_FUNC
+		LOG_SET_PMEMOBJ_FUNC \
 	} while (0)
 
 

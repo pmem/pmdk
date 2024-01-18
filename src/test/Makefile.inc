@@ -76,7 +76,7 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/sync.o\
 	$(TOP)/src/debug/libpmemobj/tx.o\
 	$(TOP)/src/debug/libpmemobj/stats.o\
-	$(TOP)/src/debug/libpmemobj/log.o
+	$(TOP)/src/debug/libpmemobj/obj_log.o
 
 INCS += -I$(TOP)/src/libpmemobj
 USE_LOG_PMEMOBJ=y
@@ -531,11 +531,22 @@ endif
 
 ifeq ($(USE_LOG_PMEMCORE),y)
 CFLAGS += -DUSE_LOG_PMEMCORE
-OBJS +=	$(TOP)/src/test/unittest/ut_log.o
 endif
 
 ifeq ($(USE_LOG_PMEMOBJ),y)
 CFLAGS += -DUSE_LOG_PMEMOBJ
+endif
+
+ifeq ($(USE_LOG_PMEMCORE),y)
+OBJS +=	$(TOP)/src/test/unittest/ut_log.o
+else ifeq ($(USE_LOG_PMEMOBJ),y)
+OBJS +=	$(TOP)/src/test/unittest/ut_log.o
+ifeq ($(LIBPMEMOBJ), y)
+OBJS +=	$(TOP)/src/debug/core/out.o
+OBJS +=	$(TOP)/src/debug/core/log.o
+OBJS +=	$(TOP)/src/debug/core/log_default.o
+OBJS +=	$(TOP)/src/debug/core/util_posix.o
+endif
 endif
 
 ifneq ($(SANITIZE),)
