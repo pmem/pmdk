@@ -89,6 +89,10 @@ extern "C" {
 #include "util.h"
 #include "log_internal.h"
 
+#ifdef USE_LOG_PMEMOBJ
+#include "libpmemobj/log.h"
+#endif
+
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
 #define UT_POOL_HDR_UUID_STR_LEN 37 /* uuid string length */
@@ -116,14 +120,22 @@ void ut_err(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
 
-#ifdef USE_LOG_PMEMCORE
 void
 ut_log_function(void *context, enum core_log_level level, const char *file_name,
 	const int line_no, const char *function_name,
 	const char *message_format, ...);
-#define LOG_SET_PMEMCORE_FUNC core_log_set_function(ut_log_function, NULL);
+
+#ifdef USE_LOG_PMEMCORE
+#define LOG_SET_PMEMCORE_FUNC core_log_set_function(ut_log_function, NULL)
 #else
 #define LOG_SET_PMEMCORE_FUNC
+#endif
+
+#ifdef USE_LOG_PMEMOBJ
+#define LOG_SET_PMEMOBJ_FUNC \
+	pmemobj_log_set_function((pmemobj_log_function *)ut_log_function, NULL)
+#else
+#define LOG_SET_PMEMOBJ_FUNC
 #endif
 
 /* indicate the start of the test */
@@ -131,7 +143,8 @@ ut_log_function(void *context, enum core_log_level level, const char *file_name,
 	do {\
 		ut_start(__FILE__, __LINE__, __func__, argc, argv,\
 			__VA_ARGS__);\
-		LOG_SET_PMEMCORE_FUNC\
+		LOG_SET_PMEMCORE_FUNC; \
+		LOG_SET_PMEMOBJ_FUNC; \
 	} while (0)
 
 /* normal exit from test */

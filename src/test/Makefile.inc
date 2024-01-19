@@ -47,6 +47,7 @@ endif
 
 ifeq ($(LIBPMEMOBJ), y)
 LIBPMEM=y
+USE_LOG_PMEMOBJ=y
 DYNAMIC_LIBS += -lpmemobj
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
@@ -54,6 +55,7 @@ endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
 LIBPMEM=y
+USE_LOG_PMEMOBJ=y
 LIBPMEMCOMMON=internal-debug
 OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/bucket.o\
@@ -74,13 +76,15 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/ulog.o\
 	$(TOP)/src/debug/libpmemobj/sync.o\
 	$(TOP)/src/debug/libpmemobj/tx.o\
-	$(TOP)/src/debug/libpmemobj/stats.o
+	$(TOP)/src/debug/libpmemobj/stats.o\
+	$(TOP)/src/debug/libpmemobj/obj_log.o
 
 INCS += -I$(TOP)/src/libpmemobj
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
 LIBPMEM=y
+USE_LOG_PMEMOBJ=y
 LIBPMEMCOMMON=internal-nondebug
 OBJS +=	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/bucket.o\
@@ -101,7 +105,8 @@ OBJS +=	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/ulog.o\
 	$(TOP)/src/nondebug/libpmemobj/sync.o\
 	$(TOP)/src/nondebug/libpmemobj/tx.o\
-	$(TOP)/src/nondebug/libpmemobj/stats.o
+	$(TOP)/src/nondebug/libpmemobj/stats.o\
+	$(TOP)/src/nondebug/libpmemobj/obj_log.o
 
 INCS += -I$(TOP)/src/libpmemobj
 endif
@@ -380,12 +385,13 @@ endif
 
 ifeq ($(LIBPMEMCORE), y)
 LIBPMEM=y
+USE_LOG_PMEMCORE=y
 OBJS += $(LIBS_DIR)/debug/libpmemcore.a
 INCS += -I$(TOP)/src/core
-USE_LOG_PMEMCORE=y
 endif
 
 ifeq ($(LIBPMEMCORE), internal-nondebug)
+USE_LOG_PMEMCORE=y
 OBJS +=\
 	$(TOP)/src/nondebug/core/alloc.o\
 	$(TOP)/src/nondebug/core/fs_posix.o\
@@ -400,10 +406,10 @@ OBJS +=\
 	$(TOP)/src/nondebug/core/util_posix.o
 
 INCS += -I$(TOP)/src/core
-USE_LOG_PMEMCORE=y
 endif
 
 ifeq ($(LIBPMEMCORE), internal-debug)
+USE_LOG_PMEMCORE=y
 OBJS +=\
 	$(TOP)/src/debug/core/alloc.o\
 	$(TOP)/src/debug/core/fs_posix.o\
@@ -418,7 +424,6 @@ OBJS +=\
 	$(TOP)/src/debug/core/util_posix.o
 
 INCS += -I$(TOP)/src/core
-USE_LOG_PMEMCORE=y
 endif
 
 ifeq ($(LIBPMEM),y)
@@ -526,7 +531,21 @@ endif
 
 ifeq ($(USE_LOG_PMEMCORE),y)
 CFLAGS += -DUSE_LOG_PMEMCORE
-OBJS += $(TOP)/src/test/unittest/ut_log.o
+endif
+
+ifeq ($(USE_LOG_PMEMOBJ),y)
+CFLAGS += -DUSE_LOG_PMEMOBJ
+endif
+
+# USE_LOG_PMEMCORE != y means the binary is built without directly linking with
+# core units which are required by libut.a (ut_log.c to be exact).
+# In case the binary is built with directly linking with core units it is
+# assumed the following are among them already.
+ifneq ($(USE_LOG_PMEMCORE),y)
+OBJS += $(TOP)/src/debug/core/out.o
+OBJS += $(TOP)/src/debug/core/log.o
+OBJS += $(TOP)/src/debug/core/log_default.o
+OBJS += $(TOP)/src/debug/core/util_posix.o
 endif
 
 ifneq ($(SANITIZE),)
