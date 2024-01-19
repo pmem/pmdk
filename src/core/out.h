@@ -13,6 +13,7 @@
 #include <stdlib.h>
 
 #include "util.h"
+#include "log_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -185,6 +186,18 @@ out_fatal_abort(const char *file, int line, const char *func,
 
 #define ERR(...)\
 	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
+
+#define ERR_W_ERRNO(f, ...)\
+	do {\
+		ERR("*!" f, ##__VA_ARGS__);\
+		CORE_LOG_ERROR_WITH_ERRNO(f, ##__VA_ARGS__);\
+	} while (0)
+
+#define ERR_WO_ERRNO(f, ...)\
+	do { \
+		ERR("*" f, ##__VA_ARGS__);\
+		CORE_LOG_ERROR(f, ##__VA_ARGS__);\
+	} while (0)
 
 void out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
