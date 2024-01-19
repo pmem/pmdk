@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2015-2019, Intel Corporation
+
+#
+# src/test/out_err/TEST0 -- unit test for out_err()
+#
+
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+require_fs_type none
+require_build_type debug
+
+setup
+
+export TRACE_LOG_LEVEL=1
+export TRACE_LOG_FILE=./traces$UNITTEST_NUM.log
+export UNITTEST_DO_NOT_CHECK_OPEN_FILES=1
+
+expect_normal_exit ./log_errno$EXESUFFIX 2>err0.log
+
+check
+
+pass
