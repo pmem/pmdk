@@ -2225,9 +2225,9 @@ CTL_READ_HANDLER(threshold)(void *ctx,
 	/* suppress unused-parameter errors */
 	SUPPRESS_UNUSED(ctx, source, arg, indexes);
 
-	LOG(1, "tx.cache.threshold parameter is deprecated");
+	ERR_WO_ERRNO("tx.cache.threshold parameter is deprecated");
 
-	return 0;
+	return -1;
 }
 
 /*
@@ -2240,9 +2240,9 @@ CTL_WRITE_HANDLER(threshold)(void *ctx,
 	/* suppress unused-parameter errors */
 	SUPPRESS_UNUSED(ctx, source, arg, indexes);
 
-	LOG(1, "tx.cache.threshold parameter is deprecated");
+	ERR_WO_ERRNO("tx.cache.threshold parameter is deprecated");
 
-	return 0;
+	return -1;
 }
 
 static const struct ctl_argument CTL_ARG(threshold) = CTL_ARG_LONG_LONG;
