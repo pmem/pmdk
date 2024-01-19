@@ -2226,7 +2226,7 @@ CTL_READ_HANDLER(threshold)(void *ctx,
 	/* suppress unused-parameter errors */
 	SUPPRESS_UNUSED(ctx, source, arg, indexes);
 
-	LOG(1, "tx.cache.threshold parameter is deprecated");
+	ERR_WO_ERRNO("tx.cache.threshold parameter is deprecated");
 
 	return 0;
 }
@@ -2241,7 +2241,7 @@ CTL_WRITE_HANDLER(threshold)(void *ctx,
 	/* suppress unused-parameter errors */
 	SUPPRESS_UNUSED(ctx, source, arg, indexes);
 
-	LOG(1, "tx.cache.threshold parameter is deprecated");
+	ERR_WO_ERRNO("tx.cache.threshold parameter is deprecated");
 
 	return 0;
 }
