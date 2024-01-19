@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * obj.c -- transactional object store implementation
@@ -660,12 +660,12 @@ obj_runtime_init_common(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	if ((errno = lane_boot(pop)) != 0) {
-		ERR("!lane_boot");
+		ERR_W_ERRNO("lane_boot");
 		return errno;
 	}
 
 	if ((errno = lane_recover_and_section_boot(pop)) != 0) {
-		ERR("!lane_recover_and_section_boot");
+		ERR_W_ERRNO("lane_recover_and_section_boot");
 		return errno;
 	}
 
@@ -723,7 +723,7 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	errno = palloc_init((char *)pop + pop->heap_offset, heap_size,
 		&pop->heap_size, p_ops);
 	if (errno != 0) {
-		ERR("!palloc_init");
+		ERR_W_ERRNO("palloc_init");
 		return -1;
 	}
 
@@ -962,12 +962,12 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		obj_pool_init();
 
 		if ((errno = critnib_insert(pools_ht, pop->uuid_lo, pop))) {
-			ERR("!critnib_insert to pools_ht");
+			ERR_W_ERRNO("critnib_insert to pools_ht");
 			goto err_critnib_insert;
 		}
 
 		if ((errno = critnib_insert(pools_tree, (uint64_t)pop, pop))) {
-			ERR("!critnib_insert to pools_tree");
+			ERR_W_ERRNO("critnib_insert to pools_tree");
 			goto err_tree_insert;
 		}
 	}
@@ -982,7 +982,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		operation_user_buffer_range_cmp,
 		sizeof(struct user_buffer_def));
 	if (pop->ulog_user_buffers.map == NULL) {
-		ERR("!ravl_new_sized");
+		ERR_W_ERRNO("ravl_new_sized");
 		goto err_user_buffers_map;
 	}
 	pop->ulog_user_buffers.verify = 0;

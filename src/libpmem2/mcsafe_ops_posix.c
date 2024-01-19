@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2021-2022, Intel Corporation */
+/* Copyright 2021-2024, Intel Corporation */
 
 #include <errno.h>
 #include <setjmp.h>
@@ -51,7 +51,7 @@ mcsafe_op_reg_read(struct pmem2_source *src, void *buf, size_t size,
 			return PMEM2_E_IO_FAIL;
 		}
 
-		ERR("!pread");
+		ERR_W_ERRNO("pread");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -77,7 +77,7 @@ mcsafe_op_reg_write(struct pmem2_source *src, void *buf, size_t size,
 			return PMEM2_E_IO_FAIL;
 		}
 
-		ERR("!pwrite");
+		ERR_W_ERRNO("pwrite");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -126,7 +126,7 @@ handle_sigbus_execute_mcsafe_op(struct pmem2_source *src, void *buf,
 	struct sigaction old_act;
 	/* register a custom signal handler */
 	if (sigaction(SIGBUS, &custom_act, &old_act) == -1) {
-		ERR("!sigaction");
+		ERR_W_ERRNO("sigaction");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -149,7 +149,7 @@ clnup_null_global_jmp:
 
 	/* restore the previous signal handler */
 	if (sigaction(SIGBUS, &old_act, NULL) == -1) {
-		ERR("!sigaction");
+		ERR_W_ERRNO("sigaction");
 		return PMEM2_E_ERRNO;
 	}
 

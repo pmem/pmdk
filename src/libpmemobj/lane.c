@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * lane.c -- lane implementation
@@ -264,7 +264,7 @@ lane_boot(PMEMobjpool *pop)
 	pop->lanes_desc.lane = Malloc(sizeof(struct lane) * pop->nlanes);
 	if (pop->lanes_desc.lane == NULL) {
 		err = ENOMEM;
-		ERR("!Malloc of volatile lanes");
+		ERR_W_ERRNO("Malloc of volatile lanes");
 		goto error_lanes_malloc;
 	}
 
@@ -273,7 +273,7 @@ lane_boot(PMEMobjpool *pop)
 	pop->lanes_desc.lane_locks =
 		Zalloc(sizeof(*pop->lanes_desc.lane_locks) * pop->nlanes);
 	if (pop->lanes_desc.lane_locks == NULL) {
-		ERR("!Malloc for lane locks");
+		ERR_W_ERRNO("Malloc for lane locks");
 		goto error_locks_malloc;
 	}
 
@@ -286,7 +286,7 @@ lane_boot(PMEMobjpool *pop)
 		struct lane_layout *layout = lane_get_layout(pop, i);
 
 		if ((err = lane_init(pop, &pop->lanes_desc.lane[i], layout))) {
-			ERR("!lane_init");
+			ERR_W_ERRNO("lane_init");
 			goto error_lane_init;
 		}
 	}
