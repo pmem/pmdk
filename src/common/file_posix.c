@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * file_posix.c -- Posix versions of file APIs
@@ -155,7 +155,7 @@ util_ddax_region_find(const char *path, unsigned *region_id)
 	int ret;
 
 	if (os_stat(path, &st) < 0) {
-		ERR("!stat \"%s\"", path);
+		ERR_W_ERRNO("stat \"%s\"", path);
 		return -1;
 	}
 

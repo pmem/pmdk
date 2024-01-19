@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * bad_blocks.c - implementation of the bad block API using libpmem2 library
@@ -59,7 +59,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 
 	int fd = os_open(file, O_RDONLY);
 	if (fd == -1) {
-		ERR("!open %s", file);
+		ERR_W_ERRNO("open %s", file);
 		return -1;
 	}
 
@@ -138,7 +138,7 @@ badblocks_clear(const char *file, struct badblocks *bbs)
 
 	int fd = os_open(file, O_RDWR);
 	if (fd == -1) {
-		ERR("!open %s", file);
+		ERR_W_ERRNO("open %s", file);
 		return -1;
 	}
 
@@ -196,7 +196,7 @@ badblocks_clear_all(const char *file)
 
 	int fd = os_open(file, O_RDWR);
 	if (fd == -1) {
-		ERR("!open %s", file);
+		ERR_W_ERRNO("open %s", file);
 		return -1;
 	}
 

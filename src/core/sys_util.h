@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * sys_util.h -- internal utility wrappers around system functions
@@ -178,7 +178,7 @@ util_spin_init(os_spinlock_t *lock, int pshared)
 	int tmp = os_spin_init(lock, pshared);
 	if (tmp) {
 		errno = tmp;
-		ERR("!os_spin_init");
+		ERR_W_ERRNO("os_spin_init");
 	}
 	return tmp;
 }

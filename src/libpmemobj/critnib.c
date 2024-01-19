@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2021, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * critnib.c -- implementation of critnib tree
@@ -276,7 +276,7 @@ alloc_node(struct critnib *__restrict c)
 	if (!c->deleted_node) {
 		struct critnib_node *n = Malloc(sizeof(struct critnib_node));
 		if (n == NULL)
-			ERR("!Malloc");
+			ERR_W_ERRNO("Malloc");
 
 		return n;
 	}
@@ -313,7 +313,7 @@ alloc_leaf(struct critnib *__restrict c)
 	if (!c->deleted_leaf) {
 		struct critnib_leaf *k = Malloc(sizeof(struct critnib_leaf));
 		if (k == NULL)
-			ERR("!Malloc");
+			ERR_W_ERRNO("Malloc");
 
 		return k;
 	}

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * vecq.h -- vector queue (FIFO) interface
@@ -65,7 +65,7 @@ realloc_set(void **buf, size_t s)
 {
 	void *tbuf = Realloc(*buf, s);
 	if (tbuf == NULL) {
-		ERR("!Realloc");
+		ERR_W_ERRNO("Realloc");
 		return -1;
 	}
 	*buf = tbuf;

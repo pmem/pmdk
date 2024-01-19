@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 /*
  * shutdown_state.c -- unsafe shudown detection
@@ -93,7 +93,7 @@ shutdown_state_add_part(struct shutdown_state *sds, int fd,
 	uid = Zalloc(len);
 
 	if (uid == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		goto err;
 	}
 

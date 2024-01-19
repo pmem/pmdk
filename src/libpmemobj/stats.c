@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2021, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 /*
  * stats.c -- implementation of statistics
@@ -117,7 +117,7 @@ stats_new(PMEMobjpool *pop)
 {
 	struct stats *s = Malloc(sizeof(*s));
 	if (s == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return NULL;
 	}
 
