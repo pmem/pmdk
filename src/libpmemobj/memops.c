@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * memops.c -- aggregated memory operations helper implementation
@@ -87,7 +87,7 @@ operation_log_transient_init(struct operation_log *log)
 	struct ulog *src = Zalloc(sizeof(struct ulog) +
 		ULOG_BASE_SIZE);
 	if (src == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		return -1;
 	}
 
@@ -113,7 +113,7 @@ operation_log_persistent_init(struct operation_log *log,
 	struct ulog *src = Zalloc(sizeof(struct ulog) +
 		ULOG_BASE_SIZE);
 	if (src == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		return -1;
 	}
 
@@ -174,7 +174,7 @@ operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
 {
 	struct operation_context *ctx = Zalloc(sizeof(*ctx));
 	if (ctx == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		goto error_ctx_alloc;
 	}
 

@@ -371,6 +371,7 @@ out_error(const char *file, int line, const char *func,
 	int oerrno = errno;
 	unsigned long olast_error = 0;
 	unsigned cc = 0;
+	unsigned print_msg = 1;
 	int ret;
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
@@ -383,6 +384,14 @@ out_error(const char *file, int line, const char *func,
 	}
 
 	if (fmt) {
+		/*
+		 * '*' at the begining means 'do not push message to output'
+		 */
+		if (*fmt == '*') {
+			print_msg = 0;
+			fmt++;
+		}
+
 		if (*fmt == '!') {
 			sep = ": ";
 			fmt++;
@@ -407,7 +416,7 @@ out_error(const char *file, int line, const char *func,
 	}
 
 #ifdef DEBUG
-	if (Log_level >= 1) {
+	if (Log_level >= 1 && print_msg) {
 		char buf[MAXPRINT];
 		cc = 0;
 
@@ -436,7 +445,7 @@ out_error(const char *file, int line, const char *func,
 	}
 #else
 	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(file, line, func, suffix);
+	SUPPRESS_UNUSED(file, line, func, suffix, print_msg);
 #endif
 
 end:

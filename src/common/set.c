@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -191,7 +191,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 	void *hdrp = util_map_sync(addr, hdrsize, prot, flags,
 			part->fd, 0, &part->hdr_map_sync);
 	if (hdrp == MAP_FAILED) {
-		ERR("!mmap: %s", part->path);
+		ERR_W_ERRNO("mmap: %s", part->path);
 		return -1;
 	}
 
@@ -248,7 +248,7 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 	void *addrp = util_map_sync(addr, size, prot, flags, part->fd,
 			(os_off_t)offset, &part->map_sync);
 	if (addrp == MAP_FAILED) {
-		ERR("!mmap: %s", part->path);
+		ERR_W_ERRNO("mmap: %s", part->path);
 		return -1;
 	}
 
@@ -279,7 +279,7 @@ util_unmap_part(struct pool_set_part *part)
 		LOG(4, "munmap: addr %p size %zu", part->addr, part->size);
 		VALGRIND_REMOVE_PMEM_MAPPING(part->addr, part->size);
 		if (munmap(part->addr, part->size) != 0) {
-			ERR("!munmap: %s", part->path);
+			ERR_W_ERRNO("munmap: %s", part->path);
 		}
 
 		part->addr = NULL;
@@ -365,7 +365,8 @@ util_replica_close_local(struct pool_replica *rep, unsigned repn,
 			LOG(4, "unlink %s", rep->part[p].path);
 			int olderrno = errno;
 			if (util_unlink(rep->part[p].path) && errno != ENOENT) {
-				ERR("!unlink %s failed (part %u, replica %u)",
+				ERR_W_ERRNO(
+					"unlink %s failed (part %u, replica %u)",
 						rep->part[p].path, p, repn);
 				return -1;
 			}
@@ -417,7 +418,8 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 
 			os_stat_t stbuf;
 			if (os_fstat(part->fd, &stbuf) != 0) {
-				ERR("!fstat %d %s", part->fd, part->path);
+				ERR_W_ERRNO("fstat %d %s", part->fd,
+						part->path);
 				return -1;
 			}
 
@@ -429,7 +431,7 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			}
 
 			if (os_chmod(part->path, mode)) {
-				ERR("!chmod %u/%u/%s", r, p, part->path);
+				ERR_W_ERRNO("chmod %u/%u/%s", r, p, part->path);
 				return -1;
 			}
 		}
@@ -511,7 +513,7 @@ parser_read_line(char *line, size_t *size, char **path)
 
 	*path = Strdup(path_str);
 	if (!(*path)) {
-		ERR("!Strdup");
+		ERR_W_ERRNO("Strdup");
 		return PARSER_OUT_OF_MEMORY;
 	}
 
@@ -615,7 +617,7 @@ parser_read_replica(char *line, char **node_addr, char **pool_desc)
 	*pool_desc = Strdup(desc_str);
 
 	if (!(*node_addr) || !(*pool_desc)) {
-		ERR("!Strdup");
+		ERR_W_ERRNO("Strdup");
 		if (*node_addr)
 			Free(*node_addr);
 		if (*pool_desc)
@@ -641,7 +643,7 @@ util_replica_reserve(struct pool_replica **repp, unsigned n)
 	rep = Realloc(rep, sizeof(struct pool_replica) +
 		(n) * sizeof(struct pool_set_part));
 	if (rep == NULL) {
-		ERR("!Realloc");
+		ERR_W_ERRNO("Realloc");
 		return -1;
 	}
 
@@ -832,7 +834,7 @@ util_parse_add_replica(struct pool_set **setp)
 	set = Realloc(set, sizeof(struct pool_set) +
 			(set->nreplicas + 1) * sizeof(struct pool_replica *));
 	if (set == NULL) {
-		ERR("!Realloc");
+		ERR_W_ERRNO("Realloc");
 		return -1;
 	}
 	*setp = set;
@@ -840,7 +842,7 @@ util_parse_add_replica(struct pool_set **setp)
 	struct pool_replica *rep;
 	rep = Zalloc(sizeof(struct pool_replica));
 	if (rep == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		return -1;
 	}
 
@@ -1017,7 +1019,7 @@ util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 
 	struct fs *f = fs_new(directory);
 	if (f == NULL) {
-		ERR("!fs_new: \"%s\"", directory);
+		ERR_W_ERRNO("fs_new: \"%s\"", directory);
 		return -1;
 	}
 
@@ -1050,7 +1052,7 @@ util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 		}
 
 		if ((path = Strdup(entry->path)) == NULL) {
-			ERR("!Strdup");
+			ERR_W_ERRNO("Strdup");
 			goto err;
 		}
 
@@ -1128,7 +1130,7 @@ util_poolset_directories_load(struct pool_set *set)
 
 		if (VEC_SIZE(&set->replica[r]->directory) == 0) {
 			errno = ENOENT;
-			ERR("!no directories in replica");
+			ERR_W_ERRNO("no directories in replica");
 			return -1;
 		}
 
@@ -1145,7 +1147,7 @@ util_poolset_directories_load(struct pool_set *set)
 
 			size_t path_len = strlen(d->path) + PMEM_FILE_MAX_LEN;
 			if ((p->path = Malloc(path_len)) == NULL) {
-				ERR("!Malloc");
+				ERR_W_ERRNO("Malloc");
 				return -1;
 			}
 
@@ -1185,19 +1187,19 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	int oerrno;
 
 	if (os_lseek(fd, 0, SEEK_SET) != 0) {
-		ERR("!lseek %d", fd);
+		ERR_W_ERRNO("lseek %d", fd);
 		return -1;
 	}
 
 	fd = dup(fd);
 	if (fd < 0) {
-		ERR("!dup");
+		ERR_W_ERRNO("dup");
 		return -1;
 	}
 
 	/* associate a stream with the file descriptor */
 	if ((fs = os_fdopen(fd, "r")) == NULL) {
-		ERR("!fdopen %d", fd);
+		ERR_W_ERRNO("fdopen %d", fd);
 		os_close(fd);
 		return -1;
 	}
@@ -1208,20 +1210,20 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	/* read the first line */
 	line = util_readline(fs);
 	if (line == NULL) {
-		ERR("!Reading poolset file");
+		ERR_W_ERRNO("Reading poolset file");
 		goto err;
 	}
 	nlines++;
 
 	set = Zalloc(sizeof(struct pool_set));
 	if (set == NULL) {
-		ERR("!Malloc for pool set");
+		ERR_W_ERRNO("Malloc for pool set");
 		goto err;
 	}
 
 	set->path = Strdup(path);
 	if (set->path == NULL)  {
-		ERR("!Strdup");
+		ERR_W_ERRNO("Strdup");
 		goto err;
 	}
 
@@ -1394,13 +1396,13 @@ util_poolset_single(const char *path, size_t filesize, int create,
 	set = Zalloc(sizeof(struct pool_set) +
 			sizeof(struct pool_replica *));
 	if (set == NULL) {
-		ERR("!Malloc for pool set");
+		ERR_W_ERRNO("Malloc for pool set");
 		return NULL;
 	}
 
 	set->path = Strdup(path);
 	if (set->path == NULL)  {
-		ERR("!Strdup");
+		ERR_W_ERRNO("Strdup");
 		Free(set);
 		return NULL;
 	}
@@ -1409,7 +1411,7 @@ util_poolset_single(const char *path, size_t filesize, int create,
 	rep = Zalloc(sizeof(struct pool_replica) +
 			sizeof(struct pool_set_part));
 	if (rep == NULL) {
-		ERR("!Malloc for pool set replica");
+		ERR_W_ERRNO("Malloc for pool set replica");
 		Free(set->path);
 		Free(set);
 		return NULL;
@@ -1492,8 +1494,8 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create_part)
 					(os_off_t)size);
 			if (ret != 0) {
 				errno = ret;
-				ERR("!posix_fallocate \"%s\", %zu", part->path,
-					size);
+				ERR_W_ERRNO("posix_fallocate \"%s\", %zu",
+						part->path, size);
 				return -1;
 			}
 		}
@@ -1561,7 +1563,7 @@ util_poolset_read(struct pool_set **setp, const char *path)
 	int fd;
 
 	if ((fd = os_open(path, O_RDONLY)) < 0) {
-		ERR("!open: path \"%s\"", path);
+		ERR_W_ERRNO("open: path \"%s\"", path);
 		return -1;
 	}
 
@@ -1620,7 +1622,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		 */
 		ret = (int)read(fd, signature, POOLSET_HDR_SIG_LEN);
 		if (ret < 0) {
-			ERR("!read %d", fd);
+			ERR_W_ERRNO("read %d", fd);
 			goto err;
 		}
 	}
@@ -1743,7 +1745,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	os_stat_t stbuf;
 
 	if (os_fstat(rep->part[partidx].fd, &stbuf) != 0) {
-		ERR("!fstat");
+		ERR_W_ERRNO("fstat");
 		return -1;
 	}
 	ASSERT(stbuf.st_ctime);
@@ -2193,7 +2195,7 @@ util_poolset_append_new_part(struct pool_set *set, size_t size)
 
 		path_len = strlen(d->path) + PMEM_FILE_MAX_LEN;
 		if ((path = Malloc(path_len)) == NULL) {
-			ERR("!Malloc");
+			ERR_W_ERRNO("Malloc");
 			goto err_part_init;
 		}
 
@@ -2980,7 +2982,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	if ((*setp)->replica[0]->nparts == 0) {
 		errno = ENOENT;
-		ERR("!no parts in replicas");
+		ERR_W_ERRNO("no parts in replicas");
 		goto err_poolset_free;
 	}
 
@@ -3111,7 +3113,7 @@ util_is_poolset_file(const char *path)
 			rd += (size_t)sret;
 	} while (sret > 0);
 	if (sret < 0) {
-		ERR("!read");
+		ERR_W_ERRNO("read");
 		ret = -1;
 		goto out;
 	} else if (rd != sizeof(signature)) {
@@ -3175,7 +3177,7 @@ util_poolset_foreach_part(const char *path,
 
 	int fd = os_open(path, O_RDONLY);
 	if (fd < 0) {
-		ERR("!open: path \"%s\"", path);
+		ERR_W_ERRNO("open: path \"%s\"", path);
 		return -1;
 	}
 
