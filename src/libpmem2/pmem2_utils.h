@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2023, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * pmem2_utils.h -- libpmem2 utilities functions
@@ -18,7 +18,7 @@ static inline int
 pmem2_assert_errno(void)
 {
 	if (!errno) {
-		ERR("errno is not set");
+		ERR_WO_ERRNO("errno is not set");
 		ASSERTinfo(0, "errno is not set");
 		return -EINVAL;
 	}

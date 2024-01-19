@@ -115,13 +115,14 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 	if (pfn) {
 		*ns_offset = ndctl_pfn_get_resource(pfn);
 		if (*ns_offset == ULLONG_MAX) {
-			ERR("(pfn) cannot read offset of the namespace");
+			ERR_WO_ERRNO(
+				"(pfn) cannot read offset of the namespace");
 			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		*ns_size = ndctl_pfn_get_size(pfn);
 		if (*ns_size == ULLONG_MAX) {
-			ERR("(pfn) cannot read size of the namespace");
+			ERR_WO_ERRNO("(pfn) cannot read size of the namespace");
 			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
@@ -130,13 +131,14 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 	} else if (dax) {
 		*ns_offset = ndctl_dax_get_resource(dax);
 		if (*ns_offset == ULLONG_MAX) {
-			ERR("(dax) cannot read offset of the namespace");
+			ERR_WO_ERRNO(
+				"(dax) cannot read offset of the namespace");
 			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		*ns_size = ndctl_dax_get_size(dax);
 		if (*ns_size == ULLONG_MAX) {
-			ERR("(dax) cannot read size of the namespace");
+			ERR_WO_ERRNO("(dax) cannot read size of the namespace");
 			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
@@ -145,13 +147,15 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 	} else { /* raw or btt */
 		*ns_offset = ndctl_namespace_get_resource(ndns);
 		if (*ns_offset == ULLONG_MAX) {
-			ERR("(raw/btt) cannot read offset of the namespace");
+			ERR_WO_ERRNO(
+				"(raw/btt) cannot read offset of the namespace");
 			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		*ns_size = ndctl_namespace_get_size(ndns);
 		if (*ns_size == ULLONG_MAX) {
-			ERR("(raw/btt) cannot read size of the namespace");
+			ERR_WO_ERRNO(
+				"(raw/btt) cannot read size of the namespace");
 			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
@@ -188,14 +192,14 @@ badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 	struct ndctl_cmd *cmd_ars_cap = ndctl_bus_cmd_new_ars_cap(bus,
 							address, length);
 	if (cmd_ars_cap == NULL) {
-		ERR("ndctl_bus_cmd_new_ars_cap() failed (bus '%s')",
+		ERR_WO_ERRNO("ndctl_bus_cmd_new_ars_cap() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
 		return PMEM2_E_ERRNO;
 	}
 
 	ret = ndctl_cmd_submit(cmd_ars_cap);
 	if (ret) {
-		ERR("ndctl_cmd_submit() failed (bus '%s')",
+		ERR_WO_ERRNO("ndctl_cmd_submit() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
 		/* ndctl_cmd_submit() returns -errno */
 		goto out_ars_cap;
@@ -204,7 +208,7 @@ badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 	struct ndctl_range range;
 	ret = ndctl_cmd_ars_cap_get_range(cmd_ars_cap, &range);
 	if (ret) {
-		ERR("ndctl_cmd_ars_cap_get_range() failed");
+		ERR_WO_ERRNO("ndctl_cmd_ars_cap_get_range() failed");
 		/* ndctl_cmd_ars_cap_get_range() returns -errno */
 		goto out_ars_cap;
 	}
@@ -214,7 +218,7 @@ badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 
 	ret = ndctl_cmd_submit(cmd_clear_error);
 	if (ret) {
-		ERR("ndctl_cmd_submit() failed (bus '%s')",
+		ERR_WO_ERRNO("ndctl_cmd_submit() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
 		/* ndctl_cmd_submit() returns -errno */
 		goto out_clear_error;
@@ -227,7 +231,7 @@ badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 	ASSERT(cleared <= length);
 
 	if (cleared < length) {
-		ERR("failed to clear %llu out of %llu bad blocks",
+		ERR_WO_ERRNO("failed to clear %llu out of %llu bad blocks",
 			length - cleared, length);
 		errno = ENXIO; /* ndctl handles such error in this way */
 		ret = PMEM2_E_ERRNO;
@@ -256,7 +260,7 @@ pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
 	ASSERTne(bbctx, NULL);
 
 	if (src->type == PMEM2_SOURCE_ANON) {
-		ERR("Anonymous source does not support bad blocks");
+		ERR_WO_ERRNO("Anonymous source does not support bad blocks");
 		return PMEM2_E_NOSUPP;
 	}
 
@@ -547,7 +551,8 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	int ret;
 
 	if (bbctx->rgn.region == NULL && bbctx->ndns == NULL) {
-		ERR("Cannot find any matching device, no bad blocks found");
+		ERR_WO_ERRNO(
+			"Cannot find any matching device, no bad blocks found");
 		return PMEM2_E_NO_BAD_BLOCK_FOUND;
 	}
 
@@ -687,13 +692,13 @@ pmem2_badblock_clear_fsdax(int fd, const struct pmem2_badblock *bb)
 
 	/* fallocate() takes offset as the off_t type */
 	if (bb->offset > (size_t)INT64_MAX) {
-		ERR("bad block's offset is greater than INT64_MAX");
+		ERR_WO_ERRNO("bad block's offset is greater than INT64_MAX");
 		return PMEM2_E_OFFSET_OUT_OF_RANGE;
 	}
 
 	/* fallocate() takes length as the off_t type */
 	if (bb->length > (size_t)INT64_MAX) {
-		ERR("bad block's length is greater than INT64_MAX");
+		ERR_WO_ERRNO("bad block's length is greater than INT64_MAX");
 		return PMEM2_E_LENGTH_OUT_OF_RANGE;
 	}
 

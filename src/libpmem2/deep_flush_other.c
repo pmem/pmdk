@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * deep_flush_other.c -- deep_flush functionality
@@ -40,7 +40,7 @@ pmem2_deep_flush_write(unsigned region_id)
 	SUPPRESS_UNUSED(region_id);
 	const char *err =
 		"BUG: pmem2_deep_flush_write should never be called on this OS";
-	ERR("%s", err);
+	ERR_WO_ERRNO("%s", err);
 	ASSERTinfo(0, err);
 
 	/* not supported */

@@ -284,7 +284,7 @@ util_range_register(const void *addr, size_t len, const char *path,
 
 	/* check if not tracked already */
 	if (util_range_find((uintptr_t)addr, len) != NULL) {
-		ERR(
+		ERR_WO_ERRNO(
 		"duplicated persistent memory range; presumably unmapped with munmap() instead of pmem_unmap(): addr %p len %zu",
 			addr, len);
 		errno = ENOMEM;
@@ -305,7 +305,7 @@ util_range_register(const void *addr, size_t len, const char *path,
 		unsigned region_id;
 		int ret = util_ddax_region_find(path, &region_id);
 		if (ret < 0) {
-			ERR("Cannot find DAX device region id");
+			ERR_WO_ERRNO("Cannot find DAX device region id");
 			return -1;
 		}
 		mt->region_id = region_id;
@@ -333,7 +333,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 	uintptr_t end = (uintptr_t)endp;
 	ASSERTne(mt, NULL);
 	if (addr == end || addr % Mmap_align != 0 || end % Mmap_align != 0) {
-		ERR(
+		ERR_WO_ERRNO(
 		"invalid munmap length, must be non-zero and page aligned");
 		return -1;
 	}

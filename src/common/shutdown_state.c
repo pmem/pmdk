@@ -74,7 +74,7 @@ shutdown_state_add_part(struct shutdown_state *sds, int fd,
 	if (ret != 0) {
 		if (ret == -EPERM) {
 			/* overwrite error message */
-			ERR(
+			ERR_WO_ERRNO(
 				"Cannot read unsafe shutdown count. For more information please check https://github.com/pmem/pmdk/issues/4207");
 		}
 		LOG(2, "cannot read unsafe shutdown count for %d", fd);
@@ -83,7 +83,7 @@ shutdown_state_add_part(struct shutdown_state *sds, int fd,
 
 	ret = pmem2_source_device_id(src, NULL, &len);
 	if (ret != 0) {
-		ERR("cannot read uuid of %d", fd);
+		ERR_WO_ERRNO("cannot read uuid of %d", fd);
 		goto err;
 	}
 
@@ -97,7 +97,7 @@ shutdown_state_add_part(struct shutdown_state *sds, int fd,
 
 	ret = pmem2_source_device_id(src, uid, &len);
 	if (ret != 0) {
-		ERR("cannot read uuid of %d", fd);
+		ERR_WO_ERRNO("cannot read uuid of %d", fd);
 		Free(uid);
 		goto err;
 	}
@@ -227,6 +227,7 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 		return 0;
 	}
 	/* an ADR failure - the pool might be corrupted */
-	ERR("an ADR failure was detected, the pool might be corrupted");
+	ERR_WO_ERRNO(
+		"an ADR failure was detected, the pool might be corrupted");
 	return 1;
 }

@@ -108,7 +108,7 @@ util_file_get_type(const char *path)
 	LOG(3, "path \"%s\"", path);
 
 	if (path == NULL) {
-		ERR("invalid (NULL) path");
+		ERR_WO_ERRNO("invalid (NULL) path");
 		errno = EINVAL;
 		return OTHER_ERROR;
 	}
@@ -179,7 +179,7 @@ util_fd_get_size(int fd)
 	/* size is unsigned, this function returns signed */
 	if (size >= INT64_MAX) {
 		errno = ERANGE;
-		ERR(
+		ERR_WO_ERRNO(
 			"file size (%ld) too big to be represented in 64-bit signed integer",
 			size);
 		return -1;
@@ -402,13 +402,13 @@ util_file_create(const char *path, size_t size, size_t minsize)
 	ASSERTne(size, 0);
 
 	if (size < minsize) {
-		ERR("size %zu smaller than %zu", size, minsize);
+		ERR_WO_ERRNO("size %zu smaller than %zu", size, minsize);
 		errno = EINVAL;
 		return -1;
 	}
 
 	if (((os_off_t)size) < 0) {
-		ERR("invalid size (%zu) for os_off_t", size);
+		ERR_WO_ERRNO("invalid size (%zu) for os_off_t", size);
 		errno = EFBIG;
 		return -1;
 	}
@@ -478,13 +478,13 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 		ssize_t actual_size = util_fd_get_size(fd);
 		if (actual_size < 0) {
-			ERR("stat \"%s\": negative size", path);
+			ERR_WO_ERRNO("stat \"%s\": negative size", path);
 			errno = EINVAL;
 			goto err;
 		}
 
 		if ((size_t)actual_size < minsize) {
-			ERR("size %zu smaller than %zu",
+			ERR_WO_ERRNO("size %zu smaller than %zu",
 					(size_t)actual_size, minsize);
 			errno = EINVAL;
 			goto err;

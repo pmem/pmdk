@@ -91,7 +91,7 @@ vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
 	 */
 	if (addr && mmap_addr != addr) {
 		munmap(mmap_addr, mmap_size);
-		ERR("mapping exists in the given address");
+		ERR_WO_ERRNO("mapping exists in the given address");
 		return PMEM2_E_MAPPING_EXISTS;
 	}
 
