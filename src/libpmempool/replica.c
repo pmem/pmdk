@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * replica.c -- groups all commands for replica manipulation
@@ -139,7 +139,7 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn,
 	}
 
 	if (type == TYPE_NORMAL && util_unlink(part->path)) {
-		ERR("!removing part %u from replica %u failed",
+		ERR_W_ERRNO("removing part %u from replica %u failed",
 				partn, repn);
 		return -1;
 	}
@@ -165,7 +165,7 @@ create_replica_health_status(struct pool_set *set, unsigned repn)
 	replica_hs = Zalloc(sizeof(struct replica_health_status)
 				+ nparts * sizeof(struct part_health_status));
 	if (replica_hs == NULL) {
-		ERR("!Zalloc for replica health status");
+		ERR_W_ERRNO("Zalloc for replica health status");
 		return NULL;
 	}
 
@@ -187,8 +187,8 @@ replica_part_remove_recovery_file(struct part_health_status *phs)
 		return 0;
 
 	if (os_unlink(phs->recovery_file_name) < 0) {
-		ERR("!removing the bad block recovery file failed -- '%s'",
-			phs->recovery_file_name);
+		ERR_W_ERRNO("removing the bad block recovery file failed"\
+				" -- '%s'", phs->recovery_file_name);
 		return -1;
 	}
 
@@ -256,7 +256,7 @@ replica_create_poolset_health_status(struct pool_set *set,
 	set_hs = Zalloc(sizeof(struct poolset_health_status) +
 			nreplicas * sizeof(struct replica_health_status *));
 	if (set_hs == NULL) {
-		ERR("!Zalloc for poolset health state");
+		ERR_W_ERRNO("Zalloc for poolset health state");
 		return -1;
 	}
 	set_hs->nreplicas = nreplicas;
@@ -673,14 +673,16 @@ replica_badblocks_recovery_file_save(struct part_health_status *part_hs)
 
 	int fd = os_open(path, O_WRONLY | O_TRUNC);
 	if (fd < 0) {
-		ERR("!opening bad block recovery file failed -- '%s'", path);
+		ERR_W_ERRNO(
+			"opening bad block recovery file failed -- '%s'",
+			path);
 		return -1;
 	}
 
 	FILE *recovery_file_name = os_fdopen(fd, "w");
 	if (recovery_file_name == NULL) {
-		ERR(
-			"!opening a file stream for bad block recovery file failed -- '%s'",
+		ERR_W_ERRNO(
+			"opening a file stream for bad block recovery file failed -- '%s'",
 			path);
 		os_close(fd);
 		return -1;
@@ -694,12 +696,16 @@ replica_badblocks_recovery_file_save(struct part_health_status *part_hs)
 	}
 
 	if (fflush(recovery_file_name) == EOF) {
-		ERR("!flushing bad block recovery file failed -- '%s'", path);
+		ERR_W_ERRNO(
+			"flushing bad block recovery file failed -- '%s'",
+			path);
 		goto exit_error;
 	}
 
 	if (os_fsync(fd) < 0) {
-		ERR("!syncing bad block recovery file failed -- '%s'", path);
+		ERR_W_ERRNO(
+			"syncing bad block recovery file failed -- '%s'",
+			path);
 		goto exit_error;
 	}
 
@@ -707,12 +713,16 @@ replica_badblocks_recovery_file_save(struct part_health_status *part_hs)
 	fprintf(recovery_file_name, "0 0\n");
 
 	if (fflush(recovery_file_name) == EOF) {
-		ERR("!flushing bad block recovery file failed -- '%s'", path);
+		ERR_W_ERRNO(
+			"flushing bad block recovery file failed -- '%s'",
+			path);
 		goto exit_error;
 	}
 
 	if (os_fsync(fd) < 0) {
-		ERR("!syncing bad block recovery file failed -- '%s'", path);
+		ERR_W_ERRNO(
+			"syncing bad block recovery file failed -- '%s'",
+			path);
 		goto exit_error;
 	}
 
@@ -745,8 +755,8 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 
 	FILE *recovery_file = os_fopen(path, "r");
 	if (!recovery_file) {
-		ERR("!opening the recovery file for reading failed -- '%s'",
-			path);
+		ERR_W_ERRNO("opening the recovery file for reading failed "\
+				"-- '%s'", path);
 		return -1;
 	}
 
@@ -973,8 +983,8 @@ replica_badblocks_recovery_files_create_empty(struct pool_set *set,
 					O_RDWR | O_CREAT | O_EXCL,
 					0600);
 			if (fd < 0) {
-				ERR(
-					"!creating an empty bad block recovery file failed -- '%s' (part file '%s')",
+				ERR_W_ERRNO(
+					"creating an empty bad block recovery file failed -- '%s' (part file '%s')",
 					part_hs->recovery_file_name, path);
 				return -1;
 			}
@@ -983,7 +993,7 @@ replica_badblocks_recovery_files_create_empty(struct pool_set *set,
 
 			char *file_name = Strdup(part_hs->recovery_file_name);
 			if (file_name == NULL) {
-				ERR("!Strdup");
+				ERR_W_ERRNO("Strdup");
 				return -1;
 			}
 
@@ -991,8 +1001,8 @@ replica_badblocks_recovery_files_create_empty(struct pool_set *set,
 
 			/* fsync the file's directory */
 			if (os_fsync_dir(dir_name) < 0) {
-				ERR(
-					"!syncing the directory of the bad block recovery file failed -- '%s' (part file '%s')",
+				ERR_W_ERRNO(
+					"syncing the directory of the bad block recovery file failed -- '%s' (part file '%s')",
 					dir_name, path);
 				Free(file_name);
 				return -1;
@@ -1070,8 +1080,8 @@ replica_badblocks_get(struct pool_set *set,
 
 			int ret = badblocks_get(path, &part_hs->bbs);
 			if (ret < 0) {
-				ERR(
-					"!checking the pool part for bad blocks failed -- '%s'",
+				ERR_W_ERRNO(
+					"checking the pool part for bad blocks failed -- '%s'",
 					path);
 				return -1;
 			}

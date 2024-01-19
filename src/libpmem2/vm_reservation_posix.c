@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * vm_reservation_posix.c -- implementation of virtual memory
@@ -75,10 +75,10 @@ vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
 			MAP_PRIVATE | MAP_ANONYMOUS | mmap_flag, -1, 0);
 	if (mmap_addr == MAP_FAILED) {
 		if (errno == EEXIST) {
-			ERR("!mmap MAP_FIXED_NOREPLACE");
+			ERR_W_ERRNO("mmap MAP_FIXED_NOREPLACE");
 			return PMEM2_E_MAPPING_EXISTS;
 		}
-		ERR("!mmap MAP_ANONYMOUS");
+		ERR_W_ERRNO("mmap MAP_ANONYMOUS");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -109,7 +109,7 @@ int
 vm_reservation_release_memory(void *addr, size_t size)
 {
 	if (munmap(addr, size)) {
-		ERR("!munmap");
+		ERR_W_ERRNO("munmap");
 		return PMEM2_E_ERRNO;
 	}
 

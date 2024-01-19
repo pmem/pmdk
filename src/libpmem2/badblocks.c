@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * badblocks.c -- implementation of common bad blocks API
@@ -19,7 +19,7 @@ badblocks_new(void)
 
 	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
 	if (bbs == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 	}
 
 	return bbs;
