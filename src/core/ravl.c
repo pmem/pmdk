@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2021, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * ravl.c -- implementation of a RAVL tree
@@ -46,7 +46,7 @@ ravl_new_sized(ravl_compare *compare, size_t data_size)
 {
 	struct ravl *r = Malloc(sizeof(*r));
 	if (r == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return r;
 	}
 
@@ -162,7 +162,7 @@ ravl_new_node(struct ravl *ravl, ravl_constr constr, const void *arg)
 {
 	struct ravl_node *n = Malloc(sizeof(*n) + ravl->data_size);
 	if (n == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return n;
 	}
 

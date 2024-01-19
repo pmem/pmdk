@@ -143,11 +143,12 @@ void core_log_default_function(void *context, enum core_log_level level,
 	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format, ##__VA_ARGS__)
 
 /*
+ * Replacement for ERR("!*") macro (w/ errno).
  * 'f' stands here for 'function' or 'format' where the latter may accept
  * additional arguments.
  */
-#define LOG_ERROR_WITH_ERRNO(e, f, ...) \
-	LOG_ERROR(f " failed: %s", ##__VA_ARGS__, strerror(abs(e)));
+#define CORE_LOG_ERROR_WITH_ERRNO(f, ...) \
+	CORE_LOG_ERROR(f ": %s", ##__VA_ARGS__, strerror(errno))
 
 static inline int
 core_log_error_translate(int ret)

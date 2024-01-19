@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * heap.c -- heap implementation
@@ -184,7 +184,7 @@ heap_arena_new(struct palloc_heap *heap, int automatic)
 
 	struct arena *arena = Zalloc(sizeof(struct arena));
 	if (arena == NULL) {
-		ERR("!heap: arena malloc error");
+		ERR_W_ERRNO("heap: arena malloc error");
 		return NULL;
 	}
 	arena->nthreads = 0;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * transform.c -- a module for poolset transforming
@@ -60,7 +60,7 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 		errno = 0;
 		path = strdup(PART(rep, partn)->path);
 		if (path == NULL) {
-			ERR("!strdup");
+			ERR_W_ERRNO("strdup");
 			return -1;
 		}
 	}
@@ -194,7 +194,7 @@ create_poolset_compare_status(struct pool_set *set,
 	set_s = Zalloc(sizeof(struct poolset_compare_status)
 				+ set->nreplicas * sizeof(unsigned));
 	if (set_s == NULL) {
-		ERR("!Zalloc for poolset status");
+		ERR_W_ERRNO("Zalloc for poolset status");
 		return -1;
 	}
 	for (unsigned r = 0; r < set->nreplicas; ++r)

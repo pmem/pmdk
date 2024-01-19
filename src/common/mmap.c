@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * mmap.c -- mmap utilities
@@ -101,7 +101,7 @@ util_map(int fd, os_off_t off, size_t len, int flags, int rdonly,
 	int proto = rdonly ? PROT_READ : PROT_READ|PROT_WRITE;
 	base = util_map_sync(addr, len, proto, flags, fd, off, map_sync);
 	if (base == MAP_FAILED) {
-		ERR("!mmap %zu bytes", len);
+		ERR_W_ERRNO("mmap %zu bytes", len);
 		return NULL;
 	}
 
@@ -123,7 +123,7 @@ util_unmap(void *addr, size_t len)
 
 	int retval = munmap(addr, len);
 	if (retval < 0)
-		ERR("!munmap");
+		ERR_W_ERRNO("munmap");
 
 	return retval;
 }
@@ -152,7 +152,7 @@ util_range_ro(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ)) < 0)
-		ERR("!mprotect: PROT_READ");
+		ERR_W_ERRNO("mprotect: PROT_READ");
 
 	return retval;
 }
@@ -181,7 +181,7 @@ util_range_rw(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ|PROT_WRITE)) < 0)
-		ERR("!mprotect: PROT_READ|PROT_WRITE");
+		ERR_W_ERRNO("mprotect: PROT_READ|PROT_WRITE");
 
 	return retval;
 }
@@ -210,7 +210,7 @@ util_range_none(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_NONE)) < 0)
-		ERR("!mprotect: PROT_NONE");
+		ERR_W_ERRNO("mprotect: PROT_NONE");
 
 	return retval;
 }
@@ -294,7 +294,7 @@ util_range_register(const void *addr, size_t len, const char *path,
 	struct map_tracker *mt;
 	mt  = Malloc(sizeof(struct map_tracker));
 	if (mt == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return -1;
 	}
 
@@ -357,7 +357,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 		/* new mapping at the beginning */
 		mtb = Malloc(sizeof(struct map_tracker));
 		if (mtb == NULL) {
-			ERR("!Malloc");
+			ERR_W_ERRNO("Malloc");
 			goto err;
 		}
 
@@ -372,7 +372,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 		/* new mapping at the end */
 		mte = Malloc(sizeof(struct map_tracker));
 		if (mte == NULL) {
-			ERR("!Malloc");
+			ERR_W_ERRNO("Malloc");
 			goto err;
 		}
 

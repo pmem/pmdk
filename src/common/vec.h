@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 /*
  * vec.h -- vector interface
@@ -59,7 +59,7 @@ vec_reserve(void *vec, size_t ncapacity, size_t s)
 	VEC(vvec, void) *vecp = (struct vvec *)vec;
 	void *tbuf = Realloc(vecp->buffer, s * ncap);
 	if (tbuf == NULL) {
-		ERR("!Realloc");
+		ERR_W_ERRNO("Realloc");
 		return -1;
 	}
 	vecp->buffer = tbuf;

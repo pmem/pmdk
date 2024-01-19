@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * util_posix.c -- Abstraction layer for misc utilities (Posix implementation)
@@ -56,7 +56,7 @@ util_compare_file_inodes(const char *path1, const char *path2)
 	struct stat sb1, sb2;
 	if (os_stat(path1, &sb1)) {
 		if (errno != ENOENT) {
-			ERR("!stat failed for %s", path1);
+			ERR_W_ERRNO("stat failed for %s", path1);
 			return -1;
 		}
 		LOG(1, "stat failed for %s", path1);
@@ -66,7 +66,7 @@ util_compare_file_inodes(const char *path1, const char *path2)
 
 	if (os_stat(path2, &sb2)) {
 		if (errno != ENOENT) {
-			ERR("!stat failed for %s", path2);
+			ERR_W_ERRNO("stat failed for %s", path2);
 			return -1;
 		}
 		LOG(1, "stat failed for %s", path2);
@@ -106,7 +106,7 @@ util_tmpfile_mkstemp(const char *dir, const char *templ)
 	umask(prev_umask);
 
 	if (fd < 0) {
-		ERR("!mkstemp");
+		ERR_W_ERRNO("mkstemp");
 		goto err;
 	}
 
@@ -145,7 +145,7 @@ util_tmpfile(const char *dir, const char *templ, int flags)
 	if (fd >= 0)
 		return fd;
 	if (errno != EOPNOTSUPP) {
-		ERR("!open");
+		ERR_W_ERRNO("open");
 		return -1;
 	}
 #endif
