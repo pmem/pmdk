@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2023, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * set_badblocks.c - common part of implementation of bad blocks API
@@ -164,7 +164,7 @@ badblocks_recovery_file_alloc(const char *file, unsigned rep, unsigned part)
 
 	path = Malloc(len_path + 1);
 	if (path == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return NULL;
 	}
 

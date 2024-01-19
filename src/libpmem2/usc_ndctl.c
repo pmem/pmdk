@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2022, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * usc_ndctl.c -- pmem2 usc function for platforms using ndctl
@@ -38,7 +38,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR("!ndctl_new");
+		ERR_W_ERRNO("ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -96,7 +96,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR("!ndctl_new");
+		ERR_W_ERRNO("ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 
