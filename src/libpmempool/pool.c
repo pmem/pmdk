@@ -46,14 +46,14 @@ pool_set_read_header(const char *fname, struct pool_hdr *hdr)
 	const struct pool_set_part *part = PART(REP(set, 0), 0);
 	int fdp = util_file_open(part->path, NULL, 0, O_RDONLY);
 	if (fdp < 0) {
-		ERR("cannot open poolset part file");
+		ERR_WO_ERRNO("cannot open poolset part file");
 		ret = -1;
 		goto err_pool_set;
 	}
 
 	/* read the pool header from first pool set file */
 	if (pread(fdp, hdr, sizeof(*hdr), 0) != sizeof(*hdr)) {
-		ERR("cannot read pool header from poolset");
+		ERR_WO_ERRNO("cannot read pool header from poolset");
 		ret = -1;
 		goto err_close_part;
 	}
@@ -83,7 +83,7 @@ pool_set_map(const char *fname, struct pool_set **poolset, unsigned flags)
 	/* parse pool type from first pool set file */
 	enum pool_type type = pool_hdr_get_type(&hdr);
 	if (type == POOL_TYPE_UNKNOWN) {
-		ERR("cannot determine pool type from poolset");
+		ERR_WO_ERRNO("cannot determine pool type from poolset");
 		return -1;
 	}
 
@@ -97,7 +97,7 @@ pool_set_map(const char *fname, struct pool_set **poolset, unsigned flags)
 	if (util_pool_open(poolset, fname, 0 /* minpartsize */, &attr,
 				NULL, NULL, flags | POOL_OPEN_IGNORE_SDS |
 						POOL_OPEN_IGNORE_BAD_BLOCKS)) {
-		ERR("opening poolset failed");
+		ERR_WO_ERRNO("opening poolset failed");
 		return -1;
 	}
 
@@ -136,7 +136,8 @@ pool_check_type_to_pool_type(enum pmempool_pool_type check_pool_type)
 	case PMEMPOOL_POOL_TYPE_OBJ:
 		return POOL_TYPE_OBJ;
 	default:
-		ERR("can not convert pmempool_pool_type %u to pool_type",
+		ERR_WO_ERRNO(
+			"can not convert pmempool_pool_type %u to pool_type",
 			check_pool_type);
 		return POOL_TYPE_UNKNOWN;
 	}
@@ -245,7 +246,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		enum pool_type declared_type =
 			pool_check_type_to_pool_type(ppc->args.pool_type);
 		if ((params->type & ~declared_type) != 0) {
-			ERR("declared pool type does not match");
+			ERR_WO_ERRNO("declared pool type does not match");
 			errno = EINVAL;
 			ret = 1;
 			goto out_unmap;
@@ -311,7 +312,7 @@ pool_set_file_open(const char *fname, int rdonly)
 
 	os_stat_t buf;
 	if (os_stat(path, &buf)) {
-		ERR("%s", path);
+		ERR_WO_ERRNO("%s", path);
 		goto err_close_poolset;
 	}
 
@@ -750,7 +751,7 @@ pool_set_type(struct pool_set *set)
 
 	if (util_file_pread(part->path, &hdr, sizeof(hdr), 0) !=
 			sizeof(hdr)) {
-		ERR("cannot read pool header from poolset");
+		ERR_WO_ERRNO("cannot read pool header from poolset");
 		return POOL_TYPE_UNKNOWN;
 	}
 
@@ -769,7 +770,7 @@ pool_get_min_size(enum pool_type type)
 	case POOL_TYPE_OBJ:
 		return PMEMOBJ_MIN_POOL;
 	default:
-		ERR("unknown type of a pool");
+		ERR_WO_ERRNO("unknown type of a pool");
 		return SIZE_MAX;
 	}
 }

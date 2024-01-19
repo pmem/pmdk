@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * pool_hdr.c -- pool header utilities
@@ -112,27 +112,27 @@ util_check_arch_flags(const struct arch_flags *arch_flags)
 
 	if (!util_is_zeroed(&arch_flags->reserved,
 				sizeof(arch_flags->reserved))) {
-		ERR("invalid reserved values");
+		ERR_WO_ERRNO("invalid reserved values");
 		ret = -1;
 	}
 
 	if (arch_flags->machine != cur_af.machine) {
-		ERR("invalid machine value");
+		ERR_WO_ERRNO("invalid machine value");
 		ret = -1;
 	}
 
 	if (arch_flags->data != cur_af.data) {
-		ERR("invalid data value");
+		ERR_WO_ERRNO("invalid data value");
 		ret = -1;
 	}
 
 	if (arch_flags->machine_class != cur_af.machine_class) {
-		ERR("invalid machine_class value");
+		ERR_WO_ERRNO("invalid machine_class value");
 		ret = -1;
 	}
 
 	if (arch_flags->alignment_desc != cur_af.alignment_desc) {
-		ERR("invalid alignment_desc value");
+		ERR_WO_ERRNO("invalid alignment_desc value");
 		ret = -1;
 	}
 
@@ -169,7 +169,7 @@ util_feature_check(struct pool_hdr *hdrp, features_t known)
 
 	/* check incompatible ("must support") features */
 	if (unknown.incompat) {
-		ERR("unsafe to continue due to unknown incompat "\
+		ERR_WO_ERRNO("unsafe to continue due to unknown incompat "
 				"features: %#x", unknown.incompat);
 		errno = EINVAL;
 		return -1;
@@ -177,7 +177,8 @@ util_feature_check(struct pool_hdr *hdrp, features_t known)
 
 	/* check RO-compatible features (force RO if unsupported) */
 	if (unknown.ro_compat) {
-		ERR("switching to read-only mode due to unknown ro_compat "\
+		ERR_WO_ERRNO(
+			"switching to read-only mode due to unknown ro_compat "
 				"features: %#x", unknown.ro_compat);
 		return 0;
 	}

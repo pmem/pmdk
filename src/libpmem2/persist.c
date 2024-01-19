@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2022, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * persist.c -- pmem2_get_[persist|flush|drain]_fn
@@ -31,7 +31,7 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
 			flags);
@@ -55,7 +55,7 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
 			flags);
@@ -338,7 +338,7 @@ pmem2_deep_flush_byte(struct pmem2_map *map, void *ptr, size_t size)
 	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
 
 	if (map->source.type == PMEM2_SOURCE_ANON) {
-		ERR("Anonymous source does not support deep flush");
+		ERR_WO_ERRNO("Anonymous source does not support deep flush");
 		return PMEM2_E_NOSUPP;
 	}
 
@@ -436,7 +436,7 @@ pmem2_memmove_nonpmem(void *pmemdest, const void *src, size_t len,
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memmove");
 	Info.memmove_nodrain(pmemdest, src, len,
@@ -458,7 +458,7 @@ pmem2_memset_nonpmem(void *pmemdest, int c, size_t len, unsigned flags)
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memset");
 	Info.memset_nodrain(pmemdest, c, len,
@@ -481,7 +481,7 @@ pmem2_memmove(void *pmemdest, const void *src, size_t len,
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memmove");
 	Info.memmove_nodrain(pmemdest, src, len, flags, Info.flush,
@@ -501,7 +501,7 @@ pmem2_memset(void *pmemdest, int c, size_t len, unsigned flags)
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memset");
 	Info.memset_nodrain(pmemdest, c, len, flags, Info.flush,
@@ -522,7 +522,7 @@ pmem2_memmove_eadr(void *pmemdest, const void *src, size_t len,
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memmove");
 	Info.memmove_nodrain_eadr(pmemdest, src, len, flags, Info.flush,
@@ -542,7 +542,7 @@ pmem2_memset_eadr(void *pmemdest, int c, size_t len, unsigned flags)
 {
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 	PMEM2_API_START("pmem2_memset");
 	Info.memset_nodrain_eadr(pmemdest, c, len, flags, Info.flush,

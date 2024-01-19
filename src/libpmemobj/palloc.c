@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * palloc.c -- implementation of pmalloc POSIX-like API
@@ -193,7 +193,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 			(uint8_t)class_id);
 
 	if (c == NULL) {
-		ERR("no allocation class for size %lu bytes", size);
+		ERR_WO_ERRNO("no allocation class for size %lu bytes", size);
 		errno = EINVAL;
 		return -1;
 	}
@@ -208,7 +208,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 	 */
 	ssize_t size_idx = alloc_class_calc_size_idx(c, size);
 	if (size_idx < 0) {
-		ERR("allocation class not suitable for size %lu bytes",
+		ERR_WO_ERRNO("allocation class not suitable for size %lu bytes",
 			size);
 		errno = EINVAL;
 		return -1;
@@ -272,7 +272,7 @@ palloc_heap_action_exec(struct palloc_heap *heap,
 #ifdef DEBUG
 	enum memblock_state s = act->m.m_ops->get_state(&act->m);
 	if (s == act->new_state || s == MEMBLOCK_STATE_UNKNOWN) {
-		ERR("invalid operation or heap corruption");
+		ERR_WO_ERRNO("invalid operation or heap corruption");
 		ASSERT(0);
 	}
 #endif /* DEBUG */

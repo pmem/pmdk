@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2023, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * map.c -- pmem2_map (common)
@@ -125,7 +125,7 @@ pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset,
 {
 	ASSERTne(alignment, 0);
 	if (cfg->offset % alignment) {
-		ERR("offset is not a multiple of %lu", alignment);
+		ERR_WO_ERRNO("offset is not a multiple of %lu", alignment);
 		return PMEM2_E_OFFSET_UNALIGNED;
 	}
 
@@ -213,7 +213,7 @@ pmem2_unregister_mapping(struct pmem2_map *map)
 	util_rwlock_wrlock(&State.range_map_lock);
 	node = ravl_interval_find_equal(State.range_map, map);
 	if (!(node && !ravl_interval_remove(State.range_map, node))) {
-		ERR("Cannot find mapping %p to delete", map);
+		ERR_WO_ERRNO("Cannot find mapping %p to delete", map);
 		ret = PMEM2_E_MAPPING_NOT_FOUND;
 	}
 
@@ -274,7 +274,7 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 	ret = pmem2_register_mapping(map);
 	if (ret) {
 		if (ret == -EEXIST) {
-			ERR(
+			ERR_WO_ERRNO(
 				"Provided mapping(addr %p len %zu) is already registered by libpmem2",
 				addr, len);
 			ret = PMEM2_E_MAP_EXISTS;

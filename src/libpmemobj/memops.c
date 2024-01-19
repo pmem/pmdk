@@ -569,7 +569,7 @@ operation_user_buffer_verify_align(struct operation_context *ctx,
 	ssize_t capacity_unaligned = (ssize_t)userbuf->size - size_diff
 		- (ssize_t)sizeof(struct ulog);
 	if (capacity_unaligned < (ssize_t)CACHELINE_SIZE) {
-		ERR("Capacity insufficient");
+		ERR_WO_ERRNO("Capacity insufficient");
 		return -1;
 	}
 
@@ -580,7 +580,7 @@ operation_user_buffer_verify_align(struct operation_context *ctx,
 	userbuf->size = capacity_aligned + sizeof(struct ulog);
 
 	if (operation_user_buffer_try_insert(ctx->p_ops->base, userbuf)) {
-		ERR("Buffer currently used");
+		ERR_WO_ERRNO("Buffer currently used");
 		return -1;
 	}
 
@@ -685,7 +685,7 @@ operation_reserve(struct operation_context *ctx, size_t new_capacity)
 {
 	if (new_capacity > ctx->ulog_capacity) {
 		if (ctx->extend == NULL) {
-			ERR("no extend function present");
+			ERR_WO_ERRNO("no extend function present");
 			return -1;
 		}
 

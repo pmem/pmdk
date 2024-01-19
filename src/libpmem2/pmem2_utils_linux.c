@@ -40,7 +40,8 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 	}
 
 	if (!S_ISCHR(st->st_mode)) {
-		ERR("file type 0%o not supported", st->st_mode & S_IFMT);
+		ERR_WO_ERRNO("file type 0%o not supported",
+			st->st_mode & S_IFMT);
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 

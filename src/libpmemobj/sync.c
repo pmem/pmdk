@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * sync.c -- persistent memory resident synchronization primitives
@@ -40,14 +40,14 @@ _get_value(uint64_t pop_runid, volatile uint64_t *runid, void *value, void *arg,
 		initializer = 1;
 
 		if (init_value(value, arg)) {
-			ERR("error initializing lock");
+			ERR_WO_ERRNO("error initializing lock");
 			util_fetch_and_and64(runid, 0);
 			return -1;
 		}
 
 		if (util_bool_compare_and_swap64(runid, pop_runid - 1,
 				pop_runid) == 0) {
-			ERR("error setting lock runid");
+			ERR_WO_ERRNO("error setting lock runid");
 			return -1;
 		}
 	}

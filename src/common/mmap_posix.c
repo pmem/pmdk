@@ -87,7 +87,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	 * space, but is not large enough. (very unlikely)
 	 */
 	if ((raddr != NULL) && (UINTPTR_MAX - (uintptr_t)raddr < len)) {
-		ERR("end of address space reached");
+		ERR_WO_ERRNO("end of address space reached");
 		raddr = MAP_FAILED;
 	}
 

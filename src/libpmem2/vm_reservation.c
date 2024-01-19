@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2023, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * vm_reservation.c -- implementation of virtual memory allocation API
@@ -113,13 +113,13 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 	 * on Windows and to the 'page size' otherwise
 	 */
 	if (addr && (unsigned long long)addr % Mmap_align) {
-		ERR("address %p is not a multiple of 0x%llx", addr,
+		ERR_WO_ERRNO("address %p is not a multiple of 0x%llx", addr,
 			Mmap_align);
 		return PMEM2_E_ADDRESS_UNALIGNED;
 	}
 
 	if (size % Mmap_align) {
-		ERR("reservation size %zu is not a multiple of %llu",
+		ERR_WO_ERRNO("reservation size %zu is not a multiple of %llu",
 			size, Mmap_align);
 		return PMEM2_E_LENGTH_UNALIGNED;
 	}
@@ -187,7 +187,7 @@ pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr)
 	struct pmem2_map *any_map;
 	/* check if reservation contains any mapping */
 	if (!pmem2_vm_reservation_map_find(rsv, 0, rsv->size, &any_map)) {
-		ERR("vm reservation %p isn't empty", rsv);
+		ERR_WO_ERRNO("vm reservation %p isn't empty", rsv);
 		return PMEM2_E_VM_RESERVATION_NOT_EMPTY;
 	}
 
@@ -223,7 +223,8 @@ pmem2_vm_reservation_map_find(struct pmem2_vm_reservation *rsv,
 	struct ravl_interval_node *node;
 	node = ravl_interval_find(rsv->itree, &dummy_map);
 	if (!node) {
-		ERR("mapping not found at the range (offset %zu, size %zu) in" \
+		ERR_WO_ERRNO(
+			"mapping not found at the range (offset %zu, size %zu) in"
 				" reservation %p", reserv_offset, len, rsv);
 		return PMEM2_E_MAPPING_NOT_FOUND;
 	}
@@ -249,7 +250,7 @@ pmem2_vm_reservation_map_find_prev(struct pmem2_vm_reservation *rsv,
 	struct ravl_interval_node *node;
 	node = ravl_interval_find_prev(rsv->itree, map);
 	if (!node) {
-		ERR("mapping previous to mapping %p not found", map);
+		ERR_WO_ERRNO("mapping previous to mapping %p not found", map);
 		return PMEM2_E_MAPPING_NOT_FOUND;
 	}
 
@@ -274,7 +275,7 @@ pmem2_vm_reservation_map_find_next(struct pmem2_vm_reservation *rsv,
 	struct ravl_interval_node *node;
 	node = ravl_interval_find_next(rsv->itree, map);
 	if (!node) {
-		ERR("mapping next to mapping %p not found", map);
+		ERR_WO_ERRNO("mapping next to mapping %p not found", map);
 		return PMEM2_E_MAPPING_NOT_FOUND;
 	}
 
@@ -299,7 +300,7 @@ pmem2_vm_reservation_map_find_first(struct pmem2_vm_reservation *rsv,
 	struct ravl_interval_node *node;
 	node = ravl_interval_find_first(rsv->itree);
 	if (!node) {
-		ERR("reservation %p stores no mapping", rsv);
+		ERR_WO_ERRNO("reservation %p stores no mapping", rsv);
 		return PMEM2_E_MAPPING_NOT_FOUND;
 	}
 
@@ -324,7 +325,7 @@ pmem2_vm_reservation_map_find_last(struct pmem2_vm_reservation *rsv,
 	struct ravl_interval_node *node;
 	node = ravl_interval_find_last(rsv->itree);
 	if (!node) {
-		ERR("reservation %p stores no mapping", rsv);
+		ERR_WO_ERRNO("reservation %p stores no mapping", rsv);
 		return PMEM2_E_MAPPING_NOT_FOUND;
 	}
 
@@ -344,7 +345,7 @@ vm_reservation_map_register_release(struct pmem2_vm_reservation *rsv,
 {
 	int ret = ravl_interval_insert(rsv->itree, map);
 	if (ret == -EEXIST) {
-		ERR(
+		ERR_WO_ERRNO(
 			"mapping at the given region of the reservation already exists");
 		ret = PMEM2_E_MAPPING_EXISTS;
 	}
@@ -368,7 +369,7 @@ vm_reservation_map_unregister_release(struct pmem2_vm_reservation *rsv,
 
 	node = ravl_interval_find_equal(rsv->itree, map);
 	if (!(node && !ravl_interval_remove(rsv->itree, node))) {
-		ERR("Cannot find mapping %p in the reservation %p",
+		ERR_WO_ERRNO("Cannot find mapping %p in the reservation %p",
 				map, rsv);
 		ret = PMEM2_E_MAPPING_NOT_FOUND;
 	}
@@ -431,7 +432,8 @@ pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size)
 	PMEM2_ERR_CLR();
 
 	if (size % Mmap_align) {
-		ERR("reservation extension size %zu is not a multiple of %llu",
+		ERR_WO_ERRNO(
+			"reservation extension size %zu is not a multiple of %llu",
 			size, Pagesize);
 		return PMEM2_E_LENGTH_UNALIGNED;
 	}
@@ -483,49 +485,53 @@ pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
 	PMEM2_ERR_CLR();
 
 	if (offset % Mmap_align) {
-		ERR("reservation shrink offset %zu is not a multiple of %llu",
+		ERR_WO_ERRNO(
+			"reservation shrink offset %zu is not a multiple of %llu",
 			offset, Mmap_align);
 		return PMEM2_E_OFFSET_UNALIGNED;
 	}
 
 	if (size % Mmap_align) {
-		ERR("reservation shrink size %zu is not a multiple of %llu",
+		ERR_WO_ERRNO(
+			"reservation shrink size %zu is not a multiple of %llu",
 			size, Mmap_align);
 		return PMEM2_E_LENGTH_UNALIGNED;
 	}
 
 	if (offset >= rsv->size) {
-		ERR("reservation shrink offset %zu is out of reservation range",
+		ERR_WO_ERRNO(
+			"reservation shrink offset %zu is out of reservation range",
 			offset);
 		return PMEM2_E_OFFSET_OUT_OF_RANGE;
 	}
 
 	if (size == 0) {
-		ERR("reservation shrink size %zu cannot be zero",
+		ERR_WO_ERRNO("reservation shrink size %zu cannot be zero",
 			size);
 		return PMEM2_E_LENGTH_OUT_OF_RANGE;
 	}
 
 	if ((offset + size) > rsv->size) {
-		ERR(
+		ERR_WO_ERRNO(
 			"reservation shrink size %zu stands out of reservation range",
 			size);
 		return PMEM2_E_LENGTH_OUT_OF_RANGE;
 	}
 
 	if (offset != 0 && (offset + size) != rsv->size) {
-		ERR("shrinking reservation from the middle is not supported");
+		ERR_WO_ERRNO(
+			"shrinking reservation from the middle is not supported");
 		return PMEM2_E_NOSUPP;
 	}
 
 	if (offset == 0 && size == rsv->size) {
-		ERR("shrinking whole reservation is not supported");
+		ERR_WO_ERRNO("shrinking whole reservation is not supported");
 		return PMEM2_E_NOSUPP;
 	}
 
 	struct pmem2_map *any_map;
 	if (!pmem2_vm_reservation_map_find(rsv, offset, size, &any_map)) {
-		ERR(
+		ERR_WO_ERRNO(
 			"reservation region (offset %zu, size %zu) to be shrunk is occupied by a mapping",
 			offset, size);
 		return PMEM2_E_VM_RESERVATION_NOT_EMPTY;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2023, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * config.c -- pmem2_config implementation
@@ -77,7 +77,7 @@ pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 		case PMEM2_GRANULARITY_PAGE:
 			break;
 		default:
-			ERR("unknown granularity value %d", g);
+			ERR_WO_ERRNO("unknown granularity value %d", g);
 			return PMEM2_E_GRANULARITY_NOT_SUPPORTED;
 	}
 
@@ -96,7 +96,7 @@ pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 
 	/* mmap func takes offset as a type of off_t */
 	if (offset > (size_t)INT64_MAX) {
-		ERR("offset is greater than INT64_MAX");
+		ERR_WO_ERRNO("offset is greater than INT64_MAX");
 		return PMEM2_E_OFFSET_OUT_OF_RANGE;
 	}
 
@@ -129,19 +129,19 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 	ASSERTne(alignment, 0);
 
 	if (file_len == 0) {
-		ERR("file length is equal 0");
+		ERR_WO_ERRNO("file length is equal 0");
 		return PMEM2_E_SOURCE_EMPTY;
 	}
 
 	if (cfg->length % alignment) {
-		ERR("length is not a multiple of %lu", alignment);
+		ERR_WO_ERRNO("length is not a multiple of %lu", alignment);
 		return PMEM2_E_LENGTH_UNALIGNED;
 	}
 
 	/* overflow check */
 	const size_t end = cfg->offset + cfg->length;
 	if (end < cfg->offset) {
-		ERR("overflow of offset and length");
+		ERR_WO_ERRNO("overflow of offset and length");
 		return PMEM2_E_MAP_RANGE;
 	}
 
@@ -149,7 +149,7 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 	 * Validate the file size to be sure the mapping will fit in the file.
 	 */
 	if (end > file_len) {
-		ERR("mapping larger than file size");
+		ERR_WO_ERRNO("mapping larger than file size");
 		return PMEM2_E_MAP_RANGE;
 	}
 
@@ -170,7 +170,7 @@ pmem2_config_set_sharing(struct pmem2_config *cfg, enum pmem2_sharing_type type)
 			cfg->sharing = type;
 			break;
 		default:
-			ERR("unknown sharing value %d", type);
+			ERR_WO_ERRNO("unknown sharing value %d", type);
 			return PMEM2_E_INVALID_SHARING_VALUE;
 	}
 
@@ -206,7 +206,7 @@ pmem2_config_set_protection(struct pmem2_config *cfg,
 	unsigned unknown_prot = prot & ~(PMEM2_PROT_READ | PMEM2_PROT_WRITE |
 	PMEM2_PROT_EXEC | PMEM2_PROT_NONE);
 	if (unknown_prot) {
-		ERR("invalid flag %u", prot);
+		ERR_WO_ERRNO("invalid flag %u", prot);
 		return PMEM2_E_INVALID_PROT_FLAG;
 	}
 

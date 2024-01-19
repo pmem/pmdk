@@ -211,7 +211,7 @@ ctl_exec_query_read(void *ctx, const struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	if (arg == NULL) {
-		ERR("read queries require non-NULL argument");
+		ERR_WO_ERRNO("read queries require non-NULL argument");
 		errno = EINVAL;
 		return -1;
 	}
@@ -227,7 +227,7 @@ ctl_exec_query_write(void *ctx, const struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	if (arg == NULL) {
-		ERR("write queries require non-NULL argument");
+		ERR_WO_ERRNO("write queries require non-NULL argument");
 		errno = EINVAL;
 		return -1;
 	}
@@ -274,7 +274,7 @@ ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 			ctl, ctx, source, name, type, arg);
 
 	if (name == NULL) {
-		ERR("invalid query");
+		ERR_WO_ERRNO("invalid query");
 		errno = EINVAL;
 		return -1;
 	}
@@ -298,7 +298,7 @@ ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 	}
 
 	if (n == NULL || n->type != CTL_NODE_LEAF || n->cb[type] == NULL) {
-		ERR("invalid query entry point %s", name);
+		ERR_WO_ERRNO("invalid query entry point %s", name);
 		errno = EINVAL;
 		goto out;
 	}
@@ -370,7 +370,7 @@ ctl_load_config(struct ctl *ctl, void *ctx, char *buf)
 	while (qbuf != NULL) {
 		r = ctl_parse_query(qbuf, &name, &value);
 		if (r != 0) {
-			ERR("failed to parse query %s", qbuf);
+			ERR_WO_ERRNO("failed to parse query %s", qbuf);
 			return -1;
 		}
 
@@ -432,7 +432,7 @@ ctl_load_config_from_file(struct ctl *ctl, void *ctx, const char *cfg_file)
 		goto error_file_parse;
 
 	if (fsize > MAX_CONFIG_FILE_LEN) {
-		ERR("Config file too large");
+		ERR_WO_ERRNO("Config file too large");
 		goto error_file_parse;
 	}
 
@@ -558,7 +558,7 @@ ctl_arg_integer(const void *arg, void *dest, size_t dest_size)
 			*(uint8_t *)dest = (uint8_t)val;
 			break;
 		default:
-			ERR("invalid destination size %zu", dest_size);
+			ERR_WO_ERRNO("invalid destination size %zu", dest_size);
 			errno = EINVAL;
 			return -1;
 	}
