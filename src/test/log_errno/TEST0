@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2024, Intel Corporation
+
+#
+# src/test/log_errno/TEST0 -- unit test for CORE_LOG_ERROR_WITH_ERRNO macro
+#
+
+. ../unittest/unittest.sh
+
+require_test_type short
+
+require_fs_type none
+setup
+
+export UNITTEST_DO_NOT_CHECK_OPEN_FILES=1
+
+expect_normal_exit ./log_errno$EXESUFFIX 2>err0.log
+
+check
+
+pass
