@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * alloc_class.c -- implementation of allocation classes
@@ -226,7 +226,8 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 				flags_s, size_idx_s);
 			if (critnib_insert(ac->class_map_by_unit_size,
 			    k, c) != 0) {
-				ERR("unable to register allocation class");
+				ERR_WO_ERRNO(
+					"unable to register allocation class");
 				goto error_map_insert;
 			}
 

@@ -167,7 +167,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		if (len > 0 && log_file[len - 1] == '-') {
 			if (util_snprintf(log_file_pid, PATH_MAX, "%s%d",
 					log_file, getpid()) < 0) {
-				ERR("snprintf: %d", errno);
+				ERR_WO_ERRNO("snprintf: %d", errno);
 				abort();
 			}
 			log_file = log_file_pid;

@@ -79,7 +79,7 @@ pmem2_device_dax_size(const struct pmem2_source *src, size_t *size)
 		*size = ndctl_dax_get_size(dax);
 	} else {
 		ret = PMEM2_E_DAX_REGION_NOT_FOUND;
-		ERR("Issue while reading Device Dax size - cannot "
+		ERR_WO_ERRNO("Issue while reading Device Dax size - cannot "
 			"find dax region");
 	}
 

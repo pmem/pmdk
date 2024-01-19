@@ -74,7 +74,9 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 			char *pathp = util_part_realpath(PART(repr, p)->path);
 			if (pathp == NULL) {
 				if (errno != ENOENT) {
-					ERR("realpath failed for %s, errno %d",
+					ERR_WO_ERRNO(
+						"realpath failed for %s,"\
+						" errno %d",
 						PART(repr, p)->path, errno);
 					ret = -1;
 					goto out;
@@ -89,15 +91,16 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 			int result = util_compare_file_inodes(path, pathp);
 			if (result == 0) {
 				/* same file used multiple times */
-				ERR("some part file's path is"
+				ERR_WO_ERRNO("some part file's path is"
 						" used multiple times");
 				ret = -1;
 				errno = EINVAL;
 				free(pathp);
 				goto out;
 			} else if (result < 0) {
-				ERR("comparing file inodes failed for %s and"
-						" %s", path, pathp);
+				ERR_WO_ERRNO(
+					"comparing file inodes failed for %s"
+					" and %s", path, pathp);
 				ret = -1;
 				free(pathp);
 				goto out;
@@ -140,7 +143,8 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	LOG(3, "set_in %p, set_out %p", set_in, set_out);
 
 	if (set_in->directory_based) {
-		ERR("transform of directory poolsets is not supported");
+		ERR_WO_ERRNO(
+			"transform of directory poolsets is not supported");
 		errno = EINVAL;
 		return -1;
 	}
@@ -150,7 +154,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * (now replication works only for pmemobj pools)
 	 */
 	if (replica_check_part_sizes(set_out, PMEMOBJ_MIN_POOL)) {
-		ERR("part sizes check failed");
+		ERR_WO_ERRNO("part sizes check failed");
 		return -1;
 	}
 
@@ -168,12 +172,12 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 */
 	ssize_t master_pool_size = replica_get_pool_size(set_in, 0);
 	if (master_pool_size < 0) {
-		ERR("getting pool size from master replica failed");
+		ERR_WO_ERRNO("getting pool size from master replica failed");
 		return -1;
 	}
 
 	if (set_out->poolsize < (size_t)master_pool_size) {
-		ERR("target poolset is too small");
+		ERR_WO_ERRNO("target poolset is too small");
 		errno = EINVAL;
 		return -1;
 	}
@@ -265,7 +269,8 @@ check_compare_poolsets_status(struct pool_set *set_in,
 					set_out_s->replica[ro]
 						!= UNDEF_REPLICA) {
 				/* there are more than one counterparts */
-				ERR("there are more then one corresponding"
+				ERR_WO_ERRNO(
+					"there are more then one corresponding"
 						" replicas; cannot transform");
 				errno = EINVAL;
 				return -1;
@@ -296,8 +301,9 @@ check_compare_poolsets_options(struct pool_set *set_in,
 	if ((set_in->options & OPTION_NOHDRS) ||
 			(set_out->options & OPTION_NOHDRS)) {
 		errno = EINVAL;
-		ERR(
-		"the NOHDRS poolset option is not supported in local poolset files");
+		ERR_WO_ERRNO(
+			"the NOHDRS poolset option is not supported in "
+			"local poolset files");
 		return -1;
 	}
 
@@ -383,7 +389,7 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 
 	/* make sure we have at least one replica to keep */
 	if (!has_replica_to_keep) {
-		ERR("there must be at least one replica left");
+		ERR_WO_ERRNO("there must be at least one replica left");
 		return NOT_TRANSFORMABLE;
 	}
 
@@ -393,7 +399,7 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 			LOG(2, "Replica %u from output set has no counterpart",
 					r);
 			if (is_removing_replicas) {
-				ERR(
+				ERR_WO_ERRNO(
 				"adding and removing replicas at the same time is not allowed");
 				return NOT_TRANSFORMABLE;
 			}
@@ -407,7 +413,7 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	if (!is_removing_replicas && !is_adding_replicas &&
 			(set_in_s->flags & OPTION_SINGLEHDR) ==
 				(set_out_s->flags & OPTION_SINGLEHDR)) {
-		ERR("both poolsets are equal");
+		ERR_WO_ERRNO("both poolsets are equal");
 		return NOT_TRANSFORMABLE;
 	}
 
@@ -415,7 +421,7 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	if ((is_removing_replicas || is_adding_replicas) &&
 			(set_in_s->flags & OPTION_SINGLEHDR) !=
 				(set_out_s->flags & OPTION_SINGLEHDR)) {
-		ERR(
+		ERR_WO_ERRNO(
 		"cannot add/remove replicas and change the SINGLEHDR option at the same time");
 		return NOT_TRANSFORMABLE;
 	}
@@ -602,7 +608,7 @@ fill_replica_struct_uuids(struct pool_set *set, unsigned repn)
 	memcpy(PART(rep, 0)->uuid, HDR(rep, 0)->uuid, POOL_HDR_UUID_LEN);
 	for (unsigned p = 1; p < rep->nhdrs; ++p) {
 		if (util_uuid_generate(rep->part[p].uuid) < 0) {
-			ERR("cannot generate part UUID");
+			ERR_WO_ERRNO("cannot generate part UUID");
 			errno = EINVAL;
 			return -1;
 		}
@@ -852,12 +858,12 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 	struct poolset_health_status *set_in_hs = NULL;
 	if (replica_check_poolset_health(set_in, &set_in_hs,
 					0 /* called from transform */, flags)) {
-		ERR("source poolset health check failed");
+		ERR_WO_ERRNO("source poolset health check failed");
 		return -1;
 	}
 
 	if (!replica_is_poolset_healthy(set_in_hs)) {
-		ERR("source poolset is broken");
+		ERR_WO_ERRNO("source poolset is broken");
 		ret = -1;
 		errno = EINVAL;
 		goto free_hs_in;
@@ -868,7 +874,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 
 	struct poolset_health_status *set_out_hs = NULL;
 	if (replica_create_poolset_health_status(set_out, &set_out_hs)) {
-		ERR("creating poolset health status failed");
+		ERR_WO_ERRNO("creating poolset health status failed");
 		ret = -1;
 		goto free_hs_in;
 	}
@@ -877,7 +883,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 	struct poolset_compare_status *set_in_cs = NULL;
 	struct poolset_compare_status *set_out_cs = NULL;
 	if (compare_poolsets(set_in, set_out, &set_in_cs, &set_out_cs)) {
-		ERR("comparing poolsets failed");
+		ERR_WO_ERRNO("comparing poolsets failed");
 		ret = -1;
 		goto free_hs_out;
 	}
@@ -896,8 +902,9 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 		if (!is_dry_run(flags) &&
 				remove_hdrs(set_in, set_out, set_in_hs,
 						flags)) {
-			ERR("removing headers failed; falling back to the "
-					"input poolset");
+			ERR_WO_ERRNO(
+				"removing headers failed; falling back to the "
+				"input poolset");
 			if (replica_sync(set_in, set_in_hs,
 					flags | IS_TRANSFORMED)) {
 				LOG(1, "falling back to the input poolset "
@@ -914,8 +921,9 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 	if (operation == ADD_HDRS) {
 		if (!is_dry_run(flags) &&
 				add_hdrs(set_in, set_out, set_in_hs, flags)) {
-			ERR("adding headers failed; falling back to the "
-					"input poolset");
+			ERR_WO_ERRNO(
+				"adding headers failed; falling back to the "
+				"input poolset");
 			if (replica_sync(set_in, set_in_hs,
 					flags | IS_TRANSFORMED)) {
 				LOG(1, "falling back to the input poolset "
@@ -934,7 +942,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 		 * check if any of the parts that are to be added already exists
 		 */
 		if (do_added_parts_exist(set_out, set_out_hs)) {
-			ERR("some parts being added already exist");
+			ERR_WO_ERRNO("some parts being added already exist");
 			ret = -1;
 			errno = EINVAL;
 			goto free_cs;

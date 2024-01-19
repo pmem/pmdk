@@ -410,14 +410,15 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		return NULL;
 
 	if (flags & ~(PMEM_FILE_ALL_FLAGS)) {
-		ERR("invalid flag specified %x", flags);
+		ERR_WO_ERRNO("invalid flag specified %x", flags);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if (file_type == TYPE_DEVDAX) {
 		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
-			ERR("flag unsupported for Device DAX %x", flags);
+			ERR_WO_ERRNO(
+				"flag unsupported for Device DAX %x", flags);
 			errno = EINVAL;
 			return NULL;
 		} else {
@@ -425,12 +426,13 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 			flags = 0;
 			ssize_t actual_len = util_file_get_size(path);
 			if (actual_len < 0) {
-				ERR("unable to read Device DAX size");
+				ERR_WO_ERRNO("unable to read Device DAX size");
 				errno = EINVAL;
 				return NULL;
 			}
 			if (len != 0 && len != (size_t)actual_len) {
-				ERR("Device DAX length must be either 0 or "
+				ERR_WO_ERRNO(
+					"Device DAX length must be either 0 or "
 					"the exact size of the device: %zu",
 					actual_len);
 				errno = EINVAL;
@@ -442,7 +444,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 	if (flags & PMEM_FILE_CREATE) {
 		if ((os_off_t)len < 0) {
-			ERR("invalid file length %zu", len);
+			ERR_WO_ERRNO("invalid file length %zu", len);
 			errno = EINVAL;
 			return NULL;
 		}
@@ -453,19 +455,21 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		open_flags |= O_EXCL;
 
 	if ((len != 0) && !(flags & PMEM_FILE_CREATE)) {
-		ERR("non-zero 'len' not allowed without PMEM_FILE_CREATE");
+		ERR_WO_ERRNO(
+			"non-zero 'len' not allowed without PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if ((len == 0) && (flags & PMEM_FILE_CREATE)) {
-		ERR("zero 'len' not allowed with PMEM_FILE_CREATE");
+		ERR_WO_ERRNO("zero 'len' not allowed with PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if ((flags & PMEM_FILE_TMPFILE) && !(flags & PMEM_FILE_CREATE)) {
-		ERR("PMEM_FILE_TMPFILE not allowed without PMEM_FILE_CREATE");
+		ERR_WO_ERRNO(
+			"PMEM_FILE_TMPFILE not allowed without PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -506,7 +510,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 	} else {
 		ssize_t actual_size = util_fd_get_size(fd);
 		if (actual_size < 0) {
-			ERR("stat %s: negative size", path);
+			ERR_WO_ERRNO("stat %s: negative size", path);
 			errno = EINVAL;
 			goto err;
 		}
@@ -581,7 +585,7 @@ pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags)
 #if 0
 #ifdef DEBUG
 	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 #endif
 
@@ -612,7 +616,7 @@ pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags)
 #if 0
 #ifdef DEBUG
 	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 #endif
 
@@ -644,7 +648,7 @@ pmem_memset(void *pmemdest, int c, size_t len, unsigned flags)
 #if 0
 #ifdef DEBUG
 	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
 #endif
 
