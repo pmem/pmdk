@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * pmem.c -- pmem entry points for libpmem
@@ -277,7 +277,7 @@ pmem_msync(const void *addr, size_t len)
 
 	int ret;
 	if ((ret = msync((void *)uptr, len, MS_SYNC)) < 0)
-		ERR("!msync");
+		ERR_W_ERRNO("msync");
 
 	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 
@@ -480,7 +480,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		}
 	} else {
 		if ((fd = os_open(path, open_flags, mode)) < 0) {
-			ERR("!open %s", path);
+			ERR_W_ERRNO("open %s", path);
 			return NULL;
 		}
 		if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
@@ -493,13 +493,13 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		 * (May either extend or truncate existing file.)
 		 */
 		if (os_ftruncate(fd, (os_off_t)len) != 0) {
-			ERR("!ftruncate");
+			ERR_W_ERRNO("ftruncate");
 			goto err;
 		}
 		if ((flags & PMEM_FILE_SPARSE) == 0) {
 			if ((errno = os_posix_fallocate(fd, 0,
 							(os_off_t)len)) != 0) {
-				ERR("!posix_fallocate");
+				ERR_W_ERRNO("posix_fallocate");
 				goto err;
 			}
 		}

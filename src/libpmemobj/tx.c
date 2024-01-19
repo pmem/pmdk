@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * tx.c -- transactions implementation
@@ -495,7 +495,7 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			retval = pmemobj_mutex_lock(tx->pop,
 				txl->lock.mutex);
 			if (retval) {
-				ERR("!pmemobj_mutex_lock");
+				ERR_W_ERRNO("pmemobj_mutex_lock");
 				goto err;
 			}
 			break;
@@ -504,7 +504,7 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			retval = pmemobj_rwlock_wrlock(tx->pop,
 				txl->lock.rwlock);
 			if (retval) {
-				ERR("!pmemobj_rwlock_wrlock");
+				ERR_W_ERRNO("pmemobj_rwlock_wrlock");
 				goto err;
 			}
 			break;
@@ -771,7 +771,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	struct tx_data *txd = Malloc(sizeof(*txd));
 	if (txd == NULL) {
 		err = errno;
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		goto err_abort;
 	}
 
@@ -940,7 +940,7 @@ obj_tx_abort(int errnum, int user)
 	tx->last_errnum = errnum;
 	errno = errnum;
 	if (user)
-		ERR("!explicit transaction abort");
+		ERR_W_ERRNO("explicit transaction abort");
 
 	/* ONABORT */
 	obj_tx_callback(tx);

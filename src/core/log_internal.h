@@ -148,7 +148,7 @@ void core_log_default_function(void *context, enum core_log_level level,
  * additional arguments.
  */
 #define CORE_LOG_ERROR_WITH_ERRNO(f, ...) \
-	CORE_LOG_ERROR(f " failed: %s", ##__VA_ARGS__, strerror(errno))
+	CORE_LOG_ERROR(f ": %s", ##__VA_ARGS__, strerror(errno))
 
 static inline int
 core_log_error_translate(int ret)

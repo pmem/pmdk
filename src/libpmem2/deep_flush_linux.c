@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * deep_flush_linux.c -- deep_flush functionality
@@ -34,7 +34,7 @@ pmem2_deep_flush_write(unsigned region_id)
 
 	if (util_snprintf(deep_flush_path, PATH_MAX,
 		"/sys/bus/nd/devices/region%u/deep_flush", region_id) < 0) {
-		ERR("!snprintf");
+		ERR_W_ERRNO("snprintf");
 		return PMEM2_E_ERRNO;
 	}
 

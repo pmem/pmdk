@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * list.c -- implementation of persistent atomic lists module
@@ -468,7 +468,7 @@ list_insert_new(PMEMobjpool *pop,
 	struct pobj_action reserved;
 	if (palloc_reserve(&pop->heap, size, constructor, arg,
 		type_num, 0, 0, 0, &reserved) != 0) {
-		ERR("!palloc_reserve");
+		ERR_W_ERRNO("palloc_reserve");
 		ret = -1;
 		goto err_pmalloc;
 	}

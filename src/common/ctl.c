@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * ctl.c -- implementation of the interface for examination and modification of
@@ -128,7 +128,7 @@ ctl_parse_args(const struct ctl_argument *arg_proto, char *arg)
 
 	char *dest_arg = Malloc(arg_proto->dest_size);
 	if (dest_arg == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return NULL;
 	}
 
@@ -138,7 +138,7 @@ ctl_parse_args(const struct ctl_argument *arg_proto, char *arg)
 			p->parser != NULL; ++p) {
 		ASSERT(p->dest_offset + p->dest_size <= arg_proto->dest_size);
 		if (arg_sep == NULL) {
-			ERR("!strtok_r");
+			ERR_W_ERRNO("strtok_r");
 			goto error_parsing;
 		}
 
@@ -396,7 +396,7 @@ ctl_load_config_from_string(struct ctl *ctl, void *ctx, const char *cfg_string)
 
 	char *buf = Strdup(cfg_string);
 	if (buf == NULL) {
-		ERR("!Strdup");
+		ERR_W_ERRNO("Strdup");
 		return -1;
 	}
 
@@ -441,7 +441,7 @@ ctl_load_config_from_file(struct ctl *ctl, void *ctx, const char *cfg_file)
 
 	char *buf = Zalloc((size_t)fsize + 1); /* +1 for NULL-termination */
 	if (buf == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		goto error_file_parse;
 	}
 
@@ -475,7 +475,7 @@ ctl_new(void)
 {
 	struct ctl *c = Zalloc(sizeof(struct ctl));
 	if (c == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		return NULL;
 	}
 
