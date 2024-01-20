@@ -22,7 +22,7 @@ pmem2_malloc(size_t size, int *err)
 	*err = 0;
 
 	if (ptr == NULL) {
-		ERR_W_ERRNO("malloc(%zu)", size);
+		ERR("!malloc(%zu)", size);
 		*err = PMEM2_E_ERRNO;
 	}
 
@@ -39,7 +39,7 @@ pmem2_zalloc(size_t size, int *err)
 	*err = 0;
 
 	if (ptr == NULL) {
-		ERR_W_ERRNO("malloc(%zu)", size);
+		ERR("!malloc(%zu)", size);
 		*err = PMEM2_E_ERRNO;
 	}
 
@@ -56,7 +56,7 @@ pmem2_realloc(void *ptr, size_t size, int *err)
 	*err = 0;
 
 	if (newptr == NULL) {
-		ERR_W_ERRNO("realloc(%zu)", size);
+		ERR("!realloc(%zu)", size);
 		*err = PMEM2_E_ERRNO;
 	}
 

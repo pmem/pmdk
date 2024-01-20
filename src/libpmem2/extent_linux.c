@@ -37,7 +37,7 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 	os_stat_t st;
 
 	if (os_fstat(fd, &st) < 0) {
-		ERR_W_ERRNO("fstat %d", fd);
+		ERR("!fstat %d", fd);
 		return PMEM2_E_ERRNO;
 	}
 
@@ -80,7 +80,7 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 	fmap->fm_mapped_extents = 0;
 
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0) {
-		ERR_W_ERRNO("fiemap ioctl() for fd=%d failed", fd);
+		ERR("!fiemap ioctl() for fd=%d failed", fd);
 		ret = PMEM2_E_ERRNO;
 		goto error_free;
 	}
@@ -99,7 +99,7 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 	fmap->fm_mapped_extents = 0;
 
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0) {
-		ERR_W_ERRNO("fiemap ioctl() for fd=%d failed", fd);
+		ERR("!fiemap ioctl() for fd=%d failed", fd);
 		ret = PMEM2_E_ERRNO;
 		goto error_free;
 	}

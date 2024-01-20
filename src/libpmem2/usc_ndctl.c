@@ -38,7 +38,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR_W_ERRNO("ndctl_new");
+		ERR("!ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -96,7 +96,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR_W_ERRNO("ndctl_new");
+		ERR("!ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 

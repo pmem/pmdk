@@ -139,7 +139,7 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn,
 	}
 
 	if (type == TYPE_NORMAL && util_unlink(part->path)) {
-		ERR_W_ERRNO("removing part %u from replica %u failed",
+		ERR("!removing part %u from replica %u failed",
 				partn, repn);
 		return -1;
 	}
@@ -165,7 +165,7 @@ create_replica_health_status(struct pool_set *set, unsigned repn)
 	replica_hs = Zalloc(sizeof(struct replica_health_status)
 				+ nparts * sizeof(struct part_health_status));
 	if (replica_hs == NULL) {
-		ERR_W_ERRNO("Zalloc for replica health status");
+		ERR("!Zalloc for replica health status");
 		return NULL;
 	}
 
@@ -187,7 +187,7 @@ replica_part_remove_recovery_file(struct part_health_status *phs)
 		return 0;
 
 	if (os_unlink(phs->recovery_file_name) < 0) {
-		ERR_W_ERRNO("removing the bad block recovery file failed"\
+		ERR("!removing the bad block recovery file failed"\
 				" -- '%s'", phs->recovery_file_name);
 		return -1;
 	}
@@ -256,7 +256,7 @@ replica_create_poolset_health_status(struct pool_set *set,
 	set_hs = Zalloc(sizeof(struct poolset_health_status) +
 			nreplicas * sizeof(struct replica_health_status *));
 	if (set_hs == NULL) {
-		ERR_W_ERRNO("Zalloc for poolset health state");
+		ERR("!Zalloc for poolset health state");
 		return -1;
 	}
 	set_hs->nreplicas = nreplicas;
@@ -755,7 +755,7 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 
 	FILE *recovery_file = os_fopen(path, "r");
 	if (!recovery_file) {
-		ERR_W_ERRNO("opening the recovery file for reading failed "\
+		ERR("!opening the recovery file for reading failed "\
 				"-- '%s'", path);
 		return -1;
 	}
@@ -993,7 +993,7 @@ replica_badblocks_recovery_files_create_empty(struct pool_set *set,
 
 			char *file_name = Strdup(part_hs->recovery_file_name);
 			if (file_name == NULL) {
-				ERR_W_ERRNO("Strdup");
+				ERR("!Strdup");
 				return -1;
 			}
 

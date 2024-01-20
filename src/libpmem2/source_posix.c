@@ -28,7 +28,7 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 	int flags = fcntl(fd, F_GETFL);
 
 	if (flags == -1) {
-		ERR_W_ERRNO("fcntl");
+		ERR("!fcntl");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
@@ -50,7 +50,7 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 	os_stat_t st;
 
 	if (os_fstat(fd, &st) < 0) {
-		ERR_W_ERRNO("fstat");
+		ERR("!fstat");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
@@ -102,7 +102,7 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 	os_stat_t st;
 
 	if (os_fstat(src->value.fd, &st) < 0) {
-		ERR_W_ERRNO("fstat");
+		ERR("!fstat");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;

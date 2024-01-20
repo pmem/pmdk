@@ -34,7 +34,7 @@ pmem2_deep_flush_write(unsigned region_id)
 
 	if (util_snprintf(deep_flush_path, PATH_MAX,
 		"/sys/bus/nd/devices/region%u/deep_flush", region_id) < 0) {
-		ERR_W_ERRNO("snprintf");
+		ERR("!snprintf");
 		return PMEM2_E_ERRNO;
 	}
 
