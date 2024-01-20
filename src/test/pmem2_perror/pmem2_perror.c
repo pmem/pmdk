@@ -59,7 +59,7 @@ test_fail_system_func_simple(const struct test_case *tc, int argc, char *argv[])
 	/* "randomly" chosen function to be failed */
 	int ret = os_open("XXX", O_RDONLY);
 	UT_ASSERTeq(ret, -1);
-	ERR_W_ERRNO("open");
+	ERR("!open");
 
 	pmem2_perror("test");
 
@@ -76,7 +76,7 @@ test_fail_system_func_format(const struct test_case *tc, int argc, char *argv[])
 	/* "randomly" chosen function to be failed */
 	int ret = os_open("XXX", O_RDONLY);
 	UT_ASSERTeq(ret, -1);
-	ERR_W_ERRNO("open");
+	ERR("!open");
 
 	pmem2_perror("test %d", 123);
 

@@ -206,7 +206,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		 */
 		if (mprotect(addr, set->replica[0]->repsize,
 			PROT_READ) < 0) {
-			ERR_W_ERRNO("mprotect");
+			ERR("!mprotect");
 			goto out_unmap;
 		}
 		params->is_dev_dax = set->replica[0]->part[0].is_dev_dax;
@@ -362,7 +362,7 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 
 	struct pool_data *pool = calloc(1, sizeof(*pool));
 	if (!pool) {
-		ERR_W_ERRNO("calloc");
+		ERR("!calloc");
 		return NULL;
 	}
 
@@ -374,7 +374,7 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 
 	if (prv && pool->params.is_dev_dax) {
 		errno = ENOTSUP;
-		ERR_W_ERRNO("cannot perform a dry run on dax device");
+		ERR("!cannot perform a dry run on dax device");
 		goto error;
 	}
 
@@ -554,7 +554,7 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 
 	os_stat_t stat_buf;
 	if (os_fstat(spart->fd, &stat_buf)) {
-		ERR_W_ERRNO("util_stat");
+		ERR("!util_stat");
 		return -1;
 	}
 

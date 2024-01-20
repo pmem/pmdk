@@ -51,7 +51,7 @@ mcsafe_op_reg_read(struct pmem2_source *src, void *buf, size_t size,
 			return PMEM2_E_IO_FAIL;
 		}
 
-		ERR_W_ERRNO("pread");
+		ERR("!pread");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -77,7 +77,7 @@ mcsafe_op_reg_write(struct pmem2_source *src, void *buf, size_t size,
 			return PMEM2_E_IO_FAIL;
 		}
 
-		ERR_W_ERRNO("pwrite");
+		ERR("!pwrite");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -126,7 +126,7 @@ handle_sigbus_execute_mcsafe_op(struct pmem2_source *src, void *buf,
 	struct sigaction old_act;
 	/* register a custom signal handler */
 	if (sigaction(SIGBUS, &custom_act, &old_act) == -1) {
-		ERR_W_ERRNO("sigaction");
+		ERR("!sigaction");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -149,7 +149,7 @@ clnup_null_global_jmp:
 
 	/* restore the previous signal handler */
 	if (sigaction(SIGBUS, &old_act, NULL) == -1) {
-		ERR_W_ERRNO("sigaction");
+		ERR("!sigaction");
 		return PMEM2_E_ERRNO;
 	}
 

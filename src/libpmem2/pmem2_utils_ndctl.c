@@ -24,7 +24,7 @@ pmem2_device_dax_alignment(const struct pmem2_source *src, size_t *alignment)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR_W_ERRNO("ndctl_new");
+		ERR("!ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -63,7 +63,7 @@ pmem2_device_dax_size(const struct pmem2_source *src, size_t *size)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR_W_ERRNO("ndctl_new");
+		ERR("!ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 

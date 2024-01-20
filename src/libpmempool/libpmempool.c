@@ -171,7 +171,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 
 	PMEMpoolcheck *ppc = calloc(1, sizeof(*ppc));
 	if (ppc == NULL) {
-		ERR_W_ERRNO("calloc");
+		ERR("!calloc");
 		return NULL;
 	}
 
@@ -179,7 +179,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	memcpy(&ppc->args, args, sizeof(ppc->args));
 	ppc->path = strdup(args->path);
 	if (!ppc->path) {
-		ERR_W_ERRNO("strdup");
+		ERR("!strdup");
 		goto error_path_malloc;
 	}
 	ppc->args.path = ppc->path;
@@ -187,7 +187,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	if (args->backup_path != NULL) {
 		ppc->backup_path = strdup(args->backup_path);
 		if (!ppc->backup_path) {
-			ERR_W_ERRNO("strdup");
+			ERR("!strdup");
 			goto error_backup_path_malloc;
 		}
 		ppc->args.backup_path = ppc->backup_path;

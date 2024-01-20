@@ -129,10 +129,10 @@ map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (daddr == MAP_FAILED) {
 		if (errno == EEXIST) {
-			ERR_W_ERRNO("mmap MAP_FIXED_NOREPLACE");
+			ERR("!mmap MAP_FIXED_NOREPLACE");
 			return PMEM2_E_MAPPING_EXISTS;
 		}
-		ERR_W_ERRNO("mmap MAP_ANONYMOUS");
+		ERR("!mmap MAP_ANONYMOUS");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -170,7 +170,7 @@ map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
 	const size_t before = (uintptr_t)(*reserv) - (uintptr_t)daddr;
 	if (before) {
 		if (munmap(daddr, before)) {
-			ERR_W_ERRNO("munmap");
+			ERR("!munmap");
 			return PMEM2_E_ERRNO;
 		}
 	}
@@ -180,7 +180,7 @@ map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
 	void *end = (void *)((uintptr_t)(*reserv) + (uintptr_t)*reslen);
 	if (after)
 		if (munmap(end, after)) {
-			ERR_W_ERRNO("munmap");
+			ERR("!munmap");
 			return PMEM2_E_ERRNO;
 		}
 
@@ -212,7 +212,7 @@ file_map(void *reserv, size_t len, int proto, int flags,
 	if (flags & MAP_PRIVATE) {
 		*base = mmap(reserv, len, proto, flags, fd, offset);
 		if (*base == MAP_FAILED) {
-			ERR_W_ERRNO("mmap");
+			ERR("!mmap");
 			return PMEM2_E_ERRNO;
 		}
 		LOG(4, "mmap with MAP_PRIVATE succeeded");
@@ -240,7 +240,7 @@ file_map(void *reserv, size_t len, int proto, int flags,
 		}
 	}
 
-	ERR_W_ERRNO("mmap");
+	ERR("!mmap");
 	return PMEM2_E_ERRNO;
 }
 
@@ -252,7 +252,7 @@ unmap(void *addr, size_t len)
 {
 	int retval = munmap(addr, len);
 	if (retval < 0) {
-		ERR_W_ERRNO("munmap");
+		ERR("!munmap");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -275,7 +275,7 @@ vm_reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t size)
 	char *daddr = mmap(addr, size, PROT_NONE,
 			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
 	if (daddr == MAP_FAILED) {
-		ERR_W_ERRNO("mmap MAP_ANONYMOUS");
+		ERR("!mmap MAP_ANONYMOUS");
 		return PMEM2_E_ERRNO;
 	}
 

@@ -161,7 +161,7 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 
 	unsigned long long region_offset = ndctl_region_get_resource(region);
 	if (region_offset == ULLONG_MAX) {
-		ERR_W_ERRNO("cannot read offset of the region");
+		ERR("!cannot read offset of the region");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -272,7 +272,7 @@ pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR_W_ERRNO("ndctl_new");
+		ERR("!ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -703,13 +703,13 @@ pmem2_badblock_clear_fsdax(int fd, const struct pmem2_badblock *bb)
 	/* deallocate bad blocks */
 	if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
 			offset, length)) {
-		ERR_W_ERRNO("fallocate");
+		ERR("!fallocate");
 		return PMEM2_E_ERRNO;
 	}
 
 	/* allocate new blocks */
 	if (fallocate(fd, FALLOC_FL_KEEP_SIZE, offset, length)) {
-		ERR_W_ERRNO("fallocate");
+		ERR("!fallocate");
 		return PMEM2_E_ERRNO;
 	}
 

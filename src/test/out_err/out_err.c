@@ -32,11 +32,11 @@ main(int argc, char *argv[])
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = 0;
-	ERR_W_ERRNO("ERR #%d", 2);
+	ERR("!ERR #%d", 2);
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = EINVAL;
-	ERR_W_ERRNO("ERR #%d", 3);
+	ERR("!ERR #%d", 3);
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = EBADF;
