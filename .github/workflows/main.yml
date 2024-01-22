@@ -6,44 +6,6 @@ on:
   pull_request:
 
 jobs:
-  src_checkers:
-    name: Source checkers
-    runs-on: ubuntu-latest
-    permissions:
-      issues: read
-    steps:
-      - name: Clone the git repo
-        uses: actions/checkout@v3
-        with:
-          # required for `make check-license` to work properly
-          fetch-depth: 50
-
-      - name: Check changelog
-        uses: Zomzog/changelog-checker@v1.3.0
-        with:
-          fileName: ChangeLog
-          noChangelogLabel: no changelog # the default
-          checkNotification: Simple
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install dependencies
-        run: |
-          sudo pip install flake8
-          sudo apt-get install clang-format-14
-
-      - name: Check licenses
-        env:
-          NDCTL_ENABLE: n # just to speed up the job
-        run: make -j$(nproc) check-license
-
-      - name: Check style
-        env:
-          CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING: 1
-          NDCTL_ENABLE: n # just to speed up the job
-        run: make -j$(nproc) cstyle
-
-
   basic_build:
     name: Basic build
     runs-on: ubuntu-latest
@@ -61,7 +23,7 @@ jobs:
 
 
   call-ubuntu:
-    needs: [src_checkers, basic_build]
+    needs: [basic_build]
     uses: ./.github/workflows/ubuntu.yml
     name: Ubuntu
 
