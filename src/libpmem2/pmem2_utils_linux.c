@@ -50,7 +50,7 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 			os_minor(st->st_rdev));
 	if (ret < 0) {
 		/* impossible */
-		ERR("!snprintf");
+		ERR_W_ERRNO("snprintf");
 		ASSERTinfo(0, "snprintf failed");
 		return PMEM2_E_ERRNO;
 	}
@@ -60,7 +60,7 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 	char npath[PATH_MAX];
 	char *rpath = realpath(spath, npath);
 	if (rpath == NULL) {
-		ERR("!realpath \"%s\"", spath);
+		ERR_W_ERRNO("realpath \"%s\"", spath);
 		return PMEM2_E_ERRNO;
 	}
 

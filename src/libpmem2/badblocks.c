@@ -19,7 +19,7 @@ badblocks_new(void)
 
 	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
 	if (bbs == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 	}
 
 	return bbs;

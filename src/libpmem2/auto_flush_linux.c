@@ -41,7 +41,7 @@ check_cpu_cache(const char *domain_path)
 			DOMAIN_VALUE_LEN);
 
 	if (len < 0) {
-		ERR("!read(%d, %p, %d)", domain_fd,
+		ERR_W_ERRNO("read(%d, %p, %d)", domain_fd,
 			domain_value, DOMAIN_VALUE_LEN);
 		cpu_cache = -1;
 		goto end;
@@ -53,7 +53,7 @@ check_cpu_cache(const char *domain_path)
 		cpu_cache = -1;
 		goto end;
 	} else if (domain_value[len - 1] != '\n') {
-		ERR("!read(%d, %p, %d) invalid format",
+		ERR_W_ERRNO("read(%d, %p, %d) invalid format",
 			domain_fd, domain_value,
 			DOMAIN_VALUE_LEN);
 		cpu_cache = -1;
@@ -92,7 +92,7 @@ check_domain_in_region(const char *region_path)
 
 	reg = fs_new(region_path);
 	if (reg == NULL) {
-		ERR("!fs_new: \"%s\"", region_path);
+		ERR_W_ERRNO("fs_new: \"%s\"", region_path);
 		cpu_cache = -1;
 		goto end;
 	}
@@ -112,7 +112,7 @@ check_domain_in_region(const char *region_path)
 		int ret = util_snprintf(domain_path, PATH_MAX,
 			"%s/"PERSISTENCE_DOMAIN, region_path);
 		if (ret < 0) {
-			ERR("!snprintf");
+			ERR_W_ERRNO("snprintf");
 			cpu_cache = -1;
 			goto end;
 		}
@@ -153,7 +153,7 @@ pmem2_auto_flush(void)
 
 	struct fs *dev = fs_new(device_path);
 	if (dev == NULL) {
-		ERR("!fs_new: \"%s\"", device_path);
+		ERR_W_ERRNO("fs_new: \"%s\"", device_path);
 		return -1;
 	}
 
