@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 
 #
 # src/test/ctl_cow/TEST3 -- unit test which checks if opening pool located
@@ -24,7 +24,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET_DAX
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -s 32MB obj $POOL
 
-PMEMOBJ_CONF="copy_on_write.at_open=1;"
+PMEMOBJ_CONF="${PMEMOBJ_CONF}copy_on_write.at_open=1;"
 
 # check if opening non-dax pool does not fail
 expect_normal_exit ./ctl_cow$EXESUFFIX $POOL dax
