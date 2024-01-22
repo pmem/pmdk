@@ -1,13 +1,13 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 #
 
 
 import testframework as t
 
 
-class TEST0(t.BaseTest):
+class TEST0(t.Test):
     test_type = t.Short
 
     def run(self, ctx):

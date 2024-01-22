@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2023, Intel Corporation
+# Copyright 2020-2024, Intel Corporation
 #
 
 import testframework as t
@@ -11,7 +11,7 @@ import valgrind as vg
 # These tests last too long under drd
 # Exceptions: test no. 2
 @t.require_valgrind_disabled('drd')
-class ObjDefragAdvanced(t.BaseTest):
+class ObjDefragAdvanced(t.Test):
     test_type = t.Short
 
     max_nodes = 50
