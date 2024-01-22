@@ -1,6 +1,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -1860,6 +1860,11 @@ function setup() {
 	fi
 
 	export PMEMOBJ_CONF="fallocate.at_create=0;"
+
+	# disable SDS for non-pmem tests
+	if [ "$REAL_FS" = "non-pmem" ]; then
+		export PMEMOBJ_CONF=$PMEMOBJ_CONF"sds.at_create=n;"
+	fi
 }
 
 #
