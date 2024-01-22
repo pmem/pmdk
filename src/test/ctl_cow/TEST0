@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 
 #
 # src/test/ctl_cow/TEST0 -- unit test which checks copy on write feature
@@ -26,7 +26,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/$POOLSET
 POOL_BEFORE=`md5sum -b $DIR/$POOL`
 REPLICA_BEFORE=`md5sum -b $DIR/$REPLICA`
 
-PMEMOBJ_CONF="${PMEMOBJ_CONF}copy_on_write.at_open=1"
+PMEMOBJ_CONF="${PMEMOBJ_CONF};copy_on_write.at_open=1"
 
 expect_normal_exit ./ctl_cow$EXESUFFIX $DIR/$POOLSET obj
 
