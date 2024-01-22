@@ -24,17 +24,6 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 }
 
 /*
- * util_strwinerror -- should never be called on posix OS - abort()
- */
-void
-util_strwinerror(unsigned long err, char *buff, size_t bufflen)
-{
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(err, buff, bufflen);
-	abort();
-}
-
-/*
  * util_part_realpath -- get canonicalized absolute pathname
  *
  * As paths used in a poolset file have to be absolute (checked when parsing

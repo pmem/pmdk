@@ -41,13 +41,13 @@ main(int argc, char *argv[])
 
 	errno = EBADF;
 	strerror_r(errno, buff, UT_MAX_ERR_MSG);
-	out_err(__FILE__, 100, __func__,
+	out_err(0, __FILE__, 100, __func__,
 		"ERR1: %s:%d", buff, 1234);
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = EBADF;
 	strerror_r(errno, buff, UT_MAX_ERR_MSG);
-	out_err(NULL, 0, NULL,
+	out_err(0, NULL, 0, NULL,
 		"ERR2: %s:%d", buff, 1234);
 	UT_OUT("%s", out_get_errormsg());
 
