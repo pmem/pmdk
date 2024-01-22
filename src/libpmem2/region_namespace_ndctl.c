@@ -39,12 +39,12 @@ pmem2_devdax_match(dev_t st_rdev, const char *devname)
 	os_stat_t stat;
 
 	if (util_snprintf(path, PATH_MAX, "/dev/%s", devname) < 0) {
-		ERR("!snprintf");
+		ERR_W_ERRNO("snprintf");
 		return PMEM2_E_ERRNO;
 	}
 
 	if (os_stat(path, &stat)) {
-		ERR("!stat %s", path);
+		ERR_W_ERRNO("stat %s", path);
 		return PMEM2_E_ERRNO;
 	}
 
@@ -77,26 +77,26 @@ pmem2_fsdax_match(dev_t st_dev, const char *devname)
 	char dev_id[BUFF_LENGTH];
 
 	if (util_snprintf(path, PATH_MAX, "/sys/block/%s/dev", devname) < 0) {
-		ERR("!snprintf");
+		ERR_W_ERRNO("snprintf");
 		return PMEM2_E_ERRNO;
 	}
 
 	if (util_snprintf(dev_id, BUFF_LENGTH, "%d:%d",
 			major(st_dev), minor(st_dev)) < 0) {
-		ERR("!snprintf");
+		ERR_W_ERRNO("snprintf");
 		return PMEM2_E_ERRNO;
 	}
 
 	int fd = os_open(path, O_RDONLY);
 	if (fd < 0) {
-		ERR("!open \"%s\"", path);
+		ERR_W_ERRNO("open \"%s\"", path);
 		return PMEM2_E_ERRNO;
 	}
 
 	char buff[BUFF_LENGTH];
 	ssize_t nread = read(fd, buff, BUFF_LENGTH);
 	if (nread < 0) {
-		ERR("!read");
+		ERR_W_ERRNO("read");
 		int oerrno = errno; /* save the errno */
 		os_close(fd);
 		errno = oerrno;
@@ -170,7 +170,7 @@ pmem2_region_namespace(struct ndctl_ctx *ctx,
 			struct daxctl_region *dax_region;
 			dax_region = ndctl_dax_get_daxctl_region(dax);
 			if (!dax_region) {
-				ERR("!cannot find dax region");
+				ERR_W_ERRNO("cannot find dax region");
 				return PMEM2_E_DAX_REGION_NOT_FOUND;
 			}
 			struct daxctl_dev *dev;
@@ -239,7 +239,7 @@ pmem2_get_region_id(const struct pmem2_source *src, unsigned *region_id)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR("!ndctl_new");
+		ERR_W_ERRNO("ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 

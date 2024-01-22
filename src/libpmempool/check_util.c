@@ -72,7 +72,7 @@ check_data_alloc(void)
 
 	struct check_data *data = calloc(1, sizeof(*data));
 	if (data == NULL) {
-		ERR("!calloc");
+		ERR_W_ERRNO("calloc");
 		return NULL;
 	}
 
@@ -329,7 +329,7 @@ check_status_create(PMEMpoolcheck *ppc, enum pmempool_check_msg_type type,
 		int ret = util_snprintf(st->msg + p,
 				MAX_MSG_STR_SIZE - (size_t)p, ": %s", buff);
 		if (ret < 0) {
-			ERR("!snprintf");
+			ERR_W_ERRNO("snprintf");
 			status_release(st);
 			return -1;
 		}
@@ -603,7 +603,7 @@ check_get_time_str(time_t time)
 	else {
 		int ret = util_snprintf(str_buff, STR_MAX, "unknown");
 		if (ret < 0) {
-			ERR("!snprintf");
+			ERR_W_ERRNO("snprintf");
 			return "";
 		}
 	}

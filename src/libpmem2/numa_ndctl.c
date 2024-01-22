@@ -33,7 +33,7 @@ pmem2_source_numa_node(const struct pmem2_source *src, int *numa_node)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR("!ndctl_new");
+		ERR_W_ERRNO("ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 
