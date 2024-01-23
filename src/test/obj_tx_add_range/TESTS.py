@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 
 """unit tests for pmemobj_tx_add_range and pmemobj_tx_xadd_range"""
 
@@ -37,7 +37,8 @@ class TEST2(t.Test):
         testfile = path.join(ctx.testdir, 'testfile2')
         ctx.exec('obj_tx_add_range', testfile, '1')
 
-
+# XXX - temporary disabled test until CI problem is resolved
+@t.DISABLED()
 @t.require_valgrind_enabled('memcheck')
 @t.require_build('debug')
 class TEST3(t.Test):
