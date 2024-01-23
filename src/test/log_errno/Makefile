@@ -2,7 +2,7 @@
 # Copyright 2024, Intel Corporation
 
 #
-# src/test/log_errno/Makefile -- build unit test for log_errno()
+# src/test/log_errno/Makefile -- build unit test for log_errno
 #
 TARGET = log_errno
 OBJS = log_errno.o

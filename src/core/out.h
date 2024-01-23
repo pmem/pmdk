@@ -190,11 +190,13 @@ out_fatal_abort(const char *file, int line, const char *func,
 #define ERR_W_ERRNO(f, ...)\
 	do {\
 		ERR("*!" f, ##__VA_ARGS__);\
+		CORE_LOG_ERROR_WITH_ERRNO(f, ##__VA_ARGS__);\
 	} while (0)
 
 #define ERR_WO_ERRNO(f, ...)\
 	do {\
 		ERR("*" f, ##__VA_ARGS__);\
+		CORE_LOG_ERROR(f, ##__VA_ARGS__);\
 	} while (0)
 
 void out_init(const char *log_prefix, const char *log_level_var,

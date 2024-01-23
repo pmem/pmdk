@@ -18,6 +18,8 @@ setup
 export TRACE_LOG_LEVEL=1
 export TRACE_LOG_FILE=./traces$UNITTEST_NUM.log
 
+export PMEM_LOG_LEVEL=1
+
 expect_normal_exit ./out_err$EXESUFFIX
 
 check

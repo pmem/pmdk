@@ -187,8 +187,9 @@ replica_part_remove_recovery_file(struct part_health_status *phs)
 		return 0;
 
 	if (os_unlink(phs->recovery_file_name) < 0) {
-		ERR_W_ERRNO("removing the bad block recovery file failed"\
-				" -- '%s'", phs->recovery_file_name);
+		ERR_W_ERRNO(
+			"removing the bad block recovery file failed -- '%s'",
+			phs->recovery_file_name);
 		return -1;
 	}
 
@@ -755,8 +756,9 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 
 	FILE *recovery_file = os_fopen(path, "r");
 	if (!recovery_file) {
-		ERR_W_ERRNO("opening the recovery file for reading failed "\
-				"-- '%s'", path);
+		ERR_W_ERRNO(
+			"opening the recovery file for reading failed -- '%s'",
+			path);
 		return -1;
 	}
 
@@ -765,7 +767,8 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 	do {
 		if (fscanf(recovery_file, "%zu %zu\n",
 				&bb.offset, &bb.length) < 2) {
-			LOG(1, "incomplete bad block recovery file -- '%s'",
+			LOG(1,
+				"incomplete bad block recovery file -- '%s'",
 				path);
 			ret = 1;
 			goto error_exit;

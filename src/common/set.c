@@ -365,8 +365,8 @@ util_replica_close_local(struct pool_replica *rep, unsigned repn,
 			LOG(4, "unlink %s", rep->part[p].path);
 			int olderrno = errno;
 			if (util_unlink(rep->part[p].path) && errno != ENOENT) {
-				ERR_W_ERRNO("unlink %s failed (part %u,"\
-						" replica %u)",\
+				ERR_W_ERRNO(
+					"unlink %s failed (part %u, replica %u)",
 						rep->part[p].path, p, repn);
 				return -1;
 			}
@@ -418,7 +418,7 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 
 			os_stat_t stbuf;
 			if (os_fstat(part->fd, &stbuf) != 0) {
-				ERR_W_ERRNO("fstat %d %s", part->fd,\
+				ERR_W_ERRNO("fstat %d %s", part->fd,
 						part->path);
 				return -1;
 			}
@@ -1494,7 +1494,7 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create_part)
 					(os_off_t)size);
 			if (ret != 0) {
 				errno = ret;
-				ERR_W_ERRNO("posix_fallocate \"%s\", %zu",\
+				ERR_W_ERRNO("posix_fallocate \"%s\", %zu",
 						part->path, size);
 				return -1;
 			}

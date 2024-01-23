@@ -1,5 +1,1 @@
 log_errno
-log_errno.o
-*.log
-logs
-.deps
