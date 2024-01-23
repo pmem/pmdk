@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 #
 
 from os import path
@@ -14,6 +14,6 @@ class BASE(t.BaseTest):
         testfile = path.join(ctx.testdir, 'testfile0')
         ctx.exec('obj_defrag', testfile)
 
-
+@g.require_granularity(g.CACHELINE)
 class TEST0(BASE):
     "defrag test"
