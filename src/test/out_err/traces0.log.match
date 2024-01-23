@@ -10,6 +10,6 @@ $(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with libndctl 63+
 <trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR #1
 $(OPT)<trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR #2: Success
 $(OPX)<trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR #2: No error: 0
-<trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR #3: Invalid argument
+$(OPT)<trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR #3: Invalid argument
 <trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR1: Bad file descriptor:1234
 ERR2: Bad file descriptor:1234
