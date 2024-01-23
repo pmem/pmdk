@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2023, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 #
 
 
@@ -18,7 +18,7 @@ class Granularity(Enum):
 
 
 @g.require_granularity(g.ANY)
-class PMEM2_GRANULARITY(t.BaseTest):
+class PMEM2_GRANULARITY(t.Test):
     test_type = t.Short
     available_granularity = None
 
