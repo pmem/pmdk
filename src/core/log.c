@@ -14,9 +14,11 @@
 #include <stdatomic.h>
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 #include <string.h>
+#include <stdio.h>
 
 #include "log_internal.h"
 #include "log_default.h"
+#include "error_msg.h"
 
 /*
  * Default levels of the logging thresholds
@@ -180,4 +182,23 @@ core_log_get_threshold(enum core_log_threshold threshold,
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 
 	return 0;
+}
+
+/*
+ * core_log_error_msg_set -- write the error message to the buffer available
+ * through the *_errormsg() APIs.
+ */
+void
+core_log_error_msg_set(const char *message_format, ...)
+{
+	char *message = (char *)error_msg_get();
+
+	va_list arg;
+	va_start(arg, message_format);
+	if (vsnprintf(message, CORE_ERROR_MSG_MAXPRINT - 1, message_format,
+			arg) < 0) {
+		va_end(arg);
+		return;
+	}
+	va_end(arg);
 }

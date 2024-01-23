@@ -117,6 +117,8 @@ void core_log_default_function(void *context, enum core_log_level level,
 	const char *file_name, const int line_no, const char *function_name,
 	const char *message_format, ...);
 
+void core_log_error_msg_set(const char *message_format, ...);
+
 /*
  * Set of macros that should be used as the primary API for logging.
  * Direct call to log shall be used only in exceptional, corner cases.
@@ -134,7 +136,10 @@ void core_log_default_function(void *context, enum core_log_level level,
 	CORE_LOG(CORE_LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
 
 #define CORE_LOG_ERROR(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
+	do { \
+		core_log_error_msg_set(format, ##__VA_ARGS__); \
+		CORE_LOG(CORE_LOG_LEVEL_ERROR, format, ##__VA_ARGS__); \
+	} while (0)
 
 #define CORE_LOG_FATAL(format, ...) \
 	CORE_LOG(CORE_LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
