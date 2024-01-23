@@ -348,6 +348,7 @@ class Test(BaseTest):
                                         pmemobj_conf.find('sds.at_create=0')):
                 env['PMEMOBJ_CONF'] = 'sds.at_create=0'
             self.ctx.add_env(env)
+            print(self.ctx.env)
 
         self.remove_log_files()
 
