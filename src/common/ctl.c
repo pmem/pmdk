@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * ctl.c -- implementation of the interface for examination and modification of
@@ -13,7 +13,7 @@
 
 #define MAX_CONFIG_FILE_LEN (1 << 20) /* 1 megabyte */
 
-#define CTL_STRING_QUERY_SEPARATOR ";"
+#define CTL_STRING_QUERY_SEPARATOR ";:"
 #define CTL_NAME_VALUE_SEPARATOR "="
 #define CTL_QUERY_NODE_SEPARATOR "."
 #define CTL_VALUE_ARG_SEPARATOR ","
