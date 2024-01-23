@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * libpmempool.c -- entry points for libpmempool
@@ -58,13 +58,13 @@ pmempool_check_versionU(unsigned major_required, unsigned minor_required)
 	if (major_required != PMEMPOOL_MAJOR_VERSION) {
 		ERR("libpmempool major version mismatch (need %u, found %u)",
 			major_required, PMEMPOOL_MAJOR_VERSION);
-		return out_get_errormsg();
+		return error_msg_get();
 	}
 
 	if (minor_required > PMEMPOOL_MINOR_VERSION) {
 		ERR("libpmempool minor version mismatch (need %u, found %u)",
 			minor_required, PMEMPOOL_MINOR_VERSION);
-		return out_get_errormsg();
+		return error_msg_get();
 	}
 
 	return NULL;
@@ -86,7 +86,7 @@ static inline
 const char *
 pmempool_errormsgU(void)
 {
-	return out_get_errormsg();
+	return error_msg_get();
 }
 
 /*

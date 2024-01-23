@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2023, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * errormsg.c -- pmem2_errormsg* implementation
@@ -16,7 +16,7 @@ static inline
 const char *
 pmem2_errormsgU(void)
 {
-	return out_get_errormsg();
+	return error_msg_get();
 }
 
 /*

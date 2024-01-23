@@ -200,7 +200,6 @@ void out_err(const char *file, int line, const char *func,
 	const char *fmt, ...) FORMAT_PRINTF(4, 5);
 void NORETURN out_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...) FORMAT_PRINTF(4, 5);
-const char *out_get_errormsg(void);
 
 #ifdef __cplusplus
 }
