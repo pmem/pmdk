@@ -5,6 +5,7 @@
 
 from os import path
 import testframework as t
+from testframework import granularity as g
 
 
 class BASE(t.BaseTest):
