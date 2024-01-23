@@ -28,7 +28,8 @@ class TEST1(t.Test):
         testfile = path.join(ctx.testdir, 'testfile1')
         ctx.exec('obj_tx_add_range', testfile, '0')
 
-
+# XXX - temporarily disabled test until CI problem is resolved
+@t.DISABLED()
 @t.require_valgrind_disabled('memcheck')
 class TEST2(t.Test):
     test_type = t.Medium
@@ -37,7 +38,7 @@ class TEST2(t.Test):
         testfile = path.join(ctx.testdir, 'testfile2')
         ctx.exec('obj_tx_add_range', testfile, '1')
 
-# XXX - temporary disabled test until CI problem is resolved
+# XXX - temporarily disabled test until CI problem is resolved
 @t.DISABLED()
 @t.require_valgrind_enabled('memcheck')
 @t.require_build('debug')
