@@ -239,6 +239,8 @@ override_dh_auto_test:
 		echo 'TEST_BUILD=\"debug nondebug\"' >> src/test/testconfig.sh; \
 		echo 'TEST_FS=\"pmem any none\"' >> src/test/testconfig.sh; \
 	fi
+	echo 'TEST_TG build-dpkg.sh'
+	env | grep 'PMEM'
 	make pcheck ${PCHECK_OPTS}
 "
 else
