@@ -83,7 +83,7 @@ PMDK_LIB_PATH_NONDEBUG=$PMDK_LIB_PATH_NONDEBUG
 PMDK_LIB_PATH_DEBUG=$PMDK_LIB_PATH_NONDEBUG/$DEBUG_DIR
 EOF
 
-env | grep "PMEM" && echo "TEST_TG"
+env | grep "PMEM" && echo "TEST_TG run-build-package.sh 8"
 ./RUNTESTS.sh -t check
 # XXX The Python-based test framework is not able yet to run tests against
 # binaries installed in the system. https://github.com/pmem/pmdk/issues/5839

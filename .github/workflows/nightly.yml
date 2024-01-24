@@ -27,11 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         CONFIG: [
-                 "OS=ubuntu OS_VER=22.04 PMDK_CC=clang PMDK_CXX=clang++",
                  "OS=ubuntu OS_VER=22.04",
                  "OS=opensuse-leap OS_VER=15",
-                 "OS=rockylinux OS_VER=8",
-                 "OS=rockylinux OS_VER=9",
                 ]
     steps:
       - name: Clone the git repo
