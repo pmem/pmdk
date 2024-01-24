@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 #
 # build-rpm.sh - Script for building rpm packages
@@ -237,6 +237,10 @@ tar zcf $PACKAGE_TARBALL $PACKAGE_SOURCE
 mkdir -v BUILD SPECS
 
 echo "opts: ${RPMBUILD_OPTS[@]}"
+
+# Required for PMEMOBJ tests to not attempt creating an SDS which will fail
+# in the simulated test environment.
+PMEMOBJ_CONF='sds.at_create=0'
 
 rpmbuild --define "_topdir `pwd`"\
 	--define "_rpmdir ${OUT_DIR}"\
