@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 #
 # build-dpkg.sh - Script for building deb packages
@@ -617,6 +617,7 @@ debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 	--preserve-envvar=EXTRA_CXXFLAGS \
 	--preserve-envvar=EXTRA_LDFLAGS \
 	--preserve-envvar=NDCTL_ENABLE \
+	--preserve-envvar=PMEMOBJ_CONF \
 	-us -uc -b
 
 cd $OLD_DIR
