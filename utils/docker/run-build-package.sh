@@ -6,8 +6,8 @@
 # run-build-package.sh - is called inside a Docker container; prepares
 #                        the environment and starts a build of PMDK project.
 #
-env | grep "PMEM"
 echo "TEST_TG run-build-package.sh 0"
+env | grep "PMEM"
 set -e
 
 # Prepare build environment
@@ -21,6 +21,8 @@ git tag -a 1.4.99 -m "1.4" HEAD~1 || true
 echo "## Build package (and run basic tests)"
 pushd $WORKDIR
 export PCHECK_OPTS="-j2 BLACKLIST_FILE=${BLACKLIST_FILE}"
+echo "TEST_TG run-build-package.sh 0.1"
+env | grep "PMEM"
 make -j$(nproc) $PACKAGE_MANAGER
 echo "TEST_TG run-build-package.sh 1"
 env | grep "PMEM"
