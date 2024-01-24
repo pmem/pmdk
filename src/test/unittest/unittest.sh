@@ -1863,12 +1863,13 @@ function setup() {
 		lock_devdax
 	fi
 
-	export PMEMOBJ_CONF="${PMEMOBJ_CONF};fallocate.at_create=0;"
+	export PMEMOBJ_CONF="${PMEMOBJ_CONF};fallocate.at_create=0"
 
 	# disable SDS for non-pmem tests
 	if [ "$REAL_FS" = "non-pmem" ]; then
-		export PMEMOBJ_CONF="${PMEMOBJ_CONF};sds.at_create=0;"
+		export PMEMOBJ_CONF="${PMEMOBJ_CONF};sds.at_create=0"
 	fi
+	env | grep "PMEM"
 }
 
 #
