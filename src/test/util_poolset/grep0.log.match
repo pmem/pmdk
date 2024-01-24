@@ -20,10 +20,10 @@ $(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
 size 1000000 smaller than 2097152
 size 1000000 smaller than 2097152
-$(OPT)open "$(nW)/nodir/testfile62": No such file or directory
-$(OPT)open "/proc/testfile72": Permission denied
-$(OPT)posix_fallocate "$(nW)/testfile82", 1073741824: No space left on device
-$(OPT)open "$(nW)/testfile102": Permission denied
+open "$(nW)/nodir/testfile62": No such file or directory
+open "/proc/testfile72": Permission denied
+posix_fallocate "$(nW)/testfile82", 1073741824: No space left on device
+open "$(nW)/testfile102": Permission denied
 file size does not match config: $(nW)testfile113, 4194304 != 1048576
 size 12288 smaller than 2097152
 size 12288 smaller than 2097152
@@ -31,5 +31,5 @@ file size does not match config: $(nW)testfile142, 4194304 != 8388608
 file size does not match config: $(nW)testfile152, 3145728 != 4194304
 Non-empty file detected
 Non-empty file detected
-$(OPT)open "$(nW)/testset23": Permission denied
+open "$(nW)/testset23": Permission denied
 reservation pool size 1048576 smaller than 4194304
