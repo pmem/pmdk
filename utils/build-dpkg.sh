@@ -239,10 +239,13 @@ override_dh_auto_test:
 		echo 'TEST_BUILD=\"debug nondebug\"' >> src/test/testconfig.sh; \
 		echo 'TEST_FS=\"pmem any none\"' >> src/test/testconfig.sh; \
 	fi
-	echo 'TEST_TG build-dpkg.sh'
+	echo 'TEST_TG build-dpkg.sh 0'
 	env | grep 'PMEM' || true
+	echo 'TEST_TG build-dpkg.sh 1'
+	env || true
 	make pcheck ${PCHECK_OPTS} || true
 	echo 'the end'
+	false
 "
 else
 CHECK_CMD="
@@ -620,6 +623,7 @@ debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 	--preserve-envvar=EXTRA_CXXFLAGS \
 	--preserve-envvar=EXTRA_LDFLAGS \
 	--preserve-envvar=NDCTL_ENABLE \
+	--preserve-envvar=PMEMOBJ_CONF \
 	-us -uc -b
 
 cd $OLD_DIR
