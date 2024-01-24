@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 #
 # run-build-package.sh - is called inside a Docker container; prepares
 #                        the environment and starts a build of PMDK project.
 #
-
+env | grep "PMEM"
 set -e
 
 # Prepare build environment
@@ -81,6 +81,7 @@ PMDK_LIB_PATH_NONDEBUG=$PMDK_LIB_PATH_NONDEBUG
 PMDK_LIB_PATH_DEBUG=$PMDK_LIB_PATH_NONDEBUG/$DEBUG_DIR
 EOF
 
+env | grep "PMEM"
 ./RUNTESTS.sh -t check
 # XXX The Python-based test framework is not able yet to run tests against
 # binaries installed in the system. https://github.com/pmem/pmdk/issues/5839
