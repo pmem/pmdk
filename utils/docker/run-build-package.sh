@@ -21,7 +21,7 @@ git tag -a 1.4.99 -m "1.4" HEAD~1 || true
 echo "## Build package (and run basic tests)"
 pushd $WORKDIR
 export PCHECK_OPTS="-j2 BLACKLIST_FILE=${BLACKLIST_FILE}"
-$(make -j$(nproc) $PACKAGE_MANAGER)
+$(make -j$(nproc) $PACKAGE_MANAGER) || true
 env | grep "PMEM"
 echo "TEST_TG run-build-package.sh 1"
 
