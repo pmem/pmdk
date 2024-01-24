@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 #
 # build-dpkg.sh - Script for building deb packages
@@ -610,13 +610,16 @@ echo "" >> debian/changelog
 tail -n1 $CHANGELOG_TMP >> debian/changelog
 rm $CHANGELOG_TMP
 
-# This is our first release but we do
+# PMEMOBJ_CONF (PMEMOBJ_CONF='sds.at_create=0') is equired for PMEMOBJ tests
+# to not attempt creating an SDS which will fail in the simulated test
+# environment.
 debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 	--preserve-envvar=EXTRA_CFLAGS_DEBUG \
 	--preserve-envvar=EXTRA_CFLAGS \
 	--preserve-envvar=EXTRA_CXXFLAGS \
 	--preserve-envvar=EXTRA_LDFLAGS \
 	--preserve-envvar=NDCTL_ENABLE \
+	--preserve-envvar=PMEMOBJ_CONF \
 	-us -uc -b
 
 cd $OLD_DIR
