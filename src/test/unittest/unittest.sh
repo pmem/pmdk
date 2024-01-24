@@ -32,7 +32,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-env | grep "PMEM" && echo "TEST_TG unittest.sh"
+env | grep "PMEM"
+echo "TEST_TG unittest.sh"
 set -e
 
 # make sure we have a well defined locale for string operations here
@@ -1870,7 +1871,8 @@ function setup() {
 	if [ "$REAL_FS" = "non-pmem" ]; then
 		export PMEMOBJ_CONF="${PMEMOBJ_CONF};sds.at_create=0"
 	fi
-	env | grep "PMEM" && echo "TEST_TG setup"
+	env | grep "PMEM"
+	echo "TEST_TG setup"
 }
 
 #
