@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * obj_tx_add_range_direct.c -- unit test for pmemobj_tx_add_range_direct
@@ -60,7 +60,8 @@ do_tx_alloc(PMEMobjpool *pop, uint64_t type_num, uint64_t init_num)
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_alloc(sizeof(struct object), type_num);
-		pmemobj_memset(pop, pmemobj_direct(ret), 0, init_num, 0);
+		pmemobj_memset(pop, pmemobj_direct(ret), 0,
+			sizeof(struct object), 0);
 	} TX_END
 
 	return ret;
