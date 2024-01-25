@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 #
 #
 # pmempool_transform/TEST3 -- test for checking pmempool transform;
@@ -83,7 +83,10 @@ dump_pool_info $DIR/testfile00 >> $LOG_TEMP
 # Make sure no other parts were created
 check_no_files $DIR/testfile10 $DIR/testfile11
 
-mv $LOG_TEMP $LOG
+# Exclude error messages printed out on the stderr by PMDK in debug
+fgrep -v "*ERROR*" $LOG_TEMP > $LOG
+rm $LOG_TEMP
+
 check
 
 pass
