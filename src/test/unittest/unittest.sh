@@ -126,7 +126,7 @@ fi
 [ "$CHECK_POOL" ] || CHECK_POOL=0
 [ "$VERBOSE" ] || VERBOSE=0
 [ "$TEST_LABEL" ] || TEST_LABEL=
-[ -n "${SUFFIX+x}" ] || SUFFIX="😘⠏⠍⠙⠅ɗPMDKӜ⥺🙋"
+[ -n "${SUFFIX+x}" ] || SUFFIX=""
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
