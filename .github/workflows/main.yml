@@ -19,6 +19,10 @@ jobs:
           fetch-depth: 50
 
       - name: Check changelog
+        # Skip for pmem/pmdk/master and stable-* branches
+        if: |
+          !(github.repository == 'pmem/pmdk' &&
+            (github.ref_name == 'master' || startsWith(github.ref_name, 'stable-')))
         uses: Zomzog/changelog-checker@v1.3.0
         with:
           fileName: ChangeLog
