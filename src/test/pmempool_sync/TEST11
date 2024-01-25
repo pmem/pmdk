@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 #
 #
 # pmempool_sync/TEST11 -- test for checking pmempool sync
@@ -61,7 +61,10 @@ expect_normal_exit $DDMAP$EXESUFFIX -o $DIR/part20 -n 10 -b 1
 # Try to synchronize replicas using the third poolset
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET3 &>> $LOG_TEMP
 
-mv $LOG_TEMP $LOG
+# Exclude error messages printed out on the stderr by PMDK in debug
+fgrep -v "*ERROR*" $LOG_TEMP > $LOG
+rm $LOG_TEMP
+
 check
 
 pass
