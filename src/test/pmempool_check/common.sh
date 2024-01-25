@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2024, Intel Corporation
 #
 #
 # pmempool_check/common.sh -- checking pools helpers
@@ -37,7 +37,7 @@ function pmempool_check_sds_init() {
 		local conf="sds.at_create=1"
 	fi
 
-	PMEMOBJ_CONF="${PMEMOBJ_CONF}$conf;"
+	PMEMOBJ_CONF="${PMEMOBJ_CONF};$conf;"
 	expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
 }
 

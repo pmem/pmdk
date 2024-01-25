@@ -1,6 +1,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -1650,6 +1650,10 @@ function require_sds() {
 		msg "$UNITTEST_NAME: SKIP not compiled with support for shutdown state"
 		exit 0
 	fi
+	if [[ $PMEMOBJ_CONF = *'sds.at_create=0'* ]]; then
+		msg "$UNITTEST_NAME: SKIP the shutdown state has been disabled by the PMEMOBJ_CONF environment variable"
+		exit 0
+	fi
 	return 0
 }
 
@@ -1859,7 +1863,12 @@ function setup() {
 		lock_devdax
 	fi
 
-	export PMEMOBJ_CONF="fallocate.at_create=0;"
+	export PMEMOBJ_CONF="${PMEMOBJ_CONF};fallocate.at_create=0"
+
+	# disable SDS for non-pmem tests
+	if [ "$REAL_FS" = "non-pmem" ]; then
+		export PMEMOBJ_CONF="${PMEMOBJ_CONF};sds.at_create=0"
+	fi
 }
 
 #
