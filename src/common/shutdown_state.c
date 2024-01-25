@@ -91,7 +91,7 @@ shutdown_state_add_part(struct shutdown_state *sds, int fd,
 	uid = Zalloc(len);
 
 	if (uid == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		goto err;
 	}
 

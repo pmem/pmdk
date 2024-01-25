@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * traces.c -- unit test for traces
@@ -32,11 +32,11 @@ main(int argc, char *argv[])
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = 0;
-	ERR("!ERR #%d", 2);
+	ERR_W_ERRNO("ERR #%d", 2);
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = EINVAL;
-	ERR("!ERR #%d", 3);
+	ERR_W_ERRNO("ERR #%d", 3);
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = EBADF;

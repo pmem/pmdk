@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2024, Intel Corporation
 #
 #
 # pmempool_sync/TEST23 -- test for pmempool sync
@@ -63,6 +63,9 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET1 >> $LOG_TEMP
 # Check metadata using pmempool info
 dump_pool_info $POOLSET1 >> $LOG_TEMP
 
-mv $LOG_TEMP $LOG
+# Exclude error messages printed out on the stderr by PMDK in debug
+fgrep -v "*ERROR*" $LOG_TEMP > $LOG
+rm $LOG_TEMP
+
 check
 pass
