@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2024, Intel Corporation
 
 #
 # src/test/ex_libpmemobj/TEST0 -- unit test for libpmemobj examples
@@ -17,8 +17,14 @@ setup
 
 EX_PATH=../../examples/libpmemobj
 
-expect_normal_exit $EX_PATH/pi $DIR/testfile1 c 2 20 > out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/pi $DIR/testfile1 p >> out$UNITTEST_NUM.log 2>&1
+. ./common.sh
+
+expect_normal_exit $EX_PATH/pi $DIR/testfile1 c 2 20 > $LOG_TEMP 2>&1
+expect_normal_exit $EX_PATH/pi $DIR/testfile1 p >> $LOG_TEMP 2>&1
+
+# Exclude error messages printed out on the stderr by PMDK in debug
+fgrep -v "*ERROR*" $LOG_TEMP > $LOG
+rm $LOG_TEMP
 
 check
 
