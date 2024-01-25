@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2023, Intel Corporation
+# Copyright 2018-2024, Intel Corporation
 
 #
 # src/test/tools/anonymous_mmap/check_max_mmap.sh -- checks how many DAX
@@ -29,7 +29,7 @@ function get_devdax_size() {
 
 function msg_skip() {
 	echo "0" > "$FILE_MAX_DAX_DEVICES"
-	echo "$0: SKIP: $*"
+	echo "$0: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): $*"
 	exit 0
 }
 
