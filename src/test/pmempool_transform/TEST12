@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 #
 #
 # pmempool_transform/TEST12 -- test for transform with SINGLEHDR option
@@ -10,6 +10,9 @@
 #
 
 . ../unittest/unittest.sh
+# disabled due to crash until #5982 is fixed
+# https://github.com/pmem/pmdk/issues/5982
+DISABLED
 
 require_test_type medium
 require_fs_type any

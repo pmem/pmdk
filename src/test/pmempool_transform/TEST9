@@ -9,6 +9,9 @@
 #
 
 . ../unittest/unittest.sh
+# disabled due to crash until #5982 is fixed
+# https://github.com/pmem/pmdk/issues/5982
+DISABLED
 
 require_test_type medium
 require_dax_devices 2
@@ -86,6 +89,7 @@ dump_pool_info ${DEVICE_DAX_PATH[1]} >> $LOG_TEMP
 expect_normal_exit $CMPMAP$EXESUFFIX -z -l $HDR_LEN ${DEVICE_DAX_PATH[0]}
 
 mv $LOG_TEMP $LOG
+
 check
 
 pass
