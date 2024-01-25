@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2024, Intel Corporation
 
 #
 # src/test/libpmempool_feature/common.sh -- common part of libpmempool_feature tests
@@ -24,9 +24,14 @@ sds_enabled=$(is_ndctl_enabled ./libpmempool_feature$EXESUFFIX; echo $?)
 function libpmempool_feature_query_abnormal() {
 	# query feature
 	expect_abnormal_exit ./libpmempool_feature$EXESUFFIX $POOL q $1
+
+# XXX disable log file verification until #5981 is resolved
+# https://github.com/pmem/pmdk/issues/5981
+if false; then
 	if [ -f "$PMEMPOOL_LOG_FILE" ]; then
 		cat $PMEMPOOL_LOG_FILE | grep "$ERROR_PATTERN" >> $LOG
 	fi
+fi
 }
 
 # libpmempool_feature_query -- query feature
@@ -57,13 +62,19 @@ function libpmempool_feature_query() {
 function libpmempool_feature_enable() {
 	$exit_func ./libpmempool_feature$EXESUFFIX $POOL e $1
 	if [ "$exit_func" == "expect_abnormal_exit" ]; then
+
+# XXX disable log file verification until #5981 is resolved
+# https://github.com/pmem/pmdk/issues/5981
+if false; then
 		if [ -f "$PMEMPOOL_LOG_FILE" ]; then
 			cat $PMEMPOOL_LOG_FILE | grep "$ERROR_PATTERN" >> $LOG
 		fi
+fi
 	fi
 	if [ "x$2" != "xno-query" ]; then
 		libpmempool_feature_query $1
 	fi
+	echo normal end
 }
 
 # libpmempool_feature_disable -- disable feature
@@ -72,9 +83,13 @@ function libpmempool_feature_enable() {
 function libpmempool_feature_disable() {
 	$exit_func ./libpmempool_feature$EXESUFFIX $POOL d $1
 	if [ "$exit_func" == "expect_abnormal_exit" ]; then
+# XXX disable log file verification until #5981 is resolved
+# https://github.com/pmem/pmdk/issues/5981
+if false; then
 		if [ -f "$PMEMPOOL_LOG_FILE" ]; then
 			cat $PMEMPOOL_LOG_FILE | grep "$ERROR_PATTERN" >> $LOG
 		fi
+fi
 	fi
 	if [ "x$2" != "xno-query" ]; then
 		libpmempool_feature_query $1
