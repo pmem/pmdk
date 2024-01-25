@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * pmem.c -- pmem entry points for libpmem
@@ -597,9 +597,15 @@ pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags)
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x",
 			pmemdest, src, len, flags);
 
+/*
+ * Disable this warning until #5979 is fixed
+ * https://github.com/pmem/pmdk/issues/5979
+ */
+#if 0
 #ifdef DEBUG
 	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
+#endif
 #endif
 	PMEM_API_START();
 	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
