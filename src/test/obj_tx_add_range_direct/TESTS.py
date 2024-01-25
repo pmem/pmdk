@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 
 """
 unit tests for pmemobj_tx_add_range_direct
@@ -32,6 +32,9 @@ class TEST1(t.Test):
         ctx.exec('obj_tx_add_range_direct', testfile)
 
 
+# XXX disable test until issue #5974 is fixed
+# https://github.com/pmem/pmdk/issues/5974
+@t.DISABLED()
 @t.require_valgrind_enabled('memcheck')
 @t.require_build('debug')
 class TEST2(t.Test):
