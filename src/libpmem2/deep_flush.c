@@ -27,8 +27,9 @@ pmem2_deep_flush(struct pmem2_map *map, void *ptr, size_t size)
 	uintptr_t flush_end = flush_addr + size;
 
 	if (flush_addr < map_addr || flush_end > map_end) {
-		ERR_WO_ERRNO("requested deep flush rage ptr %p size %zu"
-			"exceeds map range %p", ptr, size, map);
+		ERR_WO_ERRNO(
+			"requested deep flush rage ptr %p size %zu exceeds map range %p",
+			ptr, size, map);
 		return PMEM2_E_DEEP_FLUSH_RANGE;
 	}
 

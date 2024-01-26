@@ -503,7 +503,7 @@ CTL_WRITE_HANDLER(granularity)(void *ctx,
 	ssize_t arg_in = *(int *)arg;
 	if (arg_in != 0 && arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
 		ERR_WO_ERRNO(
-			"incorrect grow size, must be 0 or larger than %" \
+			"incorrect grow size, must be 0 or larger than %"
 			PRIu64,
 			PMEMOBJ_MIN_PART);
 		return -1;
