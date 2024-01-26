@@ -167,8 +167,10 @@ alloc_class_reservation_clear(struct alloc_class_collection *ac, int id)
 {
 	LOG(10, NULL);
 
-	int ret = util_bool_compare_and_swap64(&ac->aclasses[id],
-		ACLASS_RESERVED, NULL);
+#ifdef DEBUG /* variables required for ASSERTs below */
+	int ret =
+#endif
+	util_bool_compare_and_swap64(&ac->aclasses[id], ACLASS_RESERVED, NULL);
 	ASSERT(ret);
 }
 

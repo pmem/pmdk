@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * obj_ctl_arenas.c -- tests for the ctl entry points
@@ -215,7 +215,6 @@ worker_arena_threads(void *arg)
 	UT_ASSERTeq(ret, 0);
 
 	PMEMoid oid[NOBJECT_THREAD];
-	unsigned d;
 
 	for (int i = 0; i < NOBJECT_THREAD; i++) {
 		ret = pmemobj_xalloc(pop, &oid[i],
@@ -224,10 +223,9 @@ worker_arena_threads(void *arg)
 				NULL, NULL);
 		UT_ASSERTeq(ret, 0);
 
-		d = labs((long)ref->oid.off - (long)oid[i].off);
-
 		/* objects are in the same block as the first one */
-		ASSERT(d <= alloc_class[ALLOC_CLASS_ARENA].unit_size *
+		ASSERT(labs((long)ref->oid.off - (long)oid[i].off) <=
+			alloc_class[ALLOC_CLASS_ARENA].unit_size *
 			(alloc_class[ALLOC_CLASS_ARENA].units_per_block - 1));
 	}
 
