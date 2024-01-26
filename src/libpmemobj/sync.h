@@ -84,7 +84,7 @@ pmemobj_mutex_lock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
 	int ret = pmemobj_mutex_lock(pop, mutexp);
 	if (ret) {
 		errno = ret;
-		FATAL_W_ERRNO("pmemobj_mutex_lock");
+		CORE_LOG_FATAL_W_ERRNO("pmemobj_mutex_lock");
 	}
 }
 
@@ -99,7 +99,7 @@ pmemobj_mutex_unlock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
 	int ret = pmemobj_mutex_unlock(pop, mutexp);
 	if (ret) {
 		errno = ret;
-		FATAL_W_ERRNO("pmemobj_mutex_unlock");
+		CORE_LOG_FATAL_W_ERRNO("pmemobj_mutex_unlock");
 	}
 }
 

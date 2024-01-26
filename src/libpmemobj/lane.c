@@ -40,7 +40,7 @@ lane_info_create(void)
 {
 	Lane_info_ht = critnib_new();
 	if (Lane_info_ht == NULL)
-		FATAL_WO_ERRNO("critnib_new");
+		CORE_LOG_FATAL("critnib_new");
 }
 
 /*
@@ -77,7 +77,7 @@ lane_info_ht_boot(void)
 	int result = os_tls_set(Lane_info_key, Lane_info_ht);
 	if (result != 0) {
 		errno = result;
-		FATAL_W_ERRNO("os_tls_set");
+		CORE_LOG_FATAL_W_ERRNO("os_tls_set");
 	}
 }
 
@@ -102,7 +102,7 @@ lane_info_boot(void)
 	int result = os_tls_key_create(&Lane_info_key, lane_info_ht_destroy);
 	if (result != 0) {
 		errno = result;
-		FATAL_W_ERRNO("os_tls_key_create");
+		CORE_LOG_FATAL_W_ERRNO("os_tls_key_create");
 	}
 }
 
@@ -479,7 +479,7 @@ get_lane_info_record(PMEMobjpool *pop)
 	if (unlikely(info == NULL)) {
 		info = Malloc(sizeof(struct lane_info));
 		if (unlikely(info == NULL)) {
-			FATAL_WO_ERRNO("Malloc");
+			CORE_LOG_FATAL("Malloc");
 		}
 		info->pop_uuid_lo = pop->uuid_lo;
 		info->lane_idx = UINT64_MAX;
@@ -495,7 +495,7 @@ get_lane_info_record(PMEMobjpool *pop)
 
 		if (unlikely(critnib_insert(
 				Lane_info_ht, pop->uuid_lo, info) != 0)) {
-			FATAL_WO_ERRNO("critnib_insert");
+			CORE_LOG_FATAL("critnib_insert");
 		}
 	}
 
@@ -551,12 +551,12 @@ lane_release(PMEMobjpool *pop)
 	ASSERTne(lane->lane_idx, UINT64_MAX);
 
 	if (unlikely(lane->nest_count == 0)) {
-		FATAL_WO_ERRNO("lane_release");
+		CORE_LOG_FATAL("lane_release");
 	} else if (--(lane->nest_count) == 0) {
 		if (unlikely(!util_bool_compare_and_swap64(
 				&pop->lanes_desc.lane_locks[lane->lane_idx],
 				1, 0))) {
-			FATAL_WO_ERRNO("util_bool_compare_and_swap64");
+			CORE_LOG_FATAL("util_bool_compare_and_swap64");
 		}
 	}
 }

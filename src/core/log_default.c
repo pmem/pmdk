@@ -6,7 +6,6 @@
  * to syslog or to stderr
  */
 
-#define _GNU_SOURCE
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>

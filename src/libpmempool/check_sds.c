@@ -187,7 +187,7 @@ init_prefix(location *loc)
 			"replica %u: ",
 			loc->replica);
 		if (ret < 0)
-			FATAL_W_ERRNO("snprintf");
+			CORE_LOG_FATAL_W_ERRNO("snprintf");
 	} else
 		loc->prefix[0] = '\0';
 	loc->step = 0;

@@ -1103,7 +1103,7 @@ huge_vg_init(const struct memory_block *m, int objects,
 
 	if (objects && huge_get_state(m) == MEMBLOCK_ALLOCATED) {
 		if (cb(m, arg) != 0)
-			FATAL_WO_ERRNO("failed to initialize valgrind state");
+			CORE_LOG_FATAL("failed to initialize valgrind state");
 	}
 }
 
@@ -1143,7 +1143,7 @@ run_vg_init(const struct memory_block *m, int objects,
 
 	if (objects) {
 		if (run_iterate_used(m, cb, arg) != 0)
-			FATAL_WO_ERRNO("failed to initialize valgrind state");
+			CORE_LOG_FATAL("failed to initialize valgrind state");
 	}
 }
 
@@ -1463,7 +1463,7 @@ memblock_detect_type(struct palloc_heap *heap, const struct memory_block *m)
 			break;
 		default:
 			/* unreachable */
-			FATAL_WO_ERRNO(
+			CORE_LOG_FATAL(
 				"possible zone chunks metadata corruption");
 	}
 	return ret;

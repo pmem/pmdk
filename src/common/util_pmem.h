@@ -26,7 +26,7 @@ util_persist(int is_pmem, const void *addr, size_t len)
 	if (is_pmem)
 		pmem_persist(addr, len);
 	else if (pmem_msync(addr, len))
-		FATAL_W_ERRNO("pmem_msync");
+		CORE_LOG_FATAL_W_ERRNO("pmem_msync");
 }
 
 /*

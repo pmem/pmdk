@@ -181,11 +181,11 @@ status_alloc(void)
 {
 	struct check_status *status = malloc(sizeof(*status));
 	if (!status)
-		FATAL_W_ERRNO("malloc");
+		CORE_LOG_FATAL_W_ERRNO("malloc");
 	status->msg = malloc(sizeof(char) * MAX_MSG_STR_SIZE);
 	if (!status->msg) {
 		free(status);
-		FATAL_W_ERRNO("malloc");
+		CORE_LOG_FATAL_W_ERRNO("malloc");
 	}
 	status->status.str.msg = status->msg;
 	status->answer = PMEMPOOL_CHECK_ANSWER_EMPTY;

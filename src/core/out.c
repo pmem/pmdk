@@ -48,7 +48,7 @@ _Last_errormsg_key_alloc(void)
 {
 	int pth_ret = os_tls_key_create(&Last_errormsg_key, free);
 	if (pth_ret)
-		FATAL_W_ERRNO("os_thread_key_create");
+		CORE_LOG_FATAL_W_ERRNO("os_thread_key_create");
 
 	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Last_errormsg_key_once);
 }
@@ -89,7 +89,7 @@ Last_errormsg_get(void)
 		errormsg->msg[0] = '\0';
 		int ret = os_tls_set(Last_errormsg_key, errormsg);
 		if (ret)
-			FATAL_W_ERRNO("os_tls_set");
+			CORE_LOG_FATAL_W_ERRNO("os_tls_set");
 	}
 	return errormsg;
 }

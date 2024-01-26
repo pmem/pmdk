@@ -85,5 +85,5 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 	else if (info->flush == flush_pop)
 		LOG(3, "Synchronize VA to pop for ARM");
 	else
-		FATAL_WO_ERRNO("invalid deep flush function address");
+		CORE_LOG_FATAL("invalid deep flush function address");
 }
