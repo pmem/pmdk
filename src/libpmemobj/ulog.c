@@ -26,8 +26,10 @@
 #define ULOG_OFFSET_MASK		(~(ULOG_OPERATION_MASK))
 
 #define CACHELINE_ALIGN(size) ALIGN_UP(size, CACHELINE_SIZE)
+#ifdef DEBUG /* varaibles required for following ASSERTs */
 #define IS_CACHELINE_ALIGNED(ptr)\
 	(((uintptr_t)(ptr) & (CACHELINE_SIZE - 1)) == 0)
+#endif
 
 /*
  * ulog_by_offset -- calculates the ulog pointer

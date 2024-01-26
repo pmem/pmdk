@@ -163,7 +163,6 @@ static int
 devdax_read(struct pmem2_source *src, void *buf, size_t size, size_t offset)
 {
 	int ret;
-	int clnup_ret;
 	struct pmem2_config *cfg;
 	struct pmem2_map *map;
 
@@ -186,11 +185,13 @@ devdax_read(struct pmem2_source *src, void *buf, size_t size, size_t offset)
 
 	memcpy_fn(buf, ADDR_SUM(addr, offset), size, 0);
 
-	clnup_ret = pmem2_map_delete(&map);
+#ifdef DEBUG /* varaibles required for following ASSERTs */
+	int clnup_ret =
+#endif
+	pmem2_map_delete(&map);
 	ASSERTeq(clnup_ret, 0);
 clnup_cfg_delete:
-	clnup_ret = pmem2_config_delete(&cfg);
-	ASSERTeq(clnup_ret, 0);
+	pmem2_config_delete(&cfg);
 
 	return ret;
 }
@@ -202,7 +203,6 @@ static int
 devdax_write(struct pmem2_source *src, void *buf, size_t size, size_t offset)
 {
 	int ret;
-	int clnup_ret;
 	struct pmem2_config *cfg;
 	struct pmem2_map *map;
 
@@ -225,11 +225,13 @@ devdax_write(struct pmem2_source *src, void *buf, size_t size, size_t offset)
 
 	memcpy_fn(ADDR_SUM(addr, offset), buf, size, 0);
 
-	clnup_ret = pmem2_map_delete(&map);
+#ifdef DEBUG /* varaibles required for following ASSERTs */
+	int clnup_ret =
+#endif
+	pmem2_map_delete(&map);
 	ASSERTeq(clnup_ret, 0);
 clnup_cfg_delete:
-	clnup_ret = pmem2_config_delete(&cfg);
-	ASSERTeq(clnup_ret, 0);
+	pmem2_config_delete(&cfg);
 
 	return ret;
 }

@@ -202,7 +202,9 @@ list_update_head(PMEMobjpool *pop,
 static void
 u64_add_offset(uint64_t *value, ssize_t off)
 {
+#ifdef DEBUG /* varaibles required for following ASSERTs */
 	uint64_t prev = *value;
+#endif
 	if (off >= 0) {
 		*value += (size_t)off;
 		ASSERT(*value >= prev); /* detect overflow */

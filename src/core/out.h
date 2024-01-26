@@ -104,15 +104,16 @@ out_nonl_discard(int level, const char *fmt, ...)
 /* assert two integer values are equal at runtime */
 #define ASSERTeq_rt(lhs, rhs) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) == (rhs))) break; \
-	CORE_LOG_FATAL("assertion failure: %s (0x%llx) == %s (0x%llx)", \
-	#lhs, (unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
+	CORE_LOG_FATAL( \
+		"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs, \
+		(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
 
 /* assert two integer values are not equal at runtime */
 #define ASSERTne_rt(lhs, rhs) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) != (rhs))) break; \
 	CORE_LOG_FATAL("assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
+		(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
 
 /* assert a condition is true */

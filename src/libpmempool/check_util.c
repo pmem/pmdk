@@ -20,7 +20,9 @@
 #define MSG_SEPARATOR	'|'
 
 /* error part of message must have '.' at the end */
+#ifdef DEBUG /* varaibles required for following ASSERTs */
 #define MSG_PLACE_OF_SEPARATION	'.'
+#endif
 #define MAX_MSG_STR_SIZE 8192
 
 #define CHECK_ANSWER_YES	"yes"

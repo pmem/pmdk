@@ -3263,8 +3263,10 @@ util_replica_deep_common(const void *addr, size_t len, struct pool_set *set,
 		addr, len, set, replica_id, flush);
 
 	struct pool_replica *rep = set->replica[replica_id];
+#ifdef DEBUG /* varaibles required for following ASSERTs */
 	uintptr_t rep_start = (uintptr_t)rep->part[0].addr;
 	uintptr_t rep_end = rep_start + rep->repsize;
+#endif
 	uintptr_t start = (uintptr_t)addr;
 	uintptr_t end = start + len;
 
