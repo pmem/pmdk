@@ -217,7 +217,7 @@ util_unmap_hdr(struct pool_set_part *part)
 	VALGRIND_REMOVE_PMEM_MAPPING(part->hdr, part->hdrsize);
 	if (munmap(part->hdr, part->hdrsize) != 0)
 		/* this means there's a bug on the caller side */
-		FATAL("!munmap: %s", part->path);
+		FATAL_W_ERRNO("munmap: %s", part->path);
 	part->hdr = NULL;
 	part->hdrsize = 0;
 }
@@ -2209,7 +2209,8 @@ util_poolset_append_new_part(struct pool_set *set, size_t size)
 			d->path, PMEM_FILE_PADDING, set->next_id, PMEM_EXT);
 
 		if (util_replica_add_part(&set->replica[r], path, size) != 0)
-			FATAL("cannot add a new part to the replica info");
+			FATAL_WO_ERRNO(
+				"cannot add a new part to the replica info");
 	}
 
 	set->next_directory_id += 1;

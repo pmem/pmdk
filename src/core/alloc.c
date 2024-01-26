@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 #include <errno.h>
 
@@ -58,7 +58,7 @@ core_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
 			fail_realloc_from = at;
 			break;
 		default:
-			FATAL("unknown allocation type");
+			FATAL_WO_ERRNO("unknown allocation type");
 	}
 }
 
