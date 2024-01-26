@@ -23,12 +23,6 @@ extern "C" {
  * Suppress errors which are after appropriate ASSERT* macro for nondebug
  * builds.
  */
-#if !defined(DEBUG) && (defined(__clang_analyzer__) || defined(__COVERITY__))
-#define OUT_FATAL_DISCARD_NORETURN __attribute__((noreturn))
-#else
-#define OUT_FATAL_DISCARD_NORETURN
-#endif
-
 #ifndef EVALUATE_DBG_EXPRESSIONS
 #if defined(DEBUG) || defined(__clang_analyzer__) || defined(__COVERITY__) ||\
 	defined(__KLOCWORK__)
@@ -61,28 +55,8 @@ out_nonl_discard(int level, const char *fmt, ...)
 	SUPPRESS_UNUSED(level, fmt);
 }
 
-static __attribute__((always_inline)) OUT_FATAL_DISCARD_NORETURN inline void
-out_fatal_discard(const char *file, int line, const char *func,
-		const char *fmt, ...)
-{
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(file, line, func, fmt);
-}
-
-static __attribute__((always_inline)) NORETURN inline void
-out_fatal_abort(const char *file, int line, const char *func,
-		const char *fmt, ...)
-{
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(file, line, func, fmt);
-
-	abort();
-}
-
 #define OUT_LOG out_log_discard
 #define OUT_NONL out_nonl_discard
-#define OUT_FATAL out_fatal_discard
-#define OUT_FATAL_ABORT out_fatal_abort
 
 #endif
 
@@ -115,6 +89,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 } while (0)
 
 /* assert a condition is true at runtime */
+#if defined(DEBUG)
 #define ASSERT_rt(cnd) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || (cnd)) break; \
 	CORE_LOG_FATAL("assertion failure: %s", #cnd);\
@@ -123,23 +98,20 @@ out_fatal_abort(const char *file, int line, const char *func,
 /* assertion with extra info printed if assertion fails at runtime */
 #define ASSERTinfo_rt(cnd, info) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || (cnd)) break; \
-	CORE_LOG_FATAL( \
-		"assertion failure: %s (%s = %s)", #cnd, #info, info);\
+	CORE_LOG_FATAL("assertion failure: %s (%s = %s)", #cnd, #info, info);\
 } while (0)
 
 /* assert two integer values are equal at runtime */
 #define ASSERTeq_rt(lhs, rhs) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) == (rhs))) break; \
-	CORE_LOG_FATAL(\
-	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
+	CORE_LOG_FATAL("assertion failure: %s (0x%llx) == %s (0x%llx)", \
+	#lhs, (unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
 
 /* assert two integer values are not equal at runtime */
 #define ASSERTne_rt(lhs, rhs) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) != (rhs))) break; \
-	CORE_LOG_FATAL(\
-	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
+	CORE_LOG_FATAL("assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
 
@@ -177,9 +149,18 @@ out_fatal_abort(const char *file, int line, const char *func,
 		TEST_ALWAYS_NE_EXPR(lhs, rhs);\
 		ASSERTne_rt(lhs, rhs);\
 	} while (0)
-
-#define ERR(use_errno, ...)\
-	out_err(use_errno, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#else
+#define ASSERT_rt(cnd)
+#define ASSERTinfo_rt(cnd, info)
+#define ASSERTeq_rt(lhs, rhs)
+#define ASSERTne_rt(lhs, rhs)
+#define ASSERT(cnd)
+#define ASSERTinfo(cnd, info)
+#define ASSERTeq(lhs, rhs)
+#define ASSERTne(lhs, rhs)
+#endif // #if defined(DEBUG)
+#define ERR(...)\
+	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define ERR_W_ERRNO(f, ...)\
 	do {\
