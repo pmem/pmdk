@@ -49,6 +49,9 @@ stats_enabled_parser(const void *arg, void *dest, size_t dest_size)
 {
 	const char *vstr = arg;
 	enum pobj_stats_enabled *enabled = dest;
+#ifndef DEBUG
+	SUPPRESS_UNUSED(dest_size);
+#endif
 	ASSERTeq(dest_size, sizeof(enum pobj_stats_enabled));
 
 	int bool_out;

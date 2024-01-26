@@ -98,7 +98,10 @@ test_fail_pmem2_syscall_simple(const struct test_case *tc,
 	src.value.fd = -1;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmem2_source_size(&src, &size);
+#ifdef DEBUG /* variables required for ASSERTs below */
+	int ret =
+#endif
+	pmem2_source_size(&src, &size);
 	ASSERTne(ret, 0);
 
 	pmem2_perror("test");
@@ -121,7 +124,10 @@ test_fail_pmem2_syscall_format(const struct test_case *tc,
 	src.value.fd = -1;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmem2_source_size(&src, &size);
+#ifdef DEBUG /* variables required for ASSERTs below */
+	int ret =
+#endif
+	pmem2_source_size(&src, &size);
 	ASSERTne(ret, 0);
 
 	pmem2_perror("test %d", 123);

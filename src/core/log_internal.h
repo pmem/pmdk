@@ -8,7 +8,7 @@
 #ifndef CORE_LOG_INTERNAL_H
 #define CORE_LOG_INTERNAL_H
 
-#if !defined(_GNU_SOURCE)
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
 

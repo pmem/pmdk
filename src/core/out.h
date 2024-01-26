@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 /*
- * Suppress errors which are after appropriate ASSERT* macro for nondebug
+ * Suppress errors messages (LOG()) in non-debug version
  * builds.
  */
 #ifndef EVALUATE_DBG_EXPRESSIONS
@@ -89,30 +89,32 @@ out_nonl_discard(int level, const char *fmt, ...)
 } while (0)
 
 /* assert a condition is true at runtime */
-#if defined(DEBUG)
+#if defined(DEBUG) || defined(__clang_analyzer__) || defined(__COVERITY__) ||\
+	defined(__KLOCWORK__)
 #define ASSERT_rt(cnd) do { \
-	if (!EVALUATE_DBG_EXPRESSIONS || (cnd)) break; \
+	if ((cnd)) break; \
 	CORE_LOG_FATAL("assertion failure: %s", #cnd);\
 } while (0)
 
 /* assertion with extra info printed if assertion fails at runtime */
 #define ASSERTinfo_rt(cnd, info) do { \
-	if (!EVALUATE_DBG_EXPRESSIONS || (cnd)) break; \
+	if ((cnd)) break; \
 	CORE_LOG_FATAL("assertion failure: %s (%s = %s)", #cnd, #info, info);\
 } while (0)
 
 /* assert two integer values are equal at runtime */
 #define ASSERTeq_rt(lhs, rhs) do { \
-	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) == (rhs))) break; \
-	CORE_LOG_FATAL("assertion failure: %s (0x%llx) == %s (0x%llx)", \
-	#lhs, (unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
+	if ((lhs) == (rhs)) break; \
+	CORE_LOG_FATAL( \
+		"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs, \
+		(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
 
 /* assert two integer values are not equal at runtime */
 #define ASSERTne_rt(lhs, rhs) do { \
-	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) != (rhs))) break; \
+	if ((lhs) != (rhs)) break; \
 	CORE_LOG_FATAL("assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
-	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
+		(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
 
 /* assert a condition is true */
@@ -158,9 +160,10 @@ out_nonl_discard(int level, const char *fmt, ...)
 #define ASSERTinfo(cnd, info)
 #define ASSERTeq(lhs, rhs)
 #define ASSERTne(lhs, rhs)
-#endif // #if defined(DEBUG)
-#define ERR(...)\
-	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#endif /* DEBUG */
+
+#define ERR(use_errno, ...)\
+	out_err(use_errno, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define ERR_W_ERRNO(f, ...)\
 	do {\
