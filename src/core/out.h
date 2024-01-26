@@ -43,8 +43,6 @@ extern "C" {
 
 #define OUT_LOG out_log
 #define OUT_NONL out_nonl
-#define OUT_FATAL out_fatal
-#define OUT_FATAL_ABORT out_fatal
 
 #else
 
@@ -119,20 +117,20 @@ out_fatal_abort(const char *file, int line, const char *func,
 /* assert a condition is true at runtime */
 #define ASSERT_rt(cnd) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || (cnd)) break; \
-	OUT_FATAL(__FILE__, __LINE__, __func__, "assertion failure: %s", #cnd);\
+	CORE_LOG_FATAL("assertion failure: %s", #cnd);\
 } while (0)
 
 /* assertion with extra info printed if assertion fails at runtime */
 #define ASSERTinfo_rt(cnd, info) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || (cnd)) break; \
-	OUT_FATAL(__FILE__, __LINE__, __func__, \
+	CORE_LOG_FATAL( \
 		"assertion failure: %s (%s = %s)", #cnd, #info, info);\
 } while (0)
 
 /* assert two integer values are equal at runtime */
 #define ASSERTeq_rt(lhs, rhs) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) == (rhs))) break; \
-	OUT_FATAL(__FILE__, __LINE__, __func__,\
+	CORE_LOG_FATAL(\
 	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
@@ -140,7 +138,7 @@ out_fatal_abort(const char *file, int line, const char *func,
 /* assert two integer values are not equal at runtime */
 #define ASSERTne_rt(lhs, rhs) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || ((lhs) != (rhs))) break; \
-	OUT_FATAL(__FILE__, __LINE__, __func__,\
+	CORE_LOG_FATAL(\
 	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)); \
 } while (0)
