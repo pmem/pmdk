@@ -116,13 +116,6 @@ out_fatal_abort(const char *file, int line, const char *func,
 	OUT_NONL(level, __VA_ARGS__); \
 } while (0)
 
-/* produce output and exit */
-#define FATAL_WO_ERRNO(...)\
-	OUT_FATAL_ABORT(__FILE__, __LINE__, __func__, __VA_ARGS__)
-
-#define FATAL_W_ERRNO(...)\
-	OUT_FATAL_ABORT(__FILE__, __LINE__, __func__, "!" __VA_ARGS__)
-
 /* assert a condition is true at runtime */
 #define ASSERT_rt(cnd) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS || (cnd)) break; \

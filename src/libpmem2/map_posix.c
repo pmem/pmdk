@@ -484,7 +484,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			[cfg->requested_max_granularity]
 			[available_min_granularity];
 		if (strcmp(err, GRAN_IMPOSSIBLE) == 0)
-			FATAL_WO_ERRNO(
+			CORE_LOG_FATAL(
 				"unhandled granularity error: available_min_granularity: %d" \
 				"requested_max_granularity: %d",
 				available_min_granularity,

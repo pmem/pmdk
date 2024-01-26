@@ -301,7 +301,7 @@ palloc_restore_free_chunk_state(struct palloc_heap *heap,
 			HEAP_ARENA_PER_THREAD);
 		if (heap_free_chunk_reuse(heap, b, m) != 0) {
 			if (errno == EEXIST) {
-				FATAL_WO_ERRNO(
+				CORE_LOG_FATAL(
 					"duplicate runtime chunk state, possible double free");
 			} else {
 				LOG(2, "unable to track runtime chunk state");

@@ -158,13 +158,13 @@ obj_tx_fail_null(int errnum, uint64_t flags)
 /* ASSERT_IN_TX -- checks whether there's open transaction */
 #define ASSERT_IN_TX(tx) do {\
 	if ((tx)->stage == TX_STAGE_NONE)\
-		FATAL_WO_ERRNO("%s called outside of transaction", __func__);\
+		CORE_LOG_FATAL("%s called outside of transaction", __func__);\
 } while (0)
 
 /* ASSERT_TX_STAGE_WORK -- checks whether current transaction stage is WORK */
 #define ASSERT_TX_STAGE_WORK(tx) do {\
 	if ((tx)->stage != TX_STAGE_WORK)\
-		FATAL_WO_ERRNO("%s called in invalid stage %d",\
+		CORE_LOG_FATAL("%s called in invalid stage %d",\
 			__func__, (tx)->stage);\
 } while (0)
 
@@ -269,7 +269,7 @@ tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
 			if (txrn == NULL)
 				/* we can't do it any other way */
-				FATAL_W_ERRNO("Malloc");
+				CORE_LOG_FATAL_W_ERRNO("Malloc");
 
 			txrn->begin = txr->begin;
 			txrn->end = begin;
@@ -281,7 +281,7 @@ tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
 			if (txrn == NULL)
 				/* we can't do it any other way */
-				FATAL_W_ERRNO("Malloc");
+				CORE_LOG_FATAL_W_ERRNO("Malloc");
 
 			txrn->begin = end;
 			txrn->end = txr->end;
@@ -318,7 +318,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 	txr = Malloc(sizeof(*txr));
 	if (txr == NULL) {
 		/* we can't do it any other way */
-		FATAL_W_ERRNO("Malloc");
+		CORE_LOG_FATAL_W_ERRNO("Malloc");
 	}
 
 	uint64_t range_offset = ulog_entry_offset(&range->base);
@@ -571,7 +571,7 @@ tx_lane_ranges_insert_def(PMEMobjpool *pop, struct tx *tx,
 
 	int ret = ravl_emplace_copy(tx->ranges, rdef);
 	if (ret && errno == EEXIST)
-		FATAL_WO_ERRNO("invalid state of ranges tree");
+		CORE_LOG_FATAL("invalid state of ranges tree");
 	return ret;
 }
 
@@ -766,7 +766,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 		tx->user_data = NULL;
 	} else {
-		FATAL_WO_ERRNO("Invalid stage %d to begin new transaction",
+		CORE_LOG_FATAL("Invalid stage %d to begin new transaction",
 			tx->stage);
 	}
 
@@ -804,7 +804,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 			if (tx->stage_callback &&
 					(tx->stage_callback != cb ||
 					tx->stage_callback_arg != arg)) {
-				FATAL_WO_ERRNO(
+				CORE_LOG_FATAL(
 					"transaction callback is already set, old %p new %p old_arg %p new_arg %p",
 					tx->stage_callback, cb,
 					tx->stage_callback_arg, arg);
@@ -1046,11 +1046,11 @@ pmemobj_tx_end(void)
 	struct tx *tx = get_tx();
 
 	if (tx->stage == TX_STAGE_WORK)
-		FATAL_WO_ERRNO(
+		CORE_LOG_FATAL(
 			"pmemobj_tx_end called without pmemobj_tx_commit");
 
 	if (tx->pop == NULL)
-		FATAL_WO_ERRNO(
+		CORE_LOG_FATAL(
 			"pmemobj_tx_end called without pmemobj_tx_begin");
 
 	if (tx->stage_callback &&

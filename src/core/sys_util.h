@@ -28,7 +28,7 @@ util_mutex_init(os_mutex_t *m)
 	int tmp = os_mutex_init(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_mutex_init");
+		CORE_LOG_FATAL_W_ERRNO("os_mutex_init");
 	}
 }
 
@@ -43,7 +43,7 @@ util_mutex_destroy(os_mutex_t *m)
 	int tmp = os_mutex_destroy(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_mutex_destroy");
+		CORE_LOG_FATAL_W_ERRNO("os_mutex_destroy");
 	}
 }
 
@@ -58,7 +58,7 @@ util_mutex_lock(os_mutex_t *m)
 	int tmp = os_mutex_lock(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_mutex_lock");
+		CORE_LOG_FATAL_W_ERRNO("os_mutex_lock");
 	}
 }
 
@@ -74,7 +74,7 @@ util_mutex_trylock(os_mutex_t *m)
 	int tmp = os_mutex_trylock(m);
 	if (tmp && tmp != EBUSY) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_mutex_trylock");
+		CORE_LOG_FATAL_W_ERRNO("os_mutex_trylock");
 	}
 	return tmp;
 }
@@ -90,7 +90,7 @@ util_mutex_unlock(os_mutex_t *m)
 	int tmp = os_mutex_unlock(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_mutex_unlock");
+		CORE_LOG_FATAL_W_ERRNO("os_mutex_unlock");
 	}
 }
 
@@ -105,7 +105,7 @@ util_rwlock_init(os_rwlock_t *m)
 	int tmp = os_rwlock_init(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_rwlock_init");
+		CORE_LOG_FATAL_W_ERRNO("os_rwlock_init");
 	}
 }
 
@@ -120,7 +120,7 @@ util_rwlock_rdlock(os_rwlock_t *m)
 	int tmp = os_rwlock_rdlock(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_rwlock_rdlock");
+		CORE_LOG_FATAL_W_ERRNO("os_rwlock_rdlock");
 	}
 }
 
@@ -135,7 +135,7 @@ util_rwlock_wrlock(os_rwlock_t *m)
 	int tmp = os_rwlock_wrlock(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_rwlock_wrlock");
+		CORE_LOG_FATAL_W_ERRNO("os_rwlock_wrlock");
 	}
 }
 
@@ -150,7 +150,7 @@ util_rwlock_unlock(os_rwlock_t *m)
 	int tmp = os_rwlock_unlock(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_rwlock_unlock");
+		CORE_LOG_FATAL_W_ERRNO("os_rwlock_unlock");
 	}
 }
 
@@ -165,7 +165,7 @@ util_rwlock_destroy(os_rwlock_t *m)
 	int tmp = os_rwlock_destroy(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_rwlock_destroy");
+		CORE_LOG_FATAL_W_ERRNO("os_rwlock_destroy");
 	}
 }
 
@@ -194,7 +194,7 @@ util_spin_destroy(os_spinlock_t *lock)
 	int tmp = os_spin_destroy(lock);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_spin_destroy");
+		CORE_LOG_FATAL_W_ERRNO("os_spin_destroy");
 	}
 }
 
@@ -208,7 +208,7 @@ util_spin_lock(os_spinlock_t *lock)
 	int tmp = os_spin_lock(lock);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_spin_lock");
+		CORE_LOG_FATAL_W_ERRNO("os_spin_lock");
 	}
 }
 
@@ -223,7 +223,7 @@ util_spin_unlock(os_spinlock_t *lock)
 	int tmp = os_spin_unlock(lock);
 	if (tmp) {
 		errno = tmp;
-		FATAL_W_ERRNO("os_spin_unlock");
+		CORE_LOG_FATAL_W_ERRNO("os_spin_unlock");
 	}
 }
 
@@ -236,7 +236,7 @@ static inline void
 util_semaphore_init(os_semaphore_t *sem, unsigned value)
 {
 	if (os_semaphore_init(sem, value))
-		FATAL_W_ERRNO("os_semaphore_init");
+		CORE_LOG_FATAL_W_ERRNO("os_semaphore_init");
 }
 
 /*
@@ -246,7 +246,7 @@ static inline void
 util_semaphore_destroy(os_semaphore_t *sem)
 {
 	if (os_semaphore_destroy(sem) != 0)
-		FATAL_W_ERRNO("os_semaphore_destroy");
+		CORE_LOG_FATAL_W_ERRNO("os_semaphore_destroy");
 }
 
 /*
@@ -263,7 +263,7 @@ util_semaphore_wait(os_semaphore_t *sem)
 	} while (errno == EINTR); /* signal interrupt */
 
 	if (ret != 0)
-		FATAL_W_ERRNO("os_semaphore_wait");
+		CORE_LOG_FATAL_W_ERRNO("os_semaphore_wait");
 }
 
 /*
@@ -279,7 +279,7 @@ util_semaphore_trywait(os_semaphore_t *sem)
 	} while (errno == EINTR); /* signal interrupt */
 
 	if (ret != 0 && errno != EAGAIN)
-		FATAL_W_ERRNO("os_semaphore_trywait");
+		CORE_LOG_FATAL_W_ERRNO("os_semaphore_trywait");
 
 	return ret;
 }
@@ -291,21 +291,21 @@ static inline void
 util_semaphore_post(os_semaphore_t *sem)
 {
 	if (os_semaphore_post(sem) != 0)
-		FATAL_W_ERRNO("os_semaphore_post");
+		CORE_LOG_FATAL_W_ERRNO("os_semaphore_post");
 }
 
 static inline void
 util_cond_init(os_cond_t *__restrict cond)
 {
 	if (os_cond_init(cond))
-		FATAL_W_ERRNO("os_cond_init");
+		CORE_LOG_FATAL_W_ERRNO("os_cond_init");
 }
 
 static inline void
 util_cond_destroy(os_cond_t *__restrict cond)
 {
 	if (os_cond_destroy(cond))
-		FATAL_W_ERRNO("os_cond_destroy");
+		CORE_LOG_FATAL_W_ERRNO("os_cond_destroy");
 }
 
 #ifdef __cplusplus

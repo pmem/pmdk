@@ -585,7 +585,7 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 	else if (info->flush == flush_clflush)
 		LOG(3, "using clflush");
 	else
-		FATAL_WO_ERRNO("invalid deep flush function address");
+		CORE_LOG_FATAL("invalid deep flush function address");
 
 	if (impl == MEMCPY_MOVDIR64B)
 		LOG(3, "using movnt MOVDIR64B");

@@ -146,7 +146,7 @@ obj_pool_init(void)
 	if (pools_ht == NULL) {
 		c = critnib_new();
 		if (c == NULL)
-			FATAL_W_ERRNO("critnib_new for pools_ht");
+			CORE_LOG_FATAL_W_ERRNO("critnib_new for pools_ht");
 		if (!util_bool_compare_and_swap64(&pools_ht, NULL, c))
 			critnib_delete(c);
 	}
@@ -154,7 +154,7 @@ obj_pool_init(void)
 	if (pools_tree == NULL) {
 		c = critnib_new();
 		if (c == NULL)
-			FATAL_W_ERRNO("critnib_new for pools_tree");
+			CORE_LOG_FATAL_W_ERRNO("critnib_new for pools_tree");
 		if (!util_bool_compare_and_swap64(&pools_tree, NULL, c))
 			critnib_delete(c);
 	}
@@ -209,7 +209,7 @@ obj_init(void)
 	pmalloc_global_ctl_register();
 
 	if (obj_ctl_init_and_load(NULL))
-		FATAL_WO_ERRNO("error: %s", pmemobj_errormsg());
+		CORE_LOG_FATAL("error: %s", pmemobj_errormsg());
 
 	lane_info_boot();
 }
@@ -250,7 +250,7 @@ static void
 obj_msync_nofail(const void *addr, size_t size)
 {
 	if (pmem_msync(addr, size))
-		FATAL_W_ERRNO("pmem_msync");
+		CORE_LOG_FATAL_W_ERRNO("pmem_msync");
 }
 
 /*

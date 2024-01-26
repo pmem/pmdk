@@ -24,7 +24,7 @@ str2type(char *str)
 	if (strcmp(str, "MAP_SYNC") == 0)
 		return PMEM_MAP_SYNC;
 
-	FATAL_WO_ERRNO("unknown type '%s'", str);
+	CORE_LOG_FATAL("unknown type '%s'", str);
 }
 
 static int
@@ -145,7 +145,7 @@ main(int argc, char *argv[])
 			i += do_fault_injection_split(addr, len);
 			break;
 		default:
-			FATAL_WO_ERRNO("invalid op '%c'", argv[i][0]);
+			CORE_LOG_FATAL("invalid op '%c'", argv[i][0]);
 		}
 	}
 
