@@ -126,7 +126,7 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 		*size = (size_t)st.st_size;
 		break;
 	default:
-		FATAL(
+		FATAL_WO_ERRNO(
 			"BUG: unhandled file type in pmem2_source_size");
 	}
 
@@ -162,7 +162,7 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 		*alignment = Pagesize;
 		break;
 	default:
-		FATAL(
+		FATAL_WO_ERRNO(
 			"BUG: unhandled file type in pmem2_source_alignment");
 	}
 

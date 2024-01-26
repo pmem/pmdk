@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * pmem_is_pmem_posix.c -- Posix specific unit test for pmem_is_pmem()
@@ -24,7 +24,7 @@ str2type(char *str)
 	if (strcmp(str, "MAP_SYNC") == 0)
 		return PMEM_MAP_SYNC;
 
-	FATAL("unknown type '%s'", str);
+	FATAL_WO_ERRNO("unknown type '%s'", str);
 }
 
 static int
@@ -145,7 +145,7 @@ main(int argc, char *argv[])
 			i += do_fault_injection_split(addr, len);
 			break;
 		default:
-			FATAL("invalid op '%c'", argv[i][0]);
+			FATAL_WO_ERRNO("invalid op '%c'", argv[i][0]);
 		}
 	}
 

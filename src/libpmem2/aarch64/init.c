@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 #include <string.h>
 #include <sys/auxv.h>
@@ -85,5 +85,5 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 	else if (info->flush == flush_pop)
 		LOG(3, "Synchronize VA to pop for ARM");
 	else
-		FATAL("invalid deep flush function address");
+		FATAL_WO_ERRNO("invalid deep flush function address");
 }

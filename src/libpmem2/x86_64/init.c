@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 #include <string.h>
 #include <xmmintrin.h>
@@ -585,7 +585,7 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 	else if (info->flush == flush_clflush)
 		LOG(3, "using clflush");
 	else
-		FATAL("invalid deep flush function address");
+		FATAL_WO_ERRNO("invalid deep flush function address");
 
 	if (impl == MEMCPY_MOVDIR64B)
 		LOG(3, "using movnt MOVDIR64B");
