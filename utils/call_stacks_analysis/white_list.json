@@ -125,7 +125,6 @@
         "os_thread_setaffinity_np",
         "os_unsetenv",
         "os_writev",
-        "out_fatal",
         "out_log",
         "out_nonl",
         "pmalloc_operation_hold_no_start",

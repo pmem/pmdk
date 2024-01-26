@@ -492,23 +492,6 @@ out_log(const char *file, int line, const char *func, int level,
 }
 
 /*
- * out_fatal -- output a fatal error & die (i.e. assertion failure)
- */
-void
-out_fatal(const char *file, int line, const char *func,
-		const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-
-	out_common(file, line, func, 1, "\n", fmt, ap);
-
-	va_end(ap);
-
-	abort();
-}
-
-/*
  * out_err -- output an error message
  */
 void
