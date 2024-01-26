@@ -1001,7 +1001,10 @@ err_user_buffers_map:
 	util_mutex_destroy(&pop->ulog_user_buffers.lock);
 	ctl_delete(pop->ctl);
 err_ctl:;
-	void *n = critnib_remove(pools_tree, (uint64_t)pop);
+#ifdef DEBUG /* variables required for ASSERTs below */
+	void *n =
+#endif
+	critnib_remove(pools_tree, (uint64_t)pop);
 	ASSERTne(n, NULL);
 err_tree_insert:
 	critnib_remove(pools_ht, pop->uuid_lo);

@@ -532,7 +532,9 @@ sync_badblocks_assign_healthy_replica(struct part_health_status *phs,
 
 	struct bb_vec bbv_new = VEC_INITIALIZER;
 
+#ifdef DEBUG /* variables required for ASSERTs below */
 	size_t size_all = VEC_SIZE(pbbv_all);
+#endif
 	pbb_all = VEC_GET(pbbv_all, *i_all);
 
 	for (unsigned i = 0; i < phs->bbs.bb_cnt; i++) {

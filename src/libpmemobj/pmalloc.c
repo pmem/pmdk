@@ -166,7 +166,10 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 	struct operation_context *ctx =
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	int ret = palloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
+#ifdef DEBUG /* variables required for ASSERTs below */
+	int ret =
+#endif
+	palloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
 		0, 0, 0, 0, ctx);
 	ASSERTeq(ret, 0);
 
@@ -326,6 +329,9 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
 {
 	const char *vstr = arg;
 	enum pobj_header_type *htype = dest;
+#ifndef DEBUG
+	SUPPRESS_UNUSED(dest_size);
+#endif
 	ASSERTeq(dest_size, sizeof(enum pobj_header_type));
 
 	if (strcmp(vstr, "none") == 0) {
@@ -900,6 +906,9 @@ arenas_assignment_type_parser(const void *arg, void *dest, size_t dest_size)
 {
 	const char *vstr = arg;
 	enum pobj_arenas_assignment_type *atype = dest;
+#ifndef DEBUG
+	SUPPRESS_UNUSED(dest_size);
+#endif
 	ASSERTeq(dest_size, sizeof(enum pobj_header_type));
 
 	if (strcmp(vstr, "global") == 0) {
