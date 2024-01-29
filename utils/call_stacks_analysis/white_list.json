@@ -127,6 +127,7 @@
         "os_writev",
         "out_fatal",
         "out_log",
+        "out_log_va",
         "out_nonl",
         "pmalloc_operation_hold_no_start",
         "pmalloc",
