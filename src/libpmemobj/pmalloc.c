@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * pmalloc.c -- implementation of pmalloc POSIX-like API
@@ -231,13 +231,13 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 	}
 
 	if (p->alignment != 0 && p->unit_size % p->alignment != 0) {
-		ERR("unit size must be evenly divisible by alignment");
+		ERR_WO_ERRNO("unit size must be evenly divisible by alignment");
 		errno = EINVAL;
 		return -1;
 	}
 
 	if (p->alignment > (MEGABYTE * 2)) {
-		ERR("alignment cannot be larger than 2 megabytes");
+		ERR_WO_ERRNO("alignment cannot be larger than 2 megabytes");
 		errno = EINVAL;
 		return -1;
 	}
@@ -255,14 +255,15 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 			break;
 		case MAX_POBJ_HEADER_TYPES:
 		default:
-			ERR("invalid header type");
+			ERR_WO_ERRNO("invalid header type");
 			errno = EINVAL;
 			return -1;
 	}
 
 	if (PMDK_SLIST_EMPTY(indexes)) {
 		if (alloc_class_find_first_free_slot(ac, &id) != 0) {
-			ERR("no available free allocation class identifier");
+			ERR_WO_ERRNO(
+			    "no available free allocation class identifier");
 			errno = EINVAL;
 			return -1;
 		}
@@ -271,7 +272,7 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 		ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
 		if (idx->value < 0 || idx->value >= MAX_ALLOCATION_CLASSES) {
-			ERR("class id outside of the allowed range");
+			ERR_WO_ERRNO("class id outside of the allowed range");
 			errno = ERANGE;
 			return -1;
 		}
@@ -279,7 +280,8 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 		id = (uint8_t)idx->value;
 
 		if (alloc_class_reserve(ac, id) != 0) {
-			ERR("attempted to overwrite an allocation class");
+			ERR_WO_ERRNO(
+				"attempted to overwrite an allocation class");
 			errno = EEXIST;
 			return -1;
 		}
@@ -333,7 +335,7 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
 	} else if (strcmp(vstr, "legacy") == 0) {
 		*htype = POBJ_HEADER_LEGACY;
 	} else {
-		ERR("invalid header type");
+		ERR_WO_ERRNO("invalid header type");
 		errno = EINVAL;
 		return -1;
 	}
@@ -358,7 +360,7 @@ CTL_READ_HANDLER(desc)(void *ctx,
 	ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
 	if (idx->value < 0 || idx->value >= MAX_ALLOCATION_CLASSES) {
-		ERR("class id outside of the allowed range");
+		ERR_WO_ERRNO("class id outside of the allowed range");
 		errno = ERANGE;
 		return -1;
 	}
@@ -369,7 +371,7 @@ CTL_READ_HANDLER(desc)(void *ctx,
 		heap_alloc_classes(&pop->heap), id);
 
 	if (c == NULL) {
-		ERR("class with the given id does not exist");
+		ERR_WO_ERRNO("class with the given id does not exist");
 		errno = ENOENT;
 		return -1;
 	}
@@ -448,7 +450,9 @@ CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 
 	ssize_t arg_in = *(ssize_t *)arg;
 	if (arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
-		ERR("incorrect size for extend, must be larger than %" PRIu64,
+		ERR_WO_ERRNO(
+			"incorrect size for extend, must be larger than %" \
+			PRIu64,
 			PMEMOBJ_MIN_PART);
 		return -1;
 	}
@@ -498,7 +502,9 @@ CTL_WRITE_HANDLER(granularity)(void *ctx,
 
 	ssize_t arg_in = *(int *)arg;
 	if (arg_in != 0 && arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
-		ERR("incorrect grow size, must be 0 or larger than %" PRIu64,
+		ERR_WO_ERRNO(
+			"incorrect grow size, must be 0 or larger than %"
+			PRIu64,
 			PMEMOBJ_MIN_PART);
 		return -1;
 	}
@@ -901,7 +907,7 @@ arenas_assignment_type_parser(const void *arg, void *dest, size_t dest_size)
 	} else if (strcmp(vstr, "thread") == 0) {
 		*atype = POBJ_ARENAS_ASSIGNMENT_THREAD_KEY;
 	} else {
-		ERR("invalid arena assignment type");
+		ERR_WO_ERRNO("invalid arena assignment type");
 		errno = EINVAL;
 		return -1;
 	}

@@ -47,7 +47,7 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 
 	/* directories do not have any extents */
 	if (pmem2_type == PMEM2_FTYPE_DIR) {
-		ERR(
+		ERR_WO_ERRNO(
 			"checking extents does not make sense in case of directories");
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}

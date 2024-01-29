@@ -28,7 +28,7 @@ main(int argc, char *argv[])
 			MAJOR_VERSION, MINOR_VERSION);
 
 	errno = 0;
-	ERR("ERR #%d", 1);
+	ERR_WO_ERRNO("ERR #%d", 1);
 	UT_OUT("%s", out_get_errormsg());
 
 	errno = 0;

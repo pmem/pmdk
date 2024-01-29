@@ -67,7 +67,7 @@ stats_enabled_parser(const void *arg, void *dest, size_t dest_size)
 	} else if (strcmp(vstr, "transient") == 0) {
 		*enabled = POBJ_STATS_ENABLED_TRANSIENT;
 	} else {
-		ERR("invalid enable type");
+		ERR_WO_ERRNO("invalid enable type");
 		errno = EINVAL;
 		return -1;
 	}

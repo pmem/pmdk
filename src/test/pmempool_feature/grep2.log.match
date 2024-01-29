@@ -1,6 +1,7 @@
 $(OPT)query SHUTDOWN_STATE result is 1
 query SHUTDOWN_STATE result is 0
 query CKSUM_2K result is 0
+$(OPT)$(*) *ERROR* feature.c: $(N): require_other_feature_is: enable CKSUM_2K prior to enabling SHUTDOWN_STATE
 query SHUTDOWN_STATE result is 0
 query CKSUM_2K result is 1
 query SHUTDOWN_STATE result is 1

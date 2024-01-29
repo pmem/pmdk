@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2021, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 #include "libpmem2.h"
 #include "out.h"
@@ -13,7 +13,8 @@ int
 pmem2_source_numa_node(const struct pmem2_source *src, int *numa_node)
 {
 	SUPPRESS_UNUSED(src, numa_node);
-	ERR("Cannot get numa node from source - ndctl is not available");
+	ERR_WO_ERRNO(
+		"Cannot get numa node from source - ndctl is not available");
 
 	return PMEM2_E_NOSUPP;
 }

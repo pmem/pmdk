@@ -1,1 +1,3 @@
+$(OPT)$(*)*ERROR* feature.c: $(N): unsupported_feature: unsupported feature: SINGLEHDR
+$(OPT)$(*)*ERROR* feature.c: $(N): unsupported_feature: unsupported feature: SINGLEHDR
 query SINGLEHDR result is 0

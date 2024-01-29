@@ -106,12 +106,12 @@ pmem2_fsdax_match(dev_t st_dev, const char *devname)
 	os_close(fd);
 
 	if (nread == 0) {
-		ERR("%s is empty", path);
+		ERR_WO_ERRNO("%s is empty", path);
 		return PMEM2_E_INVALID_DEV_FORMAT;
 	}
 
 	if (buff[nread - 1] != '\n') {
-		ERR("%s doesn't end with new line", path);
+		ERR_WO_ERRNO("%s doesn't end with new line", path);
 		return PMEM2_E_INVALID_DEV_FORMAT;
 	}
 
@@ -152,7 +152,7 @@ pmem2_region_namespace(struct ndctl_ctx *ctx,
 		*pndns = NULL;
 
 	if (src->value.ftype == PMEM2_FTYPE_DIR) {
-		ERR("cannot check region or namespace of a directory");
+		ERR_WO_ERRNO("cannot check region or namespace of a directory");
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
@@ -250,7 +250,7 @@ pmem2_get_region_id(const struct pmem2_source *src, unsigned *region_id)
 	}
 
 	if (!region) {
-		ERR("unknown region");
+		ERR_WO_ERRNO("unknown region");
 		rv = PMEM2_E_DAX_REGION_NOT_FOUND;
 		goto end;
 	}

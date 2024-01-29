@@ -25,7 +25,7 @@ pmem2_source_numa_node(const struct pmem2_source *src, int *numa_node)
 	struct ndctl_region *region = NULL;
 
 	if (src->type == PMEM2_SOURCE_ANON) {
-		ERR("Anonymous sources are not bound to numa nodes.");
+		ERR_WO_ERRNO("Anonymous sources are not bound to numa nodes.");
 		return PMEM2_E_NOSUPP;
 	}
 
@@ -44,7 +44,7 @@ pmem2_source_numa_node(const struct pmem2_source *src, int *numa_node)
 	}
 
 	if (region == NULL) {
-		ERR("unknown region");
+		ERR_WO_ERRNO("unknown region");
 		ret = PMEM2_E_DAX_REGION_NOT_FOUND;
 		goto end;
 	}

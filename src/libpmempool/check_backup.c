@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2021, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * check_backup.c -- pre-check backup
@@ -100,7 +100,7 @@ backup_nonpoolset_overwrite(PMEMpoolcheck *ppc, location *loc,
 		loc->step = CHECK_STEP_COMPLETE;
 		return 0;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 
 	return 0;
@@ -265,7 +265,7 @@ backup_poolset_overwrite(PMEMpoolcheck *ppc, location *loc,
 		loc->step = CHECK_STEP_COMPLETE;
 		return 0;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 
 	return 0;

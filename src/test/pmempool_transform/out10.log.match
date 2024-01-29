@@ -11,6 +11,7 @@ REPLICA
 20M $(nW)testfile01
 20M $(nW)testfile21
 
+$(OPT)$(*) *ERROR* transform.c:  $(N): check_if_part_used_once: some part file's path is used multiple times
 error: Invalid argument
 error: failed to transform $(nW)poolset.in -> $(nW)poolset.out: some part file's path is used multiple times
 Poolset structure:

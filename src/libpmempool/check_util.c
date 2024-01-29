@@ -262,7 +262,7 @@ status_push(PMEMpoolcheck *ppc, struct check_status *st, uint32_t question)
 	if (CHECK_IS_NOT(ppc, REPAIR)) {
 		/* error status */
 		if (status_msg_info_only(st->msg)) {
-			ERR("no error message for the user");
+			ERR_WO_ERRNO("no error message for the user");
 			st->msg[0] = '\0';
 		}
 		st->status.type = PMEMPOOL_CHECK_MSG_TYPE_ERROR;
@@ -620,7 +620,7 @@ check_get_uuid_str(uuid_t uuid)
 
 	int ret = util_uuid_to_string(uuid, uuid_str);
 	if (ret != 0) {
-		ERR("failed to convert uuid to string");
+		ERR_WO_ERRNO("failed to convert uuid to string");
 		return "";
 	}
 	return uuid_str;

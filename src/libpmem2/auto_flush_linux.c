@@ -47,9 +47,8 @@ check_cpu_cache(const char *domain_path)
 		goto end;
 	} else if (len == 0) {
 		errno = EIO;
-		ERR("read(%d, %p, %d) empty string",
-			domain_fd, domain_value,
-			DOMAIN_VALUE_LEN);
+		ERR_WO_ERRNO("read(%d, %p, %d) empty string",
+			domain_fd, domain_value, DOMAIN_VALUE_LEN);
 		cpu_cache = -1;
 		goto end;
 	} else if (domain_value[len - 1] != '\n') {

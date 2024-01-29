@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2024, Intel Corporation
 #
 #
 # pmempool_sync/TEST34 -- test for sync command
@@ -58,6 +58,11 @@ expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 expect_normal_exit "$PMEMPOOL$EXESUFFIX sync -b -v $POOLSET >> $LOG"
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
+
+# Exclude error messages printed out on the stderr by PMDK in debug
+LOG_TEMP=$LOG.log
+fgrep -v "*ERROR*" $LOG > $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 
