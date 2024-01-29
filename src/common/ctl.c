@@ -234,7 +234,7 @@ ctl_exec_query_write(void *ctx, const struct ctl_node *n,
 
 	void *real_arg = ctl_query_get_real_args(n, arg, source);
 	if (real_arg == NULL) {
-		LOG(1, "Invalid arguments");
+		CORE_LOG_ERROR("Invalid arguments");
 		return -1;
 	}
 

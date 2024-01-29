@@ -70,7 +70,8 @@ parse_force_granularity()
 		char str[11]; /* strlen("CACHE_LINE") + 1 */
 
 		if (util_safe_strcpy(str, ptr, sizeof(str))) {
-			LOG(1, "Invalid value of PMEM2_FORCE_GRANULARITY");
+			CORE_LOG_ERROR(
+				"Invalid value of PMEM2_FORCE_GRANULARITY");
 			return PMEM2_GRANULARITY_INVALID;
 		}
 
@@ -90,7 +91,7 @@ parse_force_granularity()
 			return PMEM2_GRANULARITY_PAGE;
 		}
 
-		LOG(1, "Invalid value of PMEM2_FORCE_GRANULARITY");
+		CORE_LOG_ERROR("Invalid value of PMEM2_FORCE_GRANULARITY");
 	}
 	return PMEM2_GRANULARITY_INVALID;
 }

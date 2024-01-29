@@ -91,7 +91,7 @@ util_map(int fd, os_off_t off, size_t len, int flags, int rdonly,
 	void *base;
 	void *addr = util_map_hint(len, req_align);
 	if (addr == MAP_FAILED) {
-		LOG(1, "cannot find a contiguous region of given size");
+		CORE_LOG_ERROR("cannot find a contiguous region of given size");
 		return NULL;
 	}
 

@@ -148,7 +148,7 @@ badblocks_clear(const char *file, struct badblocks *bbs)
 
 	ret = pmem2_badblock_context_new(&bbctx, src);
 	if (ret) {
-		LOG(1, "pmem2_badblock_context_new failed -- %s", file);
+		CORE_LOG_ERROR("pmem2_badblock_context_new failed -- %s", file);
 		goto exit_delete_source;
 	}
 
@@ -157,7 +157,7 @@ badblocks_clear(const char *file, struct badblocks *bbs)
 		bb.length = bbs->bbv[b].length;
 		ret = pmem2_badblock_clear(bbctx, &bb);
 		if (ret) {
-			LOG(1, "pmem2_badblock_clear -- %s", file);
+			CORE_LOG_ERROR("pmem2_badblock_clear -- %s", file);
 			goto exit_delete_ctx;
 		}
 	}
@@ -206,14 +206,14 @@ badblocks_clear_all(const char *file)
 
 	ret = pmem2_badblock_context_new(&bbctx, src);
 	if (ret) {
-		LOG(1, "pmem2_badblock_context_new failed -- %s", file);
+		CORE_LOG_ERROR("pmem2_badblock_context_new failed -- %s", file);
 		goto exit_delete_source;
 	}
 
 	while ((pmem2_badblock_next(bbctx, &bb)) == 0) {
 		ret = pmem2_badblock_clear(bbctx, &bb);
 		if (ret) {
-			LOG(1, "pmem2_badblock_clear -- %s", file);
+			CORE_LOG_ERROR("pmem2_badblock_clear -- %s", file);
 			goto exit_delete_ctx;
 		}
 	};
@@ -251,12 +251,13 @@ badblocks_check_file(const char *file)
 
 	long bbsc = badblocks_count(file);
 	if (bbsc < 0) {
-		LOG(1, "counting bad blocks failed -- '%s'", file);
+		CORE_LOG_ERROR("counting bad blocks failed -- '%s'", file);
 		return -1;
 	}
 
 	if (bbsc > 0) {
-		LOG(1, "pool file '%s' contains %li bad block(s)", file, bbsc);
+		CORE_LOG_ERROR("pool file '%s' contains %li bad block(s)", file,
+			bbsc);
 		return 1;
 	}
 
