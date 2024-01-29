@@ -160,8 +160,8 @@ out_nonl_discard(int level, const char *fmt, ...)
 #define ASSERTeq(lhs, rhs)
 #define ASSERTne(lhs, rhs)
 #endif // #if defined(DEBUG)
-#define ERR(...)\
-	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#define ERR(use_errno, ...)\
+	out_err(use_errno, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define ERR_W_ERRNO(f, ...)\
 	do {\
