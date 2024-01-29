@@ -34,7 +34,8 @@ check_cpu_cache(const char *domain_path)
 	int cpu_cache = 0;
 
 	if ((domain_fd = os_open(domain_path, O_RDONLY)) < 0) {
-		LOG(1, "!open(\"%s\", O_RDONLY)", domain_path);
+		CORE_LOG_ERROR_WITH_ERRNO("open(\"%s\", O_RDONLY)",
+			domain_path);
 			goto end;
 	}
 	ssize_t len = read(domain_fd, domain_value,

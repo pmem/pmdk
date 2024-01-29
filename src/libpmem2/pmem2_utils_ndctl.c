@@ -30,7 +30,7 @@ pmem2_device_dax_alignment(const struct pmem2_source *src, size_t *alignment)
 
 	ret = pmem2_region_namespace(ctx, src, NULL, &ndns);
 	if (ret) {
-		LOG(1, "getting region and namespace failed");
+		CORE_LOG_ERROR("getting region and namespace failed");
 		goto end;
 	}
 
@@ -69,7 +69,7 @@ pmem2_device_dax_size(const struct pmem2_source *src, size_t *size)
 
 	ret = pmem2_region_namespace(ctx, src, NULL, &ndns);
 	if (ret) {
-		LOG(1, "getting region and namespace failed");
+		CORE_LOG_ERROR("getting region and namespace failed");
 		goto end;
 	}
 

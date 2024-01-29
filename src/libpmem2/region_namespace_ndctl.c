@@ -245,7 +245,7 @@ pmem2_get_region_id(const struct pmem2_source *src, unsigned *region_id)
 
 	int rv = pmem2_region_namespace(ctx, src, &region, &ndns);
 	if (rv) {
-		LOG(1, "getting region and namespace failed");
+		CORE_LOG_ERROR("getting region and namespace failed");
 		goto end;
 	}
 
