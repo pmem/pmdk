@@ -284,7 +284,7 @@ pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
 
 	ret = pmem2_region_namespace(ctx, src, &region, &ndns);
 	if (ret) {
-		LOG(1, "getting region and namespace failed");
+		CORE_LOG_ERROR("getting region and namespace failed");
 		goto exit_ndctl_unref;
 	}
 
@@ -314,7 +314,7 @@ pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
 				region, ndns,
 				&ns_beg, &ns_size);
 		if (ret) {
-			LOG(1, "cannot read namespace's bounds");
+			CORE_LOG_ERROR("cannot read namespace's bounds");
 			goto error_free_all;
 		}
 
@@ -339,7 +339,7 @@ pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
 		/* only regular files have extents */
 		ret = pmem2_extents_create_get(src->value.fd, &tbbctx->exts);
 		if (ret) {
-			LOG(1, "getting extents of fd %i failed",
+			CORE_LOG_ERROR("getting extents of fd %i failed",
 				src->value.fd);
 			goto error_free_all;
 		}
@@ -744,7 +744,7 @@ pmem2_badblock_clear_devdax(const struct pmem2_badblock_context *bbctx,
 				bb->offset + bbctx->rgn.ns_res,
 				bb->length);
 	if (ret) {
-		LOG(1,
+		CORE_LOG_ERROR(
 			"failed to clear a bad block: offset %zu length %zu (in 512B sectors)",
 			B2SEC(bb->offset),
 			B2SEC(bb->length));

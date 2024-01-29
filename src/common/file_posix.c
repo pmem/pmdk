@@ -112,7 +112,7 @@ device_dax_alignment(const char *path)
 
 	int fd = os_open(path, O_RDONLY);
 	if (fd == -1) {
-		LOG(1, "Cannot open file %s", path);
+		CORE_LOG_ERROR("Cannot open file %s", path);
 		return size;
 	}
 

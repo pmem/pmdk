@@ -55,8 +55,9 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 	struct pool_replica *rep = REP(set, repn);
 	char *path = util_part_realpath(PART(rep, partn)->path);
 	if (path == NULL) {
-		LOG(1, "cannot get absolute path for %s, replica %u, part %u",
-				PART(rep, partn)->path, repn, partn);
+		CORE_LOG_ERROR(
+			"cannot get absolute path for %s, replica %u, part %u",
+			PART(rep, partn)->path, repn, partn);
 		errno = 0;
 		path = strdup(PART(rep, partn)->path);
 		if (path == NULL) {
@@ -80,7 +81,7 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 					ret = -1;
 					goto out;
 				}
-				LOG(1,
+				CORE_LOG_ERROR(
 					"cannot get absolute path for %s, replica %u, part %u",
 					PART(rep, partn)->path, repn, partn);
 				pathp = strdup(PART(repr, p)->path);
@@ -258,7 +259,8 @@ check_compare_poolsets_status(struct pool_set *set_in,
 		struct pool_replica *rep_in = REP(set_in, ri);
 		for (unsigned ro = 0; ro < set_out->nreplicas; ++ro) {
 			struct pool_replica *rep_out = REP(set_out, ro);
-			LOG(1, "comparing rep_in %u with rep_out %u", ri, ro);
+			CORE_LOG_ERROR("comparing rep_in %u with rep_out %u",
+				ri, ro);
 			/* skip different replicas */
 			if (compare_replicas(rep_in, rep_out))
 				continue;
@@ -461,8 +463,8 @@ do_added_parts_exist(struct pool_set *set,
 				return -1;
 
 			if (exists && !rep->part[p].is_dev_dax) {
-				LOG(1, "part file %s exists",
-						rep->part[p].path);
+				CORE_LOG_ERROR("part file %s exists",
+					rep->part[p].path);
 				return 1;
 			}
 			errno = oerrno;
@@ -502,7 +504,8 @@ copy_replica_data_fw(struct pool_set *set_dst, struct pool_set *set_src,
 	LOG(3, "set_in %p, set_out %p, repn %u", set_src, set_dst, repn);
 	ssize_t pool_size = replica_get_pool_size(set_src, repn);
 	if (pool_size < 0) {
-		LOG(1, "getting pool size from replica %u failed", repn);
+		CORE_LOG_ERROR("getting pool size from replica %u failed",
+			repn);
 		pool_size = (ssize_t)set_src->poolsize;
 	}
 
@@ -529,7 +532,8 @@ copy_replica_data_bw(struct pool_set *set_dst, struct pool_set *set_src,
 	LOG(3, "set_in %p, set_out %p, repn %u", set_src, set_dst, repn);
 	ssize_t pool_size = replica_get_pool_size(set_src, repn);
 	if (pool_size < 0) {
-		LOG(1, "getting pool size from replica %u failed", repn);
+		CORE_LOG_ERROR("getting pool size from replica %u failed",
+			repn);
 		pool_size = (ssize_t)set_src->poolsize;
 	}
 
@@ -559,8 +563,9 @@ create_missing_headers(struct pool_set *set, unsigned repn)
 		util_pool_hdr2attr(&attr, src_hdr);
 		attr.features.incompat &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
 		if (util_header_create(set, repn, p, &attr, 1) != 0) {
-			LOG(1, "part headers create failed for"
-					" replica %u part %u", repn, p);
+			CORE_LOG_ERROR(
+				"part headers create failed for replica %u part %u",
+			repn, p);
 			errno = EINVAL;
 			return -1;
 		}
@@ -674,7 +679,7 @@ remove_hdrs_replica(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* open all part files of the input replica */
 	if (replica_open_replica_part_files(set_in, repn)) {
-		LOG(1, "opening replica %u, part files failed", repn);
+		CORE_LOG_ERROR("opening replica %u, part files failed", repn);
 		ret = -1;
 		goto out;
 	}
@@ -684,14 +689,16 @@ remove_hdrs_replica(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* map the whole input replica */
 	if (util_replica_open(set_in, repn, MAP_SHARED)) {
-		LOG(1, "opening input replica failed: replica %u", repn);
+		CORE_LOG_ERROR("opening input replica failed: replica %u",
+			repn);
 		ret = -1;
 		goto out_close;
 	}
 
 	/* map the whole output replica */
 	if (util_replica_open(set_out, repn, MAP_SHARED)) {
-		LOG(1, "opening output replica failed: replica %u", repn);
+		CORE_LOG_ERROR("opening output replica failed: replica %u",
+		repn);
 		ret = -1;
 		goto out_unmap_in;
 	}
@@ -726,7 +733,8 @@ add_hdrs_replica(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* open all part files of the input replica */
 	if (replica_open_replica_part_files(set_in, repn)) {
-		LOG(1, "opening replica %u, part files failed", repn);
+		CORE_LOG_ERROR("opening replica %u, part files failed",
+			repn);
 		ret = -1;
 		goto out;
 	}
@@ -736,22 +744,25 @@ add_hdrs_replica(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* map the whole input replica */
 	if (util_replica_open(set_in, repn, MAP_SHARED)) {
-		LOG(1, "opening input replica failed: replica %u", repn);
+		CORE_LOG_ERROR("opening input replica failed: replica %u",
+			repn);
 		ret = -1;
 		goto out_close;
 	}
 
 	/* map the whole output replica */
 	if (util_replica_open(set_out, repn, MAP_SHARED)) {
-		LOG(1, "opening output replica failed: replica %u", repn);
+		CORE_LOG_ERROR("opening output replica failed: replica %u",
+			repn);
 		ret = -1;
 		goto out_unmap_in;
 	}
 
 	/* generate new uuids for lacking headers */
 	if (fill_replica_struct_uuids(set_out, repn)) {
-		LOG(1, "generating lacking uuids for parts failed: replica %u",
-				repn);
+		CORE_LOG_ERROR(
+			"generating lacking uuids for parts failed: replica %u",
+			repn);
 		ret = -1;
 		goto out_unmap_out;
 	}
@@ -762,7 +773,8 @@ add_hdrs_replica(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* create the missing headers */
 	if (create_missing_headers(set_out, repn)) {
-		LOG(1, "creating lacking headers failed: replica %u", repn);
+		CORE_LOG_ERROR("creating lacking headers failed: replica %u",
+			repn);
 		/*
 		 * copy the data back, so we could fall back to the original
 		 * state
@@ -802,7 +814,8 @@ remove_hdrs(struct pool_set *set_in, struct pool_set *set_out,
 			set_in, set_out, set_in_hs, flags);
 	for (unsigned r = 0; r < set_in->nreplicas; ++r) {
 		if (remove_hdrs_replica(set_in, set_out, r)) {
-			LOG(1, "removing headers from replica %u failed", r);
+			CORE_LOG_ERROR(
+				"removing headers from replica %u failed", r);
 			/* mark all previous replicas as damaged */
 			while (--r < set_in->nreplicas)
 				REP_HEALTH(set_in_hs, r)->flags |= IS_BROKEN;
@@ -826,7 +839,8 @@ add_hdrs(struct pool_set *set_in, struct pool_set *set_out,
 			set_in, set_out, set_in_hs, flags);
 	for (unsigned r = 0; r < set_in->nreplicas; ++r) {
 		if (add_hdrs_replica(set_in, set_out, r)) {
-			LOG(1, "adding headers to replica %u failed", r);
+			CORE_LOG_ERROR("adding headers to replica %u failed",
+				r);
 			/* mark all previous replicas as damaged */
 			while (--r < set_in->nreplicas)
 				REP_HEALTH(set_in_hs, r)->flags |= IS_BROKEN;
@@ -888,7 +902,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 			set_out_cs, set_in_hs, set_out_hs);
 
 	if (operation == NOT_TRANSFORMABLE) {
-		LOG(1, "poolsets are not transformable");
+		CORE_LOG_ERROR("poolsets are not transformable");
 		ret = -1;
 		errno = EINVAL;
 		goto free_cs;
@@ -902,10 +916,10 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 				"removing headers failed; falling back to the input poolset");
 			if (replica_sync(set_in, set_in_hs,
 					flags | IS_TRANSFORMED)) {
-				LOG(1,
+				CORE_LOG_ERROR(
 					"falling back to the input poolset failed");
 			} else {
-				LOG(1,
+				CORE_LOG_ERROR(
 					"falling back to the input poolset succeeded");
 			}
 			ret = -1;
@@ -920,10 +934,10 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 				"adding headers failed; falling back to the input poolset");
 			if (replica_sync(set_in, set_in_hs,
 					flags | IS_TRANSFORMED)) {
-				LOG(1,
+				CORE_LOG_ERROR(
 					"falling back to the input poolset failed");
 			} else {
-				LOG(1,
+				CORE_LOG_ERROR(
 					"falling back to the input poolset succeeded");
 			}
 			ret = -1;

@@ -39,7 +39,7 @@ pmem2_source_numa_node(const struct pmem2_source *src, int *numa_node)
 
 	int ret = pmem2_region_namespace(ctx, src, &region, NULL);
 	if (ret < 0) {
-		LOG(1, "getting region failed");
+		CORE_LOG_ERROR("getting region failed");
 		goto end;
 	}
 
