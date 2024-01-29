@@ -311,8 +311,6 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
-	unsigned long olast_error = 0;
-
 	if (file) {
 		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
@@ -335,15 +333,7 @@ out_common(const char *file, int line, const char *func, int level,
 		if (*fmt == '!') {
 			sep = ": ";
 			fmt++;
-			if (*fmt == '!') {
-				fmt++;
-				/* it will abort on non Windows OS */
-				util_strwinerror(olast_error, errstr,
-					UTIL_MAX_ERR_MSG);
-			} else {
-				util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
-			}
-
+			util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
 		}
 		ret = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (ret < 0) {
@@ -365,11 +355,12 @@ end:
  * out_error -- common error output code, all error messages go through here
  */
 static void
-out_error(const char *file, int line, const char *func,
+out_error(int use_errno, const char *file, int line, const char *func,
 		const char *suffix, const char *fmt, va_list ap)
 {
-	int oerrno = errno;
-	unsigned long olast_error = 0;
+	int oerrno = 0;
+	if (use_errno)
+		oerrno = errno;
 	unsigned cc = 0;
 	unsigned print_msg = 1;
 	int ret;
@@ -392,17 +383,9 @@ out_error(const char *file, int line, const char *func,
 			fmt++;
 		}
 
-		if (*fmt == '!') {
+		if (use_errno) {
 			sep = ": ";
-			fmt++;
-			if (*fmt == '!') {
-				fmt++;
-				/* it will abort on non Windows OS */
-				util_strwinerror(olast_error, errstr,
-					UTIL_MAX_ERR_MSG);
-			} else {
-				util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
-			}
+			util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
 		}
 
 		ret = vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
@@ -449,7 +432,8 @@ out_error(const char *file, int line, const char *func,
 #endif
 
 end:
-	errno = oerrno;
+	if (use_errno)
+		errno = oerrno;
 }
 
 /*
@@ -528,13 +512,13 @@ out_fatal(const char *file, int line, const char *func,
  * out_err -- output an error message
  */
 void
-out_err(const char *file, int line, const char *func,
+out_err(int use_errno, const char *file, int line, const char *func,
 		const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
 
-	out_error(file, line, func, "\n", fmt, ap);
+	out_error(use_errno, file, line, func, "\n", fmt, ap);
 
 	va_end(ap);
 }

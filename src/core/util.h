@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 /*
  * Copyright (c) 2016-2020, Microsoft Corporation. All rights reserved.
  *
@@ -101,7 +101,6 @@ int util_snprintf(char *str, size_t size,
 
 #define UTIL_MAX_ERR_MSG 128
 void util_strerror(int errnum, char *buff, size_t bufflen);
-void util_strwinerror(unsigned long err, char *buff, size_t bufflen);
 
 void util_set_alloc_funcs(
 		void *(*malloc_func)(size_t size),
