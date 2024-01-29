@@ -61,8 +61,8 @@ expect_normal_exit $DDMAP$EXESUFFIX -o $DIR/part20 -n 10 -b 1
 # Try to synchronize replicas using the third poolset
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET3 &>> $LOG_TEMP
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
+# Exclude error and warn messages printed out on the stderr by PMDK in debug
+fgrep -v "*ERROR*" $LOG_TEMP | fgrep -v "*WARN*" > $LOG
 rm $LOG_TEMP
 
 check

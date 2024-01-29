@@ -83,9 +83,9 @@ expect_normal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
 expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
-# Exclude error messages printed out on the stderr by PMDK in debug
+# Exclude error and warn messages printed out on the stderr by PMDK in debug
 LOG_TEMP=$LOG.log
-fgrep -v "*ERROR*" $LOG > $LOG_TEMP
+fgrep -v "*ERROR*" $LOG | fgrep -v "*WARN*" > $LOG_TEMP
 mv $LOG_TEMP $LOG
 
 check
