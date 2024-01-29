@@ -48,7 +48,7 @@ util_compare_file_inodes(const char *path1, const char *path2)
 			ERR_W_ERRNO("stat failed for %s", path1);
 			return -1;
 		}
-		LOG(1, "stat failed for %s", path1);
+		CORE_LOG_ERROR("stat failed for %s", path1);
 		errno = 0;
 		return strcmp(path1, path2) != 0;
 	}
@@ -58,7 +58,7 @@ util_compare_file_inodes(const char *path1, const char *path2)
 			ERR_W_ERRNO("stat failed for %s", path2);
 			return -1;
 		}
-		LOG(1, "stat failed for %s", path2);
+		CORE_LOG_ERROR("stat failed for %s", path2);
 		errno = 0;
 		return strcmp(path1, path2) != 0;
 	}

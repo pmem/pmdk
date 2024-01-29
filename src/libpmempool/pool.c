@@ -597,7 +597,8 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 #ifdef DEBUG
 	/* provide extra logging in case of wrong dmapped/smapped value */
 	if (dmapped < smapped) {
-		LOG(1, "dmapped < smapped: dmapped = %lu, smapped = %lu",
+		CORE_LOG_ERROR(
+			"dmapped < smapped: dmapped = %lu, smapped = %lu",
 			dmapped, smapped);
 		ASSERT(0);
 	}
