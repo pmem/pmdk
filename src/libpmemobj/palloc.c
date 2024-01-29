@@ -304,7 +304,8 @@ palloc_restore_free_chunk_state(struct palloc_heap *heap,
 				CORE_LOG_FATAL(
 					"duplicate runtime chunk state, possible double free");
 			} else {
-				LOG(2, "unable to track runtime chunk state");
+				CORE_LOG_WARNING(
+					"unable to track runtime chunk state");
 			}
 		}
 		heap_bucket_release(b);

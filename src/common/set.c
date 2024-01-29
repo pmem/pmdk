@@ -340,7 +340,7 @@ util_poolset_open(struct pool_set *set)
 {
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		if (util_replica_open(set, r, MAP_SHARED)) {
-			LOG(2, "replica open failed: replica %u", r);
+			CORE_LOG_WARNING("replica open failed: replica %u", r);
 			errno = EINVAL;
 			return -1;
 		}
@@ -1050,9 +1050,9 @@ util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 
 		ssize_t size = util_file_get_size(entry->path);
 		if (size < 0) {
-			LOG(2,
-			"cannot read size of file (%s) in a poolset directory",
-			entry->path);
+			CORE_LOG_WARNING(
+				"cannot read size of file (%s) in a poolset directory",
+				entry->path);
 			goto err;
 		}
 
@@ -1481,7 +1481,8 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create_part)
 		part->fd = util_file_create(part->path, part->filesize,
 				minsize);
 		if (part->fd == -1) {
-			LOG(2, "failed to create file: %s", part->path);
+			CORE_LOG_WARNING("failed to create file: %s",
+				part->path);
 			return -1;
 		}
 		part->created = 1;
@@ -1490,7 +1491,7 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create_part)
 		int flags = O_RDWR;
 		part->fd = util_file_open(part->path, &size, minsize, flags);
 		if (part->fd == -1) {
-			LOG(2, "failed to open file: %s", part->path);
+			CORE_LOG_WARNING("failed to open file: %s", part->path);
 			return -1;
 		}
 
@@ -1968,7 +1969,8 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 		/* map the first part and reserve space for remaining parts */
 		if (util_map_part(&rep->part[0], addr, rep->resvsize, 0,
 				flags, 0) != 0) {
-			LOG(2, "pool mapping failed - replica #%u part #0",
+			CORE_LOG_WARNING(
+				"pool mapping failed - replica #%u part #0",
 				repidx);
 			return -1;
 		}
@@ -1997,8 +1999,9 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 				 */
 				if ((errno == EINVAL) &&
 				    (remaining_retries > 0)) {
-					LOG(2, "usable space mapping failed - "
-						"part #%d - retrying", p);
+					CORE_LOG_WARNING(
+						"usable space mapping failed - part #%d - retrying",
+						p);
 					retry_for_contiguous_addr = 1;
 					remaining_retries--;
 
@@ -2010,7 +2013,8 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 					munmap(addr, rep->resvsize - mapsize);
 					break;
 				}
-				LOG(2, "usable space mapping failed - part #%d",
+				CORE_LOG_WARNING(
+					"usable space mapping failed - part #%d",
 					p);
 				goto err;
 			}
@@ -2078,7 +2082,7 @@ util_replica_init_headers_local(struct pool_set *set, unsigned repidx,
 	/* map all headers - don't care about the address */
 	for (unsigned p = 0; p < rep->nhdrs; p++) {
 		if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
-			LOG(2, "header mapping failed - part #%d", p);
+			CORE_LOG_WARNING("header mapping failed - part #%d", p);
 			goto err;
 		}
 	}
@@ -2086,7 +2090,8 @@ util_replica_init_headers_local(struct pool_set *set, unsigned repidx,
 	/* create headers, set UUID's */
 	for (unsigned p = 0; p < rep->nhdrs; p++) {
 		if (util_header_create(set, repidx, p, attr, 0) != 0) {
-			LOG(2, "header creation failed - part #%d", p);
+			CORE_LOG_WARNING("header creation failed - part #%d",
+				p);
 			goto err;
 		}
 	}
@@ -2122,7 +2127,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 	 */
 	if (PART(REP(set, repidx), 0)->addr == NULL) {
 		if (util_replica_map_local(set, repidx, flags) != 0) {
-			LOG(2, "replica #%u map failed", repidx);
+			CORE_LOG_WARNING("replica #%u map failed", repidx);
 			return -1;
 		}
 	}
@@ -2131,7 +2136,8 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 		return 0;
 
 	if (util_replica_init_headers_local(set, repidx, flags, attr) != 0) {
-		LOG(2, "replica #%u headers initialization failed", repidx);
+		CORE_LOG_WARNING("replica #%u headers initialization failed",
+			repidx);
 		return -1;
 	}
 	return 0;
@@ -2389,7 +2395,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	int ret = util_poolset_create_set(setp, path, poolsize, minsize,
 			IGNORE_SDS(attr));
 	if (ret < 0) {
-		LOG(2, "cannot create pool set -- '%s'", path);
+		CORE_LOG_WARNING("cannot create pool set -- '%s'", path);
 		return -1;
 	}
 
@@ -2476,7 +2482,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			/* generate pool set UUID */
 			ret = util_uuid_generate(set->uuid);
 			if (ret < 0) {
-				LOG(2, "cannot generate pool set UUID");
+				CORE_LOG_WARNING(
+					"cannot generate pool set UUID");
 				goto err_poolset;
 			}
 		}
@@ -2487,7 +2494,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 			for (unsigned i = 0; i < rep->nhdrs; i++) {
 				ret = util_uuid_generate(rep->part[i].uuid);
 				if (ret < 0) {
-					LOG(2,
+					CORE_LOG_WARNING(
 					"cannot generate pool set part UUID");
 					goto err_poolset;
 				}
@@ -2514,7 +2521,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		if (util_replica_create_local(set, r, flags, attr) !=
 				0) {
-			LOG(2, "replica #%u creation failed", r);
+			CORE_LOG_WARNING("replica #%u creation failed", r);
 			goto err_create;
 		}
 	}
@@ -2591,7 +2598,8 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		/* map the first part and reserve space for remaining parts */
 		if (util_map_part(&rep->part[0], addr, rep->resvsize, 0,
 				flags, 0) != 0) {
-			LOG(2, "pool mapping failed - replica #%u part #0",
+			CORE_LOG_WARNING(
+				"pool mapping failed - replica #%u part #0",
 				repidx);
 			return -1;
 		}
@@ -2604,7 +2612,8 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		/* map all headers - don't care about the address */
 		for (unsigned p = 0; p < rep->nhdrs; p++) {
 			if (util_map_hdr(&rep->part[p], flags, 0) != 0) {
-				LOG(2, "header mapping failed - part #%d", p);
+				CORE_LOG_WARNING(
+					"header mapping failed - part #%d", p);
 				goto err;
 			}
 		}
@@ -2637,8 +2646,9 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 				 */
 				if ((errno == EINVAL) &&
 				    (remaining_retries > 0)) {
-					LOG(2, "usable space mapping failed - "
-						"part #%d - retrying", p);
+					CORE_LOG_WARNING(
+						"usable space mapping failed - part #%d - retrying",
+						p);
 					retry_for_contiguous_addr = 1;
 					remaining_retries--;
 
@@ -2649,7 +2659,8 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 						rep->resvsize);
 					break;
 				}
-				LOG(2, "usable space mapping failed - part #%d",
+				CORE_LOG_WARNING(
+					"usable space mapping failed - part #%d",
 					p);
 				goto err;
 			}
@@ -2779,7 +2790,8 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 		struct pool_replica *rep = set->replica[r];
 		for (unsigned p = 0; p < rep->nhdrs; p++) {
 			if (util_header_check(set, r, p, attr) != 0) {
-				LOG(2, "header check failed - part #%d", p);
+				CORE_LOG_WARNING(
+					"header check failed - part #%d", p);
 				return -1;
 			}
 			set->rdonly |= rep->part[p].rdonly;
@@ -2808,7 +2820,7 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 			ASSERTne(rep->nparts, 0);
 			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds,
 					rep)) {
-				LOG(2, "ADR failure detected");
+				CORE_LOG_WARNING("ADR failure detected");
 				errno = EINVAL;
 				return -1;
 			}
@@ -2901,7 +2913,7 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		if (util_replica_open(set, r, mmap_flags) != 0) {
-			LOG(2, "replica #%u open failed", r);
+			CORE_LOG_WARNING("replica #%u open failed", r);
 			goto err_replica;
 		}
 	}
@@ -2992,7 +3004,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 	int ret = util_poolset_create_set(setp, path, 0, 0,
 						flags & POOL_OPEN_IGNORE_SDS);
 	if (ret < 0) {
-		LOG(2, "cannot open pool set -- '%s'", path);
+		CORE_LOG_WARNING("cannot open pool set -- '%s'", path);
 		return -1;
 	}
 
@@ -3064,7 +3076,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		if (util_replica_open(set, r, mmap_flags) != 0) {
-			LOG(2, "replica #%u open failed", r);
+			CORE_LOG_WARNING("replica #%u open failed", r);
 			goto err_replica;
 		}
 	}

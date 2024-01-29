@@ -349,7 +349,7 @@ operation_merge_entry_add(struct operation_context *ctx,
 
 	if (VECQ_ENQUEUE(&ctx->merge_entries, entry) != 0) {
 		/* this is fine, only runtime perf will get slower */
-		LOG(2, "out of memory - unable to track entries");
+		CORE_LOG_WARNING("out of memory - unable to track entries");
 	}
 }
 

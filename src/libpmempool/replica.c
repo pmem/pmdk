@@ -1694,9 +1694,11 @@ check_uuids_between_replicas(struct pool_set *set,
 		uuid_t *rep_n_uuidp = NULL;
 		unsigned r_n = REPN_HEALTHidx(set_hs, r);
 		if (get_replica_uuid(rep, r, set_hs, &rep_uuidp))
-			LOG(2, "cannot get replica uuid, replica %u", r);
+			CORE_LOG_WARNING("cannot get replica uuid, replica %u",
+				r);
 		if (get_replica_uuid(rep_n, r_n, set_hs, &rep_n_uuidp))
-			LOG(2, "cannot get replica uuid, replica %u", r_n);
+			CORE_LOG_WARNING("cannot get replica uuid, replica %u",
+				r_n);
 
 		/*
 		 * check if replica uuids are consistent between two adjacent
@@ -1732,7 +1734,7 @@ check_uuids_between_replicas(struct pool_set *set,
 			unsigned p_nn =
 				replica_find_unbroken_part(r_nn, set_hs);
 			if (p_nn == UNDEF_PART) {
-				LOG(2,
+				CORE_LOG_WARNING(
 					"cannot compare uuids on borders of replica %u",
 					r);
 				continue;

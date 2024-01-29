@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2021, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * uuid.c -- uuid utilities
@@ -20,12 +20,12 @@ util_uuid_to_string(const uuid_t u, char *buf)
 	int len; /* size that is returned from sprintf call */
 
 	if (buf == NULL) {
-		LOG(2, "invalid buffer for uuid string");
+		CORE_LOG_WARNING("invalid buffer for uuid string");
 		return -1;
 	}
 
 	if (u == NULL) {
-		LOG(2, "invalid uuid structure");
+		CORE_LOG_WARNING("invalid uuid structure");
 		return -1;
 	}
 
@@ -38,7 +38,7 @@ util_uuid_to_string(const uuid_t u, char *buf)
 		uuid->node[5]);
 
 	if (len != POOL_HDR_UUID_STR_LEN - 1) {
-		LOG(2, "snprintf(uuid): %d", len);
+		CORE_LOG_WARNING("snprintf(uuid): %d", len);
 		return -1;
 	}
 
@@ -56,13 +56,13 @@ int
 util_uuid_from_string(const char uuid[POOL_HDR_UUID_STR_LEN], struct uuid *ud)
 {
 	if (strlen(uuid) != 36) {
-		LOG(2, "invalid uuid string");
+		CORE_LOG_WARNING("invalid uuid string");
 		return -1;
 	}
 
 	if (uuid[8] != '-' || uuid[13] != '-' || uuid[18] != '-' ||
 			uuid[23] != '-') {
-		LOG(2, "invalid uuid string");
+		CORE_LOG_WARNING("invalid uuid string");
 		return -1;
 	}
 
@@ -75,7 +75,7 @@ util_uuid_from_string(const char uuid[POOL_HDR_UUID_STR_LEN], struct uuid *ud)
 		&ud->node[5]);
 
 	if (n != 11) {
-		LOG(2, "sscanf(uuid)");
+		CORE_LOG_WARNING("sscanf(uuid)");
 		return -1;
 	}
 
