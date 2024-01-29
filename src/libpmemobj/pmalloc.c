@@ -888,7 +888,7 @@ static int
 CTL_READ_HANDLER(arenas_assignment_type)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	/* suppress unused-parameter errors */
+	/* suppress sunused-parameter errors */
 	SUPPRESS_UNUSED(ctx, source, indexes);
 
 	enum pobj_arenas_assignment_type *dest = arg;

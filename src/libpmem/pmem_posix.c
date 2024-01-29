@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * pmem_posix.c -- pmem utilities with Posix implementation
@@ -58,7 +58,7 @@ pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
 
 	if (type != MAX_PMEM_TYPE) {
 		if (util_range_register(addr, len, path, type)) {
-			LOG(1, "can't track mapped region");
+			CORE_LOG_ERROR("can't track mapped region");
 			goto err_unmap;
 		}
 	}

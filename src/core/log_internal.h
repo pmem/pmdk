@@ -164,7 +164,12 @@ void core_log_default_function(void *context, enum core_log_level level,
  * additional arguments.
  */
 #define CORE_LOG_ERROR_WITH_ERRNO(f, ...) \
-	CORE_LOG_ERROR(f ": %s", ##__VA_ARGS__, strerror(errno))
+	do { \
+		char buff[CORE_LOG_MAX_ERR_MSG]; \
+		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
+			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
+		abort(); \
+	} while (0)
 
 static inline int
 core_log_error_translate(int ret)

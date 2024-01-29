@@ -83,7 +83,8 @@ badblocks_check_poolset(struct pool_set *set, int create)
 	}
 
 	if (cfcb.n_files_bbs) {
-		LOG(1, "%i pool file(s) contain bad blocks", cfcb.n_files_bbs);
+		CORE_LOG_ERROR("%i pool file(s) contain bad blocks",
+			cfcb.n_files_bbs);
 		set->has_bad_blocks = 1;
 	}
 
@@ -209,7 +210,7 @@ badblocks_recovery_file_exists(struct pool_set *set)
 			char *rec_file =
 				badblocks_recovery_file_alloc(set->path, r, p);
 			if (rec_file == NULL) {
-				LOG(1,
+				CORE_LOG_ERROR(
 					"allocating name of bad block recovery file failed");
 				return -1;
 			}
