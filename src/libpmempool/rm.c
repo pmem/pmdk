@@ -20,7 +20,7 @@
 
 #define ERR_F(f, ...) do {\
 	if (CHECK_FLAG((f), FORCE))\
-		LOG(2, "!(ignored) " __VA_ARGS__);\
+		CORE_LOG_WARNING("!(ignored) " __VA_ARGS__);\
 	else\
 		ERR_WO_ERRNO(__VA_ARGS__);\
 } while (0)
@@ -122,11 +122,11 @@ pmempool_rmU(const char *path, unsigned flags)
 	}
 
 	if (!is_poolset) {
-		LOG(2, "%s: not a poolset file", path);
+		CORE_LOG_WARNING("%s: not a poolset file", path);
 		return rm_local(path, flags, 0);
 	}
 
-	LOG(2, "%s: poolset file", path);
+	CORE_LOG_WARNING("%s: poolset file", path);
 
 	/* fill up pool_set structure */
 	struct pool_set *set = NULL;

@@ -51,9 +51,9 @@ util_mmap_init(void)
 		unsigned long long val = strtoull(e, &endp, 16);
 
 		if (errno || endp == e) {
-			LOG(2, "Invalid PMEM_MMAP_HINT");
+			CORE_LOG_WARNING("Invalid PMEM_MMAP_HINT");
 		} else if (os_access(OS_MAPFILE, R_OK)) {
-			LOG(2, "No /proc, PMEM_MMAP_HINT ignored");
+			CORE_LOG_WARNING("No /proc, PMEM_MMAP_HINT ignored");
 		} else {
 			Mmap_hint = (void *)val;
 			Mmap_no_random = 1;

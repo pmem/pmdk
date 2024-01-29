@@ -41,7 +41,7 @@ validate_args(struct pool_set *set)
 	 * (now replication works only for pmemobj pools)
 	 */
 	if (replica_check_part_sizes(set, PMEMOBJ_MIN_POOL)) {
-		LOG(2, "part sizes check failed");
+		CORE_LOG_WARNING("part sizes check failed");
 		goto err;
 	}
 
@@ -49,7 +49,7 @@ validate_args(struct pool_set *set)
 	 * check if all directories for part files exist
 	 */
 	if (replica_check_part_dirs(set)) {
-		LOG(2, "part directories check failed");
+		CORE_LOG_WARNING("part directories check failed");
 		goto err;
 	}
 
@@ -851,14 +851,14 @@ recreate_broken_parts(struct pool_set *set,
 
 			/* remove parts from broken replica */
 			if (replica_remove_part(set, r, p, fix_bad_blocks)) {
-				LOG(2, "cannot remove part");
+				CORE_LOG_WARNING("cannot remove part");
 				return -1;
 			}
 
 			/* create removed part and open it */
 			if (util_part_open(&broken_r->part[p], 0,
 						1 /* create */)) {
-				LOG(2, "cannot open/create parts");
+				CORE_LOG_WARNING("cannot open/create parts");
 				return -1;
 			}
 
