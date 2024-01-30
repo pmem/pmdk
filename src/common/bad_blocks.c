@@ -72,7 +72,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		goto exit_delete_source;
 
 	bb_found = 0;
-	while ((pmem2_badblock_next_internal(bbctx, &bb)) == 0) {
+	while ((pmem2_badblock_next(bbctx, &bb)) == 0) {
 		bb_found++;
 		/*
 		 * Form a new bad block structure with offset and length
@@ -210,7 +210,7 @@ badblocks_clear_all(const char *file)
 		goto exit_delete_source;
 	}
 
-	while ((pmem2_badblock_next_internal(bbctx, &bb)) == 0) {
+	while ((pmem2_badblock_next(bbctx, &bb)) == 0) {
 		ret = pmem2_badblock_clear(bbctx, &bb);
 		if (ret) {
 			CORE_LOG_ERROR("pmem2_badblock_clear -- %s", file);
