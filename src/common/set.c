@@ -425,7 +425,7 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			}
 
 			if (stbuf.st_mode & ~(unsigned)S_IFMT) {
-				CORE_LOG_ERROR(
+				CORE_LOG_WARNING(
 					"file permissions changed during pool initialization, file: %s (%o)",
 					part->path,
 					stbuf.st_mode & ~(unsigned)S_IFMT);
@@ -2882,8 +2882,8 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 
 		if (bbs > 0) {
 			if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
-				CORE_LOG_ERROR(
-					"WARNING: pool set contains bad blocks, ignoring");
+				CORE_LOG_WARNING(
+					"pool set contains bad blocks, ignoring");
 			} else {
 				ERR_WO_ERRNO(
 					"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
@@ -2940,7 +2940,7 @@ util_read_compat_features(struct pool_set *set, uint32_t *compat_features)
 			struct pool_set_part *part = &rep->part[p];
 
 			if (util_part_open(part, 0, 0 /* create */)) {
-				CORE_LOG_ERROR(
+				CORE_LOG_WARNING(
 					"!cannot open the part -- \"%s\"",
 					part->path);
 				/* try to open the next part */
@@ -3045,8 +3045,8 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 		if (bbs > 0) {
 			if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
-				CORE_LOG_ERROR(
-					"WARNING: pool set contains bad blocks, ignoring -- '%s'",
+				CORE_LOG_WARNING(
+					"pool set contains bad blocks, ignoring -- '%s'",
 					path);
 			} else {
 				ERR_WO_ERRNO(
