@@ -2940,8 +2940,8 @@ util_read_compat_features(struct pool_set *set, uint32_t *compat_features)
 			struct pool_set_part *part = &rep->part[p];
 
 			if (util_part_open(part, 0, 0 /* create */)) {
-				CORE_LOG_WARNING(
-					"!cannot open the part -- \"%s\"",
+				CORE_LOG_WARNING_W_ERRNO(
+					"cannot open the part -- \"%s\"",
 					part->path);
 				/* try to open the next part */
 				continue;

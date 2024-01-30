@@ -163,12 +163,18 @@ void core_log_default_function(void *context, enum core_log_level level,
  * 'f' stands here for 'function' or 'format' where the latter may accept
  * additional arguments.
  */
-#define CORE_LOG_ERROR_WITH_ERRNO(f, ...) \
+#define CORE_LOG_ERROR_WITH_ERRNO(format, ...) \
 	do { \
 		char buff[CORE_LOG_MAX_ERR_MSG]; \
 		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
 			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
-		abort(); \
+	} while (0)
+
+#define CORE_LOG_WARNING_W_ERRNO(format, ...) \
+	do { \
+		char buff[CORE_LOG_MAX_ERR_MSG]; \
+		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
+			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
 	} while (0)
 
 static inline int
