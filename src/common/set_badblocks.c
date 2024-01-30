@@ -14,7 +14,6 @@
 #include "os.h"
 #include "out.h"
 #include "set_badblocks.h"
-#include "libpmem2.h"
 #include "badblocks.h"
 
 /* helper structure for badblocks_check_file_cb() */

@@ -11,7 +11,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <sys/types.h>
-#include "libpmem2.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,9 +69,6 @@ int badblocks_clear(const char *path, struct badblocks *bbs);
 int badblocks_clear_all(const char *file);
 
 int badblocks_check_file(const char *path);
-
-int pmem2_badblock_next_internal(struct pmem2_badblock_context *bbctx,
-	struct pmem2_badblock *bb);
 
 #ifdef __cplusplus
 }
