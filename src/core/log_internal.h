@@ -8,14 +8,11 @@
 #ifndef CORE_LOG_INTERNAL_H
 #define CORE_LOG_INTERNAL_H
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
+
 #ifdef ATOMIC_OPERATIONS_SUPPORTED
 #include <stdatomic.h>
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
@@ -147,6 +144,7 @@ void core_log_default_function(void *context, enum core_log_level level,
 	} while (0)
 
 #define CORE_LOG_MAX_ERR_MSG 128
+#ifdef _GNU_SOURCE
 #define CORE_LOG_FATAL_W_ERRNO(format, ...) \
 	do { \
 		char buff[CORE_LOG_MAX_ERR_MSG]; \
@@ -154,6 +152,18 @@ void core_log_default_function(void *context, enum core_log_level level,
 			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
 		abort(); \
 	} while (0)
+#else
+#define CORE_LOG_FATAL_W_ERRNO(format, ...) \
+	do { \
+		char buff[CORE_LOG_MAX_ERR_MSG]; \
+		uint64_t ret = (uint64_t)strerror_r(errno, buff, \
+			CORE_LOG_MAX_ERR_MSG); \
+		ret = ret; \
+		CORE_LOG(CORE_LOG_LEVEL_FATAL, format ": %s", ##__VA_ARGS__, \
+			buff); \
+		abort(); \
+	} while (0)
+#endif
 
 #define CORE_LOG_ALWAYS(format, ...) \
 	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format, ##__VA_ARGS__)
@@ -163,19 +173,43 @@ void core_log_default_function(void *context, enum core_log_level level,
  * 'f' stands here for 'function' or 'format' where the latter may accept
  * additional arguments.
  */
+#ifdef _GNU_SOURCE
 #define CORE_LOG_ERROR_WITH_ERRNO(format, ...) \
 	do { \
 		char buff[CORE_LOG_MAX_ERR_MSG]; \
 		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
 			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
 	} while (0)
+#else
+#define CORE_LOG_ERROR_WITH_ERRNO(format, ...) \
+	do { \
+		char buff[CORE_LOG_MAX_ERR_MSG]; \
+		uint64_t ret = (uint64_t)strerror_r(errno, buff, \
+			CORE_LOG_MAX_ERR_MSG); \
+		ret = ret; \
+		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
+			buff); \
+	} while (0)
+#endif
 
+#ifdef _GNU_SOURCE
 #define CORE_LOG_WARNING_W_ERRNO(format, ...) \
 	do { \
 		char buff[CORE_LOG_MAX_ERR_MSG]; \
-		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
+		CORE_LOG(CORE_LOG_LEVEL_WARNING, format ": %s", ##__VA_ARGS__, \
 			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
 	} while (0)
+#else
+#define CORE_LOG_WARNING_W_ERRNO(format, ...) \
+	do { \
+		char buff[CORE_LOG_MAX_ERR_MSG]; \
+		uint64_t ret = (uint64_t)strerror_r(errno, buff, \
+			CORE_LOG_MAX_ERR_MSG); \
+		ret = ret; \
+		CORE_LOG(CORE_LOG_LEVEL_WARNING, format ": %s", ##__VA_ARGS__, \
+			buff); \
+	} while (0)
+#endif
 
 static inline int
 core_log_error_translate(int ret)
