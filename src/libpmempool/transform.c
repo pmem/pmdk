@@ -55,7 +55,7 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 	struct pool_replica *rep = REP(set, repn);
 	char *path = util_part_realpath(PART(rep, partn)->path);
 	if (path == NULL) {
-		CORE_LOG_ERROR(
+		CORE_LOG_WARNING(
 			"cannot get absolute path for %s, replica %u, part %u",
 			PART(rep, partn)->path, repn, partn);
 		errno = 0;
@@ -81,7 +81,7 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 					ret = -1;
 					goto out;
 				}
-				CORE_LOG_ERROR(
+				CORE_LOG_WARNING(
 					"cannot get absolute path for %s, replica %u, part %u",
 					PART(rep, partn)->path, repn, partn);
 				pathp = strdup(PART(repr, p)->path);
@@ -259,7 +259,7 @@ check_compare_poolsets_status(struct pool_set *set_in,
 		struct pool_replica *rep_in = REP(set_in, ri);
 		for (unsigned ro = 0; ro < set_out->nreplicas; ++ro) {
 			struct pool_replica *rep_out = REP(set_out, ro);
-			CORE_LOG_ERROR("comparing rep_in %u with rep_out %u",
+			CORE_LOG_DEBUG("comparing rep_in %u with rep_out %u",
 				ri, ro);
 			/* skip different replicas */
 			if (compare_replicas(rep_in, rep_out))
@@ -504,7 +504,7 @@ copy_replica_data_fw(struct pool_set *set_dst, struct pool_set *set_src,
 	LOG(3, "set_in %p, set_out %p, repn %u", set_src, set_dst, repn);
 	ssize_t pool_size = replica_get_pool_size(set_src, repn);
 	if (pool_size < 0) {
-		CORE_LOG_ERROR("getting pool size from replica %u failed",
+		CORE_LOG_WARNING("getting pool size from replica %u failed",
 			repn);
 		pool_size = (ssize_t)set_src->poolsize;
 	}
@@ -532,7 +532,7 @@ copy_replica_data_bw(struct pool_set *set_dst, struct pool_set *set_src,
 	LOG(3, "set_in %p, set_out %p, repn %u", set_src, set_dst, repn);
 	ssize_t pool_size = replica_get_pool_size(set_src, repn);
 	if (pool_size < 0) {
-		CORE_LOG_ERROR("getting pool size from replica %u failed",
+		CORE_LOG_WARNING("getting pool size from replica %u failed",
 			repn);
 		pool_size = (ssize_t)set_src->poolsize;
 	}
@@ -919,7 +919,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 				CORE_LOG_ERROR(
 					"falling back to the input poolset failed");
 			} else {
-				CORE_LOG_ERROR(
+				CORE_LOG_ALWAYS(
 					"falling back to the input poolset succeeded");
 			}
 			ret = -1;
@@ -937,7 +937,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 				CORE_LOG_ERROR(
 					"falling back to the input poolset failed");
 			} else {
-				CORE_LOG_ERROR(
+				CORE_LOG_ALWAYS(
 					"falling back to the input poolset succeeded");
 			}
 			ret = -1;
