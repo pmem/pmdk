@@ -93,7 +93,7 @@ dump_pool_info $DIR/testfile02 >> $LOG_TEMP
 dump_pool_info $DIR/testfile10 >> $LOG_TEMP
 
 # Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
+grep -v -E '\*ERROR\*|\*WARN\*' $LOG_TEMP > $LOG
 rm $LOG_TEMP
 
 check

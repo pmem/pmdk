@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 #
 #
 # pmempool_transform/TEST10 -- test for checking pmempool transform;
@@ -56,7 +56,10 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform \
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
 
-mv $LOG_TEMP $LOG
+# Exclude warning messages printed out on the stderr by PMDK in debug
+grep -v -E '\*WARN\*' $LOG_TEMP > $LOG
+rm $LOG_TEMP
+
 check
 
 pass
