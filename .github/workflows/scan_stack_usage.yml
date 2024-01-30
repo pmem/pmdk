@@ -59,6 +59,20 @@ jobs:
           #    ~ = Some OSes, e.g. Ubuntu 22.04, generate call stacks of size
           # a little bit over the exact limit which is not deemed a problem at the moment.
           ./make_call_stacks.py --filter-api-file examples/api_filter.txt --filter-lower-limit 11296
+        continue-on-error: true
+        id: make-call-stacks
+
+      - name: Archive debug output
+        if: steps.make-call-stacks.outcome != 'success'
+        uses: actions/upload-artifact@v4.2.0
+        with:
+          name: not_called
+          path: ${{ env.CALL_STACKS_TOOLS_PATH }}/not_called.json
+
+      - name: Conditional stop
+        run: |
+          [ "${{steps.make-call-stacks.outcome}}" != "success" ] && exit 1
+          exit 0
 
       - name: List per-function stack usage for all call stacks of interest
         working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
