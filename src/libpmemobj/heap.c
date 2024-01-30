@@ -741,7 +741,9 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 
 	struct recycler_element e = recycler_element_new(heap, m);
 	if (c == NULL) {
+#ifdef DEBUG
 		uint32_t size_idx = m->size_idx;
+#endif
 		struct run_bitmap b;
 		m->m_ops->get_bitmap(m, &b);
 
@@ -827,7 +829,9 @@ heap_ensure_zone_reclaimed(struct palloc_heap *heap, uint32_t zone_id)
 		DEFAULT_ALLOC_CLASS_ID,
 		HEAP_ARENA_PER_THREAD);
 
+#ifdef DEBUG /* variables required for ASSERTs below */
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
+#endif
 	ASSERTeq(z->header.magic, ZONE_HEADER_MAGIC);
 
 	/* check a second time just to make sure no other thread was first */

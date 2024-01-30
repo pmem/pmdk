@@ -67,7 +67,7 @@ int
 pmem2_err_to_errno(int err)
 {
 	if (err > 0)
-		FATAL("positive error code is a bug in libpmem2");
+		CORE_LOG_FATAL("positive error code is a bug in libpmem2");
 
 	if (err == PMEM2_E_NOSUPP)
 		return ENOTSUP;

@@ -20,7 +20,9 @@
 #define MSG_SEPARATOR	'|'
 
 /* error part of message must have '.' at the end */
+#ifdef DEBUG /* variables required for ASSERTs below */
 #define MSG_PLACE_OF_SEPARATION	'.'
+#endif
 #define MAX_MSG_STR_SIZE 8192
 
 #define CHECK_ANSWER_YES	"yes"
@@ -181,11 +183,11 @@ status_alloc(void)
 {
 	struct check_status *status = malloc(sizeof(*status));
 	if (!status)
-		FATAL("!malloc");
+		CORE_LOG_FATAL_W_ERRNO("malloc");
 	status->msg = malloc(sizeof(char) * MAX_MSG_STR_SIZE);
 	if (!status->msg) {
 		free(status);
-		FATAL("!malloc");
+		CORE_LOG_FATAL_W_ERRNO("malloc");
 	}
 	status->status.str.msg = status->msg;
 	status->answer = PMEMPOOL_CHECK_ANSWER_EMPTY;

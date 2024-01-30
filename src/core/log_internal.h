@@ -8,6 +8,10 @@
 #ifndef CORE_LOG_INTERNAL_H
 #define CORE_LOG_INTERNAL_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -137,7 +141,19 @@ void core_log_default_function(void *context, enum core_log_level level,
 	CORE_LOG(CORE_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
 
 #define CORE_LOG_FATAL(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
+	do { \
+		CORE_LOG(CORE_LOG_LEVEL_FATAL, format, ##__VA_ARGS__); \
+		abort(); \
+	} while (0)
+
+#define CORE_LOG_MAX_ERR_MSG 128
+#define CORE_LOG_FATAL_W_ERRNO(format, ...) \
+	do { \
+		char buff[CORE_LOG_MAX_ERR_MSG]; \
+		CORE_LOG(CORE_LOG_LEVEL_FATAL, format ": %s", ##__VA_ARGS__, \
+			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
+		abort(); \
+	} while (0)
 
 #define CORE_LOG_ALWAYS(format, ...) \
 	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format, ##__VA_ARGS__)

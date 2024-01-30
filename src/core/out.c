@@ -48,7 +48,7 @@ _Last_errormsg_key_alloc(void)
 {
 	int pth_ret = os_tls_key_create(&Last_errormsg_key, free);
 	if (pth_ret)
-		FATAL("!os_thread_key_create");
+		CORE_LOG_FATAL_W_ERRNO("os_thread_key_create");
 
 	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Last_errormsg_key_once);
 }
@@ -89,7 +89,7 @@ Last_errormsg_get(void)
 		errormsg->msg[0] = '\0';
 		int ret = os_tls_set(Last_errormsg_key, errormsg);
 		if (ret)
-			FATAL("!os_tls_set");
+			CORE_LOG_FATAL_W_ERRNO("os_tls_set");
 	}
 	return errormsg;
 }
@@ -489,23 +489,6 @@ out_log(const char *file, int line, const char *func, int level,
 	out_log_va(file, line, func, level, fmt, ap);
 
 	va_end(ap);
-}
-
-/*
- * out_fatal -- output a fatal error & die (i.e. assertion failure)
- */
-void
-out_fatal(const char *file, int line, const char *func,
-		const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-
-	out_common(file, line, func, 1, "\n", fmt, ap);
-
-	va_end(ap);
-
-	abort();
 }
 
 /*

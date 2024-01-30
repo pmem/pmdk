@@ -359,7 +359,7 @@ pmem_is_pmem_init(void)
 			Is_pmem = is_pmem_never;
 
 		if (!util_bool_compare_and_swap32(&init, 1, 2))
-			FATAL("util_bool_compare_and_swap32");
+			CORE_LOG_FATAL("util_bool_compare_and_swap32");
 	}
 }
 
@@ -911,7 +911,7 @@ pmem_init(void)
 	if (Funcs.flush == flush_empty)
 		LOG(3, "not flushing CPU cache");
 	else if (Funcs.flush != Funcs.deep_flush)
-		FATAL("invalid flush function address");
+		CORE_LOG_FATAL("invalid flush function address");
 
 	pmem_os_init(&Is_pmem);
 }

@@ -266,9 +266,12 @@ unmap(void *addr, size_t len)
 static int
 vm_reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t size)
 {
+#ifdef DEBUG /* variables required for ASSERTs below */
 	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
-
+#else
+	SUPPRESS_UNUSED(rsv);
+#endif
 	ASSERT((char *)addr >= (char *)rsv_addr &&
 			(char *)addr + size <= (char *)rsv_addr + rsv_size);
 
@@ -484,7 +487,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			[cfg->requested_max_granularity]
 			[available_min_granularity];
 		if (strcmp(err, GRAN_IMPOSSIBLE) == 0)
-			FATAL(
+			CORE_LOG_FATAL(
 				"unhandled granularity error: available_min_granularity: %d" \
 				"requested_max_granularity: %d",
 				available_min_granularity,
