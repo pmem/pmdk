@@ -8,7 +8,7 @@
 #ifndef CORE_LOG_DEFAULT_H
 #define CORE_LOG_DEFAULT_H
 
-void core_log_default_function(void *context, enum core_log_level level,
+void core_log_default_function(void *context, enum core_log_level level, 
 	const char *file_name, const int line_no, const char *function_name,
 	const char *message_format, ...);
 
