@@ -112,18 +112,18 @@ core_log_set_function(core_log_function *log_function, void *context)
 	return 0;
 #else
 	uintptr_t core_log_function_old = Core_log_function;
-	if (__sync_bool_compare_and_swap(&Core_log_function,
-			core_log_function_old, (uintptr_t)log_function))
-		return 0;
-	else
-		return EAGAIN;
-
 	void *context_old = Core_log_function_context;
+	if (!__sync_bool_compare_and_swap(&Core_log_function,
+			core_log_function_old, (uintptr_t)log_function))
+		return EAGAIN;
 	if (__sync_bool_compare_and_swap(&Core_log_function_context,
 			context_old, context))
 		return 0;
-	else
-		return EAGAIN;
+
+	__sync_bool_compare_and_swap(&Core_log_function,
+		(uintptr_t)log_function, core_log_function_old);
+	return EAGAIN;
+
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 }
 
