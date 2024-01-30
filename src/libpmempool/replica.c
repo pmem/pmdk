@@ -806,7 +806,7 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 
 	os_fclose(recovery_file);
 
-	CORE_LOG_ERROR("bad blocks read from the recovery file -- '%s'", path);
+	CORE_LOG_ALWAYS("bad blocks read from the recovery file -- '%s'", path);
 
 	return 0;
 
@@ -928,7 +928,7 @@ replica_badblocks_recovery_files_read(struct pool_set *set,
 				continue;
 			}
 
-			CORE_LOG_ERROR(
+			CORE_LOG_ALWAYS(
 				"reading bad blocks from the recovery file -- '%s'",
 				part_hs->recovery_file_name);
 
@@ -942,7 +942,7 @@ replica_badblocks_recovery_files_read(struct pool_set *set,
 			}
 
 			if (ret > 0) {
-				CORE_LOG_ERROR(
+				CORE_LOG_WARNING(
 					"incomplete bad block recovery file detected -- '%s'",
 					part_hs->recovery_file_name);
 				return 1;
@@ -1254,9 +1254,9 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 		if (ret > 0) {
 			/* incomplete bad block recovery file was detected */
 
-			CORE_LOG_ERROR(
-				"warning: incomplete bad block recovery file detected\n"
-				"         - all recovery files will be removed");
+			CORE_LOG_WARNING(
+				"incomplete bad block recovery file detected\n"
+				"- all recovery files will be removed");
 
 			/* changing status to RECOVERY_FILES_NOT_ALL_EXIST */
 			status = RECOVERY_FILES_NOT_ALL_EXIST;
@@ -1264,9 +1264,8 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 		break;
 
 	case RECOVERY_FILES_NOT_ALL_EXIST:
-		CORE_LOG_ERROR(
-			"warning: one of bad block recovery files does not exist\n"
-			"         - all recovery files will be removed");
+		CORE_LOG_WARNING(
+			"one of bad block recovery files does not exist - all recovery files will be removed");
 		break;
 
 	default:
@@ -1281,7 +1280,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 		 */
 
 		if (!dry_run) {
-			CORE_LOG_ERROR(
+			CORE_LOG_ALWAYS(
 				"removing all bad block recovery files...");
 			ret = replica_remove_all_recovery_files(set_hs);
 			if (ret < 0) {
@@ -1290,7 +1289,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 				return -1;
 			}
 		} else {
-			CORE_LOG_ERROR(
+			CORE_LOG_ALWAYS(
 				"all bad block recovery files would be removed");
 		}
 
@@ -1337,7 +1336,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 
 		if (dry_run) {
 			/* dry-run - do nothing */
-			CORE_LOG_ERROR("warning: bad blocks were found");
+			CORE_LOG_WARNING("bad blocks were found");
 			return 0;
 		}
 
@@ -1361,7 +1360,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 
 	if (dry_run) {
 		/* dry-run - do nothing */
-		CORE_LOG_ERROR("bad blocks would be cleared");
+		CORE_LOG_ALWAYS("bad blocks would be cleared");
 		return 0;
 	}
 

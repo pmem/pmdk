@@ -819,7 +819,7 @@ sync_badblocks_data(struct pool_set *set, struct poolset_health_status *set_hs)
 		sync_mark_replica_no_badblocks(r, set_hs);
 	}
 
-	CORE_LOG_ERROR("all bad blocks have been fixed");
+	CORE_LOG_ALWAYS("all bad blocks have been fixed");
 
 	if (replica_remove_all_recovery_files(set_hs)) {
 		CORE_LOG_ERROR("removing bad block recovery files failed");
@@ -1326,7 +1326,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 		/* check if poolset is broken; if not, nothing to do */
 		if (replica_is_poolset_healthy(set_hs)) {
-			CORE_LOG_ERROR("poolset is healthy");
+			CORE_LOG_ALWAYS("poolset is healthy");
 			goto out;
 		}
 	} else {
@@ -1348,7 +1348,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 	/* in dry-run mode we can stop here */
 	if (is_dry_run(flags)) {
-		CORE_LOG_ERROR("Sync in dry-run mode finished successfully");
+		CORE_LOG_ALWAYS("Sync in dry-run mode finished successfully");
 		goto out;
 	}
 
