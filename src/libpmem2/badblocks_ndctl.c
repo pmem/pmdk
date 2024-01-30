@@ -528,10 +528,10 @@ pmem2_badblock_next_region(struct pmem2_badblock_context *bbctx,
 }
 
 /*
- * pmem2_badblock_next -- get the next bad block
+ * pmem2_badblock_next_internal -- get the next bad block
  */
 int
-pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
+pmem2_badblock_next_internal(struct pmem2_badblock_context *bbctx,
 			struct pmem2_badblock *bb)
 {
 	LOG(3, "bbctx %p bb %p", bbctx, bb);
@@ -672,6 +672,19 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	bb->length = bb_len;
 
 	return 0;
+}
+
+int
+pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
+	struct pmem2_badblock *bb)
+{
+	int ret = pmem2_badblock_next_internal(bbctx, bb);
+
+	if (ret == PMEM2_E_NO_BAD_BLOCK_FOUND) {
+		ERR_WO_ERRNO(
+			"Cannot find any matching device, no bad blocks found");
+	}
+	return ret;
 }
 
 /*
