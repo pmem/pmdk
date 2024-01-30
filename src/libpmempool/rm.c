@@ -20,7 +20,7 @@
 
 #define ERR_F(f, ...) do {\
 	if (CHECK_FLAG((f), FORCE))\
-		CORE_LOG_WARNING("!(ignored) " __VA_ARGS__);\
+		CORE_LOG_WARNING_W_ERRNO("(ignored) " __VA_ARGS__);\
 	else\
 		ERR_WO_ERRNO(__VA_ARGS__);\
 } while (0)
