@@ -16,6 +16,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "log_internal.h"
 #include "log_default.h"
@@ -106,9 +107,15 @@ core_log_default_function(void *context, enum core_log_level level,
 	const char *file_info = file_info_buffer;
 	char message[1024] = "";
 	const char file_info_error[] = "[file info error]: ";
+	bool is_always = false;
 
 	if (CORE_LOG_DISABLED == level)
 		return;
+
+	if (level == CORE_LOG_LEVEL_ALWAYS) {
+		is_always = true;
+		level = CORE_LOG_LEVEL_NOTICE;
+	}
 
 	va_list arg;
 	va_start(arg, message_format);
@@ -134,21 +141,28 @@ core_log_default_function(void *context, enum core_log_level level,
 		}
 	}
 
-	if (level <= Core_log_threshold[CORE_LOG_THRESHOLD_AUX] &&
-	    level != CORE_LOG_LEVEL_ALWAYS) {
+	/* primary logging destination (CORE_LOG_THRESHOLD) */
+	syslog(log_level_syslog_severity[level], "%s%s%s",
+		log_level_names[level], file_info, message);
+
+	/*
+	 * Since the CORE_LOG_LEVEL_ALWAYS level messages convey pretty mundane
+	 * information regarding the libraries versions etc. it has been decided
+	 * to print them out to the syslog and under no circumstances to stderr
+	 * to keep it clean for potentially more critical information.
+	 */
+	if (is_always) {
+		return;
+	}
+
+	/* secondary logging destination (CORE_LOG_THRESHOLD_AUX) */
+	if (level <= Core_log_threshold[CORE_LOG_THRESHOLD_AUX]) {
 		char times_tamp[45] = "";
 		get_timestamp_prefix(times_tamp, sizeof(times_tamp));
 		(void) fprintf(stderr, "%s[%ld] %s%s%s\n", times_tamp,
 			syscall(SYS_gettid), log_level_names[level], file_info,
 			message);
 	}
-
-	level = (level == CORE_LOG_LEVEL_ALWAYS)? CORE_LOG_LEVEL_NOTICE: level;
-	/* assumed: level <= Core_log_threshold[CORE_LOG_THRESHOLD] */
-	syslog(log_level_syslog_severity[level],
-		"%s%s%s",
-		log_level_names[level],
-		file_info, message);
 }
 
 /*
