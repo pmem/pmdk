@@ -35,7 +35,8 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 		if (ret < 0) {
 			if (ret == PMEM2_E_NOSUPP) {
 				errno = ENOTSUP;
-				CORE_LOG_ERROR("!deep_flush not supported");
+				CORE_LOG_ERROR_WITH_ERRNO(
+					"deep_flush not supported");
 			} else {
 				errno = pmem2_err_to_errno(ret);
 				LOG(2, "cannot write to deep_flush"
