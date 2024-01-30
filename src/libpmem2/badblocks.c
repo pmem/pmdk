@@ -5,7 +5,6 @@
  * badblocks.c -- implementation of common bad blocks API
  */
 
-#include "libpmem2.h"
 #include "badblocks.h"
 #include "alloc.h"
 #include "out.h"
