@@ -432,10 +432,10 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 				&reserved_length, cfg);
 		if (ret != 0) {
 			if (ret == PMEM2_E_MAPPING_EXISTS)
-				LOG(1,
+				CORE_LOG_ERROR(
 					"given mapping region is already occupied");
 			else
-				LOG(1,
+				CORE_LOG_ERROR(
 					"cannot find a contiguous region of given size");
 			return ret;
 		}

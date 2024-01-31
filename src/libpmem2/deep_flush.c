@@ -35,7 +35,8 @@ pmem2_deep_flush(struct pmem2_map *map, void *ptr, size_t size)
 
 	int ret = map->deep_flush_fn(map, ptr, size);
 	if (ret) {
-		LOG(1, "cannot perform deep flush operation for map %p", map);
+		CORE_LOG_ERROR(
+			"cannot perform deep flush operation for map %p", map);
 		return ret;
 	}
 

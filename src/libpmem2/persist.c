@@ -322,7 +322,8 @@ pmem2_deep_flush_cache(struct pmem2_map *map, void *ptr, size_t size)
 
 	int ret = pmem2_deep_flush_dax(map, ptr, size);
 	if (ret < 0) {
-		LOG(1, "cannot perform deep flush cache for map %p", map);
+		CORE_LOG_ERROR(
+			"cannot perform deep flush cache for map %p", map);
 		return ret;
 	}
 
@@ -356,7 +357,8 @@ pmem2_deep_flush_byte(struct pmem2_map *map, void *ptr, size_t size)
 
 	int ret = pmem2_deep_flush_dax(map, ptr, size);
 	if (ret < 0) {
-		LOG(1, "cannot perform deep flush byte for map %p", map);
+		CORE_LOG_ERROR("cannot perform deep flush byte for map %p",
+			map);
 		return ret;
 	}
 

@@ -180,7 +180,8 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 		/* this is required only for Device DAX & memcheck */
 		addr = util_map_hint(hdrsize, hdrsize);
 		if (addr == MAP_FAILED) {
-			LOG(1, "cannot find a contiguous region of given size");
+			CORE_LOG_ERROR(
+				"cannot find a contiguous region of given size");
 			/* there's nothing we can do */
 			return -1;
 		}
@@ -424,8 +425,8 @@ util_poolset_chmod(struct pool_set *set, mode_t mode)
 			}
 
 			if (stbuf.st_mode & ~(unsigned)S_IFMT) {
-				LOG(1, "file permissions changed during pool "
-					"initialization, file: %s (%o)",
+				CORE_LOG_WARNING(
+					"file permissions changed during pool initialization, file: %s (%o)",
 					part->path,
 					stbuf.st_mode & ~(unsigned)S_IFMT);
 			}
@@ -1959,7 +1960,8 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 		/* determine a hint address for mmap() */
 		addr = util_map_hint(rep->resvsize, 0);
 		if (addr == MAP_FAILED) {
-			LOG(1, "cannot find a contiguous region of given size");
+			CORE_LOG_ERROR(
+				"cannot find a contiguous region of given size");
 			return -1;
 		}
 
@@ -2434,7 +2436,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	    (attr->features.compat & POOL_FEAT_CHECK_BAD_BLOCKS)) {
 		int bbs = badblocks_check_poolset(set, 1 /* create */);
 		if (bbs < 0) {
-			LOG(1,
+			CORE_LOG_ERROR(
 				"failed to check pool set for bad blocks -- '%s'",
 				path);
 			goto err_poolset_free;
@@ -2579,7 +2581,8 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		if (addr == NULL)
 			addr = util_map_hint(rep->resvsize, 0);
 		if (addr == MAP_FAILED) {
-			LOG(1, "cannot find a contiguous region of given size");
+			CORE_LOG_ERROR(
+				"cannot find a contiguous region of given size");
 			return -1;
 		}
 
@@ -2865,21 +2868,22 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 			return -1;
 		}
 		if (bfe < 0) {
-			LOG(1,
+			CORE_LOG_ERROR(
 				"an error occurred when checking whether recovery file exists.");
 			return -1;
 		}
 
 		int bbs = badblocks_check_poolset(set, 0 /* not create */);
 		if (bbs < 0) {
-			LOG(1, "failed to check pool set for bad blocks");
+			CORE_LOG_ERROR(
+				"failed to check pool set for bad blocks");
 			return -1;
 		}
 
 		if (bbs > 0) {
 			if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
-				LOG(1,
-					"WARNING: pool set contains bad blocks, ignoring");
+				CORE_LOG_WARNING(
+					"pool set contains bad blocks, ignoring");
 			} else {
 				ERR_WO_ERRNO(
 					"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
@@ -2936,14 +2940,16 @@ util_read_compat_features(struct pool_set *set, uint32_t *compat_features)
 			struct pool_set_part *part = &rep->part[p];
 
 			if (util_part_open(part, 0, 0 /* create */)) {
-				LOG(1, "!cannot open the part -- \"%s\"",
+				CORE_LOG_WARNING_W_ERRNO(
+					"cannot open the part -- \"%s\"",
 					part->path);
 				/* try to open the next part */
 				continue;
 			}
 
 			if (util_map_hdr(part, MAP_SHARED, 0) != 0) {
-				LOG(1, "header mapping failed -- \"%s\"",
+				CORE_LOG_ERROR(
+					"header mapping failed -- \"%s\"",
 					part->path);
 				util_part_fdclose(part);
 				return -1;
@@ -3009,7 +3015,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 	uint32_t compat_features;
 
 	if (util_read_compat_features(set, &compat_features)) {
-		LOG(1, "reading compat features failed");
+		CORE_LOG_ERROR("reading compat features failed");
 		goto err_poolset_free;
 	}
 
@@ -3024,14 +3030,14 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 		}
 
 		if (bfe < 0) {
-			LOG(1,
+			CORE_LOG_ERROR(
 				"an error occurred when checking whether recovery file exists.");
 			goto err_poolset_free;
 		}
 
 		int bbs = badblocks_check_poolset(set, 0 /* not create */);
 		if (bbs < 0) {
-			LOG(1,
+			CORE_LOG_ERROR(
 				"failed to check pool set for bad blocks -- '%s'",
 				path);
 			goto err_poolset_free;
@@ -3039,8 +3045,8 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 		if (bbs > 0) {
 			if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
-				LOG(1,
-					"WARNING: pool set contains bad blocks, ignoring -- '%s'",
+				CORE_LOG_WARNING(
+					"pool set contains bad blocks, ignoring -- '%s'",
 					path);
 			} else {
 				ERR_WO_ERRNO(
@@ -3295,7 +3301,7 @@ util_replica_deep_common(const void *addr, size_t len, struct pool_set *set,
 			replica_id, part, (void *)range_start, range_len);
 		if (os_part_deep_common(rep, p, (void *)range_start,
 				range_len, flush)) {
-			LOG(1, "os_part_deep_common(%p, %p, %lu)",
+			CORE_LOG_ERROR("os_part_deep_common(%p, %p, %lu)",
 				part, (void *)range_start, range_len);
 			return -1;
 		}
