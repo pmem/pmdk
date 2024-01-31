@@ -187,7 +187,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			ret = util_poolset_create_set(&set, ppc->path,
 				0, 0, true);
 			if (ret < 0) {
-				CORE_LOG_WARNING("cannot open pool set -- '%s'",
+				CORE_LOG_ERROR("cannot open pool set -- '%s'",
 					ppc->path);
 				return -1;
 			}
@@ -296,7 +296,7 @@ pool_set_file_open(const char *fname, int rdonly)
 	int ret = util_poolset_create_set(&file->poolset, path,
 		0, 0, true);
 	if (ret < 0) {
-		CORE_LOG_WARNING("cannot open pool set -- '%s'", path);
+		CORE_LOG_ERROR("cannot open pool set -- '%s'", path);
 		goto err_free_fname;
 	}
 	unsigned flags = (rdonly ? POOL_OPEN_COW : 0) |

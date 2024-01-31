@@ -77,7 +77,7 @@ shutdown_state_add_part(struct shutdown_state *sds, int fd,
 			ERR_WO_ERRNO(
 				"Cannot read unsafe shutdown count. For more information please check https://github.com/pmem/pmdk/issues/4207");
 		}
-		CORE_LOG_WARNING("cannot read unsafe shutdown count for %d",
+		CORE_LOG_ERROR("cannot read unsafe shutdown count for %d",
 			fd);
 		goto err;
 	}

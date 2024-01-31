@@ -561,7 +561,7 @@ list_insert_new_user(PMEMobjpool *pop,
 	int ret;
 	if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
 		errno = ret;
-		CORE_LOG_WARNING("pmemobj_mutex_lock failed");
+		CORE_LOG_ERROR("pmemobj_mutex_lock failed");
 		return -1;
 	}
 
@@ -600,7 +600,7 @@ list_insert(PMEMobjpool *pop,
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 		errno = ret;
-		CORE_LOG_WARNING("pmemobj_mutex_lock failed");
+		CORE_LOG_ERROR("pmemobj_mutex_lock failed");
 		ret = -1;
 		goto err;
 	}
@@ -728,7 +728,7 @@ list_remove_free_user(PMEMobjpool *pop, size_t pe_offset,
 	int ret;
 	if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
 		errno = ret;
-		CORE_LOG_WARNING("pmemobj_mutex_lock failed");
+		CORE_LOG_ERROR("pmemobj_mutex_lock failed");
 		return -1;
 	}
 
@@ -762,7 +762,7 @@ list_remove(PMEMobjpool *pop,
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 		errno = ret;
-		CORE_LOG_WARNING("pmemobj_mutex_lock failed");
+		CORE_LOG_ERROR("pmemobj_mutex_lock failed");
 		ret = -1;
 		goto err;
 	}
@@ -839,7 +839,7 @@ list_move(PMEMobjpool *pop,
 	 */
 	if ((ret = list_mutexes_lock(pop, head_new, head_old))) {
 		errno = ret;
-		CORE_LOG_WARNING("list_mutexes_lock failed");
+		CORE_LOG_ERROR("list_mutexes_lock failed");
 		ret = -1;
 		goto err;
 	}

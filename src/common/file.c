@@ -209,13 +209,13 @@ util_file_map_whole(const char *path)
 
 	ssize_t size = util_fd_get_size(fd);
 	if (size < 0) {
-		CORE_LOG_WARNING("cannot determine file length \"%s\"", path);
+		CORE_LOG_ERROR("cannot determine file length \"%s\"", path);
 		goto out;
 	}
 
 	addr = util_map(fd, 0, (size_t)size, MAP_SHARED, 0, 0, NULL);
 	if (addr == NULL) {
-		CORE_LOG_WARNING("failed to map entire file \"%s\"", path);
+		CORE_LOG_ERROR("failed to map entire file \"%s\"", path);
 		goto out;
 	}
 
@@ -247,13 +247,13 @@ util_file_zero(const char *path, os_off_t off, size_t len)
 
 	ssize_t size = util_fd_get_size(fd);
 	if (size < 0) {
-		CORE_LOG_WARNING("cannot determine file length \"%s\"", path);
+		CORE_LOG_ERROR("cannot determine file length \"%s\"", path);
 		ret = -1;
 		goto out;
 	}
 
 	if (off > size) {
-		CORE_LOG_WARNING("offset beyond file length, %ju > %ju", off,
+		CORE_LOG_ERROR("offset beyond file length, %ju > %ju", off,
 			size);
 		ret = -1;
 		goto out;
@@ -269,7 +269,7 @@ util_file_zero(const char *path, os_off_t off, size_t len)
 
 	void *addr = util_map(fd, 0, (size_t)size, MAP_SHARED, 0, 0, NULL);
 	if (addr == NULL) {
-		CORE_LOG_WARNING("failed to map entire file \"%s\"", path);
+		CORE_LOG_ERROR("failed to map entire file \"%s\"", path);
 		ret = -1;
 		goto out;
 	}
@@ -304,7 +304,7 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
 	if (type == TYPE_NORMAL) {
 		int fd = util_file_open(path, NULL, 0, O_RDWR);
 		if (fd < 0) {
-			CORE_LOG_WARNING("failed to open file \"%s\"", path);
+			CORE_LOG_ERROR("failed to open file \"%s\"", path);
 			return -1;
 		}
 
@@ -317,7 +317,7 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
 
 	ssize_t file_size = util_file_get_size(path);
 	if (file_size < 0) {
-		CORE_LOG_WARNING("cannot determine file length \"%s\"", path);
+		CORE_LOG_ERROR("cannot determine file length \"%s\"", path);
 		return -1;
 	}
 
@@ -332,7 +332,7 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
 
 	void *addr = util_file_map_whole(path);
 	if (addr == NULL) {
-		CORE_LOG_WARNING("failed to map entire file \"%s\"", path);
+		CORE_LOG_ERROR("failed to map entire file \"%s\"", path);
 		return -1;
 	}
 
@@ -358,7 +358,7 @@ util_file_pread(const char *path, void *buffer, size_t size,
 	if (type == TYPE_NORMAL) {
 		int fd = util_file_open(path, NULL, 0, O_RDONLY);
 		if (fd < 0) {
-			CORE_LOG_WARNING("failed to open file \"%s\"", path);
+			CORE_LOG_ERROR("failed to open file \"%s\"", path);
 			return -1;
 		}
 
@@ -371,13 +371,13 @@ util_file_pread(const char *path, void *buffer, size_t size,
 
 	ssize_t file_size = util_file_get_size(path);
 	if (file_size < 0) {
-		CORE_LOG_WARNING("cannot determine file length \"%s\"", path);
+		CORE_LOG_ERROR("cannot determine file length \"%s\"", path);
 		return -1;
 	}
 
 	size_t max_size = (size_t)(file_size - offset);
 	if (size > max_size) {
-		CORE_LOG_WARNING(
+		CORE_LOG_ERROR(
 			"requested size of read goes beyond the file length, %zu > %zu",
 			size, max_size);
 		LOG(4, "adjusting size to %zu", max_size);
@@ -386,7 +386,7 @@ util_file_pread(const char *path, void *buffer, size_t size,
 
 	void *addr = util_file_map_whole(path);
 	if (addr == NULL) {
-		CORE_LOG_WARNING("failed to map entire file \"%s\"", path);
+		CORE_LOG_ERROR("failed to map entire file \"%s\"", path);
 		return -1;
 	}
 
@@ -544,7 +544,7 @@ util_unlink_flock(const char *path)
 
 	int fd = util_file_open(path, NULL, 0, O_RDONLY);
 	if (fd < 0) {
-		CORE_LOG_WARNING("failed to open file \"%s\"", path);
+		CORE_LOG_ERROR("failed to open file \"%s\"", path);
 		return -1;
 	}
 
