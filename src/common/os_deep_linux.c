@@ -39,7 +39,7 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 					"deep_flush not supported");
 			} else {
 				errno = pmem2_err_to_errno(ret);
-				CORE_LOG_WARNING(
+				CORE_LOG_ERROR(
 					"cannot write to deep_flush in region %u",
 					mt->region_id);
 			}
