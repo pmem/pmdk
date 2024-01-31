@@ -414,7 +414,7 @@ lane_check(PMEMobjpool *pop)
 		layout = lane_get_layout(pop, j);
 		if (ulog_check((struct ulog *)&layout->internal,
 		    OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops) != 0) {
-			CORE_LOG_WARNING(
+			CORE_LOG_ERROR(
 				"lane %" PRIu64 " internal redo failed: %d",
 				j, err);
 			return err;

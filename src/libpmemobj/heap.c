@@ -1324,7 +1324,7 @@ heap_set_narenas_max(struct palloc_heap *heap, unsigned size)
 	util_mutex_lock(&h->arenas.lock);
 	unsigned capacity = (unsigned)VEC_CAPACITY(&h->arenas.vec);
 	if (size < capacity) {
-		CORE_LOG_WARNING("cannot decrease max number of arenas");
+		CORE_LOG_ERROR("cannot decrease max number of arenas");
 		goto out;
 	} else if (size == capacity) {
 		ret = 0;

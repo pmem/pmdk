@@ -122,11 +122,11 @@ pmempool_rmU(const char *path, unsigned flags)
 	}
 
 	if (!is_poolset) {
-		CORE_LOG_WARNING("%s: not a poolset file", path);
+		CORE_LOG_ERROR("%s: not a poolset file", path);
 		return rm_local(path, flags, 0);
 	}
 
-	CORE_LOG_WARNING("%s: poolset file", path);
+	CORE_LOG_ERROR("%s: poolset file", path);
 
 	/* fill up pool_set structure */
 	struct pool_set *set = NULL;
