@@ -52,14 +52,14 @@ pmemobj_check_versionU(unsigned major_required, unsigned minor_required)
 		ERR_WO_ERRNO(
 			"libpmemobj major version mismatch (need %u, found %u)",
 			major_required, PMEMOBJ_MAJOR_VERSION);
-		return out_get_errormsg();
+		return error_msg_get();
 	}
 
 	if (minor_required > PMEMOBJ_MINOR_VERSION) {
 		ERR_WO_ERRNO(
 			"libpmemobj minor version mismatch (need %u, found %u)",
 			minor_required, PMEMOBJ_MINOR_VERSION);
-		return out_get_errormsg();
+		return error_msg_get();
 	}
 
 	return NULL;
@@ -96,7 +96,7 @@ static inline
 const char *
 pmemobj_errormsgU(void)
 {
-	return out_get_errormsg();
+	return error_msg_get();
 }
 
 /*

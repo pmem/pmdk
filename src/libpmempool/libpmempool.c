@@ -59,14 +59,14 @@ pmempool_check_versionU(unsigned major_required, unsigned minor_required)
 		ERR_WO_ERRNO(
 		    "libpmempool major version mismatch (need %u, found %u)",
 			major_required, PMEMPOOL_MAJOR_VERSION);
-		return out_get_errormsg();
+		return error_msg_get();
 	}
 
 	if (minor_required > PMEMPOOL_MINOR_VERSION) {
 		ERR_WO_ERRNO(
 			"libpmempool minor version mismatch (need %u, found %u)",
 			minor_required, PMEMPOOL_MINOR_VERSION);
-		return out_get_errormsg();
+		return error_msg_get();
 	}
 
 	return NULL;
@@ -88,7 +88,7 @@ static inline
 const char *
 pmempool_errormsgU(void)
 {
-	return out_get_errormsg();
+	return error_msg_get();
 }
 
 /*
