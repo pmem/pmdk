@@ -8,18 +8,28 @@ $(OPT)compiled with support for Valgrind drd
 $(OPT)compiled with support for shutdown state
 $(OPT)compiled with libndctl 63+
 invalid checksum of pool header
+header check failed - part #1
 wrong pool type: "ERRORXX"
+header check failed - part #1
 pool version 99 (library expects 1)
+header check failed - part #1
 invalid reserved values
 invalid machine value
 invalid data value
 invalid machine_class value
 invalid alignment_desc value
 wrong architecture flags
+header check failed - part #1
 incompatible feature flags
+header check failed - part #1
 incompatible feature flags
+header check failed - part #1
 incompatible feature flags
+header check failed - part #1
 wrong pool set UUID
+header check failed - part #1
 wrong part UUID
+header check failed - part #0
 wrong part UUID
+header check failed - part #0
 wrong replica UUID

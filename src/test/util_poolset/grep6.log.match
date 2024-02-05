@@ -8,9 +8,16 @@ $(OPT)compiled with support for Valgrind drd
 $(OPT)compiled with support for shutdown state
 $(OPT)compiled with libndctl 63+
 cannot mix directories and files in a set
+cannot create pool set -- '$(nW)/testset2'
 cannot mix directories and files in a set
+cannot create pool set -- '$(nW)/testset3'
 cannot mix directories and files in a set
+cannot create pool set -- '$(nW)/testset4'
 cannot mix directories and files in a set
+cannot create pool set -- '$(nW)/testset6'
 cannot mix directories and files in a set
+cannot create pool set -- '$(nW)/testset7'
 cannot mix directories and files in a set
+cannot create pool set -- '$(nW)/testset8'
 cannot mix directories and files in a set
+cannot create pool set -- '$(nW)/testset9'
