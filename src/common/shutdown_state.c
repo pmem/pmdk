@@ -77,7 +77,8 @@ shutdown_state_add_part(struct shutdown_state *sds, int fd,
 			ERR_WO_ERRNO(
 				"Cannot read unsafe shutdown count. For more information please check https://github.com/pmem/pmdk/issues/4207");
 		}
-		LOG(2, "cannot read unsafe shutdown count for %d", fd);
+		CORE_LOG_ERROR("cannot read unsafe shutdown count for %d",
+			fd);
 		goto err;
 	}
 
@@ -202,7 +203,8 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 
 	if (!is_checksum_correct) {
 		/* the program was killed during opening or closing the pool */
-		LOG(2, "incorrect checksum - SDS will be reinitialized");
+		CORE_LOG_WARNING(
+			"incorrect checksum - SDS will be reinitialized");
 		shutdown_state_reinit(curr_sds, pool_sds, rep);
 		return 0;
 	}
@@ -214,14 +216,14 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 		 * the program was killed when the pool was opened
 		 * but there wasn't an ADR failure
 		 */
-		LOG(2,
+		CORE_LOG_WARNING(
 			"the pool was not closed - SDS will be reinitialized");
 		shutdown_state_reinit(curr_sds, pool_sds, rep);
 		return 0;
 	}
 	if (dirty == 0) {
 		/* an ADR failure but the pool was closed */
-		LOG(2,
+		CORE_LOG_WARNING(
 			"an ADR failure was detected but the pool was closed - SDS will be reinitialized");
 		shutdown_state_reinit(curr_sds, pool_sds, rep);
 		return 0;

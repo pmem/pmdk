@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * uuid_linux.c -- pool set utilities with OS-specific implementation
@@ -28,13 +28,13 @@ util_uuid_generate(uuid_t uuid)
 	int fd = os_open(POOL_HDR_UUID_GEN_FILE, O_RDONLY);
 	if (fd < 0) {
 		/* Fatal error */
-		LOG(2, "!open(uuid)");
+		CORE_LOG_ERROR_WITH_ERRNO("open(uuid)");
 		return -1;
 	}
 	ssize_t num = read(fd, uu, POOL_HDR_UUID_STR_LEN);
 	if (num < POOL_HDR_UUID_STR_LEN) {
 		/* Fatal error */
-		LOG(2, "!read(uuid)");
+		CORE_LOG_ERROR_WITH_ERRNO("read(uuid)");
 		os_close(fd);
 		return -1;
 	}

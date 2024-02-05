@@ -51,8 +51,8 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET2 >> $LOG_TEMP 2>&1
 # Check metadata using pmempool info
 dump_pool_info $POOLSET1 >> $LOG_TEMP
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
+# Exclude error and warn messages printed out on the stderr by PMDK in debug
+fgrep -v "*ERROR*" $LOG_TEMP | fgrep -v "*WARN*" > $LOG
 rm $LOG_TEMP
 
 check

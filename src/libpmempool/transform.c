@@ -374,13 +374,13 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	for (unsigned r = 0; r < set_in_s->nreplicas; ++r) {
 		unsigned c = replica_counterpart(r, set_in_s);
 		if (c != UNDEF_REPLICA) {
-			LOG(2, "replica %u has a counterpart %u", r,
+			CORE_LOG_DEBUG("replica %u has a counterpart %u", r,
 					set_in_s->replica[r]);
 			has_replica_to_keep = 1;
 			REP_HEALTH(set_out_hs, c)->pool_size =
 					REP_HEALTH(set_in_hs, r)->pool_size;
 		} else {
-			LOG(2, "replica %u has no counterpart", r);
+			CORE_LOG_NOTICE("replica %u has no counterpart", r);
 			is_removing_replicas = 1;
 		}
 	}
@@ -394,7 +394,8 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	/* check if there are replicas to be added */
 	for (unsigned r = 0; r < set_out_s->nreplicas; ++r) {
 		if (replica_counterpart(r, set_out_s) == UNDEF_REPLICA) {
-			LOG(2, "Replica %u from output set has no counterpart",
+			CORE_LOG_NOTICE(
+					"Replica %u from output set has no counterpart",
 					r);
 			if (is_removing_replicas) {
 				ERR_WO_ERRNO(

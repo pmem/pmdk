@@ -26,7 +26,7 @@ main(int argc, char *argv[])
 			MAJOR_VERSION, MINOR_VERSION);
 	LOG(0, "Log level NONE");
 	CORE_LOG_ERROR("Log level ERROR");
-	LOG(2, "Log level WARNING");
+	CORE_LOG_WARNING("Log level WARNING");
 	LOG(3, "Log level INFO");
 	LOG(4, "Log level DEBUG");
 

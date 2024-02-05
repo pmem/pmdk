@@ -87,7 +87,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	if (pop != NULL && (pop->ctl = ctl_new()) == NULL) {
-		LOG(2, "!ctl_new");
+		CORE_LOG_ERROR_WITH_ERRNO("ctl_new");
 		return -1;
 	}
 
@@ -102,8 +102,8 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	if (env_config != NULL) {
 		if (ctl_load_config_from_string(pop ? pop->ctl : NULL,
 				pop, env_config) != 0) {
-			LOG(2, "unable to parse config stored in %s "
-				"environment variable",
+			CORE_LOG_ERROR(
+				"unable to parse config stored in %s environment variable",
 				OBJ_CONFIG_ENV_VARIABLE);
 			goto err;
 		}
@@ -113,10 +113,9 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	if (env_config_file != NULL && env_config_file[0] != '\0') {
 		if (ctl_load_config_from_file(pop ? pop->ctl : NULL,
 				pop, env_config_file) != 0) {
-			LOG(2, "unable to parse config stored in %s "
-				"file (from %s environment variable)",
-				env_config_file,
-				OBJ_CONFIG_FILE_ENV_VARIABLE);
+			CORE_LOG_ERROR(
+				"unable to parse config stored in %s file (from %s environment variable)",
+				env_config_file, OBJ_CONFIG_FILE_ENV_VARIABLE);
 			goto err;
 		}
 	}
@@ -1088,7 +1087,7 @@ pmemobj_createU(const char *path, const char *layout,
 	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
 			PMEMOBJ_MIN_PART, &adj_pool_attr, &runtime_nlanes,
 			REPLICAS_ENABLED) != 0) {
-		LOG(2, "cannot create pool or pool set");
+		CORE_LOG_ERROR("cannot create pool or pool set");
 		os_mutex_unlock(&pools_mutex);
 		return NULL;
 	}
@@ -1125,7 +1124,7 @@ pmemobj_createU(const char *path, const char *layout,
 
 	/* create pool descriptor */
 	if (obj_descr_create(pop, layout, set->poolsize) != 0) {
-		LOG(2, "creation of pool descriptor failed");
+		CORE_LOG_ERROR("creation of pool descriptor failed");
 		goto err;
 	}
 
@@ -1187,7 +1186,7 @@ obj_check_basic_local(PMEMobjpool *pop, size_t mapped_size)
 	}
 
 	if ((errno = lane_check(pop)) != 0) {
-		LOG(2, "!lane_check");
+		CORE_LOG_ERROR_WITH_ERRNO("lane_check");
 		consistent = 0;
 	}
 
@@ -1196,7 +1195,7 @@ obj_check_basic_local(PMEMobjpool *pop, size_t mapped_size)
 	errno = palloc_heap_check((char *)pop + pop->heap_offset,
 		heap_size);
 	if (errno != 0) {
-		LOG(2, "!heap_check");
+		CORE_LOG_ERROR_WITH_ERRNO("heap_check");
 		consistent = 0;
 	}
 
@@ -1236,7 +1235,7 @@ obj_pool_open(struct pool_set **set, const char *path, unsigned flags,
 {
 	if (util_pool_open(set, path, PMEMOBJ_MIN_PART, &Obj_open_attr,
 				nlanes, NULL, flags) != 0) {
-		LOG(2, "cannot open pool or pool set");
+		CORE_LOG_ERROR("cannot open pool or pool set");
 		return -1;
 	}
 
@@ -1373,7 +1372,8 @@ obj_open_common(const char *path, const char *layout, unsigned flags, int boot)
 		PMEMobjpool *rep = repset->part[0].addr;
 		/* check descriptor */
 		if (obj_descr_check(rep, layout, set->poolsize) != 0) {
-			LOG(2, "descriptor check of replica #%u failed", r);
+			CORE_LOG_ERROR(
+				"descriptor check of replica #%u failed", r);
 			goto err_descr_check;
 		}
 	}
@@ -2435,7 +2435,7 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 	if (size > pop->root_size &&
 		obj_alloc_root(pop, size, constructor, arg)) {
 		pmemobj_mutex_unlock_nofail(pop, &pop->rootlock);
-		LOG(2, "obj_realloc_root failed");
+		CORE_LOG_ERROR("obj_realloc_root failed");
 		PMEMOBJ_API_END();
 		return OID_NULL;
 	}
