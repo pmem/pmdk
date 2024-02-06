@@ -3,7 +3,7 @@
 # Copyright 2024, Intel Corporation
 
 #
-# src/test/log_errno/TEST0 -- unit test for CORE_LOG_ERROR_WITH_ERRNO macro
+# src/test/log_errno/TEST0 -- unit test for CORE_LOG_ERROR_W_ERRNO macro
 #
 
 . ../unittest/unittest.sh

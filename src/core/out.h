@@ -168,7 +168,7 @@ out_nonl_discard(int level, const char *fmt, ...)
 #define ERR_W_ERRNO(f, ...)\
 	do {\
 		ERR(1, "*" f, ##__VA_ARGS__);\
-		CORE_LOG_ERROR_WITH_ERRNO(f, ##__VA_ARGS__);\
+		CORE_LOG_ERROR_W_ERRNO(f, ##__VA_ARGS__);\
 	} while (0)
 
 #define ERR_WO_ERRNO(f, ...)\

@@ -35,7 +35,7 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 		if (ret < 0) {
 			if (ret == PMEM2_E_NOSUPP) {
 				errno = ENOTSUP;
-				CORE_LOG_ERROR_WITH_ERRNO(
+				CORE_LOG_ERROR_W_ERRNO(
 					"deep_flush not supported");
 			} else {
 				errno = pmem2_err_to_errno(ret);
@@ -153,7 +153,7 @@ os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 		if (ret < 0) {
 			if (errno == ENOENT) {
 				errno = ENOTSUP;
-				CORE_LOG_ERROR_WITH_ERRNO(
+				CORE_LOG_ERROR_W_ERRNO(
 					"deep_flush not supported");
 			} else {
 				CORE_LOG_ERROR("invalid dax_region id %u",
