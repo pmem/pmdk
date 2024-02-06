@@ -12,6 +12,7 @@
 
 #include "os.h"
 #include "out.h"
+#include "error_msg.h"
 #include "source.h"
 
 static inline int
@@ -32,7 +33,7 @@ pmem2_assert_errno(void)
 #define PMEM2_ERR_CLR() \
 {\
 	errno = 0;\
-	char *errormsg = (char *)out_get_errormsg();\
+	char *errormsg = (char *)error_msg_get();\
 	strcpy(errormsg, "\0");\
 }
 #else

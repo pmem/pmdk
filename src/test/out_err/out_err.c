@@ -29,27 +29,27 @@ main(int argc, char *argv[])
 
 	errno = 0;
 	ERR_WO_ERRNO("ERR #%d", 1);
-	UT_OUT("%s", out_get_errormsg());
+	UT_OUT("%s", error_msg_get());
 
 	errno = 0;
 	ERR_W_ERRNO("ERR #%d", 2);
-	UT_OUT("%s", out_get_errormsg());
+	UT_OUT("%s", error_msg_get());
 
 	errno = EINVAL;
 	ERR_W_ERRNO("ERR #%d", 3);
-	UT_OUT("%s", out_get_errormsg());
+	UT_OUT("%s", error_msg_get());
 
 	errno = EBADF;
 	strerror_r(errno, buff, UT_MAX_ERR_MSG);
 	out_err(0, __FILE__, 100, __func__,
 		"ERR1: %s:%d", buff, 1234);
-	UT_OUT("%s", out_get_errormsg());
+	UT_OUT("%s", error_msg_get());
 
 	errno = EBADF;
 	strerror_r(errno, buff, UT_MAX_ERR_MSG);
 	out_err(0, NULL, 0, NULL,
 		"ERR2: %s:%d", buff, 1234);
-	UT_OUT("%s", out_get_errormsg());
+	UT_OUT("%s", error_msg_get());
 
 	/* Cleanup */
 	common_fini();

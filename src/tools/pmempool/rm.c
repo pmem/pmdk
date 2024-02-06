@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * rm.c -- pmempool rm command main source file
@@ -14,6 +14,7 @@
 
 #include "os.h"
 #include "out.h"
+#include "error_msg.h"
 #include "common.h"
 #include "output.h"
 #include "file.h"
@@ -169,7 +170,7 @@ rm_poolset(const char *file)
 	int ret = util_poolset_foreach_part(file, rm_poolset_cb, &error);
 	if (ret == -1) {
 		outv_err("parsing poolset failed: %s\n",
-				out_get_errormsg());
+				error_msg_get());
 		return ret;
 	}
 
