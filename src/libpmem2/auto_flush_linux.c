@@ -34,7 +34,7 @@ check_cpu_cache(const char *domain_path)
 	int cpu_cache = 0;
 
 	if ((domain_fd = os_open(domain_path, O_RDONLY)) < 0) {
-		CORE_LOG_ERROR_WITH_ERRNO("open(\"%s\", O_RDONLY)",
+		CORE_LOG_ERROR_W_ERRNO("open(\"%s\", O_RDONLY)",
 			domain_path);
 			goto end;
 	}
