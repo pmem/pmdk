@@ -114,9 +114,33 @@ void core_log_fini(void);
 
 #define CORE_LOG_LEVEL_ALWAYS (CORE_LOG_DISABLED - 1)
 
-void core_log_default_function(void *context, enum core_log_level level,
-	const char *file_name, const int line_no, const char *function_name,
-	const char *message_format, ...);
+/*
+ * Required to handle both variants' return types.
+ * The ideal solution would be to force using one variant or another.
+ */
+#ifdef _GNU_SOURCE
+#define _CORE_LOG_STRERROR_R(buf, buf_len, out) \
+	do { \
+		char *ret = strerror_r(errno, (buf), (buf_len)); \
+		*(out) = ret; \
+	} while (0)
+#else
+#define _CORE_LOG_STRERROR_R(buf, buf_len, out) \
+	do { \
+		int ret = strerror_r(errno, (buf), (buf_len)); \
+		(void) ret; \
+		*(out) = buf; \
+	} while (0)
+#endif
+
+#define _CORE_LOG_STRERROR(buf, buf_len, out) \
+	do { \
+		int oerrno = errno; \
+		_CORE_LOG_STRERROR_R((buf), (buf_len), (out)); \
+		errno = oerrno; \
+	} while (0)
+
+#define CORE_LOG_MAX_ERR_MSG 128
 
 /*
  * Set of macros that should be used as the primary API for logging.
@@ -143,73 +167,41 @@ void core_log_default_function(void *context, enum core_log_level level,
 		abort(); \
 	} while (0)
 
-#define CORE_LOG_MAX_ERR_MSG 128
-#ifdef _GNU_SOURCE
-#define CORE_LOG_FATAL_W_ERRNO(format, ...) \
-	do { \
-		char buff[CORE_LOG_MAX_ERR_MSG]; \
-		CORE_LOG(CORE_LOG_LEVEL_FATAL, format ": %s", ##__VA_ARGS__, \
-			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
-		abort(); \
-	} while (0)
-#else
-#define CORE_LOG_FATAL_W_ERRNO(format, ...) \
-	do { \
-		char buff[CORE_LOG_MAX_ERR_MSG]; \
-		uint64_t ret = (uint64_t)strerror_r(errno, buff, \
-			CORE_LOG_MAX_ERR_MSG); \
-		ret = ret; \
-		CORE_LOG(CORE_LOG_LEVEL_FATAL, format ": %s", ##__VA_ARGS__, \
-			buff); \
-		abort(); \
-	} while (0)
-#endif
-
 #define CORE_LOG_ALWAYS(format, ...) \
 	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format, ##__VA_ARGS__)
 
 /*
- * Replacement for ERR("!*") macro (w/ errno).
- * 'f' stands here for 'function' or 'format' where the latter may accept
- * additional arguments.
+ * 'With errno' macros' flavours. Append string describing the current errno
+ * value.
  */
-#ifdef _GNU_SOURCE
-#define CORE_LOG_ERROR_W_ERRNO(format, ...) \
-	do { \
-		char buff[CORE_LOG_MAX_ERR_MSG]; \
-		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
-			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
-	} while (0)
-#else
-#define CORE_LOG_ERROR_W_ERRNO(format, ...) \
-	do { \
-		char buff[CORE_LOG_MAX_ERR_MSG]; \
-		uint64_t ret = (uint64_t)strerror_r(errno, buff, \
-			CORE_LOG_MAX_ERR_MSG); \
-		ret = ret; \
-		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
-			buff); \
-	} while (0)
-#endif
 
-#ifdef _GNU_SOURCE
 #define CORE_LOG_WARNING_W_ERRNO(format, ...) \
 	do { \
-		char buff[CORE_LOG_MAX_ERR_MSG]; \
+		char buf[CORE_LOG_MAX_ERR_MSG]; \
+		char *error_str; \
+		_CORE_LOG_STRERROR(buf, CORE_LOG_MAX_ERR_MSG, &error_str); \
 		CORE_LOG(CORE_LOG_LEVEL_WARNING, format ": %s", ##__VA_ARGS__, \
-			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
+			error_str); \
 	} while (0)
-#else
-#define CORE_LOG_WARNING_W_ERRNO(format, ...) \
+
+#define CORE_LOG_ERROR_W_ERRNO(format, ...) \
 	do { \
-		char buff[CORE_LOG_MAX_ERR_MSG]; \
-		uint64_t ret = (uint64_t)strerror_r(errno, buff, \
-			CORE_LOG_MAX_ERR_MSG); \
-		ret = ret; \
-		CORE_LOG(CORE_LOG_LEVEL_WARNING, format ": %s", ##__VA_ARGS__, \
-			buff); \
+		char buf[CORE_LOG_MAX_ERR_MSG]; \
+		char *error_str; \
+		_CORE_LOG_STRERROR(buf, CORE_LOG_MAX_ERR_MSG, &error_str); \
+		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
+			error_str); \
 	} while (0)
-#endif
+
+#define CORE_LOG_FATAL_W_ERRNO(format, ...) \
+	do { \
+		char buf[CORE_LOG_MAX_ERR_MSG]; \
+		char *error_str; \
+		_CORE_LOG_STRERROR(buf, CORE_LOG_MAX_ERR_MSG, &error_str); \
+		CORE_LOG(CORE_LOG_LEVEL_FATAL, format ": %s", ##__VA_ARGS__, \
+			error_str); \
+		abort(); \
+	} while (0)
 
 static inline int
 core_log_error_translate(int ret)
