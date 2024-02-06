@@ -39,13 +39,13 @@ pmem2_deep_flush_write(unsigned region_id)
 	}
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_RDONLY)) < 0) {
-		CORE_LOG_ERROR_WITH_ERRNO("os_open(\"%s\", O_RDONLY)",
+		CORE_LOG_ERROR_W_ERRNO("os_open(\"%s\", O_RDONLY)",
 			deep_flush_path);
 		return 0;
 	}
 
 	if (read(deep_flush_fd, rbuf, sizeof(rbuf)) != 2) {
-		CORE_LOG_ERROR_WITH_ERRNO("read(%d)", deep_flush_fd);
+		CORE_LOG_ERROR_W_ERRNO("read(%d)", deep_flush_fd);
 		goto end;
 	}
 

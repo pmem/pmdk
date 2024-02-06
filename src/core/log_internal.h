@@ -174,14 +174,14 @@ void core_log_default_function(void *context, enum core_log_level level,
  * additional arguments.
  */
 #ifdef _GNU_SOURCE
-#define CORE_LOG_ERROR_WITH_ERRNO(format, ...) \
+#define CORE_LOG_ERROR_W_ERRNO(format, ...) \
 	do { \
 		char buff[CORE_LOG_MAX_ERR_MSG]; \
 		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
 			strerror_r(errno, buff, CORE_LOG_MAX_ERR_MSG)); \
 	} while (0)
 #else
-#define CORE_LOG_ERROR_WITH_ERRNO(format, ...) \
+#define CORE_LOG_ERROR_W_ERRNO(format, ...) \
 	do { \
 		char buff[CORE_LOG_MAX_ERR_MSG]; \
 		uint64_t ret = (uint64_t)strerror_r(errno, buff, \
