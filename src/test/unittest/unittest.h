@@ -123,7 +123,7 @@ void ut_err(const char *file, int line, const char *func,
 void
 ut_log_function(void *context, enum core_log_level level, const char *file_name,
 	const int line_no, const char *function_name,
-	const char *message_format, ...);
+	const char *message);
 
 #ifdef USE_LOG_PMEMCORE
 #define LOG_SET_PMEMCORE_FUNC core_log_set_function(ut_log_function, NULL)

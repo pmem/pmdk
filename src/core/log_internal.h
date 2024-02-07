@@ -17,6 +17,11 @@
 #include <stdatomic.h>
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 
+/* Required to work properly with pmembench. */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum core_log_level {
 	/* all messages will be suppressed */
 	CORE_LOG_DISABLED = -1,
@@ -33,6 +38,9 @@ enum core_log_level {
 	/* debug info e.g. write operation dump */
 	CORE_LOG_LEVEL_DEBUG,
 };
+
+/* Not meant to be used directly. */
+#define CORE_LOG_LEVEL_ALWAYS (CORE_LOG_DISABLED - 1)
 
 enum core_log_threshold {
 	/*
@@ -68,10 +76,8 @@ typedef void core_log_function(
 	const int line_no,
 	/* the function name where the message coming from */
 	const char *function_name,
-	/* printf(3)-like format string of the message */
-	const char *message_format,
-	/* additional arguments of the message format string */
-	...);
+	/* message */
+	const char *message);
 
 #define CORE_LOG_USE_DEFAULT_FUNCTION (NULL)
 
@@ -102,17 +108,38 @@ void core_log_init(void);
 
 void core_log_fini(void);
 
+static inline int
+core_log_error_translate(int ret)
+{
+	if (ret != 0) {
+		errno = ret;
+		return 1;
+	}
+
+	return 0;
+}
+
+void core_log(enum core_log_level level, const char *file_name, int line_no,
+	const char *function_name, const char *message_format, ...);
+
+/* Only error messages can last. So, no level has to be specified. */
+void core_log_to_last(const char *file_name, int line_no,
+	const char *function_name, const char *message_format, ...);
+
 #define CORE_LOG(level, format, ...) \
 	do { \
-		if (level <= Core_log_threshold[CORE_LOG_THRESHOLD] && \
-				0 != Core_log_function) { \
-			((core_log_function *)Core_log_function)( \
-				Core_log_function_context, level, __FILE__, \
-				__LINE__, __func__, format, ##__VA_ARGS__); \
+		if (level <= Core_log_threshold[CORE_LOG_THRESHOLD]) { \
+			core_log(level, __FILE__, __LINE__, __func__, \
+				format, ##__VA_ARGS__); \
 		} \
 	} while (0)
 
-#define CORE_LOG_LEVEL_ALWAYS (CORE_LOG_DISABLED - 1)
+/*
+ * Can't check the logging level here when logging to the last error message.
+ * Since the log message has to be generated anyway.
+ */
+#define CORE_LOG_TO_LAST(format, ...) \
+	core_log_to_last(__FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 
 /*
  * Required to handle both variants' return types.
@@ -203,15 +230,25 @@ void core_log_fini(void);
 		abort(); \
 	} while (0)
 
-static inline int
-core_log_error_translate(int ret)
-{
-	if (ret != 0) {
-		errno = ret;
-		return 1;
-	}
+/*
+ * 'Last' macros' flavours. Additionally writes the produced error message
+ * to the last error message's TLS buffer making it available to the end user
+ * via the *_errormsg() API calls.
+ */
 
-	return 0;
+#define CORE_LOG_ERROR_LAST(format, ...) \
+	CORE_LOG_TO_LAST(format, ##__VA_ARGS__)
+
+#define CORE_LOG_ERROR_W_ERRNO_LAST(format, ...) \
+	do { \
+		char buf[CORE_LOG_MAX_ERR_MSG]; \
+		char *error_str; \
+		_CORE_LOG_STRERROR(buf, CORE_LOG_MAX_ERR_MSG, &error_str); \
+		CORE_LOG_TO_LAST(format ": %s", ##__VA_ARGS__, error_str); \
+	} while (0)
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif /* CORE_LOG_INTERNAL_H */

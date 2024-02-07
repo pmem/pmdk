@@ -166,16 +166,10 @@ out_nonl_discard(int level, const char *fmt, ...)
 	out_err(use_errno, __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 #define ERR_W_ERRNO(f, ...)\
-	do {\
-		ERR(1, "*" f, ##__VA_ARGS__);\
-		CORE_LOG_ERROR_W_ERRNO(f, ##__VA_ARGS__);\
-	} while (0)
+	CORE_LOG_ERROR_W_ERRNO_LAST(f, ##__VA_ARGS__)
 
 #define ERR_WO_ERRNO(f, ...)\
-	do {\
-		ERR(0, "*" f, ##__VA_ARGS__);\
-		CORE_LOG_ERROR(f, ##__VA_ARGS__);\
-	} while (0)
+	CORE_LOG_ERROR_LAST(f, ##__VA_ARGS__)
 
 void out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
