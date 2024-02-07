@@ -162,9 +162,6 @@ out_nonl_discard(int level, const char *fmt, ...)
 #define ASSERTne(lhs, rhs)
 #endif /* DEBUG */
 
-#define ERR(use_errno, ...)\
-	out_err(use_errno, __FILE__, __LINE__, __func__, __VA_ARGS__)
-
 #define ERR_W_ERRNO(f, ...)\
 	CORE_LOG_ERROR_W_ERRNO_LAST(f, ##__VA_ARGS__)
 
@@ -180,8 +177,6 @@ void out_nonl(int level, const char *fmt, ...) FORMAT_PRINTF(2, 3);
 void out_log_va(const char *file, int line, const char *func, int level,
 		const char *fmt, va_list ap);
 void out_log(const char *file, int line, const char *func, int level,
-	const char *fmt, ...) FORMAT_PRINTF(5, 6);
-void out_err(int use_errno, const char *file, int line, const char *func,
 	const char *fmt, ...) FORMAT_PRINTF(5, 6);
 void NORETURN out_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...) FORMAT_PRINTF(4, 5);

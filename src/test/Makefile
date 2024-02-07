@@ -113,8 +113,6 @@ OTHER_TESTS = \
 	ctl_prefault\
 	ctl_cow\
 	magic\
-	out_err\
-	out_err_mt\
 	pmemobjcli\
 	pmemspoil\
 	scope\
