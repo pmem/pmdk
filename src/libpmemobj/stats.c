@@ -7,6 +7,7 @@
 
 #include "obj.h"
 #include "stats.h"
+#include "core_assert.h"
 
 STATS_CTL_HANDLER(persistent, curr_allocated, heap_curr_allocated);
 

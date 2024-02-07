@@ -8,6 +8,7 @@
 #include "ctl.h"
 #include "os.h"
 #include "alloc.h"
+#include "core_assert.h"
 
 #define CTL_MAX_ENTRIES 100
 

@@ -11,7 +11,7 @@
 #include <errno.h>
 
 #include "os_thread.h"
-#include "out.h"
+#include "core_assert.h"
 
 #ifdef __cplusplus
 extern "C" {

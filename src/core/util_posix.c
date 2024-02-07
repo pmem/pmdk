@@ -14,6 +14,7 @@
 #include <errno.h>
 #include "os.h"
 #include "out.h"
+#include "core_assert.h"
 #include "util.h"
 
 /* pass through for Posix */

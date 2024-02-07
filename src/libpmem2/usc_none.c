@@ -6,7 +6,8 @@
  */
 
 #include "libpmem2.h"
-#include "out.h"
+#include "log_internal.h"
+#include "util.h"
 
 int
 pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)

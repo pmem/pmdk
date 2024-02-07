@@ -11,7 +11,7 @@
 #include <errno.h>
 
 #include "os.h"
-#include "out.h"
+#include "core_assert.h"
 #include "last_error_msg.h"
 #include "source.h"
 

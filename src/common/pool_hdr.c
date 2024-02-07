@@ -11,6 +11,7 @@
 #include <endian.h>
 
 #include "out.h"
+#include "log_internal.h"
 #include "pool_hdr.h"
 
 /* Determine ISA for which PMDK is currently compiled */

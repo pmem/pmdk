@@ -9,7 +9,7 @@
 #include "list.h"
 #include "obj.h"
 #include "os_thread.h"
-#include "out.h"
+#include "core_assert.h"
 #include "sync.h"
 #include "valgrind_internal.h"
 #include "memops.h"

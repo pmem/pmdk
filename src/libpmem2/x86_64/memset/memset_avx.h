@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2022, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 #ifndef PMEM2_MEMSET_AVX_H
 #define PMEM2_MEMSET_AVX_H
@@ -10,7 +10,7 @@
 #include <string.h>
 
 #include "avx.h"
-#include "out.h"
+#include "core_assert.h"
 
 static force_inline void
 memset_small_avx_noflush(char *dest, __m256i ymm, size_t len)

@@ -9,7 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+
 #include "out.h"
+#include "core_assert.h"
 #include "ravl.h"
 #include "alloc.h"
 
