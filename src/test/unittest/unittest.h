@@ -88,6 +88,7 @@ extern "C" {
 #include "os_thread.h"
 #include "util.h"
 #include "log_internal.h"
+#include "core_assert.h"
 
 #ifdef USE_LOG_PMEMOBJ
 #include "libpmemobj/log.h"

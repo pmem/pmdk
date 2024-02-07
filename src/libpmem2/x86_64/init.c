@@ -10,6 +10,7 @@
 #include "memcpy_memset.h"
 #include "os.h"
 #include "out.h"
+#include "core_assert.h"
 #include "pmem2_arch.h"
 #include "valgrind_internal.h"
 

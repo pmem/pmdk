@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2022, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 #ifndef PMEM2_MEMCPY_AVX_H
 #define PMEM2_MEMCPY_AVX_H
@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "out.h"
+#include "core_assert.h"
 
 static force_inline void
 memmove_small_avx_noflush(char *dest, const char *src, size_t len)

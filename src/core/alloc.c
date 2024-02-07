@@ -5,12 +5,13 @@
 
 #include "alloc.h"
 #include "fault_injection.h"
-#include "out.h"
 
 Malloc_func fn_malloc = malloc;
 Realloc_func fn_realloc = realloc;
 
 #if FAULT_INJECTION
+#include "log_internal.h"
+
 static __thread int malloc_num;
 static __thread int fail_malloc_num;
 static __thread const char *fail_malloc_from;

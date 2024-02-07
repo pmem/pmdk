@@ -13,6 +13,7 @@
 #include <string.h>
 #include <errno.h>
 #include "out.h"
+#include "core_assert.h"
 #include "os.h"
 #include "fs.h"
 #include "auto_flush.h"

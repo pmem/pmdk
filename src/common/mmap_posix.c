@@ -9,7 +9,7 @@
 #include <sys/mman.h>
 #include <sys/param.h>
 #include "mmap.h"
-#include "out.h"
+#include "core_assert.h"
 #include "os.h"
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */

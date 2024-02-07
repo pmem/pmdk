@@ -9,7 +9,7 @@
 #include <sys/mman.h>
 
 #include "pmem.h"
-#include "out.h"
+#include "log_internal.h"
 #include "mmap.h"
 
 /*

@@ -11,6 +11,7 @@
 #include "libpmem2.h"
 #include "badblocks.h"
 #include "out.h"
+#include "core_assert.h"
 #include "vec.h"
 #include "os.h"
 

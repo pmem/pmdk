@@ -9,7 +9,6 @@
 #define PMDK_OUT_H 1
 
 #include "util.h"
-#include "core_assert.h"
 
 #ifdef __cplusplus
 extern "C" {

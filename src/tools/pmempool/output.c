@@ -16,9 +16,11 @@
 #include <endian.h>
 #include <inttypes.h>
 #include <float.h>
+
 #include "feature.h"
 #include "common.h"
 #include "output.h"
+#include "core_assert.h"
 
 #define _STR(s)	#s
 #define STR(s) _STR(s)

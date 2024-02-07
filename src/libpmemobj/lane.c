@@ -17,7 +17,7 @@
 #include "libpmemobj.h"
 #include "critnib.h"
 #include "lane.h"
-#include "out.h"
+#include "core_assert.h"
 #include "util.h"
 #include "obj.h"
 #include "os_thread.h"

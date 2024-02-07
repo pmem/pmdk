@@ -11,7 +11,7 @@
 #include "queue.h"
 #include "ravl.h"
 #include "obj.h"
-#include "out.h"
+#include "core_assert.h"
 #include "pmalloc.h"
 #include "tx.h"
 #include "valgrind_internal.h"

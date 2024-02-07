@@ -11,7 +11,7 @@
 #include "alloc_class.h"
 #include "heap_layout.h"
 #include "util.h"
-#include "out.h"
+#include "core_assert.h"
 #include "bucket.h"
 #include "critnib.h"
 

@@ -2,7 +2,8 @@
 /* Copyright 2020-2024, Intel Corporation */
 
 #include "libpmem2.h"
-#include "out.h"
+#include "util.h"
+#include "log_internal.h"
 #include "source.h"
 
 /*
