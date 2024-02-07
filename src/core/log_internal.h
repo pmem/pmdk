@@ -236,6 +236,14 @@ void core_log_to_last(const char *file_name, int line_no,
 		CORE_LOG_TO_LAST(format ": %s", ##__VA_ARGS__, error_str); \
 	} while (0)
 
+/* Aliases */
+
+#define ERR_W_ERRNO(f, ...)\
+	CORE_LOG_ERROR_W_ERRNO_LAST(f, ##__VA_ARGS__)
+
+#define ERR_WO_ERRNO(f, ...)\
+	CORE_LOG_ERROR_LAST(f, ##__VA_ARGS__)
+
 #ifdef __cplusplus
 }
 #endif
