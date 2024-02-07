@@ -5,6 +5,8 @@
  * errormsg.c -- pmem2_errormsg* implementation
  */
 
+#include <stdarg.h>
+
 #include "libpmem2.h"
 #include "out.h"
 #include "pmem2_utils.h"
