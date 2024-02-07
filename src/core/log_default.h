@@ -10,7 +10,7 @@
 
 void core_log_default_function(void *context, enum core_log_level level,
 	const char *file_name, const int line_no, const char *function_name,
-	const char *message_format, ...);
+	const char *message);
 
 void core_log_default_init(void);
 
