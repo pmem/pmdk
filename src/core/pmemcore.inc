@@ -33,7 +33,6 @@
 
 SOURCE +=\
 	$(CORE)/alloc.c\
-	$(CORE)/error_msg.c\
 	$(CORE)/fs_posix.c\
 	$(CORE)/os_posix.c\
 	$(CORE)/os_thread_posix.c\
@@ -42,6 +41,7 @@ SOURCE +=\
 	$(CORE)/ravl_interval.c\
 	$(CORE)/util.c\
 	$(CORE)/util_posix.c \
+	$(CORE)/last_error_msg.c\
 	$(CORE)/log.c \
 	$(CORE)/log_default.c
 

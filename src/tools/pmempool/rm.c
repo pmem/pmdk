@@ -14,7 +14,7 @@
 
 #include "os.h"
 #include "out.h"
-#include "error_msg.h"
+#include "last_error_msg.h"
 #include "common.h"
 #include "output.h"
 #include "file.h"
@@ -170,7 +170,7 @@ rm_poolset(const char *file)
 	int ret = util_poolset_foreach_part(file, rm_poolset_cb, &error);
 	if (ret == -1) {
 		outv_err("parsing poolset failed: %s\n",
-				error_msg_get());
+				last_error_msg_get());
 		return ret;
 	}
 
