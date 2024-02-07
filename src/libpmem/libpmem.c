@@ -56,14 +56,14 @@ pmem_check_versionU(unsigned major_required, unsigned minor_required)
 		ERR_WO_ERRNO(
 			"libpmem major version mismatch (need %u, found %u)",
 			major_required, PMEM_MAJOR_VERSION);
-		return error_msg_get();
+		return last_error_msg_get();
 	}
 
 	if (minor_required > PMEM_MINOR_VERSION) {
 		ERR_WO_ERRNO(
 			"libpmem minor version mismatch (need %u, found %u)",
 			minor_required, PMEM_MINOR_VERSION);
-		return error_msg_get();
+		return last_error_msg_get();
 	}
 
 	return NULL;
@@ -79,17 +79,17 @@ pmem_check_version(unsigned major_required, unsigned minor_required)
 }
 
 /*
- * pmem_errormsgU -- return last error message
+ * pmem_errormsgU -- return the last error message
  */
 static inline
 const char *
 pmem_errormsgU(void)
 {
-	return error_msg_get();
+	return last_error_msg_get();
 }
 
 /*
- * pmem_errormsg -- return last error message
+ * pmem_errormsg -- return the last error message
  */
 const char *
 pmem_errormsg(void)
