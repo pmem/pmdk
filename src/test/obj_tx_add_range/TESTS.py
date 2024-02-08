@@ -38,9 +38,6 @@ class TEST2(t.Test):
         ctx.exec('obj_tx_add_range', testfile, '1')
 
 
-# XXX disable test until issue #5972 is fixed
-# https://github.com/pmem/pmdk/issues/5972
-@t.DISABLED()
 @t.require_valgrind_enabled('memcheck')
 @t.require_build('debug')
 class TEST3(t.Test):
