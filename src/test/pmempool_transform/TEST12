@@ -10,9 +10,6 @@
 #
 
 . ../unittest/unittest.sh
-# disabled due to crash until #5982 is fixed
-# https://github.com/pmem/pmdk/issues/5982
-DISABLED
 
 require_test_type medium
 require_fs_type any
@@ -34,6 +31,7 @@ dax_device_zero
 LOG=out${UNITTEST_NUM}.log
 ERR_LOG=err${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
+ERR_TEMP=err${UNITTEST_NUM}_temp.log
 rm -f $LOG && touch $LOG
 rm -f $LOG_TEMP && touch $LOG_TEMP
 
@@ -107,6 +105,12 @@ dump_pool_info $POOLSET_2 >> $LOG_TEMP
 dump_pool_info ${DEVICE_DAX_PATH[0]} >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG
+
+# Exclude error messages printed out on the stderr by PMDK in debug
+mv $ERR_LOG $ERR_TEMP
+grep -v "*ERROR*" $ERR_TEMP > $ERR_LOG
+rm $ERR_TEMP
+
 check
 
 pass
