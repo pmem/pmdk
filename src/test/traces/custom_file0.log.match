@@ -1,16 +1,16 @@
-$(*)
-$(*)
-$(*)
-$(OPT)$(*) compiled with support for Valgrind pmemcheck
-$(OPT)$(*) compiled with support for Valgrind helgrind
-$(OPT)$(*) compiled with support for Valgrind memcheck
-$(OPT)$(*) compiled with support for Valgrind drd
-$(OPT)$(*) compiled with support for shutdown state
-$(OPT)$(*) compiled with libndctl 63+
-$(*)
-$(*)Log level NONE
-$(*)Log level ERROR
-$(*)Log level WARNING
-$(*)Log level INFO
-$(*)Log level DEBUG
-$(*)
+$(nW) <1> $(nW) $(nW) pid $(N): program: $(nW)
+$(nW) <1> $(nW) $(nW) ut version 1.0
+$(nW) <1> $(nW) $(nW) src version: $(nW)
+$(nW) <1> $(nW) $(nW) compiled with support for Valgrind pmemcheck
+$(nW) <1> $(nW) $(nW) compiled with support for Valgrind helgrind
+$(nW) <1> $(nW) $(nW) compiled with support for Valgrind memcheck
+$(nW) <1> $(nW) $(nW) compiled with support for Valgrind drd
+$(nW) <1> $(nW) $(nW) compiled with support for shutdown state
+$(nW) <1> $(nW) $(nW) compiled with libndctl 63+
+$(nW) <3> $(nW) $(nW) 
+$(nW) <1> $(nW) $(nW) Log level ALWAYS
+$(nW) <1> $(nW) $(nW) Log level ERROR
+$(nW) <2> $(nW) $(nW) Log level WARNING
+$(nW) <3> $(nW) $(nW) Log level INFO
+$(nW) <4> $(nW) $(nW) Log level DEBUG
+$(nW) <3> $(nW) $(nW) 

@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 	/* Execute test */
 	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
-	LOG(0, "Log level NONE");
+	CORE_LOG_ALWAYS("Log level ALWAYS");
 	CORE_LOG_ERROR("Log level ERROR");
 	CORE_LOG_WARNING("Log level WARNING");
 	LOG(3, "Log level INFO");
