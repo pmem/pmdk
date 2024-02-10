@@ -29,6 +29,43 @@ static int Log_level;
 static FILE *Out_fp;
 static unsigned Log_alignment;
 
+#ifdef DEBUG
+static const enum core_log_level level_to_core_log_level[5] = {
+	[0] = CORE_LOG_DISABLED,
+	[1] = CORE_LOG_LEVEL_ERROR,
+	[2] = CORE_LOG_LEVEL_NOTICE,
+	[3] = CORE_LOG_LEVEL_INFO,
+	[4] = CORE_LOG_LEVEL_DEBUG,
+};
+
+static const int core_log_level_to_level[6] = {
+	[CORE_LOG_LEVEL_FATAL]		= 1,
+	[CORE_LOG_LEVEL_ERROR]		= 1,
+	[CORE_LOG_LEVEL_WARNING]	= 2,
+	[CORE_LOG_LEVEL_NOTICE]		= 2,
+	[CORE_LOG_LEVEL_INFO]		= 3,
+	[CORE_LOG_LEVEL_DEBUG]		= 4,
+};
+
+#define OUT_MAX_LEVEL 4
+
+static void
+out_legacy(void *context, enum core_log_level core_level, const char *file_name,
+	const int line_no, const char *function_name, const char *message)
+{
+	SUPPRESS_UNUSED(context);
+
+	int level;
+	if (core_level == CORE_LOG_LEVEL_ALWAYS) {
+		level = 0;
+	} else {
+		level = core_log_level_to_level[core_level];
+	}
+
+	out_log(file_name, line_no, function_name, level, "%s", message);
+}
+#endif /* DEBUG */
+
 /*
  * out_init -- initialize the log
  *
@@ -54,11 +91,26 @@ out_init(const char *log_prefix, const char *log_level_var,
 #ifdef DEBUG
 	char *log_level;
 	char *log_file;
+	int log_level_cropped = 0;
+	int ret;
 
 	if ((log_level = os_getenv(log_level_var)) != NULL) {
 		Log_level = atoi(log_level);
 		if (Log_level < 0) {
 			Log_level = 0;
+		}
+		if (Log_level <= OUT_MAX_LEVEL) {
+			log_level_cropped = Log_level;
+		} else {
+			log_level_cropped = OUT_MAX_LEVEL;
+		}
+	}
+
+	if (log_level != NULL) {
+		ret = core_log_set_threshold(CORE_LOG_THRESHOLD,
+			level_to_core_log_level[log_level_cropped]);
+		if (ret) {
+			CORE_LOG_FATAL("Cannot set log threshold");
 		}
 	}
 
@@ -84,6 +136,13 @@ out_init(const char *log_prefix, const char *log_level_var,
 				log_prefix, log_file_var,
 				log_file, buff);
 			abort();
+		}
+	}
+
+	if (log_level != NULL || log_file != NULL) {
+		ret = core_log_set_function(out_legacy, NULL);
+		if (ret) {
+			CORE_LOG_FATAL("Cannot set legacy log function");
 		}
 	}
 #endif	/* DEBUG */
