@@ -10,17 +10,17 @@
 #include "pmem2_utils.h"
 
 /*
- * pmem2_errormsgU -- return last error message
+ * pmem2_errormsgU -- return the last error message
  */
 static inline
 const char *
 pmem2_errormsgU(void)
 {
-	return error_msg_get();
+	return last_error_msg_get();
 }
 
 /*
- * pmem2_errormsg -- return last error message
+ * pmem2_errormsg -- return the last error message
  */
 const char *
 pmem2_errormsg(void)

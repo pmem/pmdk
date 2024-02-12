@@ -2,7 +2,11 @@
 /* Copyright 2014-2024, Intel Corporation */
 
 /*
- * error_msg.c -- maintain TLS buffers to store the last error message
+ * last_error_msg.c -- maintain TLS buffers to store the last error message
+ *
+ * The last error message is a hand-picked error message believed to convey
+ * the critical piece of information which will be available to the user via
+ * the *_errormsg() API calls.
  */
 
 #include <stdio.h>
@@ -12,14 +16,14 @@
 #include <limits.h>
 #include <string.h>
 
-#include "error_msg.h"
+#include "last_error_msg.h"
 #include "os_thread.h"
 #include "out.h"
 #include "valgrind_internal.h"
 
-struct errormsg
+struct lasterrormsg
 {
-	char msg[CORE_ERROR_MSG_MAXPRINT];
+	char msg[CORE_LAST_ERROR_MSG_MAXPRINT];
 };
 
 #ifndef NO_LIBPTHREAD
@@ -28,7 +32,7 @@ static os_once_t Last_errormsg_key_once = OS_ONCE_INIT;
 static os_tls_key_t Last_errormsg_key;
 
 static void
-error_msg_key_alloc(void)
+last_error_msg_key_alloc(void)
 {
 	int pth_ret = os_tls_key_create(&Last_errormsg_key, free);
 	if (pth_ret)
@@ -38,9 +42,9 @@ error_msg_key_alloc(void)
 }
 
 void
-error_msg_init(void)
+last_error_msg_init(void)
 {
-	os_once(&Last_errormsg_key_once, error_msg_key_alloc);
+	os_once(&Last_errormsg_key_once, last_error_msg_key_alloc);
 	/*
 	 * Workaround Helgrind's bug:
 	 * https://bugs.kde.org/show_bug.cgi?id=337735
@@ -49,7 +53,7 @@ error_msg_init(void)
 }
 
 void
-error_msg_fini(void)
+last_error_msg_fini(void)
 {
 	void *p = os_tls_get(Last_errormsg_key);
 	if (p) {
@@ -59,23 +63,23 @@ error_msg_fini(void)
 	(void) os_tls_key_delete(Last_errormsg_key);
 }
 
-static inline struct errormsg *
-error_msg_get_internal(void)
+static inline struct lasterrormsg *
+last_error_msg_get_internal(void)
 {
-	error_msg_init();
+	last_error_msg_init();
 
-	struct errormsg *errormsg = os_tls_get(Last_errormsg_key);
-	if (errormsg == NULL) {
-		errormsg = malloc(sizeof(struct errormsg));
-		if (errormsg == NULL)
+	struct lasterrormsg *last = os_tls_get(Last_errormsg_key);
+	if (last == NULL) {
+		last = malloc(sizeof(struct lasterrormsg));
+		if (last == NULL)
 			return NULL;
 		/* make sure it contains empty string initially */
-		errormsg->msg[0] = '\0';
-		int ret = os_tls_set(Last_errormsg_key, errormsg);
+		last->msg[0] = '\0';
+		int ret = os_tls_set(Last_errormsg_key, last);
 		if (ret)
 			CORE_LOG_FATAL_W_ERRNO("os_tls_set");
 	}
-	return errormsg;
+	return last;
 }
 
 #else
@@ -92,17 +96,17 @@ error_msg_get_internal(void)
 static __thread struct errormsg Last_errormsg;
 
 static inline void
-error_msg_init(void)
+last_error_msg_init(void)
 {
 }
 
 static inline void
-error_msg_fini(void)
+last_error_msg_fini(void)
 {
 }
 
 static inline const struct errormsg *
-error_msg_get_internal(void)
+last_error_msg_get_internal(void)
 {
 	return &Last_errormsg;
 }
@@ -110,11 +114,11 @@ error_msg_get_internal(void)
 #endif /* NO_LIBPTHREAD */
 
 /*
- * error_msg_get -- get the last error message
+ * last_error_msg_get -- get the last error message
  */
 const char *
-error_msg_get(void)
+last_error_msg_get(void)
 {
-	const struct errormsg *errormsg = error_msg_get_internal();
-	return &errormsg->msg[0];
+	const struct lasterrormsg *last = last_error_msg_get_internal();
+	return &last->msg[0];
 }

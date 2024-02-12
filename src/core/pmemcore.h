@@ -10,7 +10,7 @@
 
 #include "util.h"
 #include "out.h"
-#include "error_msg.h"
+#include "last_error_msg.h"
 #include "log_internal.h"
 
 #ifdef __cplusplus
@@ -39,7 +39,7 @@ core_fini(void)
 {
 	out_fini();
 	core_log_fini();
-	error_msg_fini();
+	last_error_msg_fini();
 }
 
 #ifdef __cplusplus

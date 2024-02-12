@@ -20,9 +20,9 @@
 #include "valgrind_internal.h"
 #include "util.h"
 #include "log_internal.h"
-#include "error_msg.h"
+#include "last_error_msg.h"
 
-#define MAXPRINT CORE_ERROR_MSG_MAXPRINT
+#define MAXPRINT CORE_LAST_ERROR_MSG_MAXPRINT
 
 static const char *Log_prefix;
 static int Log_level;
@@ -146,7 +146,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	CORE_LOG_ALWAYS("%s", ndctl_ge_63_msg);
 #endif
 
-	error_msg_init();
+	last_error_msg_init();
 }
 
 /*
@@ -269,9 +269,9 @@ out_error(int use_errno, const char *file, int line, const char *func,
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
-	char *errormsg = (char *)error_msg_get();
+	char *last_error = (char *)last_error_msg_get();
 
-	if (errormsg == NULL) {
+	if (last_error == NULL) {
 		out_print_func("No memory to properly format error strings.");
 		return;
 	}
@@ -290,13 +290,13 @@ out_error(int use_errno, const char *file, int line, const char *func,
 			util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
 		}
 
-		ret = vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
+		ret = vsnprintf(&last_error[cc], MAXPRINT, fmt, ap);
 		if (ret < 0) {
-			strcpy(errormsg, "vsnprintf failed");
+			strcpy(last_error, "vsnprintf failed");
 			goto end;
 		}
 		cc += (unsigned)ret;
-		out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s",
+		out_snprintf(&last_error[cc], MAXPRINT - cc, "%s%s",
 				sep, errstr);
 	}
 
@@ -323,7 +323,7 @@ out_error(int use_errno, const char *file, int line, const char *func,
 			}
 		}
 
-		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
+		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", last_error,
 				suffix);
 
 		out_print_func(buf);
