@@ -12,7 +12,7 @@
 #include "pmemops.h"
 #include "ulog.h"
 #include "obj.h"
-#include "out.h"
+#include "core_assert.h"
 #include "util.h"
 #include "valgrind_internal.h"
 

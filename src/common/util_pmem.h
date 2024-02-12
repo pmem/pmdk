@@ -10,6 +10,7 @@
 
 #include "libpmem.h"
 #include "out.h"
+#include "log_internal.h"
 
 #ifdef __cplusplus
 extern "C" {

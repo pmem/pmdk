@@ -16,9 +16,11 @@
 #include <endian.h>
 #include <inttypes.h>
 #include <float.h>
+
 #include "feature.h"
 #include "common.h"
 #include "output.h"
+#include "core_assert.h"
 
 #define _STR(s)	#s
 #define STR(s) _STR(s)
@@ -774,7 +776,7 @@ out_get_incompat_features_str(uint32_t incompat)
 		/* print the value and the left square bracket */
 		ret = util_snprintf(str_buff, STR_MAX, "0x%x [", incompat);
 		if (ret < 0) {
-			ERR(0, "snprintf for incompat features: %d", ret);
+			ERR_WO_ERRNO("snprintf for incompat features: %d", ret);
 			return "<error>";
 		}
 

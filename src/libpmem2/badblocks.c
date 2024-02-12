@@ -8,6 +8,7 @@
 #include "badblocks.h"
 #include "alloc.h"
 #include "out.h"
+#include "log_internal.h"
 
 /*
  * badblocks_new -- zalloc bad blocks structure

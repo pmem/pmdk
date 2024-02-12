@@ -11,7 +11,7 @@
 
 #include "uuid.h"
 #include "os.h"
-#include "out.h"
+#include "log_internal.h"
 
 /*
  * util_uuid_generate -- generate a uuid

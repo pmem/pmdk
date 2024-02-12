@@ -21,7 +21,7 @@
 #include "obj.h"
 #include "heap.h"
 #include "memblock.h"
-#include "out.h"
+#include "core_assert.h"
 #include "valgrind_internal.h"
 #include "alloc_class.h"
 

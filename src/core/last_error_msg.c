@@ -18,7 +18,7 @@
 
 #include "last_error_msg.h"
 #include "os_thread.h"
-#include "out.h"
+#include "log_internal.h"
 #include "valgrind_internal.h"
 
 struct lasterrormsg

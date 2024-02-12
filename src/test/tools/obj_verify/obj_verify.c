@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * obj_verify.c -- tool for creating and verifying a pmemobj pool
@@ -12,6 +12,7 @@
 #include "libpmemobj.h"
 #include "set.h"
 #include "os.h"
+#include "out.h"
 
 #define SIGNATURE_LEN 10
 #define NUMBER_LEN 10

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * pmem2_arch.h -- core-arch interface
@@ -8,9 +8,11 @@
 #define PMEM2_ARCH_H
 
 #include <stddef.h>
+
 #include "libpmem2.h"
 #include "util.h"
 #include "valgrind_internal.h"
+#include "out.h"
 
 #ifdef __cplusplus
 extern "C" {

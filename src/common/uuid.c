@@ -8,8 +8,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "uuid.h"
-#include "out.h"
+#include "log_internal.h"
 
 /*
  * util_uuid_to_string -- generate a string form of the uuid
