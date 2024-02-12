@@ -9,9 +9,6 @@
 #
 
 . ../unittest/unittest.sh
-# disabled due to crash until #5982 is fixed
-# https://github.com/pmem/pmdk/issues/5982
-DISABLED
 
 require_test_type medium
 require_dax_devices 2
