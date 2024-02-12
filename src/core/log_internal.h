@@ -126,7 +126,7 @@ void core_log(enum core_log_level level, const char *file_name, int line_no,
 void core_log_to_last(const char *file_name, int line_no,
 	const char *function_name, const char *message_format, ...);
 
-#define CORE_LOG(level, format, ...) \
+#define _CORE_LOG(level, format, ...) \
 	do { \
 		if (level <= Core_log_threshold[CORE_LOG_THRESHOLD]) { \
 			core_log(level, __FILE__, __LINE__, __func__, \
@@ -167,35 +167,43 @@ void core_log_to_last(const char *file_name, int line_no,
 		errno = oerrno; \
 	} while (0)
 
-#define CORE_LOG_MAX_ERR_MSG 128
+#define _CORE_LOG_MAX_ERR_MSG 128
+
+#define _CORE_LOG_W_ERRNO(level, format, ...) \
+	do { \
+		char buf[_CORE_LOG_MAX_ERR_MSG]; \
+		char *error_str; \
+		_CORE_LOG_STRERROR(buf, _CORE_LOG_MAX_ERR_MSG, &error_str); \
+		_CORE_LOG(level, format ": %s", ##__VA_ARGS__, error_str); \
+	} while (0)
 
 /*
  * Set of macros that should be used as the primary API for logging.
  * Direct call to log shall be used only in exceptional, corner cases.
  */
 #define CORE_LOG_DEBUG(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
+	_CORE_LOG(CORE_LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
 
 #define CORE_LOG_INFO(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_INFO, format, ##__VA_ARGS__)
+	_CORE_LOG(CORE_LOG_LEVEL_INFO, format, ##__VA_ARGS__)
 
 #define CORE_LOG_NOTICE(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_NOTICE, format, ##__VA_ARGS__)
+	_CORE_LOG(CORE_LOG_LEVEL_NOTICE, format, ##__VA_ARGS__)
 
 #define CORE_LOG_WARNING(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
+	_CORE_LOG(CORE_LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
 
 #define CORE_LOG_ERROR(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
+	_CORE_LOG(CORE_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
 
 #define CORE_LOG_FATAL(format, ...) \
 	do { \
-		CORE_LOG(CORE_LOG_LEVEL_FATAL, format, ##__VA_ARGS__); \
+		_CORE_LOG(CORE_LOG_LEVEL_FATAL, format, ##__VA_ARGS__); \
 		abort(); \
 	} while (0)
 
 #define CORE_LOG_ALWAYS(format, ...) \
-	CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format, ##__VA_ARGS__)
+	_CORE_LOG(CORE_LOG_LEVEL_ALWAYS, format, ##__VA_ARGS__)
 
 /*
  * 'With errno' macros' flavours. Append string describing the current errno
@@ -203,32 +211,13 @@ void core_log_to_last(const char *file_name, int line_no,
  */
 
 #define CORE_LOG_WARNING_W_ERRNO(format, ...) \
-	do { \
-		char buf[CORE_LOG_MAX_ERR_MSG]; \
-		char *error_str; \
-		_CORE_LOG_STRERROR(buf, CORE_LOG_MAX_ERR_MSG, &error_str); \
-		CORE_LOG(CORE_LOG_LEVEL_WARNING, format ": %s", ##__VA_ARGS__, \
-			error_str); \
-	} while (0)
+	_CORE_LOG_W_ERRNO(CORE_LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
 
 #define CORE_LOG_ERROR_W_ERRNO(format, ...) \
-	do { \
-		char buf[CORE_LOG_MAX_ERR_MSG]; \
-		char *error_str; \
-		_CORE_LOG_STRERROR(buf, CORE_LOG_MAX_ERR_MSG, &error_str); \
-		CORE_LOG(CORE_LOG_LEVEL_ERROR, format ": %s", ##__VA_ARGS__, \
-			error_str); \
-	} while (0)
+	_CORE_LOG_W_ERRNO(CORE_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
 
 #define CORE_LOG_FATAL_W_ERRNO(format, ...) \
-	do { \
-		char buf[CORE_LOG_MAX_ERR_MSG]; \
-		char *error_str; \
-		_CORE_LOG_STRERROR(buf, CORE_LOG_MAX_ERR_MSG, &error_str); \
-		CORE_LOG(CORE_LOG_LEVEL_FATAL, format ": %s", ##__VA_ARGS__, \
-			error_str); \
-		abort(); \
-	} while (0)
+	_CORE_LOG_W_ERRNO(CORE_LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
 
 /*
  * 'Last' macros' flavours. Additionally writes the produced error message
@@ -241,9 +230,9 @@ void core_log_to_last(const char *file_name, int line_no,
 
 #define CORE_LOG_ERROR_W_ERRNO_LAST(format, ...) \
 	do { \
-		char buf[CORE_LOG_MAX_ERR_MSG]; \
+		char buf[_CORE_LOG_MAX_ERR_MSG]; \
 		char *error_str; \
-		_CORE_LOG_STRERROR(buf, CORE_LOG_MAX_ERR_MSG, &error_str); \
+		_CORE_LOG_STRERROR(buf, _CORE_LOG_MAX_ERR_MSG, &error_str); \
 		CORE_LOG_TO_LAST(format ": %s", ##__VA_ARGS__, error_str); \
 	} while (0)
 
