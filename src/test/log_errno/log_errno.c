@@ -2,7 +2,7 @@
 /* Copyright 2024, Intel Corporation */
 
 /*
- * log_errno.c -- unit test for CORE_LOG_ERROR_WITH_ERRNO macro
+ * log_errno.c -- unit test for CORE_LOG_ERROR_W_ERRNO macro
  */
 #include <syslog.h>
 
@@ -15,7 +15,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_errno");
 
 	core_log_init();
-	CORE_LOG_ERROR_WITH_ERRNO("open file %s", "lolek");
+	CORE_LOG_ERROR_W_ERRNO("open file %s", "lolek");
 	core_log_fini();
 	/*
 	 * The fini function above intentionally does not close the syslog

@@ -87,7 +87,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	if (pop != NULL && (pop->ctl = ctl_new()) == NULL) {
-		CORE_LOG_ERROR_WITH_ERRNO("ctl_new");
+		CORE_LOG_ERROR_W_ERRNO("ctl_new");
 		return -1;
 	}
 
@@ -1186,7 +1186,7 @@ obj_check_basic_local(PMEMobjpool *pop, size_t mapped_size)
 	}
 
 	if ((errno = lane_check(pop)) != 0) {
-		CORE_LOG_ERROR_WITH_ERRNO("lane_check");
+		CORE_LOG_ERROR_W_ERRNO("lane_check");
 		consistent = 0;
 	}
 
@@ -1195,7 +1195,7 @@ obj_check_basic_local(PMEMobjpool *pop, size_t mapped_size)
 	errno = palloc_heap_check((char *)pop + pop->heap_offset,
 		heap_size);
 	if (errno != 0) {
-		CORE_LOG_ERROR_WITH_ERRNO("heap_check");
+		CORE_LOG_ERROR_W_ERRNO("heap_check");
 		consistent = 0;
 	}
 

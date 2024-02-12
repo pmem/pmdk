@@ -98,13 +98,12 @@ err_message:
 void
 core_log_default_function(void *context, enum core_log_level level,
 	const char *file_name, const int line_no, const char *function_name,
-	const char *message_format, ...)
+	const char *message)
 {
 	SUPPRESS_UNUSED(context);
 
 	char file_info_buffer[256] = "";
 	const char *file_info = file_info_buffer;
-	char message[1024] = "";
 	const char file_info_error[] = "[file info error]: ";
 	bool is_always = false;
 
@@ -115,14 +114,6 @@ core_log_default_function(void *context, enum core_log_level level,
 		is_always = true;
 		level = CORE_LOG_LEVEL_NOTICE;
 	}
-
-	va_list arg;
-	va_start(arg, message_format);
-	if (vsnprintf(message, sizeof(message), message_format, arg) < 0) {
-		va_end(arg);
-		return;
-	}
-	va_end(arg);
 
 	if (file_name) {
 		/* extract base_file_name */

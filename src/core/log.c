@@ -14,9 +14,11 @@
 #include <stdatomic.h>
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 #include <string.h>
+#include <stdio.h>
 
 #include "log_internal.h"
 #include "log_default.h"
+#include "last_error_msg.h"
 
 /*
  * Default levels of the logging thresholds
@@ -180,4 +182,57 @@ core_log_get_threshold(enum core_log_threshold threshold,
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 
 	return 0;
+}
+
+static void inline
+core_log_va(char *buf, size_t buf_len, enum core_log_level level,
+	const char *file_name, int line_no, const char *function_name,
+	const char *message_format, va_list arg)
+{
+	if (vsnprintf(buf, buf_len, message_format, arg) < 0) {
+		return;
+	}
+
+	/*
+	 * Despite this check is already done when the function is called from
+	 * the CORE_LOG() macro it has to be done here again since it is not
+	 * performed in the case of the CORE_LOG_TO_LAST macro. Sorry.
+	 */
+	if (level > Core_log_threshold[CORE_LOG_THRESHOLD]) {
+		return;
+	}
+
+	if (0 == Core_log_function) {
+		return;
+	}
+
+	((core_log_function *)Core_log_function)(Core_log_function_context,
+		level, file_name, line_no, function_name, buf);
+}
+
+void
+core_log(enum core_log_level level, const char *file_name, int line_no,
+	const char *function_name, const char *message_format, ...)
+{
+	char message[1024] = "";
+	va_list arg;
+
+	va_start(arg, message_format);
+	core_log_va(message, sizeof(message), level, file_name, line_no,
+		function_name, message_format, arg);
+	va_end(arg);
+}
+
+void
+core_log_to_last(const char *file_name, int line_no, const char *function_name,
+	const char *message_format, ...)
+{
+	char *last_error = (char *)last_error_msg_get();
+	va_list arg;
+
+	va_start(arg, message_format);
+	core_log_va(last_error, CORE_LAST_ERROR_MSG_MAXPRINT,
+		CORE_LOG_LEVEL_ERROR, file_name, line_no, function_name,
+		message_format, arg);
+	va_end(arg);
 }
