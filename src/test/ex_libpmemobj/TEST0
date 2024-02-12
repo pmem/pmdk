@@ -22,9 +22,7 @@ EX_PATH=../../examples/libpmemobj
 expect_normal_exit $EX_PATH/pi $DIR/testfile1 c 2 20 > $LOG_TEMP 2>&1
 expect_normal_exit $EX_PATH/pi $DIR/testfile1 p >> $LOG_TEMP 2>&1
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
-rm $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 

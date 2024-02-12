@@ -24,9 +24,7 @@ EOF
 
 expect_normal_exit $EX_PATH/reader $DIR/testfile1 >> $LOG_TEMP 2>&1
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
-rm $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 
