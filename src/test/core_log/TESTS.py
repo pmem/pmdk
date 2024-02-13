@@ -19,3 +19,7 @@ class CORE_LOG(t.BaseTest):
 
 class TEST0(CORE_LOG):
     test_case = 'test_CORE_LOG_MAX_ERRNO_MSG'
+
+
+class TEST1(CORE_LOG):
+    test_case = 'test_ERR_W_ERRNO'
