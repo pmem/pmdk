@@ -457,7 +457,7 @@ CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 	ssize_t arg_in = *(ssize_t *)arg;
 	if (arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
 		ERR_WO_ERRNO(
-			"incorrect size for extend, must be larger than %" \
+			"incorrect size for extend, must be larger than %"
 			PRIu64,
 			PMEMOBJ_MIN_PART);
 		return -1;
