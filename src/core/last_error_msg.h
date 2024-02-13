@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#define CORE_LAST_ERROR_MSG_MAXPRINT 8192 /* maximum expected log line */
+#define CORE_LAST_ERROR_MSG_MAXPRINT 301 /* maximum expected log line */
 
 void last_error_msg_init(void);
 void last_error_msg_fini(void);
