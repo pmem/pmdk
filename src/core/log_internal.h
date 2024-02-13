@@ -167,13 +167,14 @@ void core_log_to_last(const char *file_name, int line_no,
 		errno = oerrno; \
 	} while (0)
 
-#define _CORE_LOG_MAX_ERR_MSG 128
+/* The value fine-tuned to accommodate all possible errno message strings. */
+#define _CORE_LOG_MAX_ERRNO_MSG 50
 
 #define _CORE_LOG_W_ERRNO(level, format, ...) \
 	do { \
-		char buf[_CORE_LOG_MAX_ERR_MSG]; \
+		char buf[_CORE_LOG_MAX_ERRNO_MSG]; \
 		char *error_str; \
-		_CORE_LOG_STRERROR(buf, _CORE_LOG_MAX_ERR_MSG, &error_str); \
+		_CORE_LOG_STRERROR(buf, _CORE_LOG_MAX_ERRNO_MSG, &error_str); \
 		_CORE_LOG(level, format ": %s", ##__VA_ARGS__, error_str); \
 	} while (0)
 
@@ -230,9 +231,9 @@ void core_log_to_last(const char *file_name, int line_no,
 
 #define CORE_LOG_ERROR_W_ERRNO_LAST(format, ...) \
 	do { \
-		char buf[_CORE_LOG_MAX_ERR_MSG]; \
+		char buf[_CORE_LOG_MAX_ERRNO_MSG]; \
 		char *error_str; \
-		_CORE_LOG_STRERROR(buf, _CORE_LOG_MAX_ERR_MSG, &error_str); \
+		_CORE_LOG_STRERROR(buf, _CORE_LOG_MAX_ERRNO_MSG, &error_str); \
 		CORE_LOG_TO_LAST(format ": %s", ##__VA_ARGS__, error_str); \
 	} while (0)
 
