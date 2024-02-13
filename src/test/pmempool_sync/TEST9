@@ -58,9 +58,7 @@ rm -f $DIR/part01
 # Try to synchronize replicas using the second poolset
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET2 >> $LOG_TEMP 2>&1
 
-# Exclude error and warn messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP | fgrep -v "*WARN*" > $LOG
-rm $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 

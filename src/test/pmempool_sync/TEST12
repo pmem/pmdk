@@ -44,9 +44,7 @@ expect_normal_exit $PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=0000000000000000\
 # Try to synchronize replicas
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET &>> $LOG_TEMP
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
-rm $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 

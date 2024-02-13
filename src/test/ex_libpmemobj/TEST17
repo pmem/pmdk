@@ -26,9 +26,7 @@ expect_normal_exit $EX_PATH/lists $DIR/testfile1 2 bar print >> $LOG_TEMP 2>&1
 expect_normal_exit $EX_PATH/lists $DIR/testfile1 3 foo print >> $LOG_TEMP 2>&1
 expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 bar print >> $LOG_TEMP 2>&1
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
-rm $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 

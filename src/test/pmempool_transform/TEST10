@@ -56,9 +56,7 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX transform \
 # Check metadata by pmempool info
 dump_pool_info $POOLSET_IN >> $LOG_TEMP
 
-# Exclude warning messages printed out on the stderr by PMDK in debug
-grep -v "*WARN*" $LOG_TEMP > $LOG
-rm $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 

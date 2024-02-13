@@ -106,11 +106,6 @@ dump_pool_info ${DEVICE_DAX_PATH[0]} >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-mv $ERR_LOG $ERR_TEMP
-grep -v "*ERROR*" $ERR_TEMP > $ERR_LOG
-rm $ERR_TEMP
-
 check
 
 pass

@@ -47,9 +47,7 @@ expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP 2>&1
 # Remove poolset
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
-rm $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 

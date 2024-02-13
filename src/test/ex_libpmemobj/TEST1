@@ -25,9 +25,7 @@ expect_normal_exit $EX_PATH/btree $DIR/testfile1 i 2 World! >> $LOG_TEMP 2>&1
 expect_normal_exit $EX_PATH/btree $DIR/testfile1 p >> $LOG_TEMP 2>&1
 expect_normal_exit $EX_PATH/btree $DIR/testfile1 f 4321 >> $LOG_TEMP 2>&1
 
-# Exclude error messages printed out on the stderr by PMDK in debug
-fgrep -v "*ERROR*" $LOG_TEMP > $LOG
-rm $LOG_TEMP
+mv $LOG_TEMP $LOG
 
 check
 
