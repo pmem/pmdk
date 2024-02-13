@@ -11,10 +11,13 @@
 
 #include "log_internal.h"
 #include "unittest.h"
+#include "all_calls.h"
 
 #define NO_ARGS_CONSUMED 0
 
 #define BIG_BUF_SIZE 1024
+
+#define MAX_STRERROR_NUM 0x54
 
 /*
  * test_CORE_LOG_MAX_ERRNO_MSG --
@@ -26,6 +29,7 @@ test_CORE_LOG_MAX_ERRNO_MSG(const struct test_case *tc, int argc, char *argv[])
 {
 	char buf[BIG_BUF_SIZE];
 	int max_strerror_len = 0;
+	int max_streerror_num = 0;
 	int correct_strerror_calls = 0;
 
 	/*
@@ -53,6 +57,7 @@ test_CORE_LOG_MAX_ERRNO_MSG(const struct test_case *tc, int argc, char *argv[])
 		int len = strlen(buf);
 		if (len > max_strerror_len) {
 			max_strerror_len = len;
+			max_streerror_num = errnum;
 		}
 	}
 	UT_ASSERT(correct_strerror_calls == 132);
@@ -63,11 +68,47 @@ test_CORE_LOG_MAX_ERRNO_MSG(const struct test_case *tc, int argc, char *argv[])
 	 */
 	UT_ASSERT(max_strerror_len + 1 <= _CORE_LOG_MAX_ERRNO_MSG);
 
+	/*
+	 * Other tests in this group makes use of this value so just make sure
+	 * the generated strerror will be as long as it is possible.
+	 */
+	UT_ASSERTeq(max_streerror_num, MAX_STRERROR_NUM);
+
+	return NO_ARGS_CONSUMED;
+}
+
+static void
+log_function(void *context, enum core_log_level level,
+	const char *file_name, const int line_no, const char *function_name,
+	const char *message)
+{
+	size_t *max_message_len = (size_t *)context;
+	size_t len = strlen(message);
+
+	if (len > *max_message_len) {
+		*max_message_len = len;
+	}
+}
+
+static int
+test_ERR_W_ERRNO(const struct test_case *tc, int argc, char *argv[])
+{
+	size_t max_message_len = 0;
+	core_log_set_function(log_function, &max_message_len);
+
+	call_all_CORE_LOG_ERROR_LAST();
+	call_all_ERR_WO_ERRNO();
+	call_all_CORE_LOG_ERROR_W_ERRNO_LAST(MAX_STRERROR_NUM);
+	call_all_ERR_W_ERRNO(MAX_STRERROR_NUM);
+
+	UT_ASSERTeq(max_message_len, 0); /* XXX */
+
 	return NO_ARGS_CONSUMED;
 }
 
 static struct test_case test_cases[] = {
-	TEST_CASE(test_CORE_LOG_MAX_ERRNO_MSG)
+	TEST_CASE(test_CORE_LOG_MAX_ERRNO_MSG),
+	TEST_CASE(test_ERR_W_ERRNO),
 };
 
 #define NTESTS ARRAY_SIZE(test_cases)
