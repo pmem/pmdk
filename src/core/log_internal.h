@@ -218,7 +218,11 @@ void core_log_to_last(const char *file_name, int line_no,
 	_CORE_LOG_W_ERRNO(CORE_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
 
 #define CORE_LOG_FATAL_W_ERRNO(format, ...) \
-	_CORE_LOG_W_ERRNO(CORE_LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
+	do { \
+		_CORE_LOG_W_ERRNO(CORE_LOG_LEVEL_FATAL, \
+			format, ##__VA_ARGS__); \
+		abort(); \
+	} while (0)
 
 /*
  * 'Last' macros' flavours. Additionally writes the produced error message
