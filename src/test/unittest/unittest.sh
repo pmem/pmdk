@@ -1268,8 +1268,10 @@ function require_native_fallocate() {
 #
 function require_usc_permission() {
 	set +e
-	$USC_PERMISSION $1 2> $DIR/usc_permission.txt
+	touch $1/test.tmp
+	$USC_PERMISSION $1/test.tmp 2> $DIR/usc_permission.txt
 	status=$?
+	rm -rf $1/test.tmp
 	set -e
 
 	# check if there were any messages printed to stderr, skip test if there were
