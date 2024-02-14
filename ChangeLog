@@ -1,8 +1,10 @@
 XXX
-	* Version XXX
+
+	* Version 2.1.0
 
 	This release
 	- does not allow opening pmem pool without unsafe shoutdown counter if not explicitly disabled
+	- remove support for build time define NO_LIBPTHREAD
 
 Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 

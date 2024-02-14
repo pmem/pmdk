@@ -26,8 +26,6 @@ struct lasterrormsg
 	char msg[CORE_LAST_ERROR_MSG_MAXPRINT];
 };
 
-#ifndef NO_LIBPTHREAD
-
 static os_once_t Last_errormsg_key_once = OS_ONCE_INIT;
 static os_tls_key_t Last_errormsg_key;
 
@@ -81,37 +79,6 @@ last_error_msg_get_internal(void)
 	}
 	return last;
 }
-
-#else
-
-/*
- * We don't want libpmem to depend on libpthread.  Instead of using pthread
- * API to dynamically allocate thread-specific error message buffer, we put
- * it into TLS.  However, keeping a pretty large static buffer (8K) in TLS
- * may lead to some issues, so the maximum message length is reduced.
- * Fortunately, it looks like the longest error message in libpmem should
- * not be longer than about 90 chars (in case of pmem_check_version()).
- */
-
-static __thread struct errormsg Last_errormsg;
-
-static inline void
-last_error_msg_init(void)
-{
-}
-
-static inline void
-last_error_msg_fini(void)
-{
-}
-
-static inline const struct errormsg *
-last_error_msg_get_internal(void)
-{
-	return &Last_errormsg;
-}
-
-#endif /* NO_LIBPTHREAD */
 
 /*
  * last_error_msg_get -- get the last error message
