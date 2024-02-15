@@ -127,7 +127,6 @@
         "os_writev",
         "out_log",
         "out_log_va",
-        "out_nonl",
         "pmalloc_operation_hold_no_start",
         "pmalloc",
         "pmem2_badblock_clear",
