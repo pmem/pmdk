@@ -12,11 +12,7 @@
 extern "C" {
 #endif
 
-#ifndef NO_LIBPTHREAD
 #define CORE_LAST_ERROR_MSG_MAXPRINT 8192 /* maximum expected log line */
-#else
-#define CORE_LAST_ERROR_MSG_MAXPRINT 256 /* ... for libpmem */
-#endif
 
 void last_error_msg_init(void);
 void last_error_msg_fini(void);
