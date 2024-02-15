@@ -313,20 +313,6 @@ end:
 }
 
 /*
- * out -- output a line, newline added automatically
- */
-void
-out(const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-
-	out_common(NULL, 0, NULL, 0, "\n", fmt, ap);
-
-	va_end(ap);
-}
-
-/*
  * out_log_va/out_log -- output a log line if Log_level >= level
  */
 void
