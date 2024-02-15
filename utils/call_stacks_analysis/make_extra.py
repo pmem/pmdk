@@ -21,7 +21,7 @@ def dict_extend(dict_, key, values):
 
 def inlines(calls: Calls) -> Calls:
         # common
-        calls['core_init'] = ['util_init', 'out_init']
+        calls['core_init'] = ['util_init', 'core_log_init', 'out_init']
         calls['core_fini'] = ['out_fini']
         calls['common_init'] = ['core_init', 'util_mmap_init']
         calls['common_fini'] = ['util_mmap_fini', 'core_fini']
