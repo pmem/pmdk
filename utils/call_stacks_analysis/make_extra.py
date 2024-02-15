@@ -27,7 +27,6 @@ def inlines(calls: Calls) -> Calls:
         calls['common_fini'] = ['util_mmap_fini', 'core_fini']
         calls['Last_errormsg_key_alloc'] = ['_Last_errormsg_key_alloc']
         calls['_Last_errormsg_key_alloc'] = ['os_once', 'os_tls_key_create']
-        calls['out_common'] = ['out_snprintf']
         calls['core_log_va'] = ['core_log_default_function']
 
         # libpmem

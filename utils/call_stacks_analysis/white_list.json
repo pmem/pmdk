@@ -127,6 +127,8 @@
         "os_writev",
         "out_log",
         "out_log_va",
+        "out_common",
+        "out_snprintf",
         "pmalloc_operation_hold_no_start",
         "pmalloc",
         "pmem2_badblock_clear",
@@ -177,6 +179,7 @@
         "util_safe_strcpy",
         "util_str2feature",
         "util_str2pmempool_feature",
+        "util_strerror",
         "util_unlink_flock",
         "util_uuid_to_string",
         "util_write_all"
