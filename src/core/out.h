@@ -53,17 +53,30 @@ out_nonl_discard(int level, const char *fmt, ...)
 
 #endif
 
+#if defined(DEBUG) || defined(__KLOCWORK__)
+
 /* produce debug/trace output */
 #define LOG(level, ...) do { \
 	if (!EVALUATE_DBG_EXPRESSIONS) break;\
 	OUT_LOG(__FILE__, __LINE__, __func__, level, __VA_ARGS__);\
 } while (0)
 
-/* produce debug/trace output without prefix and new line */
-#define LOG_NONL(level, ...) do { \
-	if (!EVALUATE_DBG_EXPRESSIONS) break; \
-	OUT_NONL(level, __VA_ARGS__); \
-} while (0)
+#else
+/* macro for suppresing errors from unused variables (up to 9) */
+#define LOG_SUPPRESS_UNUSED(...)\
+	GLUE(LOG_SUPPRESS_ARG_, COUNT(__VA_ARGS__))(__VA_ARGS__)
+#define LOG_SUPPRESS_ARG_1(X)
+#define LOG_SUPPRESS_ARG_2(X, ...) SUPPRESS_ARG_1(__VA_ARGS__)
+#define LOG_SUPPRESS_ARG_3(X, ...) SUPPRESS_ARG_2(__VA_ARGS__)
+#define LOG_SUPPRESS_ARG_4(X, ...) SUPPRESS_ARG_3(__VA_ARGS__)
+#define LOG_SUPPRESS_ARG_5(X, ...) SUPPRESS_ARG_4(__VA_ARGS__)
+#define LOG_SUPPRESS_ARG_6(X, ...) SUPPRESS_ARG_5(__VA_ARGS__)
+#define LOG_SUPPRESS_ARG_7(X, ...) SUPPRESS_ARG_6(__VA_ARGS__)
+#define LOG_SUPPRESS_ARG_8(X, ...) SUPPRESS_ARG_7(__VA_ARGS__)
+#define LOG_SUPPRESS_ARG_9(X, ...) SUPPRESS_ARG_8(__VA_ARGS__)
+
+#define LOG(level, ...) LOG_SUPPRESS_UNUSED(__VA_ARGS__)
+#endif
 
 void out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
