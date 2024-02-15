@@ -23,7 +23,6 @@ def inlines(calls: Calls) -> Calls:
         # common
         calls['core_init'] = ['util_init', 'out_init']
         calls['core_fini'] = ['out_fini']
-        calls['ERR'] = ['out_err']
         calls['common_init'] = ['core_init', 'util_mmap_init']
         calls['common_fini'] = ['util_mmap_fini', 'core_fini']
         calls['Last_errormsg_key_alloc'] = ['_Last_errormsg_key_alloc']
