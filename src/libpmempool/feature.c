@@ -261,8 +261,10 @@ typedef enum {
 	ENABLED
 } fstate_t;
 
+#ifdef DEBUG
 #define FEATURE_IS_ENABLED_STR	"feature already enabled: %s"
 #define FEATURE_IS_DISABLED_STR	"feature already disabled: %s"
+#endif
 
 /*
  * require_feature_is -- (internal) check if required feature is enabled
@@ -277,9 +279,11 @@ require_feature_is(struct pool_set *set, features_t feature, fstate_t req_state)
 	if (state == req_state)
 		return 1;
 
+#ifdef DEBUG
 	const char *msg = (state == ENABLED)
 			? FEATURE_IS_ENABLED_STR : FEATURE_IS_DISABLED_STR;
 	LOG(3, msg, util_feature2str(feature, NULL));
+#endif
 	return 0;
 }
 
