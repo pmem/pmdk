@@ -327,23 +327,6 @@ out(const char *fmt, ...)
 }
 
 /*
- * out_nonl -- output a line, no newline added automatically
- */
-void
-out_nonl(int level, const char *fmt, ...)
-{
-	va_list ap;
-
-	if (Log_level < level)
-			return;
-
-	va_start(ap, fmt);
-	out_common(NULL, 0, NULL, level, "", fmt, ap);
-
-	va_end(ap);
-}
-
-/*
  * out_log_va/out_log -- output a log line if Log_level >= level
  */
 void

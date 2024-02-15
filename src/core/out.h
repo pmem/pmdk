@@ -30,7 +30,6 @@ extern "C" {
 /* klocwork does not seem to respect __attribute__((noreturn)) */
 #if defined(DEBUG) || defined(__KLOCWORK__)
 #define OUT_LOG out_log
-#define OUT_NONL out_nonl
 #else
 
 static __attribute__((always_inline)) inline void
@@ -41,15 +40,7 @@ out_log_discard(const char *file, int line, const char *func, int level,
 	SUPPRESS_UNUSED(file, line, func, level, fmt);
 }
 
-static __attribute__((always_inline)) inline void
-out_nonl_discard(int level, const char *fmt, ...)
-{
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(level, fmt);
-}
-
 #define OUT_LOG out_log_discard
-#define OUT_NONL out_nonl_discard
 
 #endif
 
@@ -83,7 +74,6 @@ void out_init(const char *log_prefix, const char *log_level_var,
 		int minor_version);
 void out_fini(void);
 void out(const char *fmt, ...) FORMAT_PRINTF(1, 2);
-void out_nonl(int level, const char *fmt, ...) FORMAT_PRINTF(2, 3);
 void out_log_va(const char *file, int line, const char *func, int level,
 		const char *fmt, va_list ap);
 void out_log(const char *file, int line, const char *func, int level,
