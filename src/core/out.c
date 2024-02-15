@@ -313,82 +313,6 @@ end:
 }
 
 /*
- * out_error -- common error output code, all error messages go through here
- */
-static void
-out_error(int use_errno, const char *file, int line, const char *func,
-		const char *suffix, const char *fmt, va_list ap)
-{
-	int oerrno = 0;
-	if (use_errno)
-		oerrno = errno;
-	unsigned cc = 0;
-	int ret;
-	const char *sep = "";
-	char errstr[UTIL_MAX_ERR_MSG] = "";
-
-	char *last_error = (char *)last_error_msg_get();
-
-	if (last_error == NULL) {
-		out_print_func("No memory to properly format error strings.");
-		return;
-	}
-
-	if (fmt) {
-		if (use_errno) {
-			sep = ": ";
-			util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
-		}
-
-		ret = vsnprintf(&last_error[cc], MAXPRINT, fmt, ap);
-		if (ret < 0) {
-			strcpy(last_error, "vsnprintf failed");
-			goto end;
-		}
-		cc += (unsigned)ret;
-		out_snprintf(&last_error[cc], MAXPRINT - cc, "%s%s",
-				sep, errstr);
-	}
-
-#ifdef DEBUG
-	if (Log_level >= 1) {
-		char buf[MAXPRINT];
-		cc = 0;
-
-		if (file) {
-			char *f = strrchr(file, OS_DIR_SEPARATOR);
-			if (f)
-				file = f + 1;
-			ret = out_snprintf(&buf[cc], MAXPRINT,
-					"<%s>: <1> [%s:%d %s] ",
-					Log_prefix, file, line, func);
-			if (ret < 0) {
-				out_print_func("out_snprintf failed");
-				goto end;
-			}
-			cc += (unsigned)ret;
-			if (cc < Log_alignment) {
-				memset(buf + cc, ' ', Log_alignment - cc);
-				cc = Log_alignment;
-			}
-		}
-
-		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", last_error,
-				suffix);
-
-		out_print_func(buf);
-	}
-#else
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(file, line, func, suffix);
-#endif
-
-end:
-	if (use_errno)
-		errno = oerrno;
-}
-
-/*
  * out -- output a line, newline added automatically
  */
 void
@@ -439,21 +363,6 @@ out_log(const char *file, int line, const char *func, int level,
 
 	va_start(ap, fmt);
 	out_log_va(file, line, func, level, fmt, ap);
-
-	va_end(ap);
-}
-
-/*
- * out_err -- output an error message
- */
-void
-out_err(int use_errno, const char *file, int line, const char *func,
-		const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-
-	out_error(use_errno, file, line, func, "\n", fmt, ap);
 
 	va_end(ap);
 }

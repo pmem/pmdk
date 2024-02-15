@@ -75,10 +75,6 @@ void out_log_va(const char *file, int line, const char *func, int level,
 		const char *fmt, va_list ap);
 void out_log(const char *file, int line, const char *func, int level,
 	const char *fmt, ...) FORMAT_PRINTF(5, 6);
-void out_err(int use_errno, const char *file, int line, const char *func,
-	const char *fmt, ...) FORMAT_PRINTF(5, 6);
-void NORETURN out_fatal(const char *file, int line, const char *func,
-	const char *fmt, ...) FORMAT_PRINTF(4, 5);
 
 #ifdef __cplusplus
 }
