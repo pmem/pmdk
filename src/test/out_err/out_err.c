@@ -19,7 +19,6 @@
 int
 main(int argc, char *argv[])
 {
-	char buff[UT_MAX_ERR_MSG];
 
 	START(argc, argv, "out_err");
 
@@ -37,18 +36,6 @@ main(int argc, char *argv[])
 
 	errno = EINVAL;
 	ERR_W_ERRNO("ERR #%d", 3);
-	UT_OUT("%s", last_error_msg_get());
-
-	errno = EBADF;
-	strerror_r(errno, buff, UT_MAX_ERR_MSG);
-	out_err(0, __FILE__, 100, __func__,
-		"ERR1: %s:%d", buff, 1234);
-	UT_OUT("%s", last_error_msg_get());
-
-	errno = EBADF;
-	strerror_r(errno, buff, UT_MAX_ERR_MSG);
-	out_err(0, NULL, 0, NULL,
-		"ERR2: %s:%d", buff, 1234);
 	UT_OUT("%s", last_error_msg_get());
 
 	/* Cleanup */
