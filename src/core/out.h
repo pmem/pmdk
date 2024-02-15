@@ -53,20 +53,7 @@ out_log_discard(const char *file, int line, const char *func, int level,
 } while (0)
 
 #else
-/* macro for suppresing errors from unused variables (up to 9) */
-#define LOG_SUPPRESS_UNUSED(...)\
-	GLUE(LOG_SUPPRESS_ARG_, COUNT(__VA_ARGS__))(__VA_ARGS__)
-#define LOG_SUPPRESS_ARG_1(X)
-#define LOG_SUPPRESS_ARG_2(X, ...) SUPPRESS_ARG_1(__VA_ARGS__)
-#define LOG_SUPPRESS_ARG_3(X, ...) SUPPRESS_ARG_2(__VA_ARGS__)
-#define LOG_SUPPRESS_ARG_4(X, ...) SUPPRESS_ARG_3(__VA_ARGS__)
-#define LOG_SUPPRESS_ARG_5(X, ...) SUPPRESS_ARG_4(__VA_ARGS__)
-#define LOG_SUPPRESS_ARG_6(X, ...) SUPPRESS_ARG_5(__VA_ARGS__)
-#define LOG_SUPPRESS_ARG_7(X, ...) SUPPRESS_ARG_6(__VA_ARGS__)
-#define LOG_SUPPRESS_ARG_8(X, ...) SUPPRESS_ARG_7(__VA_ARGS__)
-#define LOG_SUPPRESS_ARG_9(X, ...) SUPPRESS_ARG_8(__VA_ARGS__)
-
-#define LOG(level, ...) LOG_SUPPRESS_UNUSED(__VA_ARGS__)
+#define LOG(level, ...) SUPPRESS_UNUSED(__VA_ARGS__)
 #endif
 
 void out_init(const char *log_prefix, const char *log_level_var,
