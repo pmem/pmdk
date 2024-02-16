@@ -19,6 +19,7 @@
 #include "log_internal.h"
 #include "log_default.h"
 #include "last_error_msg.h"
+#include "core_assert.h"
 
 /*
  * Default levels of the logging thresholds
@@ -186,11 +187,27 @@ core_log_get_threshold(enum core_log_threshold threshold,
 
 static void inline
 core_log_va(char *buf, size_t buf_len, enum core_log_level level,
-	const char *file_name, int line_no, const char *function_name,
-	const char *message_format, va_list arg)
+	int use_errno, const char *file_name, int line_no,
+	const char *function_name, const char *message_format, va_list arg)
 {
-	if (vsnprintf(buf, buf_len, message_format, arg) < 0) {
+	int msg_len = 0;
+	msg_len = vsnprintf(buf, buf_len, message_format, arg);
+	if (msg_len < 0) {
 		return;
+	}
+
+	if (use_errno) {
+		char *msg_ptr = buf + msg_len;
+		char *error_str;
+		if (snprintf(msg_ptr, 3, ": ") < 0) {
+			msg_ptr++;
+			msg_ptr = '\0';
+			return;
+		}
+		ASSERT(msg_len + _CORE_LOG_MAX_ERRNO_MSG < (int)buf_len);
+		_CORE_LOG_STRERROR(msg_ptr, _CORE_LOG_MAX_ERRNO_MSG,
+			&error_str);
+		ASSERT(msg_ptr == error_str);
 	}
 
 	/*
@@ -211,28 +228,28 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 }
 
 void
-core_log(enum core_log_level level, const char *file_name, int line_no,
-	const char *function_name, const char *message_format, ...)
+core_log(enum core_log_level level, int use_errno, const char *file_name,
+	int line_no, const char *function_name, const char *message_format, ...)
 {
 	char message[1024] = "";
 	va_list arg;
 
 	va_start(arg, message_format);
-	core_log_va(message, sizeof(message), level, file_name, line_no,
-		function_name, message_format, arg);
+	core_log_va(message, sizeof(message), level, use_errno, file_name,
+		line_no, function_name, message_format, arg);
 	va_end(arg);
 }
 
 void
-core_log_to_last(const char *file_name, int line_no, const char *function_name,
-	const char *message_format, ...)
+core_log_to_last(int use_errno, const char *file_name, int line_no,
+	const char *function_name, const char *message_format, ...)
 {
 	char *last_error = (char *)last_error_msg_get();
 	va_list arg;
 
 	va_start(arg, message_format);
 	core_log_va(last_error, CORE_LAST_ERROR_MSG_MAXPRINT,
-		CORE_LOG_LEVEL_ERROR, file_name, line_no, function_name,
-		message_format, arg);
+		CORE_LOG_LEVEL_ERROR, use_errno, file_name, line_no,
+		function_name, message_format, arg);
 	va_end(arg);
 }
