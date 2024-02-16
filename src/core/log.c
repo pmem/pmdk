@@ -230,7 +230,8 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 		*msg_ptr = '\0';
 
 		ASSERT(msg_len + _CORE_LOG_MAX_ERRNO_MSG < (int)buf_len);
-		CORE_LOG_STRERROR(msg_ptr, _CORE_LOG_MAX_ERRNO_MSG, &error_str);
+		CORE_LOG_STRERROR_R(msg_ptr, _CORE_LOG_MAX_ERRNO_MSG,
+			&error_str);
 		errno = oerrno;
 		ASSERT(msg_ptr == error_str);
 	}
