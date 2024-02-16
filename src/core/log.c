@@ -190,13 +190,13 @@ core_log_get_threshold(enum core_log_threshold threshold,
  * The ideal solution would be to force using one variant or another.
  */
 #ifdef _GNU_SOURCE
-#define _CORE_LOG_STRERROR_R(buf, buf_len, out) \
+#define CORE_LOG_STRERROR_R(buf, buf_len, out) \
 	do { \
 		char *ret = strerror_r(errno, (buf), (buf_len)); \
 		*(out) = ret; \
 	} while (0)
 #else
-#define _CORE_LOG_STRERROR_R(buf, buf_len, out) \
+#define CORE_LOG_STRERROR_R(buf, buf_len, out) \
 	do { \
 		int ret = strerror_r(errno, (buf), (buf_len)); \
 		(void) ret; \
@@ -204,20 +204,15 @@ core_log_get_threshold(enum core_log_threshold threshold,
 	} while (0)
 #endif
 
-#define _CORE_LOG_STRERROR(buf, buf_len, out) \
-	do { \
-		int oerrno = errno; \
-		_CORE_LOG_STRERROR_R((buf), (buf_len), (out)); \
-		errno = oerrno; \
-	} while (0)
-
 static void inline
 core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	int use_errno, const char *file_name, int line_no,
 	const char *function_name, const char *message_format, va_list arg)
 {
 	int msg_len = 0;
+	int oerrno = errno;
 	msg_len = vsnprintf(buf, buf_len, message_format, arg);
+	errno = oerrno;
 
 	if (msg_len < 0) {
 		return;
@@ -235,8 +230,8 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 		*msg_ptr = '\0';
 
 		ASSERT(msg_len + _CORE_LOG_MAX_ERRNO_MSG < (int)buf_len);
-		_CORE_LOG_STRERROR(msg_ptr, _CORE_LOG_MAX_ERRNO_MSG,
-			&error_str);
+		CORE_LOG_STRERROR(msg_ptr, _CORE_LOG_MAX_ERRNO_MSG, &error_str);
+		errno = oerrno;
 		ASSERT(msg_ptr == error_str);
 	}
 
