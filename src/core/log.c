@@ -6,6 +6,14 @@
  * via user defined function
  */
 
+/*
+ * Note: The undef below is critical to use the XSI-compliant version of
+ * the strerror_r(3) instead of the GNU-specific. Otherwise, the produced
+ * error string may not end up in the log buffer.
+ */
+#undef _GNU_SOURCE
+#include <string.h>
+
 #include <stdarg.h>
 #include <syslog.h>
 #include <time.h>
@@ -13,7 +21,6 @@
 #ifdef ATOMIC_OPERATIONS_SUPPORTED
 #include <stdatomic.h>
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
-#include <string.h>
 #include <stdio.h>
 
 #include "log_internal.h"
@@ -185,55 +192,39 @@ core_log_get_threshold(enum core_log_threshold threshold,
 	return 0;
 }
 
-/*
- * Required to handle both variants' return types.
- * The ideal solution would be to force using one variant or another.
- */
-#ifdef _GNU_SOURCE
-#define CORE_LOG_STRERROR_R(buf, buf_len, out) \
-	do { \
-		char *ret = strerror_r(errno, (buf), (buf_len)); \
-		*(out) = ret; \
-	} while (0)
-#else
-#define CORE_LOG_STRERROR_R(buf, buf_len, out) \
-	do { \
-		int ret = strerror_r(errno, (buf), (buf_len)); \
-		(void) ret; \
-		*(out) = buf; \
-	} while (0)
-#endif
+#define STRERROR_PREFIX ": "
 
 static void inline
 core_log_va(char *buf, size_t buf_len, enum core_log_level level,
-	int use_errno, const char *file_name, int line_no,
+	int errnum, const char *file_name, int line_no,
 	const char *function_name, const char *message_format, va_list arg)
 {
-	int msg_len = 0;
-	int oerrno = errno;
-	msg_len = vsnprintf(buf, buf_len, message_format, arg);
-	errno = oerrno;
+	int msg_len = vsnprintf(buf, buf_len, message_format, arg);
 
-	if (msg_len < 0) {
-		return;
-	}
+	if (msg_len < 0)
+		goto end;
 
-	if (use_errno) {
-		char *msg_ptr, *error_str;
-		msg_ptr = buf + msg_len;
-		msg_len += 2;
-		if (msg_len >= (int)buf_len) {
-			return;
+	if (errnum != NO_ERRNO) {
+		char *msg_ptr = buf + msg_len;
+		size_t buf_len_left = buf_len - (size_t)msg_len;
+
+		/* Check if both the prefix and the error string can fit */
+		if (buf_len_left <
+			sizeof(STRERROR_PREFIX) - 1 + _CORE_LOG_MAX_ERRNO_MSG) {
+			goto end;
 		}
-		*msg_ptr++ = ':';
-		*msg_ptr++ = ' ';
-		*msg_ptr = '\0';
 
-		ASSERT(msg_len + _CORE_LOG_MAX_ERRNO_MSG < (int)buf_len);
-		CORE_LOG_STRERROR_R(msg_ptr, _CORE_LOG_MAX_ERRNO_MSG,
-			&error_str);
-		errno = oerrno;
-		ASSERT(msg_ptr == error_str);
+		/* Copy the prefix */
+		(void) strncpy(msg_ptr, STRERROR_PREFIX, buf_len_left);
+		msg_ptr += sizeof(STRERROR_PREFIX) - 1;
+		buf_len_left -= sizeof(STRERROR_PREFIX) - 1;
+
+		/* Ask for the error string */
+		/*
+		 * If it fails, the best thing to do is to at least pass
+		 * the log message as is.
+		 */
+		(void) strerror_r(errnum, msg_ptr, buf_len_left);
 	}
 
 	/*
@@ -242,32 +233,36 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	 * performed in the case of the CORE_LOG_TO_LAST macro. Sorry.
 	 */
 	if (level > Core_log_threshold[CORE_LOG_THRESHOLD]) {
-		return;
+		goto end;
 	}
 
 	if (0 == Core_log_function) {
-		return;
+		goto end;
 	}
 
 	((core_log_function *)Core_log_function)(Core_log_function_context,
 		level, file_name, line_no, function_name, buf);
+
+end:
+	if (errnum != NO_ERRNO)
+		errno = errnum;
 }
 
 void
-core_log(enum core_log_level level, int use_errno, const char *file_name,
+core_log(enum core_log_level level, int errnum, const char *file_name,
 	int line_no, const char *function_name, const char *message_format, ...)
 {
 	char message[1024] = "";
 	va_list arg;
 
 	va_start(arg, message_format);
-	core_log_va(message, sizeof(message), level, use_errno, file_name,
+	core_log_va(message, sizeof(message), level, errnum, file_name,
 		line_no, function_name, message_format, arg);
 	va_end(arg);
 }
 
 void
-core_log_to_last(int use_errno, const char *file_name, int line_no,
+core_log_to_last(int errnum, const char *file_name, int line_no,
 	const char *function_name, const char *message_format, ...)
 {
 	char *last_error = (char *)last_error_msg_get();
@@ -275,7 +270,7 @@ core_log_to_last(int use_errno, const char *file_name, int line_no,
 
 	va_start(arg, message_format);
 	core_log_va(last_error, CORE_LAST_ERROR_MSG_MAXPRINT,
-		CORE_LOG_LEVEL_ERROR, use_errno, file_name, line_no,
+		CORE_LOG_LEVEL_ERROR, errnum, file_name, line_no,
 		function_name, message_format, arg);
 	va_end(arg);
 }
