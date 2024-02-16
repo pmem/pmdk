@@ -32,3 +32,6 @@ jobs:
   call-stack-usage:
     uses: ./.github/workflows/scan_stack_usage.yml
     name: Stack usage
+  call-log-calls:
+    uses: ./.github/workflows/scan_log_calls.yml
+    name: Log calls
