@@ -49,7 +49,7 @@ def pmem_function_pointers(calls: Calls) -> Calls:
         calls['pmem_flush'] = flush_all
 
         # '.static' suffix added to differentiate between libpmem API function and a static helper.
-        memmove_nodrain_all = ['memmove_nodrain_libc', 'memmove_nodrain_generic', 'pmem_memmove_nodrain.static', 'pmem_memmove_nodrain_eadr.static']
+        memmove_nodrain_all = ['memmove_nodrain_libc', 'memmove_nodrain_generic', 'pmem2_memmove_nodrain', 'pmem2_memmove_nodrain_eadr']
         calls['pmem_memmove'] = memmove_nodrain_all
         calls['pmem_memcpy'] = memmove_nodrain_all
         calls['pmem_memmove_nodrain'] = memmove_nodrain_all
@@ -101,12 +101,12 @@ def pmem_function_pointers(calls: Calls) -> Calls:
         memmove_funcs['nt']['empty'].extend(memmove_funcs_extras['nt']['empty'])
         memmove_funcs['nt']['flush'].extend(memmove_funcs_extras['nt']['flush'])
 
-        calls['pmem_memmove_nodrain.static'] = \
+        calls['pmem2_memmove_nodrain'] = \
                             memmove_funcs['t']['noflush'] + \
                             memmove_funcs['nt']['flush'] + \
                             memmove_funcs['t']['flush']
 
-        calls['pmem_memmove_nodrain_eadr.static'] = \
+        calls['pmem2_memmove_nodrain_eadr'] = \
                             memmove_funcs['t']['noflush'] + \
                             memmove_funcs['nt']['empty'] + \
                             memmove_funcs['t']['empty']
