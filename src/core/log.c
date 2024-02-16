@@ -193,6 +193,7 @@ core_log_get_threshold(enum core_log_threshold threshold,
 }
 
 #define STRERROR_PREFIX ": "
+#define STRERROR_PREFIX_LEN (sizeof(STRERROR_PREFIX) - 1)
 
 static void inline
 core_log_va(char *buf, size_t buf_len, enum core_log_level level,
@@ -210,14 +211,17 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 
 		/* Check if both the prefix and the error string can fit */
 		if (buf_len_left <
-			sizeof(STRERROR_PREFIX) - 1 + _CORE_LOG_MAX_ERRNO_MSG) {
+			STRERROR_PREFIX_LEN + _CORE_LOG_MAX_ERRNO_MSG) {
 			goto end;
 		}
 
 		/* Copy the prefix */
-		(void) strncpy(msg_ptr, STRERROR_PREFIX, buf_len_left);
-		msg_ptr += sizeof(STRERROR_PREFIX) - 1;
-		buf_len_left -= sizeof(STRERROR_PREFIX) - 1;
+		(void) memcpy(msg_ptr, STRERROR_PREFIX, STRERROR_PREFIX_LEN);
+		buf_len_left -= STRERROR_PREFIX_LEN;
+		msg_ptr += STRERROR_PREFIX_LEN;
+		/* Prepare the buffer for strerror_r() failure */
+		*msg_ptr = '\0';
+		
 
 		/* Ask for the error string */
 		/*
