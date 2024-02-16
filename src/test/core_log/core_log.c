@@ -100,8 +100,8 @@ static int Total_TLS_message_num;
  */
 #define TOTAL_TLS_MESSAGE_NUM_EXPECTED 311
 
-FUNC_MOCK(core_log_to_last, void, const char *file_name, int line_no,
-	const char *function_name, const char *message_format, ...)
+FUNC_MOCK(core_log_to_last, void, int errnum, const char *file_name,
+	int line_no, const char *function_name, const char *message_format, ...)
 	FUNC_MOCK_RUN_DEFAULT {
 		char buf[BIG_BUF_SIZE] = "";
 		va_list arg;
