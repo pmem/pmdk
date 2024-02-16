@@ -9,7 +9,6 @@
 #define CORE_LOG_INTERNAL_H
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
 #include <errno.h>
 
@@ -142,32 +141,6 @@ void core_log_to_last(int use_errno, const char *file_name, int line_no,
 #define CORE_LOG_TO_LAST(use_errno, format, ...) \
 	core_log_to_last(use_errno, __FILE__, __LINE__, __func__, \
 		format, ##__VA_ARGS__)
-
-/*
- * Required to handle both variants' return types.
- * The ideal solution would be to force using one variant or another.
- */
-#ifdef _GNU_SOURCE
-#define _CORE_LOG_STRERROR_R(buf, buf_len, out) \
-	do { \
-		char *ret = strerror_r(errno, (buf), (buf_len)); \
-		*(out) = ret; \
-	} while (0)
-#else
-#define _CORE_LOG_STRERROR_R(buf, buf_len, out) \
-	do { \
-		int ret = strerror_r(errno, (buf), (buf_len)); \
-		(void) ret; \
-		*(out) = buf; \
-	} while (0)
-#endif
-
-#define _CORE_LOG_STRERROR(buf, buf_len, out) \
-	do { \
-		int oerrno = errno; \
-		_CORE_LOG_STRERROR_R((buf), (buf_len), (out)); \
-		errno = oerrno; \
-	} while (0)
 
 /* The value fine-tuned to accommodate all possible errno message strings. */
 #define _CORE_LOG_MAX_ERRNO_MSG 50
