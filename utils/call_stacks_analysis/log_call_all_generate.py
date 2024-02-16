@@ -117,6 +117,10 @@ def extract_all_calls(func: str) -> List[Dict]:
             calls.append(call)
         else:
             bad_line('An unexpected line format', line)
+    # sort calls by file and line
+    def key_func(a: Dict) -> str:
+        return a['file'] + a['line']
+    calls.sort(key=key_func)
     print(f'[{func}] total: {total}, included: {len(calls)}')
     return calls
 
