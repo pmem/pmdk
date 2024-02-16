@@ -185,6 +185,32 @@ core_log_get_threshold(enum core_log_threshold threshold,
 	return 0;
 }
 
+/*
+ * Required to handle both variants' return types.
+ * The ideal solution would be to force using one variant or another.
+ */
+#ifdef _GNU_SOURCE
+#define _CORE_LOG_STRERROR_R(buf, buf_len, out) \
+	do { \
+		char *ret = strerror_r(errno, (buf), (buf_len)); \
+		*(out) = ret; \
+	} while (0)
+#else
+#define _CORE_LOG_STRERROR_R(buf, buf_len, out) \
+	do { \
+		int ret = strerror_r(errno, (buf), (buf_len)); \
+		(void) ret; \
+		*(out) = buf; \
+	} while (0)
+#endif
+
+#define _CORE_LOG_STRERROR(buf, buf_len, out) \
+	do { \
+		int oerrno = errno; \
+		_CORE_LOG_STRERROR_R((buf), (buf_len), (out)); \
+		errno = oerrno; \
+	} while (0)
+
 static void inline
 core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	int use_errno, const char *file_name, int line_no,
@@ -192,18 +218,22 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 {
 	int msg_len = 0;
 	msg_len = vsnprintf(buf, buf_len, message_format, arg);
+
 	if (msg_len < 0) {
 		return;
 	}
 
 	if (use_errno) {
-		char *msg_ptr = buf + msg_len;
-		char *error_str;
-		if (snprintf(msg_ptr, 3, ": ") < 0) {
-			msg_ptr++;
-			msg_ptr = '\0';
+		char *msg_ptr, *error_str;
+		msg_ptr = buf + msg_len;
+		msg_len += 2;
+		if (msg_len >= (int)buf_len) {
 			return;
 		}
+		*msg_ptr++ = ':';
+		*msg_ptr++ = ' ';
+		*msg_ptr = '\0';
+
 		ASSERT(msg_len + _CORE_LOG_MAX_ERRNO_MSG < (int)buf_len);
 		_CORE_LOG_STRERROR(msg_ptr, _CORE_LOG_MAX_ERRNO_MSG,
 			&error_str);
