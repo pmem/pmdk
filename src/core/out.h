@@ -53,7 +53,15 @@ out_log_discard(const char *file, int line, const char *func, int level,
 } while (0)
 
 #else
-#define LOG(level, ...) SUPPRESS_UNUSED(__VA_ARGS__)
+/*
+ * 'do { ... } while()' is required for a proper interpretation of 
+ * SUPPRESS_UNUSED(__VA_ARGS__) in the context of if() statement
+ * without brackets {}, especially in the situation when '...' expands
+ * to more than one argument in '__VA_ARGS__' list
+ */
+#define LOG(level, ...) do { \
+		SUPPRESS_UNUSED(__VA_ARGS__); \
+	} while (0)
 #endif
 
 void out_init(const char *log_prefix, const char *log_level_var,
