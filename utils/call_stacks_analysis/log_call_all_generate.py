@@ -84,8 +84,7 @@ def file_should_be_ignored(file: str) -> bool:
     return False
 
 def extract_all_calls(func: str) -> List[Dict]:
-    cmd = f'cd {TOP}; grep -Irn {func}'
-    returned_output = subprocess.check_output(cmd, shell=True)
+    returned_output = subprocess.check_output(['grep', '-Irn', func], cwd=TOP)
     string = returned_output.decode("utf-8")
     calls = []
     total = 0
