@@ -2,12 +2,13 @@
 /* Copyright 2024, Intel Corporation */
 
 /*
- * core_log.c -- unit test for core_log
+ * core_log_max.c -- unit test to verify max size of log buffers
  */
 
 #undef _GNU_SOURCE
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include "log_internal.h"
 #include "last_error_msg.h"
@@ -109,6 +110,8 @@ FUNC_MOCK(core_log_to_last, void, int errnum, const char *file_name,
 		int ret = vsnprintf(buf, BIG_BUF_SIZE, message_format, arg);
 		UT_ASSERT(ret > 0);
 		UT_ASSERTeq(ret, strlen(buf));
+		if (errnum != NO_ERRNO)
+			ret += _CORE_LOG_MAX_ERRNO_MSG;
 		if (ret > Max_TLS_message_len) {
 			Max_TLS_message_len = ret;
 			strncpy(The_longest_TLS_message, buf, BIG_BUF_SIZE);
@@ -129,9 +132,61 @@ test_ERR_W_ERRNO(const struct test_case *tc, int argc, char *argv[])
 	call_all_CORE_LOG_ERROR_W_ERRNO_LAST(MAX_STRERROR_NUM);
 	call_all_ERR_W_ERRNO(MAX_STRERROR_NUM);
 
-	UT_OUT("%s", The_longest_TLS_message);
+	UT_OUT("The_longest_TLS_message: %s", The_longest_TLS_message);
 	UT_ASSERTeq(Total_TLS_message_num, TOTAL_TLS_MESSAGE_NUM_EXPECTED);
 	UT_ASSERTeq(Max_TLS_message_len + 1, CORE_LAST_ERROR_MSG_MAXPRINT);
+
+	return NO_ARGS_CONSUMED;
+}
+
+#define TOTAL_MESSAGE_NUM_EXPECTED 212
+static int Max_message_len = 0;
+static int Total_message_num = 0;
+static char The_longest_message[BIG_BUF_SIZE];
+
+FUNC_MOCK(core_log, void, enum core_log_level level, int errnum,
+	const char *file_name,int line_no, const char *function_name,
+	const char *message_format, ...)
+	FUNC_MOCK_RUN_DEFAULT {
+		char buf[BIG_BUF_SIZE] = "";
+		va_list arg;
+		va_start(arg, message_format);
+		int ret = vsnprintf(buf, BIG_BUF_SIZE, message_format, arg);
+		UT_ASSERT(ret > 0);
+		UT_ASSERTeq(ret, strlen(buf));
+		if (errnum != NO_ERRNO)
+			ret += _CORE_LOG_MAX_ERRNO_MSG;
+
+		if (ret > Max_message_len) {
+			Max_message_len = ret;
+			strncpy(The_longest_message, buf, BIG_BUF_SIZE);
+		}
+		++Total_message_num;
+		return;
+	}
+FUNC_MOCK_END
+
+static int
+test_CORE_LOG(const struct test_case *tc, int argc, char *argv[])
+{
+	Max_message_len = 0;
+	Total_message_num = 0;
+
+	call_all_CORE_LOG_WARNING();
+	call_all_CORE_LOG_WARNING_W_ERRNO(MAX_STRERROR_NUM);
+	call_all_CORE_LOG_ERROR();
+	call_all_CORE_LOG_ERROR_W_ERRNO(MAX_STRERROR_NUM);
+	call_all_CORE_LOG_FATAL();
+	call_all_CORE_LOG_FATAL_W_ERRNO(MAX_STRERROR_NUM);
+
+	UT_OUT("The_longest_message: %s", The_longest_message);
+/*
+ * + 1 for '\0' and another
+ * + 1 as a means for detecting too-long log messages.
+ * Please see _CORE_LOG_MSG_MAXPRINT for details.
+ */
+	UT_ASSERTeq(Max_message_len + 2, _CORE_LOG_MSG_MAXPRINT);
+	UT_ASSERTeq(Total_message_num, TOTAL_MESSAGE_NUM_EXPECTED);
 
 	return NO_ARGS_CONSUMED;
 }
@@ -139,6 +194,7 @@ test_ERR_W_ERRNO(const struct test_case *tc, int argc, char *argv[])
 static struct test_case test_cases[] = {
 	TEST_CASE(test_CORE_LOG_MAX_ERRNO_MSG),
 	TEST_CASE(test_ERR_W_ERRNO),
+	TEST_CASE(test_CORE_LOG),
 };
 
 #define NTESTS ARRAY_SIZE(test_cases)
@@ -146,7 +202,7 @@ static struct test_case test_cases[] = {
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "core_log");
+	START(argc, argv, "core_log_max");
 
 	UT_COMPILE_ERROR_ON(sizeof(PATH) != 128);
 

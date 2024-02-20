@@ -18,4 +18,9 @@ static size_t _zu = SIZE_MAX;
 static void *_p = (void *)UINT64_MAX;
 static uintmax_t _ju = UINTMAX_MAX;
 
+/*
+ * Prevent abort() from CORE_LOG_FATAL()
+ */
+#define abort() do { ; } while(0)
+
 #include "call_all.c.generated"
