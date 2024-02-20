@@ -13,7 +13,7 @@ DEBUG = False
 PARSER_DEBUG = False
 
 TOP = '../../'
-OUTPUT_PATH = TOP + 'src/test/core_log/'
+OUTPUT_PATH = TOP + 'src/test/core_log_max/'
 OUTPUT_C = OUTPUT_PATH + 'call_all.c.generated'
 
 NOTICE = """/*

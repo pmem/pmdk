@@ -243,7 +243,7 @@ void
 core_log(enum core_log_level level, int errnum, const char *file_name,
 	int line_no, const char *function_name, const char *message_format, ...)
 {
-	char message[1024] = "";
+	char message[CORE_LOG_MSG_MAXPRINT] = "";
 	va_list arg;
 
 	va_start(arg, message_format);
