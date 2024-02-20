@@ -197,20 +197,32 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	int errnum, const char *file_name, int line_no,
 	const char *function_name, const char *message_format, va_list arg)
 {
+	/*
+	 * Despite this check is already done when the function is called from
+	 * the CORE_LOG() macro it has to be done here again since it is not
+	 * performed in the case of the CORE_LOG_TO_LAST macro. Sorry.
+	 */
+	if (level > Core_log_threshold[CORE_LOG_THRESHOLD])
+		return;
+
+	if (0 == Core_log_function)
+		return;
+
 	int msg_len = vsnprintf(buf, buf_len, message_format, arg);
 	if (msg_len < 0)
 		goto end;
+	if ((size_t)msg_len >= buf_len) {
+		goto skip_errno;
+	}
 
-	if (errnum != NO_ERRNO) {
+	size_t buf_len_left = buf_len - (size_t)msg_len;
+
+	if (errnum != NO_ERRNO && buf_len_left >= _CORE_LOG_MAX_ERRNO_MSG) {
+		/*
+		 * Ask for the error string right after
+		 * already printed message.
+		 */
 		char *msg_ptr = buf + msg_len;
-		size_t buf_len_left = buf_len - (size_t)msg_len;
-
-		/* Check if the longest possible error string can fit */
-		if (buf_len_left < _CORE_LOG_MAX_ERRNO_MSG) {
-			goto end;
-		}
-
-		/* Ask for the error string */
 		/*
 		 * If it fails, the best thing to do is to at least pass
 		 * the log message as is.
@@ -218,19 +230,7 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 		(void) strerror_r(errnum, msg_ptr, buf_len_left);
 	}
 
-	/*
-	 * Despite this check is already done when the function is called from
-	 * the CORE_LOG() macro it has to be done here again since it is not
-	 * performed in the case of the CORE_LOG_TO_LAST macro. Sorry.
-	 */
-	if (level > Core_log_threshold[CORE_LOG_THRESHOLD]) {
-		goto end;
-	}
-
-	if (0 == Core_log_function) {
-		goto end;
-	}
-
+skip_errno:
 	((core_log_function *)Core_log_function)(Core_log_function_context,
 		level, file_name, line_no, function_name, buf);
 
