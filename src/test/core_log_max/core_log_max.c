@@ -139,7 +139,7 @@ test_ERR_W_ERRNO(const struct test_case *tc, int argc, char *argv[])
 	return NO_ARGS_CONSUMED;
 }
 
-#define TOTAL_MESSAGE_NUM_EXPECTED 178
+#define TOTAL_MESSAGE_NUM_EXPECTED 212
 static int Max_message_len = 0;
 static int Total_message_num = 0;
 static char The_longest_message[BIG_BUF_SIZE];
@@ -177,9 +177,15 @@ test_CORE_LOG(const struct test_case *tc, int argc, char *argv[])
 	call_all_CORE_LOG_ERROR();
 	call_all_CORE_LOG_ERROR_W_ERRNO(MAX_STRERROR_NUM);
 	call_all_CORE_LOG_FATAL();
+	call_all_CORE_LOG_FATAL_W_ERRNO(MAX_STRERROR_NUM);
 
 	UT_OUT("The_longest_message: %s", The_longest_message);
-	UT_ASSERTeq(Max_message_len + 2, CORE_LOG_MSG_MAXPRINT);
+/*
+ * + 1 for '\0' and another
+ * + 1 as a means for detecting too-long log messages.
+ * Please see _CORE_LOG_MSG_MAXPRINT for details.
+ */
+	UT_ASSERTeq(Max_message_len + 2, _CORE_LOG_MSG_MAXPRINT);
 	UT_ASSERTeq(Total_message_num, TOTAL_MESSAGE_NUM_EXPECTED);
 
 	return NO_ARGS_CONSUMED;
