@@ -108,11 +108,11 @@ void core_log_init(void);
 void core_log_fini(void);
 
 /* The actual maximum expected log line is 407.
- * Additional byte is used to detect buffer overflow in core_log tests.
- * If actual max message lenghth is eaqual to 408, it means we have a buffer
+ * An additional byte is used to detect buffer overflow in core_log tests.
+ * If the actual max message length is equal to 408, it means we have a buffer
  * overflow
  */
-#define CORE_LOG_MSG_MAXPRINT 408 /* maximum expected log line */
+#define _CORE_LOG_MSG_MAXPRINT 408 /* maximum expected log line + 1*/
 
 static inline int
 core_log_error_translate(int ret)
