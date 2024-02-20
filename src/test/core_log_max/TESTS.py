@@ -14,7 +14,7 @@ class CORE_LOG(t.BaseTest):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('core_log', self.test_case)
+        ctx.exec('core_log_max', self.test_case)
 
 
 class TEST0(CORE_LOG):
@@ -23,3 +23,7 @@ class TEST0(CORE_LOG):
 
 class TEST1(CORE_LOG):
     test_case = 'test_ERR_W_ERRNO'
+
+
+class TEST2(CORE_LOG):
+    test_case = 'test_CORE_LOG'
