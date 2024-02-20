@@ -793,454 +793,489 @@ void
 call_all_CORE_LOG_ERROR_W_ERRNO_LAST(int errnum)
 {
 	errno = errnum;
+	char *_max_errno_str = malloc(_CORE_LOG_MAX_ERRNO_MSG);
+	char *ptr = _max_errno_str;
+	for (int i = 0; i<_CORE_LOG_MAX_ERRNO_MSG; i++,ptr++) {
+		*ptr = 'A' + (i % 26);
+	}
+	*ptr = '\0';
+	free(_max_errno_str);
 }
 
 void
 call_all_ERR_W_ERRNO(int errnum)
 {
 	errno = errnum;
+	char *_max_errno_str = malloc(_CORE_LOG_MAX_ERRNO_MSG);
+	char *ptr = _max_errno_str;
+	for (int i = 0; i<_CORE_LOG_MAX_ERRNO_MSG; i++,ptr++) {
+		*ptr = 'A' + (i % 26);
+	}
+	*ptr = '\0';
 	// src/common/bad_blocks.c:142
-	ERR_W_ERRNO("open %s", _s);
+	ERR_W_ERRNO("open %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/bad_blocks.c:200
-	ERR_W_ERRNO("open %s", _s);
+	ERR_W_ERRNO("open %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/bad_blocks.c:63
-	ERR_W_ERRNO("open %s", _s);
+	ERR_W_ERRNO("open %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/ctl.c:132
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/ctl.c:142
-	ERR_W_ERRNO("strtok_r");
+	ERR_W_ERRNO("strtok_r" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/ctl.c:400
-	ERR_W_ERRNO("Strdup");
+	ERR_W_ERRNO("Strdup" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/ctl.c:445
-	ERR_W_ERRNO("Zalloc");
+	ERR_W_ERRNO("Zalloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/ctl.c:479
-	ERR_W_ERRNO("Zalloc");
+	ERR_W_ERRNO("Zalloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:126
-	ERR_W_ERRNO("stat");
+	ERR_W_ERRNO("stat" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:143
-	ERR_W_ERRNO("open");
+	ERR_W_ERRNO("open" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:206
-	ERR_W_ERRNO("open \"%s\"", _s);
+	ERR_W_ERRNO("open \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:244
-	ERR_W_ERRNO("open \"%s\"", _s);
+	ERR_W_ERRNO("open \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:40
-	ERR_W_ERRNO("os_access \"%s\"", _s);
+	ERR_W_ERRNO("os_access \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:430
-	ERR_W_ERRNO("open \"%s\"", _s);
+	ERR_W_ERRNO("open \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:435
-	ERR_W_ERRNO("posix_fallocate \"%s\", %zu", _s, _zu);
+	ERR_W_ERRNO("posix_fallocate \"%s\", %zu" ": %s", _s, _zu, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:440
-	ERR_W_ERRNO("flock \"%s\"", _s);
+	ERR_W_ERRNO("flock \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:469
-	ERR_W_ERRNO("open \"%s\"", _s);
+	ERR_W_ERRNO("open \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:474
-	ERR_W_ERRNO("flock \"%s\"", _s);
+	ERR_W_ERRNO("flock \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:507
-	ERR_W_ERRNO("flock unlock");
+	ERR_W_ERRNO("flock unlock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file.c:94
-	ERR_W_ERRNO("fstat");
+	ERR_W_ERRNO("fstat" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/file_posix.c:158
-	ERR_W_ERRNO("stat \"%s\"", _s);
+	ERR_W_ERRNO("stat \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap.c:104
-	ERR_W_ERRNO("mmap %zu bytes", _zu);
+	ERR_W_ERRNO("mmap %zu bytes" ": %s", _zu, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap.c:126
-	ERR_W_ERRNO("munmap");
+	ERR_W_ERRNO("munmap" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap.c:155
-	ERR_W_ERRNO("mprotect: PROT_READ");
+	ERR_W_ERRNO("mprotect: PROT_READ" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap.c:184
-	ERR_W_ERRNO("mprotect: PROT_READ|PROT_WRITE");
+	ERR_W_ERRNO("mprotect: PROT_READ|PROT_WRITE" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap.c:213
-	ERR_W_ERRNO("mprotect: PROT_NONE");
+	ERR_W_ERRNO("mprotect: PROT_NONE" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap.c:297
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap.c:360
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap.c:375
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap_posix.c:141
-	ERR_W_ERRNO("mmap MAP_ANONYMOUS");
+	ERR_W_ERRNO("mmap MAP_ANONYMOUS" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/mmap_posix.c:43
-	ERR_W_ERRNO("%s", _s);
+	ERR_W_ERRNO("%s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1027
-	ERR_W_ERRNO("fs_new: \"%s\"", _s);
+	ERR_W_ERRNO("fs_new: \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1060
-	ERR_W_ERRNO("Strdup");
+	ERR_W_ERRNO("Strdup" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1139
-	ERR_W_ERRNO("no directories in replica");
+	ERR_W_ERRNO("no directories in replica" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1156
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1196
-	ERR_W_ERRNO("lseek %d", _d);
+	ERR_W_ERRNO("lseek %d" ": %s", _d, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1202
-	ERR_W_ERRNO("dup");
+	ERR_W_ERRNO("dup" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1208
-	ERR_W_ERRNO("fdopen %d", _d);
+	ERR_W_ERRNO("fdopen %d" ": %s", _d, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1219
-	ERR_W_ERRNO("Reading poolset file");
+	ERR_W_ERRNO("Reading poolset file" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1226
-	ERR_W_ERRNO("Malloc for pool set");
+	ERR_W_ERRNO("Malloc for pool set" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1232
-	ERR_W_ERRNO("Strdup");
+	ERR_W_ERRNO("Strdup" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1404
-	ERR_W_ERRNO("Malloc for pool set");
+	ERR_W_ERRNO("Malloc for pool set" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1410
-	ERR_W_ERRNO("Strdup");
+	ERR_W_ERRNO("Strdup" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1419
-	ERR_W_ERRNO("Malloc for pool set replica");
+	ERR_W_ERRNO("Malloc for pool set replica" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1503
-	ERR_W_ERRNO("posix_fallocate \"%s\", %zu", _s, _zu);
+	ERR_W_ERRNO("posix_fallocate \"%s\", %zu" ": %s", _s, _zu, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1573
-	ERR_W_ERRNO("open: path \"%s\"", _s);
+	ERR_W_ERRNO("open: path \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1632
-	ERR_W_ERRNO("read %d", _d);
+	ERR_W_ERRNO("read %d" ": %s", _d, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:1756
-	ERR_W_ERRNO("fstat");
+	ERR_W_ERRNO("fstat" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:195
-	ERR_W_ERRNO("mmap: %s", _s);
+	ERR_W_ERRNO("mmap: %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:2212
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:252
-	ERR_W_ERRNO("mmap: %s", _s);
+	ERR_W_ERRNO("mmap: %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:283
-	ERR_W_ERRNO("munmap: %s", _s);
+	ERR_W_ERRNO("munmap: %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:3013
-	ERR_W_ERRNO("no parts in replicas");
+	ERR_W_ERRNO("no parts in replicas" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:3144
-	ERR_W_ERRNO("read");
+	ERR_W_ERRNO("read" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:3208
-	ERR_W_ERRNO("open: path \"%s\"", _s);
+	ERR_W_ERRNO("open: path \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:369
-	ERR_W_ERRNO("unlink %s failed (part %u, replica %u)", _s, _u, _u);
+	ERR_W_ERRNO("unlink %s failed (part %u, replica %u)" ": %s", _s, _u, _u, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:422
-	ERR_W_ERRNO("fstat %d %s", _d, _s);
+	ERR_W_ERRNO("fstat %d %s" ": %s", _d, _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:435
-	ERR_W_ERRNO("chmod %u/%u/%s", _u, _u, _s);
+	ERR_W_ERRNO("chmod %u/%u/%s" ": %s", _u, _u, _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:518
-	ERR_W_ERRNO("Strdup");
+	ERR_W_ERRNO("Strdup" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:622
-	ERR_W_ERRNO("Strdup");
+	ERR_W_ERRNO("Strdup" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:648
-	ERR_W_ERRNO("Realloc");
+	ERR_W_ERRNO("Realloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:841
-	ERR_W_ERRNO("Realloc");
+	ERR_W_ERRNO("Realloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set.c:849
-	ERR_W_ERRNO("Zalloc");
+	ERR_W_ERRNO("Zalloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/set_badblocks.c:171
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/shutdown_state.c:95
-	ERR_W_ERRNO("Zalloc");
+	ERR_W_ERRNO("Zalloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/vec.h:62
-	ERR_W_ERRNO("Realloc");
+	ERR_W_ERRNO("Realloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/vecq.h:68
-	ERR_W_ERRNO("Realloc");
+	ERR_W_ERRNO("Realloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/out.c:126
-	ERR_W_ERRNO("snprintf");
+	ERR_W_ERRNO("snprintf" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/ravl.c:167
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/ravl.c:51
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:181
-	ERR_W_ERRNO("os_spin_init");
+	ERR_W_ERRNO("os_spin_init" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/util_posix.c:138
-	ERR_W_ERRNO("open");
+	ERR_W_ERRNO("open" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/util_posix.c:49
-	ERR_W_ERRNO("stat failed for %s", _s);
+	ERR_W_ERRNO("stat failed for %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/util_posix.c:59
-	ERR_W_ERRNO("stat failed for %s", _s);
+	ERR_W_ERRNO("stat failed for %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/util_posix.c:99
-	ERR_W_ERRNO("mkstemp");
+	ERR_W_ERRNO("mkstemp" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmem/pmem.c:280
-	ERR_W_ERRNO("msync");
+	ERR_W_ERRNO("msync" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmem/pmem.c:487
-	ERR_W_ERRNO("open %s", _s);
+	ERR_W_ERRNO("open %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmem/pmem.c:500
-	ERR_W_ERRNO("ftruncate");
+	ERR_W_ERRNO("ftruncate" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmem/pmem.c:506
-	ERR_W_ERRNO("posix_fallocate");
+	ERR_W_ERRNO("posix_fallocate" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/critnib.c:279
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/critnib.c:316
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/heap.c:187
-	ERR_W_ERRNO("heap: arena malloc error");
+	ERR_W_ERRNO("heap: arena malloc error" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/lane.c:267
-	ERR_W_ERRNO("Malloc of volatile lanes");
+	ERR_W_ERRNO("Malloc of volatile lanes" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/lane.c:276
-	ERR_W_ERRNO("Malloc for lane locks");
+	ERR_W_ERRNO("Malloc for lane locks" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/lane.c:289
-	ERR_W_ERRNO("lane_init");
+	ERR_W_ERRNO("lane_init" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/list.c:473
-	ERR_W_ERRNO("palloc_reserve");
+	ERR_W_ERRNO("palloc_reserve" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/memops.c:116
-	ERR_W_ERRNO("Zalloc");
+	ERR_W_ERRNO("Zalloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/memops.c:177
-	ERR_W_ERRNO("Zalloc");
+	ERR_W_ERRNO("Zalloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/memops.c:90
-	ERR_W_ERRNO("Zalloc");
+	ERR_W_ERRNO("Zalloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:662
-	ERR_W_ERRNO("lane_boot");
+	ERR_W_ERRNO("lane_boot" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:667
-	ERR_W_ERRNO("lane_recover_and_section_boot");
+	ERR_W_ERRNO("lane_recover_and_section_boot" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:725
-	ERR_W_ERRNO("palloc_init");
+	ERR_W_ERRNO("palloc_init" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:964
-	ERR_W_ERRNO("critnib_insert to pools_ht");
+	ERR_W_ERRNO("critnib_insert to pools_ht" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:969
-	ERR_W_ERRNO("critnib_insert to pools_tree");
+	ERR_W_ERRNO("critnib_insert to pools_tree" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:984
-	ERR_W_ERRNO("ravl_new_sized");
+	ERR_W_ERRNO("ravl_new_sized" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/stats.c:124
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/tx.c:499
-	ERR_W_ERRNO("pmemobj_mutex_lock");
+	ERR_W_ERRNO("pmemobj_mutex_lock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/tx.c:508
-	ERR_W_ERRNO("pmemobj_rwlock_wrlock");
+	ERR_W_ERRNO("pmemobj_rwlock_wrlock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/tx.c:776
-	ERR_W_ERRNO("Malloc");
+	ERR_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/tx.c:945
-	ERR_W_ERRNO("explicit transaction abort");
+	ERR_W_ERRNO("explicit transaction abort" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
+	free(_max_errno_str);
 }
 
 void
 call_all_CORE_LOG_WARNING_W_ERRNO(int errnum)
 {
 	errno = errnum;
+	char *_max_errno_str = malloc(_CORE_LOG_MAX_ERRNO_MSG);
+	char *ptr = _max_errno_str;
+	for (int i = 0; i<_CORE_LOG_MAX_ERRNO_MSG; i++,ptr++) {
+		*ptr = 'A' + (i % 26);
+	}
+	*ptr = '\0';
 	// src/common/set.c:2955
-	CORE_LOG_WARNING_W_ERRNO("cannot open the part -- \"%s\"", _s);
+	CORE_LOG_WARNING_W_ERRNO("cannot open the part -- \"%s\"" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
+	free(_max_errno_str);
 }
 
 void
 call_all_CORE_LOG_ERROR_W_ERRNO(int errnum)
 {
 	errno = errnum;
+	char *_max_errno_str = malloc(_CORE_LOG_MAX_ERRNO_MSG);
+	char *ptr = _max_errno_str;
+	for (int i = 0; i<_CORE_LOG_MAX_ERRNO_MSG; i++,ptr++) {
+		*ptr = 'A' + (i % 26);
+	}
+	*ptr = '\0';
 	// src/common/os_deep_linux.c:156
-	CORE_LOG_ERROR_W_ERRNO("deep_flush not supported");
+	CORE_LOG_ERROR_W_ERRNO("deep_flush not supported" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/os_deep_linux.c:38
-	CORE_LOG_ERROR_W_ERRNO("deep_flush not supported");
+	CORE_LOG_ERROR_W_ERRNO("deep_flush not supported" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/uuid_linux.c:31
-	CORE_LOG_ERROR_W_ERRNO("open(uuid)");
+	CORE_LOG_ERROR_W_ERRNO("open(uuid)" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/uuid_linux.c:37
-	CORE_LOG_ERROR_W_ERRNO("read(uuid)");
+	CORE_LOG_ERROR_W_ERRNO("read(uuid)" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:1189
-	CORE_LOG_ERROR_W_ERRNO("lane_check");
+	CORE_LOG_ERROR_W_ERRNO("lane_check" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:1198
-	CORE_LOG_ERROR_W_ERRNO("heap_check");
+	CORE_LOG_ERROR_W_ERRNO("heap_check" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:90
-	CORE_LOG_ERROR_W_ERRNO("ctl_new");
+	CORE_LOG_ERROR_W_ERRNO("ctl_new" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
+	free(_max_errno_str);
 }
 
 void
 call_all_CORE_LOG_FATAL_W_ERRNO(int errnum)
 {
 	errno = errnum;
+	char *_max_errno_str = malloc(_CORE_LOG_MAX_ERRNO_MSG);
+	char *ptr = _max_errno_str;
+	for (int i = 0; i<_CORE_LOG_MAX_ERRNO_MSG; i++,ptr++) {
+		*ptr = 'A' + (i % 26);
+	}
+	*ptr = '\0';
 	// src/common/set.c:221
-	CORE_LOG_FATAL_W_ERRNO("munmap: %s", _s);
+	CORE_LOG_FATAL_W_ERRNO("munmap: %s" ": %s", _s, _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/common/util_pmem.h:30
-	CORE_LOG_FATAL_W_ERRNO("pmem_msync");
+	CORE_LOG_FATAL_W_ERRNO("pmem_msync" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/last_error_msg.c:37
-	CORE_LOG_FATAL_W_ERRNO("os_thread_key_create");
+	CORE_LOG_FATAL_W_ERRNO("os_thread_key_create" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/last_error_msg.c:78
-	CORE_LOG_FATAL_W_ERRNO("os_tls_set");
+	CORE_LOG_FATAL_W_ERRNO("os_tls_set" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:108
-	CORE_LOG_FATAL_W_ERRNO("os_rwlock_init");
+	CORE_LOG_FATAL_W_ERRNO("os_rwlock_init" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:123
-	CORE_LOG_FATAL_W_ERRNO("os_rwlock_rdlock");
+	CORE_LOG_FATAL_W_ERRNO("os_rwlock_rdlock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:138
-	CORE_LOG_FATAL_W_ERRNO("os_rwlock_wrlock");
+	CORE_LOG_FATAL_W_ERRNO("os_rwlock_wrlock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:153
-	CORE_LOG_FATAL_W_ERRNO("os_rwlock_unlock");
+	CORE_LOG_FATAL_W_ERRNO("os_rwlock_unlock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:168
-	CORE_LOG_FATAL_W_ERRNO("os_rwlock_destroy");
+	CORE_LOG_FATAL_W_ERRNO("os_rwlock_destroy" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:197
-	CORE_LOG_FATAL_W_ERRNO("os_spin_destroy");
+	CORE_LOG_FATAL_W_ERRNO("os_spin_destroy" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:211
-	CORE_LOG_FATAL_W_ERRNO("os_spin_lock");
+	CORE_LOG_FATAL_W_ERRNO("os_spin_lock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:226
-	CORE_LOG_FATAL_W_ERRNO("os_spin_unlock");
+	CORE_LOG_FATAL_W_ERRNO("os_spin_unlock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:239
-	CORE_LOG_FATAL_W_ERRNO("os_semaphore_init");
+	CORE_LOG_FATAL_W_ERRNO("os_semaphore_init" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:249
-	CORE_LOG_FATAL_W_ERRNO("os_semaphore_destroy");
+	CORE_LOG_FATAL_W_ERRNO("os_semaphore_destroy" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:266
-	CORE_LOG_FATAL_W_ERRNO("os_semaphore_wait");
+	CORE_LOG_FATAL_W_ERRNO("os_semaphore_wait" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:282
-	CORE_LOG_FATAL_W_ERRNO("os_semaphore_trywait");
+	CORE_LOG_FATAL_W_ERRNO("os_semaphore_trywait" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:294
-	CORE_LOG_FATAL_W_ERRNO("os_semaphore_post");
+	CORE_LOG_FATAL_W_ERRNO("os_semaphore_post" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:301
-	CORE_LOG_FATAL_W_ERRNO("os_cond_init");
+	CORE_LOG_FATAL_W_ERRNO("os_cond_init" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:308
-	CORE_LOG_FATAL_W_ERRNO("os_cond_destroy");
+	CORE_LOG_FATAL_W_ERRNO("os_cond_destroy" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:31
-	CORE_LOG_FATAL_W_ERRNO("os_mutex_init");
+	CORE_LOG_FATAL_W_ERRNO("os_mutex_init" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:46
-	CORE_LOG_FATAL_W_ERRNO("os_mutex_destroy");
+	CORE_LOG_FATAL_W_ERRNO("os_mutex_destroy" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:61
-	CORE_LOG_FATAL_W_ERRNO("os_mutex_lock");
+	CORE_LOG_FATAL_W_ERRNO("os_mutex_lock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:77
-	CORE_LOG_FATAL_W_ERRNO("os_mutex_trylock");
+	CORE_LOG_FATAL_W_ERRNO("os_mutex_trylock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/core/sys_util.h:93
-	CORE_LOG_FATAL_W_ERRNO("os_mutex_unlock");
+	CORE_LOG_FATAL_W_ERRNO("os_mutex_unlock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/lane.c:105
-	CORE_LOG_FATAL_W_ERRNO("os_tls_key_create");
+	CORE_LOG_FATAL_W_ERRNO("os_tls_key_create" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/lane.c:80
-	CORE_LOG_FATAL_W_ERRNO("os_tls_set");
+	CORE_LOG_FATAL_W_ERRNO("os_tls_set" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:148
-	CORE_LOG_FATAL_W_ERRNO("critnib_new for pools_ht");
+	CORE_LOG_FATAL_W_ERRNO("critnib_new for pools_ht" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:156
-	CORE_LOG_FATAL_W_ERRNO("critnib_new for pools_tree");
+	CORE_LOG_FATAL_W_ERRNO("critnib_new for pools_tree" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/obj.c:252
-	CORE_LOG_FATAL_W_ERRNO("pmem_msync");
+	CORE_LOG_FATAL_W_ERRNO("pmem_msync" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/sync.h:102
-	CORE_LOG_FATAL_W_ERRNO("pmemobj_mutex_unlock");
+	CORE_LOG_FATAL_W_ERRNO("pmemobj_mutex_unlock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/sync.h:87
-	CORE_LOG_FATAL_W_ERRNO("pmemobj_mutex_lock");
+	CORE_LOG_FATAL_W_ERRNO("pmemobj_mutex_lock" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/tx.c:272
-	CORE_LOG_FATAL_W_ERRNO("Malloc");
+	CORE_LOG_FATAL_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/tx.c:284
-	CORE_LOG_FATAL_W_ERRNO("Malloc");
+	CORE_LOG_FATAL_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
 	// src/libpmemobj/tx.c:321
-	CORE_LOG_FATAL_W_ERRNO("Malloc");
+	CORE_LOG_FATAL_W_ERRNO("Malloc" ": %s", _max_errno_str);
 	UT_ASSERTeq(errno, errnum);
+	free(_max_errno_str);
 }

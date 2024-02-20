@@ -12,8 +12,8 @@ from typing import List, Dict, Any
 DEBUG = False
 PARSER_DEBUG = False
 
-TOP = '../../'
-OUTPUT_PATH = TOP + 'src/test/core_log/'
+TOP = '../../src/'
+OUTPUT_PATH = TOP + 'test/core_log/'
 OUTPUT_C = OUTPUT_PATH + 'call_all.c.generated'
 
 NOTICE = """/*
@@ -26,6 +26,12 @@ void
 call_all_{}(int errnum)
 {{
 	errno = errnum;
+	char *_max_errno_str = malloc(_CORE_LOG_MAX_ERRNO_MSG);
+	char *ptr = _max_errno_str;
+	for (int i = 0; i<_CORE_LOG_MAX_ERRNO_MSG; i++,ptr++) {{
+		*ptr = 'A' + (i % 26);
+	}}
+	*ptr = '\\0';
 """
 
 C_FUNCTION_PREFIX = """
@@ -35,6 +41,9 @@ call_all_{}(void)
 """
 
 C_FUNCTION_SUFFIX = """}
+"""
+C_FUNCTION_W_ERRNUM_SUFFIX = """	free(_max_errno_str);
+}
 """
 
 def dump(var: Any, name: str) -> None:
@@ -68,13 +77,10 @@ def extract_append_code(file_name: str, start_line: int, code: str) -> str:
     return code
 
 IGNORE_FILES = [
-    '.git/',
-    'src/core/log_internal.h',
-    'src/libpmem2/',
-    'src/libpmempool/',
-    'src/test/',
-    'utils/',
-    'CODING_STYLE.md',
+    'core/log_internal.h',
+    'libpmem2/',
+    'libpmempool/',
+    'test/',
 ]
 
 def file_should_be_ignored(file: str) -> bool:
@@ -363,16 +369,24 @@ def generate_call(file, func: str, call: Dict) -> str:
         args = ', ' + ', '.join(call['args'])
     else:
         args = ''
-    file.write(f'\t// {call["file"]}:{call["line"]}\n')
+    file.write(f'\t// src/{call["file"]}:{call["line"]}\n')
     file.write(f'\t{func}("{call["format_string"]}"{args});\n')
+
+def generate_call_with_max_errno_str(file, func: str, call: Dict) -> str:
+    if len(call['args']) > 0:
+        args = ', ' + ', '.join(call['args']) + ', _max_errno_str'
+    else:
+        args = ', _max_errno_str'
+    file.write(f'\t// src/{call["file"]}:{call["line"]}\n')
+    file.write(f'\t{func}("{call["format_string"]}" ": %s"{args});\n')
 
 def generate_func_with_errno(func: str, calls: List[Dict]) -> None:
     with open(OUTPUT_C, 'a') as file:
         file.write(C_FUNCTION_W_ERRNUM_PREFIX.format(func))
         for call in calls:
-            generate_call(file, func, call)
+            generate_call_with_max_errno_str(file, func, call)
             file.write('\tUT_ASSERTeq(errno, errnum);\n')
-        file.write(C_FUNCTION_SUFFIX)
+        file.write(C_FUNCTION_W_ERRNUM_SUFFIX)
 
 def generate_func(func: str, calls: List[Dict]) -> None:
     with open(OUTPUT_C, 'a') as file:
