@@ -200,6 +200,11 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	int msg_len = vsnprintf(buf, buf_len, message_format, arg);
 	if (msg_len < 0)
 		goto end;
+	if ((size_t)msg_len >= buf_len) {
+		/* ASSERT((size_t)msg_len < buf_len); */
+		buf[buf_len - 1] = '\0';
+		goto skip_errno;
+	}
 
 	if (errnum != NO_ERRNO) {
 		char *msg_ptr = buf + msg_len;
@@ -207,7 +212,7 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 
 		/* Check if the longest possible error string can fit */
 		if (buf_len_left < _CORE_LOG_MAX_ERRNO_MSG) {
-			goto end;
+			goto skip_errno;
 		}
 
 		/* Ask for the error string */
@@ -218,6 +223,7 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 		(void) strerror_r(errnum, msg_ptr, buf_len_left);
 	}
 
+skip_errno:
 	/*
 	 * Despite this check is already done when the function is called from
 	 * the CORE_LOG() macro it has to be done here again since it is not
@@ -230,6 +236,10 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	if (0 == Core_log_function) {
 		goto end;
 	}
+
+	if (Core_log_function != (uintptr_t)core_log_default_function &&
+		level == CORE_LOG_LEVEL_ALWAYS)
+		level = CORE_LOG_LEVEL_NOTICE;
 
 	((core_log_function *)Core_log_function)(Core_log_function_context,
 		level, file_name, line_no, function_name, buf);
