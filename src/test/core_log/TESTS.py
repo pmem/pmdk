@@ -9,7 +9,7 @@ from testframework import granularity as g
 
 
 @g.require_granularity(g.ANY)
-# @t.require_build('nondebug')
+@t.require_build('nondebug')
 class CORE_LOG(t.BaseTest):
     test_type = t.Short
 
@@ -47,3 +47,7 @@ class TEST6(CORE_LOG):
 
 class TEST7(CORE_LOG):
     test_case = 'test_CORE_LOG_LAST_BASIC_TOO_LONG'
+
+
+class TEST8(CORE_LOG):
+    test_case = 'test_CORE_LOG_TRESHOLD'
