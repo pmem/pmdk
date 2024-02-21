@@ -12,8 +12,8 @@ from typing import List, Dict, Any
 DEBUG = False
 PARSER_DEBUG = False
 
-TOP = '../../'
-OUTPUT_PATH = TOP + 'src/test/core_log/'
+TOP = '../../src/'
+OUTPUT_PATH = TOP + 'test/core_log_max/'
 OUTPUT_C = OUTPUT_PATH + 'call_all.c.generated'
 
 NOTICE = """/*
@@ -68,13 +68,10 @@ def extract_append_code(file_name: str, start_line: int, code: str) -> str:
     return code
 
 IGNORE_FILES = [
-    '.git/',
-    'src/core/log_internal.h',
-    'src/libpmem2/',
-    'src/libpmempool/',
-    'src/test/',
-    'utils/',
-    'CODING_STYLE.md',
+    'core/log_internal.h',
+    'libpmem2/',
+    'libpmempool/',
+    'test/',
 ]
 
 def file_should_be_ignored(file: str) -> bool:
@@ -372,7 +369,7 @@ def generate_call(file, func: str, call: Dict) -> str:
         args = ', ' + ', '.join(call['args'])
     else:
         args = ''
-    file.write(f'\t// {call["file"]}:{call["line"]}\n')
+    file.write(f'\t// src/{call["file"]}:{call["line"]}\n')
     file.write(f'\t{func}("{call["format_string"]}"{args});\n')
 
 def generate_func_with_errno(func: str, calls: List[Dict]) -> None:
