@@ -22,7 +22,7 @@
 #include "log_internal.h"
 #include "last_error_msg.h"
 
-#define MAXPRINT CORE_LAST_ERROR_MSG_MAXPRINT
+#define MAXPRINT 8192
 
 static const char *Log_prefix;
 static int Log_level;
