@@ -8,8 +8,10 @@
 #undef _GNU_SOURCE
 #include <string.h>
 
-#include "log_internal.h"
 #include "unittest.h"
+#include "log_internal.h"
+#include "last_error_msg.h"
+
 
 #define NO_ARGS_CONSUMED 0
 
@@ -30,7 +32,7 @@ struct log_function_context {
 	const char *file_name;
 	int line_no;
 	const char *function_name;
-	const char *message;
+	char message[8196];
 };
 
 static int Log_function_no_of_calls = 0;
@@ -68,6 +70,8 @@ FUNC_MOCK_END
 
 #define CONCAT2(A, B) A##B
 
+#define CONCAT3(A, B, C) A##B##C
+
 #define TEST_STEP(step_level) \
 	context.level = CORE_LOG_LEVEL_##step_level; \
 	context.line_no = __LINE__; CONCAT2(CORE_LOG_, step_level) \
@@ -80,7 +84,7 @@ test_CORE_LOG_BASIC(const struct test_case *tc, int argc, char *argv[])
 	core_log_set_function(log_function, &context);
 	context.file_name = __FILE__;
 	context.function_name = __func__;
-	context.message = CORE_LOG_UT_MESSAGE;
+	strcpy(context.message,CORE_LOG_UT_MESSAGE);
 	Core_log_abort_no_of_calls = 0;
 	Log_function_no_of_calls = 0;
 	TEST_STEP(FATAL);
@@ -105,7 +109,7 @@ test_CORE_LOG_BASIC_LONG(const struct test_case *tc, int argc, char *argv[])
 	core_log_set_function(log_function, &context);
 	context.file_name = __FILE__;
 	context.function_name = __func__;
-	context.message = CORE_LOG_UT_MESSAGE_LONG;
+	strcpy(context.message,CORE_LOG_UT_MESSAGE_LONG);
 	Core_log_abort_no_of_calls = 0;
 	Log_function_no_of_calls = 0;
 	TEST_STEP_LONG(FATAL);
@@ -127,7 +131,7 @@ test_CORE_LOG_BASIC_TOO_LONG(const struct test_case *tc, int argc, char *argv[])
 	core_log_set_function(log_function, &context);
 	context.file_name = __FILE__;
 	context.function_name = __func__;
-	context.message = CORE_LOG_UT_MESSAGE_LONG;
+	strcpy(context.message,CORE_LOG_UT_MESSAGE_LONG);
 	Log_function_no_of_calls = 0;
 	context.level = CORE_LOG_LEVEL_ERROR;
 	context.line_no = __LINE__ + 1;
@@ -136,6 +140,40 @@ test_CORE_LOG_BASIC_TOO_LONG(const struct test_case *tc, int argc, char *argv[])
 	context.line_no = __LINE__ + 1;
 	CORE_LOG_WARNING(CORE_LOG_UT_MESSAGE_TOO_LONG);
 	UT_ASSERTeq(Log_function_no_of_calls, 2);
+	return NO_ARGS_CONSUMED;
+}
+
+static int
+test_CORE_LOG_LAST_BASIC_LONG(const struct test_case *tc, int argc, char *argv[])
+{
+	struct log_function_context context;
+	core_log_set_function(log_function, &context);
+	context.file_name = __FILE__;
+	context.function_name = __func__;
+	strcpy(context.message,CORE_LOG_UT_MESSAGE_LONG);
+	context.message[CORE_LAST_ERROR_MSG_MAXPRINT - 1] = '\0';
+	Log_function_no_of_calls = 0;
+	context.level = CORE_LOG_LEVEL_ERROR;
+	context.line_no = __LINE__ + 1;
+	CORE_LOG_ERROR_LAST(CORE_LOG_UT_MESSAGE_LONG);
+	UT_ASSERTeq(Log_function_no_of_calls, 1);
+	return NO_ARGS_CONSUMED;
+}
+
+static int
+test_CORE_LOG_LAST_BASIC_TOO_LONG(const struct test_case *tc, int argc, char *argv[])
+{
+	struct log_function_context context;
+	//core_log_set_function(log_function, &context);
+	context.file_name = __FILE__;
+	context.function_name = __func__;
+	strcpy(context.message,CORE_LOG_UT_MESSAGE_LONG);
+	context.message[CORE_LAST_ERROR_MSG_MAXPRINT - 1] = '\0';
+	Log_function_no_of_calls = 0;
+	context.level = CORE_LOG_LEVEL_ERROR;
+	context.line_no = __LINE__ + 1;
+	CORE_LOG_ERROR_LAST(CORE_LOG_UT_MESSAGE_TOO_LONG);
+	UT_ASSERTeq(Log_function_no_of_calls, 1);
 	return NO_ARGS_CONSUMED;
 }
 
@@ -150,7 +188,7 @@ test_CORE_LOG_BASIC_TOO_LONG_W_ERRNO(const struct test_case *tc,
 	core_log_set_function(log_function, &context);
 	context.file_name = __FILE__;
 	context.function_name = __func__;
-	context.message = CORE_LOG_UT_MESSAGE_LONG;
+	strcpy(context.message,CORE_LOG_UT_MESSAGE_LONG);
 	Log_function_no_of_calls = 0;
 	errno = CORE_LOG_UT_ERRNO_SHORT;
 	context.level = CORE_LOG_LEVEL_ERROR;
@@ -184,7 +222,6 @@ FUNC_MOCK_RUN_DEFAULT {
 }
 FUNC_MOCK_END
 
-#define CONCAT3(A, B, C) A##B##C
 
 #define TEST_STEP_W_ERRNO(step_level) \
 	context.level = CORE_LOG_LEVEL_##step_level; \
@@ -198,7 +235,8 @@ test_CORE_LOG_BASIC_W_ERRNO(const struct test_case *tc, int argc, char *argv[])
 	core_log_set_function(log_function, &context);
 	context.file_name = __FILE__;
 	context.function_name = __func__;
-	context.message = CORE_LOG_UT_MESSAGE ": " CORE_LOG_UT_ERRNO_SHORT_STR;
+	strcpy(context.message, \
+		CORE_LOG_UT_MESSAGE ": " CORE_LOG_UT_ERRNO_SHORT_STR);
 	errno = CORE_LOG_UT_ERRNO_SHORT;
 	Core_log_abort_no_of_calls = 0;
 	Log_function_no_of_calls = 0;
@@ -219,7 +257,7 @@ test_CORE_LOG_BASIC_W_ERRNO_BAD(const struct test_case *tc, int argc,
 	core_log_set_function(log_function, &context);
 	context.file_name = __FILE__;
 	context.function_name = __func__;
-	context.message = CORE_LOG_UT_MESSAGE ": ";
+	strcpy(context.message, CORE_LOG_UT_MESSAGE ": ");
 	errno = CORE_LOG_UT_ERRNO_INVALID;
 	Core_log_abort_no_of_calls = 0;
 	Log_function_no_of_calls = 0;
@@ -235,6 +273,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_CORE_LOG_BASIC),
 	TEST_CASE(test_CORE_LOG_BASIC_LONG),
 	TEST_CASE(test_CORE_LOG_BASIC_TOO_LONG),
+	TEST_CASE(test_CORE_LOG_LAST_BASIC_LONG),
+	TEST_CASE(test_CORE_LOG_LAST_BASIC_TOO_LONG),
 	TEST_CASE(test_CORE_LOG_BASIC_TOO_LONG_W_ERRNO),
 	TEST_CASE(test_CORE_LOG_BASIC_W_ERRNO),
 	TEST_CASE(test_CORE_LOG_BASIC_W_ERRNO_BAD),

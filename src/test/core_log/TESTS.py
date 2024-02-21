@@ -39,3 +39,11 @@ class TEST4(CORE_LOG):
 
 class TEST5(CORE_LOG):
     test_case = 'test_CORE_LOG_BASIC_TOO_LONG_W_ERRNO'
+
+
+class TEST6(CORE_LOG):
+    test_case = 'test_CORE_LOG_LAST_BASIC_LONG'
+
+
+class TEST7(CORE_LOG):
+    test_case = 'test_CORE_LOG_LAST_BASIC_TOO_LONG'
