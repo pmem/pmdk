@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2024, Intel Corporation
 
-import subprocess
+import subprocess # nosec B304
 import json
 import re
 
@@ -84,7 +84,16 @@ def file_should_be_ignored(file: str) -> bool:
     return False
 
 def extract_all_calls(func: str) -> List[Dict]:
-    returned_output = subprocess.check_output(['grep', '-Irn', func], cwd=TOP)
+    # XXX The grep call could be replaced by os.walk() call + for loops over
+    # all lines of all files + re.search().
+    # In the meantime:
+    # B607: Starting a process with a partial executable path - ignored since it
+    # is normal way of accessing system utilities.
+    # B603: subprocess call - check for execution of untrusted input - there is
+    # no way around it. Theoretically, some bad actor could inject faulty grep
+    # in the head of the PATH which will lead to us parsing whatever they could
+    # benefit from. So, do not commit the produced code automatically.
+    returned_output = subprocess.check_output(['grep', '-Irn', func], cwd=TOP) # nosec B607, B603
     string = returned_output.decode("utf-8")
     calls = []
     total = 0
