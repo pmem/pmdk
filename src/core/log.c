@@ -201,8 +201,6 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	if (msg_len < 0)
 		goto end;
 	if ((size_t)msg_len >= buf_len) {
-		/* ASSERT((size_t)msg_len < buf_len); */
-		buf[buf_len - 1] = '\0';
 		goto skip_errno;
 	}
 
