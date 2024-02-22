@@ -104,12 +104,14 @@ FUNC_MOCK_END
 
 #define TEST_SETUP(message_to_test) \
 	struct log_function_context context; \
+	context.initialized = 0; \
 	core_log_set_function(log_function, &context); \
 	context.file_name = __FILE__; \
 	context.function_name = __func__; \
 	Core_log_abort_no_of_calls = 0; \
 	Log_function_no_of_calls = 0; \
-	strcpy(context.message, message_to_test)
+	strcpy(context.message, message_to_test); \
+	context.initialized = 1
 
 #define CONCAT2(A, B) A##B
 #define CONCAT3(A, B, C) A##B##C
@@ -133,6 +135,7 @@ FUNC_MOCK_END
 
 /* structure for test context to be delivered to log_function */
 struct log_function_context {
+	int initialized;
 	enum core_log_level level;
 	const char *file_name;
 	int line_no;
@@ -148,6 +151,8 @@ log_function(void *context, enum core_log_level level, const char *file_name,
 	const int line_no, const char *function_name, const char *message) {
 	struct log_function_context *context_in =
 		(struct log_function_context *)context;
+	if (!context_in->initialized)
+		return;
 	UT_ASSERTeq(context_in->level, level);
 	UT_ASSERTeq(strcmp(context_in->file_name, file_name), 0);
 	UT_ASSERTeq(context_in->line_no, line_no);
