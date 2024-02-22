@@ -920,7 +920,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 				CORE_LOG_ERROR(
 					"falling back to the input poolset failed");
 			} else {
-				CORE_LOG_ALWAYS(
+				CORE_LOG_HARK(
 					"falling back to the input poolset succeeded");
 			}
 			ret = -1;
@@ -938,7 +938,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 				CORE_LOG_ERROR(
 					"falling back to the input poolset failed");
 			} else {
-				CORE_LOG_ALWAYS(
+				CORE_LOG_HARK(
 					"falling back to the input poolset succeeded");
 			}
 			ret = -1;

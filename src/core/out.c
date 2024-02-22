@@ -31,14 +31,15 @@ static unsigned Log_alignment;
 
 #ifdef DEBUG
 static const enum core_log_level level_to_core_log_level[5] = {
-	[0] = CORE_LOG_DISABLED,
+	[0] = CORE_LOG_LEVEL_HARK,
 	[1] = CORE_LOG_LEVEL_ERROR,
 	[2] = CORE_LOG_LEVEL_NOTICE,
 	[3] = CORE_LOG_LEVEL_INFO,
 	[4] = CORE_LOG_LEVEL_DEBUG,
 };
 
-static const int core_log_level_to_level[6] = {
+static const int core_log_level_to_level[CORE_LOG_LEVEL_MAX] = {
+	[CORE_LOG_LEVEL_HARK]		= 1,
 	[CORE_LOG_LEVEL_FATAL]		= 1,
 	[CORE_LOG_LEVEL_ERROR]		= 1,
 	[CORE_LOG_LEVEL_WARNING]	= 2,
@@ -55,13 +56,7 @@ out_legacy(void *context, enum core_log_level core_level, const char *file_name,
 {
 	SUPPRESS_UNUSED(context);
 
-	int level;
-	if (core_level == CORE_LOG_LEVEL_ALWAYS) {
-		level = 1; /* traditionally used for this kind of messages */
-	} else {
-		level = core_log_level_to_level[core_level];
-	}
-
+	int level = core_log_level_to_level[core_level];
 	out_log(file_name, line_no, function_name, level, "%s", message);
 }
 #endif /* DEBUG */
@@ -161,15 +156,15 @@ out_init(const char *log_prefix, const char *log_level_var,
 
 #ifdef DEBUG
 	static char namepath[PATH_MAX];
-	CORE_LOG_ALWAYS("pid %d: program: %s", getpid(),
+	CORE_LOG_HARK("pid %d: program: %s", getpid(),
 		util_getexecname(namepath, PATH_MAX));
 #endif
-	CORE_LOG_ALWAYS("%s version %d.%d", log_prefix, major_version,
+	CORE_LOG_HARK("%s version %d.%d", log_prefix, major_version,
 		minor_version);
 
 	static __attribute__((used)) const char *version_msg =
 			"src version: " SRCVERSION;
-	CORE_LOG_ALWAYS("%s", version_msg);
+	CORE_LOG_HARK("%s", version_msg);
 #if VG_PMEMCHECK_ENABLED
 	/*
 	 * Attribute "used" to prevent compiler from optimizing out the variable
@@ -177,32 +172,32 @@ out_init(const char *log_prefix, const char *log_level_var,
 	 */
 	static __attribute__((used)) const char *pmemcheck_msg =
 			"compiled with support for Valgrind pmemcheck";
-	CORE_LOG_ALWAYS("%s", pmemcheck_msg);
+	CORE_LOG_HARK("%s", pmemcheck_msg);
 #endif /* VG_PMEMCHECK_ENABLED */
 #if VG_HELGRIND_ENABLED
 	static __attribute__((used)) const char *helgrind_msg =
 			"compiled with support for Valgrind helgrind";
-	CORE_LOG_ALWAYS("%s", helgrind_msg);
+	CORE_LOG_HARK("%s", helgrind_msg);
 #endif /* VG_HELGRIND_ENABLED */
 #if VG_MEMCHECK_ENABLED
 	static __attribute__((used)) const char *memcheck_msg =
 			"compiled with support for Valgrind memcheck";
-	CORE_LOG_ALWAYS("%s", memcheck_msg);
+	CORE_LOG_HARK("%s", memcheck_msg);
 #endif /* VG_MEMCHECK_ENABLED */
 #if VG_DRD_ENABLED
 	static __attribute__((used)) const char *drd_msg =
 			"compiled with support for Valgrind drd";
-	CORE_LOG_ALWAYS("%s", drd_msg);
+	CORE_LOG_HARK("%s", drd_msg);
 #endif /* VG_DRD_ENABLED */
 #if SDS_ENABLED
 	static __attribute__((used)) const char *shutdown_state_msg =
 			"compiled with support for shutdown state";
-	CORE_LOG_ALWAYS("%s", shutdown_state_msg);
+	CORE_LOG_HARK("%s", shutdown_state_msg);
 #endif
 #if NDCTL_ENABLED
 	static __attribute__((used)) const char *ndctl_ge_63_msg =
 		"compiled with libndctl 63+";
-	CORE_LOG_ALWAYS("%s", ndctl_ge_63_msg);
+	CORE_LOG_HARK("%s", ndctl_ge_63_msg);
 #endif
 
 	last_error_msg_init();

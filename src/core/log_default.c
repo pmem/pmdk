@@ -22,7 +22,8 @@
 #include "os.h"
 #include "util.h"
 
-static const char log_level_names[6][9] = {
+static const char log_level_names[CORE_LOG_LEVEL_MAX][9] = {
+	[CORE_LOG_LEVEL_HARK]		= "*HARK*  ",
 	[CORE_LOG_LEVEL_FATAL]		= "*FATAL* ",
 	[CORE_LOG_LEVEL_ERROR]		= "*ERROR* ",
 	[CORE_LOG_LEVEL_WARNING]	= "*WARN*  ",
@@ -32,6 +33,7 @@ static const char log_level_names[6][9] = {
 };
 
 static const int log_level_syslog_severity[] = {
+	[CORE_LOG_LEVEL_HARK]		= LOG_NOTICE,
 	[CORE_LOG_LEVEL_FATAL]		= LOG_CRIT,
 	[CORE_LOG_LEVEL_ERROR]		= LOG_ERR,
 	[CORE_LOG_LEVEL_WARNING]	= LOG_WARNING,
@@ -105,15 +107,6 @@ core_log_default_function(void *context, enum core_log_level level,
 	char file_info_buffer[256] = "";
 	const char *file_info = file_info_buffer;
 	const char file_info_error[] = "[file info error]: ";
-	bool is_always = false;
-
-	if (CORE_LOG_DISABLED == level)
-		return;
-
-	if (level == CORE_LOG_LEVEL_ALWAYS) {
-		is_always = true;
-		level = CORE_LOG_LEVEL_NOTICE;
-	}
 
 	if (file_name) {
 		/* extract base_file_name */
@@ -136,12 +129,12 @@ core_log_default_function(void *context, enum core_log_level level,
 		log_level_names[level], file_info, message);
 
 	/*
-	 * Since the CORE_LOG_LEVEL_ALWAYS level messages convey pretty mundane
+	 * Since the CORE_LOG_LEVEL_HARK level messages convey pretty mundane
 	 * information regarding the libraries versions etc. it has been decided
 	 * to print them out to the syslog and under no circumstances to stderr
 	 * to keep it clean for potentially more critical information.
 	 */
-	if (is_always) {
+	if (level == CORE_LOG_LEVEL_HARK) {
 		return;
 	}
 
