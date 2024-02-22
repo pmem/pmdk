@@ -166,7 +166,7 @@ test_CORE_LOG_BASIC(const struct test_case *tc, int argc, char *argv[])
 	TEST_STEP(ERROR);
 	TEST_STEP(WARNING);
 	TEST_STEP(NOTICE);
-	context.line_no = __LINE__; CORE_LOG_ALWAYS(CORE_LOG_UT_MESSAGE);
+	context.line_no = __LINE__; CORE_LOG_HARK(CORE_LOG_UT_MESSAGE);
 	UT_ASSERTeq(Log_function_no_of_calls, 5);
 	UT_ASSERTeq(Core_log_abort_no_of_calls, 1);
 	return NO_ARGS_CONSUMED;
@@ -182,7 +182,7 @@ test_CORE_LOG_BASIC_LONG(const struct test_case *tc, int argc, char *argv[])
 	TEST_STEP_LONG(WARNING);
 	TEST_STEP_LONG(NOTICE);
 	context.line_no = __LINE__ + 1;
-	CORE_LOG_ALWAYS(CORE_LOG_UT_MESSAGE_LONG);
+	CORE_LOG_HARK(CORE_LOG_UT_MESSAGE_LONG);
 	UT_ASSERTeq(Log_function_no_of_calls, 5);
 	UT_ASSERTeq(Core_log_abort_no_of_calls, 1);
 	return NO_ARGS_CONSUMED;
@@ -292,7 +292,7 @@ test_CORE_LOG_BASIC_W_ERRNO_BAD(const struct test_case *tc, int argc,
 	CORE_LOG_TRESHOLD_STEP(CORE_LOG_ERROR, 0, _es, _es); \
 	CORE_LOG_TRESHOLD_STEP(CORE_LOG_WARNING, 0, _ws, _we); \
 	CORE_LOG_TRESHOLD_STEP(CORE_LOG_NOTICE, 0, _ns, _ne); \
-	CORE_LOG_TRESHOLD_STEP(CORE_LOG_ALWAYS, 0, _as, 0);
+	CORE_LOG_TRESHOLD_STEP(CORE_LOG_HARK, 0, _as, 0);
 
 static int
 test_CORE_LOG_TRESHOLD(const struct test_case *tc, int argc, char *argv[])
@@ -304,8 +304,8 @@ test_CORE_LOG_TRESHOLD(const struct test_case *tc, int argc, char *argv[])
 	CORE_LOG_TRESHOLD_STEP(CORE_LOG_ERROR, 0, 1, 1);
 	CORE_LOG_TRESHOLD_STEP(CORE_LOG_WARNING, 0, 1, 1);
 	CORE_LOG_TRESHOLD_STEP(CORE_LOG_NOTICE, 0, 1, 0);
-	CORE_LOG_TRESHOLD_STEP(CORE_LOG_ALWAYS, 0, 1, 0);
-	core_log_set_threshold(CORE_LOG_THRESHOLD, CORE_LOG_DISABLED);
+	CORE_LOG_TRESHOLD_STEP(CORE_LOG_HARK, 0, 1, 0);
+	core_log_set_threshold(CORE_LOG_THRESHOLD, CORE_LOG_LEVEL_HARK);
 	CORE_LOG_TRESHOLD_STEP_ALL(0, 0, 0, 0, 0, 0, 0, 0, 1);
 	core_log_set_threshold(CORE_LOG_THRESHOLD, CORE_LOG_LEVEL_FATAL);
 	CORE_LOG_TRESHOLD_STEP_ALL(1, 1, 0, 0, 0, 0, 0, 0, 1);
@@ -313,7 +313,6 @@ test_CORE_LOG_TRESHOLD(const struct test_case *tc, int argc, char *argv[])
 	CORE_LOG_TRESHOLD_STEP_ALL(1, 1, 1, 1, 0, 0, 0, 0, 1);
 	core_log_set_threshold(CORE_LOG_THRESHOLD, CORE_LOG_LEVEL_WARNING);
 	CORE_LOG_TRESHOLD_STEP_ALL(1, 1, 1, 1, 1, 1, 0, 0, 1);
-	UT_OUT("DDDD");
 	core_log_set_threshold(CORE_LOG_THRESHOLD, CORE_LOG_LEVEL_NOTICE);
 	CORE_LOG_TRESHOLD_STEP_ALL(1, 1, 1, 1, 1, 1, 1, 0, 1);
 	return NO_ARGS_CONSUMED;
