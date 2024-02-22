@@ -806,7 +806,7 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 
 	os_fclose(recovery_file);
 
-	CORE_LOG_ALWAYS("bad blocks read from the recovery file -- '%s'", path);
+	CORE_LOG_HARK("bad blocks read from the recovery file -- '%s'", path);
 
 	return 0;
 
@@ -928,7 +928,7 @@ replica_badblocks_recovery_files_read(struct pool_set *set,
 				continue;
 			}
 
-			CORE_LOG_ALWAYS(
+			CORE_LOG_HARK(
 				"reading bad blocks from the recovery file -- '%s'",
 				part_hs->recovery_file_name);
 
@@ -1280,7 +1280,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 		 */
 
 		if (!dry_run) {
-			CORE_LOG_ALWAYS(
+			CORE_LOG_HARK(
 				"removing all bad block recovery files...");
 			ret = replica_remove_all_recovery_files(set_hs);
 			if (ret < 0) {
@@ -1289,7 +1289,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 				return -1;
 			}
 		} else {
-			CORE_LOG_ALWAYS(
+			CORE_LOG_HARK(
 				"all bad block recovery files would be removed");
 		}
 
@@ -1360,7 +1360,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 
 	if (dry_run) {
 		/* dry-run - do nothing */
-		CORE_LOG_ALWAYS("bad blocks would be cleared");
+		CORE_LOG_HARK("bad blocks would be cleared");
 		return 0;
 	}
 
