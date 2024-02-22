@@ -133,13 +133,6 @@ out_init(const char *log_prefix, const char *log_level_var,
 			abort();
 		}
 	}
-
-	if (log_level != NULL || log_file != NULL) {
-		ret = core_log_set_function(out_legacy, NULL);
-		if (ret) {
-			CORE_LOG_FATAL("Cannot set legacy log function");
-		}
-	}
 #endif	/* DEBUG */
 
 	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
@@ -155,10 +148,18 @@ out_init(const char *log_prefix, const char *log_level_var,
 		setlinebuf(Out_fp);
 
 #ifdef DEBUG
+	if (log_level != NULL || log_file != NULL) {
+		ret = core_log_set_function(out_legacy, NULL);
+		if (ret) {
+			CORE_LOG_FATAL("Cannot set legacy log function");
+		}
+	}
+#endif	/* DEBUG */
+#ifdef DEBUG
 	static char namepath[PATH_MAX];
 	CORE_LOG_HARK("pid %d: program: %s", getpid(),
 		util_getexecname(namepath, PATH_MAX));
-#endif
+#endif	/* DEBUG */
 	CORE_LOG_HARK("%s version %d.%d", log_prefix, major_version,
 		minor_version);
 

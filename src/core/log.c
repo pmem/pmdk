@@ -103,6 +103,17 @@ core_log_fini()
 	core_log_default_fini();
 }
 
+static void
+core_log_lib_info(void)
+{
+	CORE_LOG_HARK("src version: " SRCVERSION);
+#if SDS_ENABLED
+	CORE_LOG_HARK("compiled with support for shutdown state");
+#endif
+#if NDCTL_ENABLED
+	CORE_LOG_HARK("compiled with libndctl 63+");
+#endif
+}
 /*
  * core_log_set_function -- set the log function pointer either to
  * a user-provided function pointer or to the default logging function.
@@ -127,10 +138,12 @@ core_log_set_function(core_log_function *log_function, void *context)
 			core_log_function_old, (uintptr_t)log_function))
 		return EAGAIN;
 	if (__sync_bool_compare_and_swap(&Core_log_function_context,
-			context_old, context))
+			context_old, context)) {
+		core_log_lib_info();
 		return 0;
+	}
 
-	__sync_bool_compare_and_swap(&Core_log_function,
+	(void) __sync_bool_compare_and_swap(&Core_log_function,
 		(uintptr_t)log_function, core_log_function_old);
 	return EAGAIN;
 
