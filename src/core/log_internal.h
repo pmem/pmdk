@@ -22,8 +22,8 @@ extern "C" {
 #endif
 
 enum core_log_level {
-	/* all messages will be suppressed */
-	CORE_LOG_DISABLED = -1,
+	/* all messages will be suppressed except basic library info */
+	CORE_LOG_LEVEL_HARK,
 	/* an error that causes the library to stop working immediately */
 	CORE_LOG_LEVEL_FATAL,
 	/* an error that causes the library to stop working properly */
@@ -36,10 +36,8 @@ enum core_log_level {
 	CORE_LOG_LEVEL_INFO,
 	/* debug info e.g. write operation dump */
 	CORE_LOG_LEVEL_DEBUG,
+	CORE_LOG_LEVEL_MAX
 };
-
-/* Not meant to be used directly. */
-#define CORE_LOG_LEVEL_ALWAYS (CORE_LOG_DISABLED - 1)
 
 enum core_log_threshold {
 	/*
@@ -184,8 +182,8 @@ void core_log_to_last(int errnum, const char *file_name, int line_no,
 		abort(); \
 	} while (0)
 
-#define CORE_LOG_ALWAYS(format, ...) \
-	_CORE_LOG(CORE_LOG_LEVEL_ALWAYS, NO_ERRNO, format, ##__VA_ARGS__)
+#define CORE_LOG_HARK(format, ...) \
+	_CORE_LOG(CORE_LOG_LEVEL_HARK, NO_ERRNO, format, ##__VA_ARGS__)
 
 /*
  * 'With errno' macros' flavours. Append string describing the current errno

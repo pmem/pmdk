@@ -13,13 +13,13 @@ extern "C" {
 #endif
 
 /*
- * Available log levels. Log levels (except for PMEMOBJ_LOG_DISABLED) are used
- * in the logging API calls to indicate logging message severity. Log levels are
- * also used to define thresholds for the logging.
+ * Available log levels. Log levels are used in the logging API calls
+ * to indicate logging message severity. Log levels are also used
+ * to define thresholds for the logging.
  */
 enum pmemobj_log_level {
-	/* all messages will be suppressed */
-	PMEMOBJ_LOG_DISABLED = -1,
+	/* all messages will be suppressed except basic library info */
+	PMEMOBJ_LOG_LEVEL_HARK,
 	/* an error that causes the library to stop working immediately */
 	PMEMOBJ_LOG_LEVEL_FATAL,
 	/* an error that causes the library to stop working properly */
@@ -57,7 +57,7 @@ enum pmemobj_log_threshold {
  *              enum pmemobj_log_level level);
  *
  *	enum log_level {
- *		PMEMOBJ_LOG_DISABLED,
+ *		PMEMOBJ_LOG_LEVEL_HARK,
  *		PMEMOBJ_LOG_LEVEL_FATAL,
  *		PMEMOBJ_LOG_LEVEL_ERROR,
  *		PMEMOBJ_LOG_LEVEL_WARNING,
@@ -78,15 +78,16 @@ enum pmemobj_log_threshold {
  * Available thresholds are:
  * - PMEMOBJ_LOG_THRESHOLD - the main threshold used to filter out undesired
  *   logging messages. Messages on a higher level than the primary threshold
- *   level are ignored. PMEMOBJ_LOG_DISABLED shall be used to suppress logging.
+ *   level are ignored. PMEMOBJ_LOG_LEVEL_HARK shall be used to suppress
+ *   logging.
  *   The default value is PMEMOBJ_LOG_WARNING.
  * - PMEMOBJ_LOG_THRESHOLD_AUX - the auxiliary threshold intended for use inside
  *   the logging function (please see log_get_threshold(3)). The logging
  *   function may or may not take this threshold into consideration. The default
- *   value is PMEMOBJ_LOG_DISABLED.
+ *   value is PMEMOBJ_LOG_LEVEL_HARK.
  *
  * Available threshold levels are defined by enum log_level:
- * - PMEMOBJ_LOG_DISABLED - all messages will be suppressed
+ * - PMEMOBJ_LOG_LEVEL_HARK - all messages will be suppressed except lib info
  * - PMEMOBJ_LOG_LEVEL_FATAL - an error that causes the library to stop working
  *   immediately
  * - PMEMOBJ_LOG_LEVEL_ERROR - an error that causes the library to stop working
