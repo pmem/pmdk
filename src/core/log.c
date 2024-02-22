@@ -235,10 +235,6 @@ skip_errno:
 		goto end;
 	}
 
-	if (Core_log_function != (uintptr_t)core_log_default_function &&
-		level == CORE_LOG_LEVEL_ALWAYS)
-		level = CORE_LOG_LEVEL_NOTICE;
-
 	((core_log_function *)Core_log_function)(Core_log_function_context,
 		level, file_name, line_no, function_name, buf);
 

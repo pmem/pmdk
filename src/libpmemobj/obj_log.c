@@ -40,8 +40,10 @@ pmemobj_log_get_threshold(enum pmemobj_log_threshold threshold,
 int
 pmemobj_log_set_function(pmemobj_log_function *log_function, void *context)
 {
-	if (log_function == PMEMOBJ_LOG_USE_DEFAULT_FUNCTION)
+	if (log_function == PMEMOBJ_LOG_USE_DEFAULT_FUNCTION) {
 		context = NULL;
+		log_function = CORE_LOG_USE_DEFAULT_FUNCTION;
+	}
 
 	int ret = core_log_set_function((core_log_function *)log_function,
 		context);
