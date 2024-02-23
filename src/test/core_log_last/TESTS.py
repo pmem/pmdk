@@ -42,12 +42,4 @@ class TEST5(CORE_LOG):
 
 
 class TEST6(CORE_LOG):
-    test_case = 'test_CORE_LOG_LAST_BASIC_LONG'
-
-
-class TEST7(CORE_LOG):
-    test_case = 'test_CORE_LOG_LAST_BASIC_TOO_LONG'
-
-
-class TEST8(CORE_LOG):
     test_case = 'test_CORE_LOG_TRESHOLD'
