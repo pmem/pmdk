@@ -687,9 +687,9 @@ call_all_CORE_LOG_FATAL(void)
 	CORE_LOG_FATAL("os_thread_key_create");
 	// src/core/last_error_msg.c:78
 	CORE_LOG_FATAL("os_tls_set");
-	// src/core/out.c:113
+	// src/core/out.c:147
 	CORE_LOG_FATAL("Cannot set log threshold");
-	// src/core/out.c:145
+	// src/core/out.c:154
 	CORE_LOG_FATAL("Cannot set legacy log function");
 	// src/core/sys_util.h:108
 	CORE_LOG_FATAL("os_rwlock_init");
@@ -1000,7 +1000,7 @@ call_all_ERR_W_ERRNO(int errnum)
 	// src/common/vecq.h:68
 	ERR_W_ERRNO("Realloc");
 	UT_ASSERTeq(errno, errnum);
-	// src/core/out.c:126
+	// src/core/out.c:104
 	ERR_W_ERRNO("snprintf");
 	UT_ASSERTeq(errno, errnum);
 	// src/core/ravl.c:167

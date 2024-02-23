@@ -83,32 +83,15 @@ out_init(const char *log_prefix, const char *log_level_var,
 
 	Log_prefix = log_prefix;
 
+	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
+	if (log_alignment) {
+		int align = atoi(log_alignment);
+		if (align > 0)
+			Log_alignment = (unsigned)align;
+	}
+
 #ifdef DEBUG
-	char *log_level;
 	char *log_file;
-	int log_level_cropped = 0;
-	int ret;
-
-	if ((log_level = os_getenv(log_level_var)) != NULL) {
-		Log_level = atoi(log_level);
-		if (Log_level < 0) {
-			Log_level = 0;
-		}
-		if (Log_level <= OUT_MAX_LEVEL) {
-			log_level_cropped = Log_level;
-		} else {
-			log_level_cropped = OUT_MAX_LEVEL;
-		}
-	}
-
-	if (log_level != NULL) {
-		ret = core_log_set_threshold(CORE_LOG_THRESHOLD,
-			level_to_core_log_level[log_level_cropped]);
-		if (ret) {
-			CORE_LOG_FATAL("Cannot set log threshold");
-		}
-	}
-
 	if ((log_file = os_getenv(log_file_var)) != NULL &&
 				log_file[0] != '\0') {
 
@@ -133,6 +116,37 @@ out_init(const char *log_prefix, const char *log_level_var,
 			abort();
 		}
 	}
+#endif	/* DEBUG */
+
+	if (Out_fp == NULL)
+		Out_fp = stderr;
+	else
+		setlinebuf(Out_fp);
+
+#ifdef DEBUG
+	char *log_level;
+	int log_level_cropped = 0;
+	int ret;
+
+	if ((log_level = os_getenv(log_level_var)) != NULL) {
+		Log_level = atoi(log_level);
+		if (Log_level < 0) {
+			Log_level = 0;
+		}
+		if (Log_level <= OUT_MAX_LEVEL) {
+			log_level_cropped = Log_level;
+		} else {
+			log_level_cropped = OUT_MAX_LEVEL;
+		}
+	}
+
+	if (log_level != NULL) {
+		ret = core_log_set_threshold(CORE_LOG_THRESHOLD,
+			level_to_core_log_level[log_level_cropped]);
+		if (ret) {
+			CORE_LOG_FATAL("Cannot set log threshold");
+		}
+	}
 
 	if (log_level != NULL || log_file != NULL) {
 		ret = core_log_set_function(out_legacy, NULL);
@@ -142,29 +156,18 @@ out_init(const char *log_prefix, const char *log_level_var,
 	}
 #endif	/* DEBUG */
 
-	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
-	if (log_alignment) {
-		int align = atoi(log_alignment);
-		if (align > 0)
-			Log_alignment = (unsigned)align;
-	}
-
-	if (Out_fp == NULL)
-		Out_fp = stderr;
-	else
-		setlinebuf(Out_fp);
-
+/*
+ * Print library info
+ */
 #ifdef DEBUG
 	static char namepath[PATH_MAX];
 	CORE_LOG_HARK("pid %d: program: %s", getpid(),
 		util_getexecname(namepath, PATH_MAX));
-#endif
+#endif	/* DEBUG */
+
 	CORE_LOG_HARK("%s version %d.%d", log_prefix, major_version,
 		minor_version);
 
-	static __attribute__((used)) const char *version_msg =
-			"src version: " SRCVERSION;
-	CORE_LOG_HARK("%s", version_msg);
 #if VG_PMEMCHECK_ENABLED
 	/*
 	 * Attribute "used" to prevent compiler from optimizing out the variable
@@ -189,16 +192,6 @@ out_init(const char *log_prefix, const char *log_level_var,
 			"compiled with support for Valgrind drd";
 	CORE_LOG_HARK("%s", drd_msg);
 #endif /* VG_DRD_ENABLED */
-#if SDS_ENABLED
-	static __attribute__((used)) const char *shutdown_state_msg =
-			"compiled with support for shutdown state";
-	CORE_LOG_HARK("%s", shutdown_state_msg);
-#endif
-#if NDCTL_ENABLED
-	static __attribute__((used)) const char *ndctl_ge_63_msg =
-		"compiled with libndctl 63+";
-	CORE_LOG_HARK("%s", ndctl_ge_63_msg);
-#endif
 
 	last_error_msg_init();
 }
