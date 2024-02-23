@@ -168,9 +168,6 @@ out_init(const char *log_prefix, const char *log_level_var,
 	CORE_LOG_HARK("%s version %d.%d", log_prefix, major_version,
 		minor_version);
 
-	static __attribute__((used)) const char *version_msg =
-			"src version: " SRCVERSION;
-	CORE_LOG_HARK("%s", version_msg);
 #if VG_PMEMCHECK_ENABLED
 	/*
 	 * Attribute "used" to prevent compiler from optimizing out the variable
@@ -195,16 +192,6 @@ out_init(const char *log_prefix, const char *log_level_var,
 			"compiled with support for Valgrind drd";
 	CORE_LOG_HARK("%s", drd_msg);
 #endif /* VG_DRD_ENABLED */
-#if SDS_ENABLED
-	static __attribute__((used)) const char *shutdown_state_msg =
-			"compiled with support for shutdown state";
-	CORE_LOG_HARK("%s", shutdown_state_msg);
-#endif
-#if NDCTL_ENABLED
-	static __attribute__((used)) const char *ndctl_ge_63_msg =
-		"compiled with libndctl 63+";
-	CORE_LOG_HARK("%s", ndctl_ge_63_msg);
-#endif
 
 	last_error_msg_init();
 }
