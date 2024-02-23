@@ -70,6 +70,6 @@ jobs:
     name: Ubuntu
 
   coverage_scan:
-    needs: call-ubuntu
+    needs: [src_checkers, basic_build]
     uses: ./.github/workflows/scan_coverage.yml
     name: Coverage
