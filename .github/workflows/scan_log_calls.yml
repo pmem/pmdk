@@ -24,6 +24,10 @@ jobs:
           echo "length=$(cat log_calls.diff | wc -l)" >> $GITHUB_OUTPUT
         id: log_calls_diff
 
+      - name: Non-empty diff
+        if: steps.log_calls_diff.outputs.length != '0'
+        run: cat log_calls.diff
+
       - name: Upload artifacts
         if: steps.log_calls_diff.outputs.length != '0'
         uses: actions/upload-artifact@v3
