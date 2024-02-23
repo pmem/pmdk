@@ -22,6 +22,8 @@
 #include "log_internal.h"
 #include "last_error_msg.h"
 
+#ifdef DEBUG
+
 #define MAXPRINT 8192
 
 static const char *Log_prefix;
@@ -29,7 +31,6 @@ static int Log_level;
 static FILE *Out_fp;
 static unsigned Log_alignment;
 
-#ifdef DEBUG
 static const enum core_log_level level_to_core_log_level[5] = {
 	[0] = CORE_LOG_LEVEL_HARK,
 	[1] = CORE_LOG_LEVEL_ERROR,
@@ -72,7 +73,8 @@ out_init(const char *log_prefix, const char *log_level_var,
 		int minor_version)
 {
 	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(log_level_var, log_file_var);
+	SUPPRESS_UNUSED(log_prefix, log_level_var, log_file_var, major_version,
+		minor_version);
 
 	static int once;
 
@@ -81,6 +83,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		return;
 	once++;
 
+#ifdef DEBUG
 	Log_prefix = log_prefix;
 
 	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
@@ -90,7 +93,6 @@ out_init(const char *log_prefix, const char *log_level_var,
 			Log_alignment = (unsigned)align;
 	}
 
-#ifdef DEBUG
 	char *log_file;
 	if ((log_file = os_getenv(log_file_var)) != NULL &&
 				log_file[0] != '\0') {
@@ -116,14 +118,12 @@ out_init(const char *log_prefix, const char *log_level_var,
 			abort();
 		}
 	}
-#endif	/* DEBUG */
 
 	if (Out_fp == NULL)
 		Out_fp = stderr;
 	else
 		setlinebuf(Out_fp);
 
-#ifdef DEBUG
 	char *log_level;
 	int log_level_cropped = 0;
 	int ret;
@@ -154,8 +154,6 @@ out_init(const char *log_prefix, const char *log_level_var,
 			CORE_LOG_FATAL("Cannot set legacy log function");
 		}
 	}
-#endif	/* DEBUG */
-
 /*
  * Print library info
  */
@@ -192,7 +190,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			"compiled with support for Valgrind drd";
 	CORE_LOG_HARK("%s", drd_msg);
 #endif /* VG_DRD_ENABLED */
-
+#endif
 	last_error_msg_init();
 }
 
@@ -204,12 +202,15 @@ out_init(const char *log_prefix, const char *log_level_var,
 void
 out_fini(void)
 {
+#ifdef DEBUG
 	if (Out_fp != NULL && Out_fp != stderr) {
 		fclose(Out_fp);
 		Out_fp = stderr;
 	}
+#endif
 }
 
+#ifdef DEBUG
 /*
  * out_print_func -- print function, goes to Out_fp (stderr by default)
  */
@@ -323,3 +324,4 @@ out_log(const char *file, int line, const char *func, int level,
 
 	va_end(ap);
 }
+#endif /* DEBUG */
