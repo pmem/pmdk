@@ -8,7 +8,6 @@ BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
 
 LIBPMEMCORE=internal-debug
-EXTRA_CFLAGS=-Dnoreturn="/* noreturn */"
 
 include ../Makefile.inc
 LDFLAGS += $(call extract_funcs, core_log_last.c)

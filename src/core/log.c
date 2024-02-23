@@ -218,7 +218,6 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 		goto skip_errno;
 	}
 
-
 	if (errnum != NO_ERRNO) {
 		/*
 		 * Ask for the error string right after the already printed
