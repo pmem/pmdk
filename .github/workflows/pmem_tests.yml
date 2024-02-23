@@ -6,8 +6,8 @@ name: PMEM tests
 on:
   workflow_dispatch:
   schedule:
-    # run this job at 00:00 UTC every day
-    - cron:  '0 0 * * *'
+    # run this job at 18:00 UTC every day
+    - cron:  '0 18 * * *'
 
 jobs:
   # Test the default build with the basic test suite.
