@@ -360,73 +360,73 @@ call_all_ERR_WO_ERRNO(void)
 	ERR_WO_ERRNO("error initializing lock");
 	// src/libpmemobj/sync.c:50
 	ERR_WO_ERRNO("error setting lock runid");
-	// src/libpmemobj/tx.c:1236
+	// src/libpmemobj/tx.c:1237
 	ERR_WO_ERRNO("snapshot size too large");
-	// src/libpmemobj/tx.c:1243
+	// src/libpmemobj/tx.c:1244
 	ERR_WO_ERRNO("object outside of heap");
-	// src/libpmemobj/tx.c:1383
+	// src/libpmemobj/tx.c:1384
 	ERR_WO_ERRNO("out of memory");
-	// src/libpmemobj/tx.c:1410
+	// src/libpmemobj/tx.c:1411
 	ERR_WO_ERRNO("object outside of pool");
-	// src/libpmemobj/tx.c:1448
+	// src/libpmemobj/tx.c:1449
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
-	// src/libpmemobj/tx.c:1456
+	// src/libpmemobj/tx.c:1457
 	ERR_WO_ERRNO("object outside of pool");
-	// src/libpmemobj/tx.c:1493
+	// src/libpmemobj/tx.c:1494
 	ERR_WO_ERRNO("invalid pool uuid");
-	// src/libpmemobj/tx.c:1531
+	// src/libpmemobj/tx.c:1532
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
-	// src/libpmemobj/tx.c:1539
+	// src/libpmemobj/tx.c:1540
 	ERR_WO_ERRNO("invalid pool uuid");
-	// src/libpmemobj/tx.c:1576
+	// src/libpmemobj/tx.c:1577
 	ERR_WO_ERRNO("allocation with size 0");
-	// src/libpmemobj/tx.c:1607
+	// src/libpmemobj/tx.c:1608
 	ERR_WO_ERRNO("allocation with size 0");
-	// src/libpmemobj/tx.c:1638
+	// src/libpmemobj/tx.c:1639
 	ERR_WO_ERRNO("allocation with size 0");
-	// src/libpmemobj/tx.c:1645
+	// src/libpmemobj/tx.c:1646
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
-	// src/libpmemobj/tx.c:1714
+	// src/libpmemobj/tx.c:1715
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
-	// src/libpmemobj/tx.c:1722
+	// src/libpmemobj/tx.c:1723
 	ERR_WO_ERRNO("cannot duplicate NULL string");
-	// src/libpmemobj/tx.c:1772
+	// src/libpmemobj/tx.c:1773
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
-	// src/libpmemobj/tx.c:1780
+	// src/libpmemobj/tx.c:1781
 	ERR_WO_ERRNO("cannot duplicate NULL string");
-	// src/libpmemobj/tx.c:1831
+	// src/libpmemobj/tx.c:1832
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
-	// src/libpmemobj/tx.c:1842
+	// src/libpmemobj/tx.c:1843
 	ERR_WO_ERRNO("invalid pool uuid");
-	// src/libpmemobj/tx.c:1914
+	// src/libpmemobj/tx.c:1915
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
-	// src/libpmemobj/tx.c:1959
+	// src/libpmemobj/tx.c:1960
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
-	// src/libpmemobj/tx.c:2208
+	// src/libpmemobj/tx.c:2209
 	ERR_WO_ERRNO("invalid cache size, must be between 0 and max alloc size");
-	// src/libpmemobj/tx.c:2232
+	// src/libpmemobj/tx.c:2233
 	ERR_WO_ERRNO("tx.cache.threshold parameter is deprecated");
-	// src/libpmemobj/tx.c:2247
+	// src/libpmemobj/tx.c:2248
 	ERR_WO_ERRNO("tx.cache.threshold parameter is deprecated");
-	// src/libpmemobj/tx.c:513
+	// src/libpmemobj/tx.c:514
 	ERR_WO_ERRNO("Unrecognized lock type");
-	// src/libpmemobj/tx.c:550
+	// src/libpmemobj/tx.c:551
 	ERR_WO_ERRNO("Unrecognized lock type");
-	// src/libpmemobj/tx.c:588
+	// src/libpmemobj/tx.c:589
 	ERR_WO_ERRNO("requested size too large");
-	// src/libpmemobj/tx.c:617
+	// src/libpmemobj/tx.c:618
 	ERR_WO_ERRNO("out of memory");
-	// src/libpmemobj/tx.c:633
+	// src/libpmemobj/tx.c:634
 	ERR_WO_ERRNO("requested size too large");
-	// src/libpmemobj/tx.c:647
+	// src/libpmemobj/tx.c:648
 	ERR_WO_ERRNO("pmemobj_tx_free failed");
-	// src/libpmemobj/tx.c:665
+	// src/libpmemobj/tx.c:666
 	ERR_WO_ERRNO("pmemobj_tx_free failed");
-	// src/libpmemobj/tx.c:682
+	// src/libpmemobj/tx.c:683
 	ERR_WO_ERRNO("Buffer from a different pool");
-	// src/libpmemobj/tx.c:739
+	// src/libpmemobj/tx.c:740
 	ERR_WO_ERRNO("nested transaction for different pool");
-	// src/libpmemobj/tx.c:865
+	// src/libpmemobj/tx.c:866
 	ERR_WO_ERRNO("unknown flags 0x%lx", _lu);
 	// src/libpmemobj/ulog.c:245
 	ERR_WO_ERRNO("cannot auto reserve next ulog");
@@ -769,23 +769,23 @@ call_all_CORE_LOG_FATAL(void)
 	CORE_LOG_FATAL("pmemobj_mutex_unlock");
 	// src/libpmemobj/sync.h:87
 	CORE_LOG_FATAL("pmemobj_mutex_lock");
-	// src/libpmemobj/tx.c:1049
+	// src/libpmemobj/tx.c:1050
 	CORE_LOG_FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
-	// src/libpmemobj/tx.c:1053
+	// src/libpmemobj/tx.c:1054
 	CORE_LOG_FATAL("pmemobj_tx_end called without pmemobj_tx_begin");
-	// src/libpmemobj/tx.c:161
+	// src/libpmemobj/tx.c:162
 	CORE_LOG_FATAL("%s called outside of transaction", _s);
-	// src/libpmemobj/tx.c:272
+	// src/libpmemobj/tx.c:273
 	CORE_LOG_FATAL("Malloc");
-	// src/libpmemobj/tx.c:284
+	// src/libpmemobj/tx.c:285
 	CORE_LOG_FATAL("Malloc");
-	// src/libpmemobj/tx.c:321
+	// src/libpmemobj/tx.c:322
 	CORE_LOG_FATAL("Malloc");
-	// src/libpmemobj/tx.c:574
+	// src/libpmemobj/tx.c:575
 	CORE_LOG_FATAL("invalid state of ranges tree");
-	// src/libpmemobj/tx.c:769
+	// src/libpmemobj/tx.c:770
 	CORE_LOG_FATAL("Invalid stage %d to begin new transaction", _d);
-	// src/libpmemobj/tx.c:807
+	// src/libpmemobj/tx.c:808
 	CORE_LOG_FATAL("transaction callback is already set, old %p new %p old_arg %p new_arg %p", _p, _p, _p, _p);
 }
 
@@ -1087,16 +1087,16 @@ call_all_ERR_W_ERRNO(int errnum)
 	// src/libpmemobj/stats.c:124
 	ERR_W_ERRNO("Malloc");
 	UT_ASSERTeq(errno, errnum);
-	// src/libpmemobj/tx.c:499
+	// src/libpmemobj/tx.c:500
 	ERR_W_ERRNO("pmemobj_mutex_lock");
 	UT_ASSERTeq(errno, errnum);
-	// src/libpmemobj/tx.c:508
+	// src/libpmemobj/tx.c:509
 	ERR_W_ERRNO("pmemobj_rwlock_wrlock");
 	UT_ASSERTeq(errno, errnum);
-	// src/libpmemobj/tx.c:776
+	// src/libpmemobj/tx.c:777
 	ERR_W_ERRNO("Malloc");
 	UT_ASSERTeq(errno, errnum);
-	// src/libpmemobj/tx.c:945
+	// src/libpmemobj/tx.c:946
 	ERR_W_ERRNO("explicit transaction abort");
 	UT_ASSERTeq(errno, errnum);
 }
@@ -1234,13 +1234,13 @@ call_all_CORE_LOG_FATAL_W_ERRNO(int errnum)
 	// src/libpmemobj/sync.h:87
 	CORE_LOG_FATAL_W_ERRNO("pmemobj_mutex_lock");
 	UT_ASSERTeq(errno, errnum);
-	// src/libpmemobj/tx.c:272
+	// src/libpmemobj/tx.c:273
 	CORE_LOG_FATAL_W_ERRNO("Malloc");
 	UT_ASSERTeq(errno, errnum);
-	// src/libpmemobj/tx.c:284
+	// src/libpmemobj/tx.c:285
 	CORE_LOG_FATAL_W_ERRNO("Malloc");
 	UT_ASSERTeq(errno, errnum);
-	// src/libpmemobj/tx.c:321
+	// src/libpmemobj/tx.c:322
 	CORE_LOG_FATAL_W_ERRNO("Malloc");
 	UT_ASSERTeq(errno, errnum);
 }
