@@ -7,6 +7,7 @@
 
 #include <inttypes.h>
 #include <wchar.h>
+#include <stdarg.h>
 
 #include "queue.h"
 #include "ravl.h"
