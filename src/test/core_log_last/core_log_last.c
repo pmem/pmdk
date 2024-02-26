@@ -44,16 +44,19 @@ FUNC_MOCK_RUN_DEFAULT {
 }
 FUNC_MOCK_END
 
-static int Syslog_no_of_calls = 0;
+static int Core_log_default_function_no_of_calls = 0;
 
-FUNC_MOCK(syslog, void, int __pri, const char *__fmt, ...)
+FUNC_MOCK(core_log_default_function, void, void *context,
+	enum core_log_level level, const char *file_name, const int line_no,
+	const char *function_name, const char *message)
 FUNC_MOCK_RUN_DEFAULT {
 	char buf[CORE_LOG_UT_MAX_BUFF_SIZE];
 	va_list arg;
 	va_start(arg, __fmt);
 	vsnprintf(buf, CORE_LOG_UT_MAX_BUFF_SIZE, __fmt, arg);
 	va_end(arg);
-	Syslog_no_of_calls ++;
+	UT_ASSERTeq(level, CORE_LOG_LEVEL_ERROR);
+	Core_log_default_function_no_of_calls ++;
 }
 FUNC_MOCK_END
 
@@ -111,7 +114,7 @@ FUNC_MOCK_END
 	Core_log_to_last_mock_context.initialized = 1
 
 #define TEST_STEP_SETUP() \
-	Syslog_no_of_calls = 0; \
+	Core_log_default_function_no_of_calls = 0; \
 	Core_log_to_last_mock_context.no_of_calls = 0; \
 	Core_log_to_last_mock_context.line_no = __LINE__; \
 	(*(char *)last_error_msg_get()) = '\0'
@@ -121,7 +124,7 @@ FUNC_MOCK_END
 	UT_ASSERTeq(strcmp(Core_log_to_last_mock_context.message, \
 		last_error_msg_get()), 0); \
 	UT_ASSERTeq(Core_log_to_last_mock_context.no_of_calls, 1); \
-	UT_ASSERTeq(Syslog_no_of_calls, 1)
+	UT_ASSERTeq(Core_log_default_function_no_of_calls, 1)
 
 #define TEST_STEP(MESSAGE) \
 	TEST_STEP_SETUP(); \
@@ -210,9 +213,9 @@ test_CORE_LOG_TRESHOLD(const struct test_case *tc, int argc, char *argv[])
 		UT_ASSERTeq(strcmp(Core_log_to_last_mock_context.message,
 			last_error_msg_get()), 0);
 		if (level < CORE_LOG_LEVEL_ERROR) {
-			UT_ASSERTeq(Syslog_no_of_calls, 0);
+			UT_ASSERTeq(Core_log_default_function_no_of_calls, 0);
 		} else {
-			UT_ASSERTeq(Syslog_no_of_calls, 1);
+			UT_ASSERTeq(Core_log_default_function_no_of_calls, 1);
 		}
 	}
 	return NO_ARGS_CONSUMED;
