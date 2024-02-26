@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/mman.h>
+#include <stdarg.h>
 
 #include "libpmempool.h"
 #include "util_pmem.h"

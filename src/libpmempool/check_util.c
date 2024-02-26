@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "out.h"
 #include "libpmempool.h"
