@@ -93,7 +93,7 @@ err_message:
  * are formatted and inserted in the message.
  *
  * ASSUMPTIONS:
- * - level >= CORE_LOG_LEVEL_FATAL && level <= CORE_LOG_LEVEL_DEBUG
+ * - level >= CORE_LOG_LEVEL_HARK && level <= CORE_LOG_LEVEL_DEBUG
  * - level <= Core_log_threshold[LOG_THRESHOLD]
  * - file == NULL || (file != NULL && function != NULL)
  */
