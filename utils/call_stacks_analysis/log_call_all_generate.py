@@ -116,7 +116,7 @@ def extract_all_calls(func: str) -> List[Dict]:
                 code = extract_append_code(file, int(line_no), code)
             call = {
                 'file': file,
-                'line': line_no,
+                'line_no': line_no,
                 'code': code
             }
             calls.append(call)
@@ -124,7 +124,7 @@ def extract_all_calls(func: str) -> List[Dict]:
             bad_line('An unexpected line format', line)
     # sort calls by file and line
     def key_func(a: Dict) -> str:
-        return a['file'] + a['line']
+        return a['file'] + a['line_no']
     calls.sort(key=key_func)
     print(f'[{func}] total: {total}, included: {len(calls)}')
     return calls
@@ -369,7 +369,7 @@ def generate_call(file, func: str, call: Dict) -> str:
         args = ', ' + ', '.join(call['args'])
     else:
         args = ''
-    file.write(f'\t// src/{call["file"]}:{call["line"]}\n')
+    file.write(f'\t// src/{call["file"]}\n')
     file.write(f'\t{func}("{call["format_string"]}"{args});\n')
 
 def generate_func_with_errno(func: str, calls: List[Dict]) -> None:
