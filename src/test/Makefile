@@ -108,6 +108,7 @@ OBJ_TESTS = \
 
 OTHER_TESTS = \
 	arch_flags\
+	core_log_internal\
 	core_log_max\
 	checksum\
 	compat_incompat_features\
