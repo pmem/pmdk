@@ -252,24 +252,17 @@ core_log(enum core_log_level level, int errnum, const char *file_name,
 	int line_no, const char *function_name, const char *message_format, ...)
 {
 	char message[_CORE_LOG_MSG_MAXPRINT] = "";
+	char *buf = message;
+	size_t buf_len = sizeof(message);
+	if (level == CORE_LOG_LEVEL_ERROR_LAST) {
+		level = CORE_LOG_LEVEL_ERROR;
+		buf = (char *)last_error_msg_get();
+		buf_len = CORE_LAST_ERROR_MSG_MAXPRINT;
+	}
 
 	va_list arg;
 	va_start(arg, message_format);
-	core_log_va(message, sizeof(message), level, errnum, file_name,
-		line_no, function_name, message_format, arg);
-	va_end(arg);
-}
-
-void
-core_log_to_last(int errnum, const char *file_name, int line_no,
-	const char *function_name, const char *message_format, ...)
-{
-	char *last_error = (char *)last_error_msg_get();
-	va_list arg;
-
-	va_start(arg, message_format);
-	core_log_va(last_error, CORE_LAST_ERROR_MSG_MAXPRINT,
-		CORE_LOG_LEVEL_ERROR, errnum, file_name, line_no,
+	core_log_va(buf, buf_len, level, errnum, file_name, line_no,
 		function_name, message_format, arg);
 	va_end(arg);
 }
