@@ -101,26 +101,6 @@ static int Total_TLS_message_num;
  */
 #define TOTAL_TLS_MESSAGE_NUM_EXPECTED 311
 
-FUNC_MOCK(core_log_to_last, void, int errnum, const char *file_name,
-	int line_no, const char *function_name, const char *message_format, ...)
-	FUNC_MOCK_RUN_DEFAULT {
-		char buf[BIG_BUF_SIZE] = "";
-		va_list arg;
-		va_start(arg, message_format);
-		int ret = vsnprintf(buf, BIG_BUF_SIZE, message_format, arg);
-		UT_ASSERT(ret > 0);
-		UT_ASSERTeq(ret, strlen(buf));
-		if (errnum != NO_ERRNO)
-			ret += _CORE_LOG_MAX_ERRNO_MSG;
-		if (ret > Max_TLS_message_len) {
-			Max_TLS_message_len = ret;
-			strncpy(The_longest_TLS_message, buf, BIG_BUF_SIZE);
-		}
-		++Total_TLS_message_num;
-		return;
-	}
-FUNC_MOCK_END
-
 static int
 test_ERR_W_ERRNO(const struct test_case *tc, int argc, char *argv[])
 {
@@ -157,11 +137,20 @@ FUNC_MOCK(core_log, void, enum core_log_level level, int errnum,
 		if (errnum != NO_ERRNO)
 			ret += _CORE_LOG_MAX_ERRNO_MSG;
 
-		if (ret > Max_message_len) {
-			Max_message_len = ret;
+		if (level == CORE_LOG_LEVEL_ERROR_LAST) {
+			if (ret > Max_TLS_message_len) {
+				Max_TLS_message_len = ret;
+				strncpy(The_longest_TLS_message, buf,
+					BIG_BUF_SIZE);
+			}
+			++Total_TLS_message_num;
+		} else {
+			if (ret > Max_message_len) {
+				Max_message_len = ret;
 			strncpy(The_longest_message, buf, BIG_BUF_SIZE);
+			}
+			++Total_message_num;
 		}
-		++Total_message_num;
 		return;
 	}
 FUNC_MOCK_END
