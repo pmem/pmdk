@@ -15,7 +15,7 @@
 ./make_extra.py && \
 ./make_cflow.sh && \
 ./make_call_stacks.py --filter-api-file examples/api_filter.txt \
-    --filter-lower-limit 11296 --dump-all-stacks
+    --filter-lower-limit 11520 --dump-all-stacks
 ```
 
 If succesfull, it produces:
