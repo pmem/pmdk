@@ -173,28 +173,35 @@ ut_log_function(void *context, enum core_log_level level, const char *file_name,
 /*
  * assertions...
  */
+#define UT_ASSERT_MSG(FORMAT, ...) \
+	ut_fatal(__FILE__, __LINE__, __func__,\
+		"assertion failure: " FORMAT, ##__VA_ARGS__)
 
 /* assert a condition is true at runtime */
 #define UT_ASSERT_rt(cnd)\
-	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s", #cnd), 0)))
+	((void)((cnd) || (UT_ASSERT_MSG("%s", #cnd), 0)))
 
 /* assertion with extra info printed if assertion fails at runtime */
 #define UT_ASSERTinfo_rt(cnd, info) \
-	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (%s)", #cnd, info), 0)))
+	((void)((cnd) || (UT_ASSERT_MSG("%s (%s)", #cnd, info), 0)))
 
 /* assert two integer values are equal at runtime */
-#define UT_ASSERTeq_rt(lhs, rhs)\
-	((void)(((lhs) == (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
+#define UT_ASSERTeq_rt(lhs, rhs) \
+	((void)(((lhs) == (rhs)) || \
+	(UT_ASSERT_MSG("%s (0x%llx) == %s (0x%llx)", #lhs, \
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert two integer values are not equal at runtime */
-#define UT_ASSERTne_rt(lhs, rhs)\
-	((void)(((lhs) != (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
+#define UT_ASSERTne_rt(lhs, rhs) \
+	((void)(((lhs) != (rhs)) || \
+	(UT_ASSERT_MSG("%s (0x%llx) != %s (0x%llx)", #lhs, \
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+
+/* assert two strings are equal at runtime */
+#define UT_ASSERTstreq_rt(__s1, __s2) \
+	((void)((__s1 == NULL && __s2 == NULL) || \
+		(strcmp(__s1, __s2) == 0) || \
+		(UT_ASSERT_MSG("%s: \"%s\" != %s", #__s1, __s1, #__s2), 0)))
 
 #if defined(__CHECKER__)
 #define UT_COMPILE_ERROR_ON(cond)
@@ -255,11 +262,19 @@ ut_log_function(void *context, enum core_log_level level, const char *file_name,
 #define UT_ASSERTrange(ptr, start, size)\
 	((void)(((uintptr_t)(ptr) >= (uintptr_t)(start) &&\
 	(uintptr_t)(ptr) < (uintptr_t)(start) + (uintptr_t)(size)) ||\
-	(ut_fatal(__FILE__, __LINE__, __func__,\
-	"assert failure: %s (%p) is outside range [%s (%p), %s (%p))", #ptr,\
+	(UT_ASSERT_MSG("%s (%p) is outside range [%s (%p), %s (%p))", #ptr,\
 	(void *)(ptr), #start, (void *)(start), #start"+"#size,\
 	(void *)((uintptr_t)(start) + (uintptr_t)(size))), 0)))
 
+/* assert strings are equal */
+#define UT_ASSERTstreq(__s1, __s2) \
+	do { \
+		if (__builtin_constant_p(__s1)) \
+			ut_fatal(__FILE__, __LINE__, __func__, \
+				"UT_ASSERTstreq first param" \
+				" must not be const"); \
+		UT_ASSERTstreq_rt(__s1, __s2); \
+	} while (0)
 /*
  * memory allocation...
  */
