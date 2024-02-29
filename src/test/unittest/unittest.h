@@ -624,6 +624,16 @@ TEST_CASE_PROCESS(int argc, char *argv[],
 	if (argc < 2)
 		UT_FATAL("usage: %s <test case> [<args>]", argv[0]);
 
+	if (strcmp("ALL", argv[1]) == 0) {
+		for (size_t i = 0; i < ntests; i++) {
+			int ret = test_cases[i].func(&test_cases[i], 0, NULL);
+			if (ret < 0)
+				UT_FATAL("Test %s return negative result",
+					test_cases[i].name);
+		}
+		return;
+	}
+
 	for (int i = 1; i < argc; i++) {
 		char *str_test = argv[i];
 		const int args_off = i + 1;
