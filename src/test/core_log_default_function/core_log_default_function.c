@@ -8,6 +8,7 @@
 #undef _GNU_SOURCE
 #include <string.h>
 #include <syslog.h>
+#include <stdbool.h>
 
 #include "unittest.h"
 #include "log_internal.h"
@@ -15,7 +16,7 @@
 
 #define NO_ARGS_CONSUMED 0
 
-#define MESSAGE "Test message"
+#define MESSAGE_MOCK ((char *)0x24689753)
 #define TIMESTAMP "DUMMY TIMESTAMP"
 #define FILE_NAME "dummy.c"
 #define FILE_NAME_W_PATH "dummy_path/dummy_path/" FILE_NAME
@@ -44,9 +45,10 @@ static const int log_level_syslog_severity[] = {
 	[CORE_LOG_LEVEL_DEBUG]		= LOG_DEBUG,
 };
 
-const char *Log_level_name;
-const char *File_info;
-const char *Message;
+static struct {
+	const char *exp_log_level_name;
+	const char *exp_file_info;
+} Common;
 
 char *Strchr_ret;
 
@@ -57,12 +59,21 @@ FUNC_MOCK_RUN_DEFAULT {
 }
 FUNC_MOCK_END
 
+static bool Os_clock_gettime_force_error;
+
+FUNC_MOCK(clock_gettime, int, clockid_t __clock_id, struct timespec *__tp)
+FUNC_MOCK_RUN_DEFAULT {
+	if (Os_clock_gettime_force_error)
+		return -1;
+	return _FUNC_REAL(clock_gettime)(__clock_id, __tp);
+}
+FUNC_MOCK_END
+
 static struct {
-	const char *file_name;
-	const char *function_name;
-	int force_error;
+	const char *exp_file_name;
+	const char *exp_function_name;
 	int ret;
-} Snprintf_context;
+} Snprintf;
 
 FUNC_MOCK(snprintf, int, char *__restrict __s, size_t __maxlen,
 		const char *__restrict __format, ...)
@@ -73,30 +84,24 @@ FUNC_MOCK(snprintf, int, char *__restrict __s, size_t __maxlen,
 		va_start(arg, __format);
 		UT_ASSERTstreq(__format, "%s: %3d: %s: ");
 		char *file_name = va_arg(arg, char *);
-		UT_ASSERTstreq(file_name, Snprintf_context.file_name);
+		UT_ASSERTstreq(file_name, Snprintf.exp_file_name);
 		int line_no = va_arg(arg, int);
 		UT_ASSERTeq(line_no, LINE_NO);
 		char *function_name = va_arg(arg, char *);
-		UT_ASSERTstreq(function_name, Snprintf_context.function_name);
+		UT_ASSERTstreq(function_name, Snprintf.exp_function_name);
 		/* fill-in the given buffer to verify no memory overwritten */
 		memset(__s, 'x', __maxlen);
 		*(__s + __maxlen - 1) = '\0';
-		memcpy(__s, FILE_INFO, sizeof(FILE_INFO) + 1);
 		va_end(arg);
-		if (Snprintf_context.ret != 0)
-			return Snprintf_context.ret;
+		if (Snprintf.ret != 0)
+			return Snprintf.ret;
 		else
 			return __maxlen;
 	}
 /* get time prefix */
 	FUNC_MOCK_RUN(1) {
 		UT_ASSERTstreq(__format, "%s.%06ld ");
-		if (Snprintf_context.force_error) {
-		/* fill-in the given buffer to verify no memory overwritten */
-			memset(__s, 'x', __maxlen);
-		}
-		else
-			strncpy(__s, TIMESTAMP, __maxlen);
+		strncpy(__s, TIMESTAMP, __maxlen);
 		return __maxlen;
 	}
 FUNC_MOCK_RUN_DEFAULT {
@@ -106,88 +111,82 @@ FUNC_MOCK_END
 
 static struct {
 	int no_of_calls;
-	int __pri;
-	char *file_info;
-} Syslog_context;
+	int exp__pri;
+} Syslog;
 
 FUNC_MOCK(syslog, void, int __pri, const char *__fmt, ...)
 FUNC_MOCK_RUN_DEFAULT {
-	Syslog_context.no_of_calls++;
-	UT_ASSERTeq(__pri, Syslog_context.__pri);
+	Syslog.no_of_calls++;
+	UT_ASSERTeq(__pri, Syslog.exp__pri);
 	UT_ASSERTstreq(__fmt, "%s%s%s");
 	va_list arg;
 	va_start(arg, __fmt);
 	char *log_level_name = va_arg(arg, char *);
-	UT_ASSERTstreq(log_level_name, Log_level_name);
+	UT_ASSERTstreq(log_level_name, Common.exp_log_level_name);
 	char *file_info = va_arg(arg, char *);
-	UT_ASSERTstreq(file_info, Syslog_context.file_info);
+	UT_ASSERTstreq(file_info, Common.exp_file_info);
 	char *message = va_arg(arg, char *);
-	UT_ASSERTstreq(message, Message);
+	UT_ASSERTeq(message, MESSAGE_MOCK);
 	va_end(arg);
 }
 FUNC_MOCK_END
 
 static struct {
 	int no_of_calls;
-	char *times_stamp;
-	const char *file_info;
-} Fprintf_context;
+	char *exp_times_stamp;
+} Fprintf;
 
 FUNC_MOCK(fprintf, int, FILE *__restrict __stream, const char *__restrict __fmt,
 	...)
 FUNC_MOCK_RUN_DEFAULT {
-	Fprintf_context.no_of_calls++;
+	Fprintf.no_of_calls++;
 	UT_ASSERTeq(__stream, stderr);
 	va_list arg;
 	va_start(arg, __fmt);
 	char *times_tamp = va_arg(arg, char *);
-	UT_ASSERTstreq(times_tamp, Fprintf_context.times_stamp);
+	UT_ASSERTstreq(times_tamp, Fprintf.exp_times_stamp);
 	va_arg(arg, int); /* skip syscall(SYS_gettid) */
 	char *log_level_name = va_arg(arg, char *);
-	UT_ASSERTstreq(log_level_name, Log_level_name);
+	UT_ASSERTstreq(log_level_name, Common.exp_log_level_name);
 	char *file_info = va_arg(arg, char *);
-	UT_ASSERTstreq(file_info, Syslog_context.file_info);
+	UT_ASSERTstreq(file_info, Common.exp_file_info);
 	char *message = va_arg(arg, char *);
-	UT_ASSERTstreq(message, Message);
+	UT_ASSERTeq(message, MESSAGE_MOCK);
 	va_end(arg);
 	return 0;
 }
 FUNC_MOCK_END
 
-/* Testshelpers */
-#define TEST_SETUP(_MESSAGE) \
-	do { \
-		Message = _MESSAGE; \
-		core_log_set_threshold(CORE_LOG_THRESHOLD_AUX, \
-			CORE_LOG_LEVEL_DEBUG); \
-	} while (0)
+/* Tests' helpers */
+#define TEST_SETUP() core_log_set_threshold(CORE_LOG_THRESHOLD_AUX, \
+		CORE_LOG_LEVEL_DEBUG)
 
 #define TEST_STEP_SETUP(_LEVEL, _FILE_NAME_SHORT, _FUNCTION_NAME) \
 	do { \
 		FUNC_MOCK_RCOUNTER_SET(snprintf, 0); \
-		Log_level_name = log_level_names[_LEVEL]; \
-		memset(&Syslog_context, 0, sizeof(Syslog_context)); \
-		Syslog_context.__pri = log_level_syslog_severity[_LEVEL]; \
-		Syslog_context.file_info = FILE_INFO; \
-		memset(&Snprintf_context, 0, sizeof(Snprintf_context)); \
-		Snprintf_context.file_name = _FILE_NAME_SHORT; \
-		Snprintf_context.function_name = _FUNCTION_NAME; \
-		memset(&Fprintf_context, 0, sizeof(Fprintf_context)); \
-		Fprintf_context.times_stamp = TIMESTAMP; \
+		Common.exp_log_level_name = log_level_names[_LEVEL]; \
+		memset(&Syslog, 0, sizeof(Syslog)); \
+		Syslog.exp__pri = log_level_syslog_severity[_LEVEL]; \
+		Common.exp_file_info = FILE_INFO; \
+		memset(&Snprintf, 0, sizeof(Snprintf)); \
+		Snprintf.exp_file_name = _FILE_NAME_SHORT; \
+		Snprintf.exp_function_name = _FUNCTION_NAME; \
+		memset(&Fprintf, 0, sizeof(Fprintf)); \
+		Fprintf.exp_times_stamp = TIMESTAMP; \
 		Strchr_ret = "/"_FILE_NAME_SHORT; \
 	} while (0)
 
 #define TEST_STEP_CHECK(_FPRINTF_CALLED) \
 	do { \
-		UT_ASSERTeq(Syslog_context.no_of_calls, 1); \
-		UT_ASSERTeq(Fprintf_context.no_of_calls, _FPRINTF_CALLED); \
+		UT_ASSERTeq(Syslog.no_of_calls, 1); \
+		UT_ASSERTeq(Fprintf.no_of_calls, _FPRINTF_CALLED); \
 	} while (0)
 
 /* basic test with a normal message pass through */
 static int
 test_default_function(const struct test_case *tc, int argc, char *argv[])
 {
-	TEST_SETUP(MESSAGE);
+	TEST_SETUP();
 	for (enum core_log_level treshold = CORE_LOG_LEVEL_HARK;
 		treshold < CORE_LOG_LEVEL_MAX; treshold++) {
 		core_log_set_threshold(CORE_LOG_THRESHOLD_AUX, treshold);
@@ -195,7 +194,7 @@ test_default_function(const struct test_case *tc, int argc, char *argv[])
 			level < CORE_LOG_LEVEL_MAX; level++) {
 			TEST_STEP_SETUP(level, FILE_NAME, FUNCTION_NAME);
 			core_log_default_function(NULL, level, FILE_NAME_W_PATH,
-				LINE_NO, FUNCTION_NAME, MESSAGE);
+				LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 			if (level == CORE_LOG_LEVEL_HARK || level > treshold)
 				TEST_STEP_CHECK(0);
 			else
@@ -211,12 +210,12 @@ static int
 test_default_function_bad_file_name(const struct test_case *tc, int argc,
 	char *argv[])
 {
-	TEST_SETUP(MESSAGE);
+	TEST_SETUP();
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, FILE_INFO_ERROR, FUNCTION_NAME);
-	Snprintf_context.ret = -1;
-	Syslog_context.file_info = FILE_INFO_ERROR;
+	Snprintf.ret = -1;
+	Common.exp_file_info = FILE_INFO_ERROR;
 	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, FILE_NAME_W_PATH,
-		LINE_NO, FUNCTION_NAME, MESSAGE);
+		LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 	TEST_STEP_CHECK(1);
 
 	return NO_ARGS_CONSUMED;
@@ -228,11 +227,11 @@ test_default_function_short_file_name(const struct test_case *tc, int argc,
 	char *argv[])
 {
 	core_log_set_threshold(CORE_LOG_THRESHOLD_AUX, CORE_LOG_LEVEL_DEBUG);
-	TEST_SETUP(MESSAGE);
+	TEST_SETUP();
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, FILE_NAME, FUNCTION_NAME);
 	Strchr_ret = NULL;
 	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, FILE_NAME,
-		LINE_NO, FUNCTION_NAME, MESSAGE);
+		LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 	TEST_STEP_CHECK(1);
 
 	return NO_ARGS_CONSUMED;
@@ -243,13 +242,12 @@ static int
 test_default_function_no_file_name(const struct test_case *tc, int argc,
 	char *argv[])
 {
-	TEST_SETUP(MESSAGE);
+	TEST_SETUP();
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, "", FUNCTION_NAME);
-	/* skip file_info snprintf() */
-	FUNC_MOCK_RCOUNTER_SET(snprintf, 1);
-	Syslog_context.file_info = "";
+	FUNC_MOCK_RCOUNTER_SET(snprintf, 1); /* skip file_info snprintf() */
+	Common.exp_file_info = "";
 	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, NULL,
-		LINE_NO, FUNCTION_NAME, MESSAGE);
+		LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 	TEST_STEP_CHECK(1);
 
 	return NO_ARGS_CONSUMED;
@@ -260,13 +258,12 @@ static int
 test_default_function_no_function_name(const struct test_case *tc, int argc,
 	char *argv[])
 {
-	TEST_SETUP(MESSAGE);
+	TEST_SETUP();
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, "", FUNCTION_NAME);
-	/* skip file_info snprintf() */
-	FUNC_MOCK_RCOUNTER_SET(snprintf, 1);
-	Syslog_context.file_info = "";
+	FUNC_MOCK_RCOUNTER_SET(snprintf, 1); /* skip file_info snprintf() */
+	Common.exp_file_info = "";
 	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, NULL,
-		LINE_NO, NULL, MESSAGE);
+		LINE_NO, NULL, MESSAGE_MOCK);
 	TEST_STEP_CHECK(1);
 
 	return NO_ARGS_CONSUMED;
@@ -277,12 +274,12 @@ static int
 test_default_function_bad_timestamp(const struct test_case *tc, int argc,
 	char *argv[])
 {
-	TEST_SETUP(MESSAGE);
+	TEST_SETUP();
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, FILE_NAME, FUNCTION_NAME);
-	Snprintf_context.force_error = 1; /* fail the file_info snprintf() */
-	Fprintf_context.times_stamp = "[time error] ";
+	Os_clock_gettime_force_error = true; /* fail the file_info snprintf() */
+	Fprintf.exp_times_stamp = "[time error] ";
 	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, FILE_NAME,
-		LINE_NO, FUNCTION_NAME, MESSAGE);
+		LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 	TEST_STEP_CHECK(1);
 
 	return NO_ARGS_CONSUMED;
