@@ -83,20 +83,6 @@ typedef void core_log_function(
 
 int core_log_set_function(core_log_function *log_function, void *context);
 
-/* pointer to the logging function */
-extern
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-_Atomic
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
-uintptr_t Core_log_function;
-
-/* the logging function's context */
-extern
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-_Atomic
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
-void *Core_log_function_context;
-
 /* threshold levels */
 extern
 #ifdef ATOMIC_OPERATIONS_SUPPORTED
