@@ -546,7 +546,7 @@ int ut_thread_join(const char *file, int line, const char *func,
 
 #define FUNC_MOCK(name, ret_type, ...)\
 	_FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
-	static unsigned RCOUNTER(name);\
+	unsigned RCOUNTER(name);\
 	ret_type __wrap_##name(__VA_ARGS__);\
 	ret_type __wrap_##name(__VA_ARGS__) {\
 		switch (util_fetch_and_add32(&RCOUNTER(name), 1)) {

@@ -42,8 +42,4 @@ class TEST5(CORE_LOG):
 
 
 class TEST6(CORE_LOG):
-    test_case = 'test_no_log_function'
-
-
-class TEST7(CORE_LOG):
     test_case = 'test_happy_day'
