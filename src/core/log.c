@@ -57,9 +57,6 @@ _Atomic
 void *Core_log_function_context;
 
 /* threshold levels */
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-_Atomic
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
 enum core_log_level Core_log_threshold[] = {
 		CORE_LOG_THRESHOLD_DEFAULT,
 		CORE_LOG_THRESHOLD_AUX_DEFAULT
@@ -114,6 +111,7 @@ core_log_lib_info(void)
 	CORE_LOG_HARK("compiled with libndctl 63+");
 #endif
 }
+
 /*
  * core_log_set_function -- set the log function pointer either to
  * a user-provided function pointer or to the default logging function.
@@ -164,21 +162,15 @@ core_log_set_threshold(enum core_log_threshold threshold,
 	if (level < CORE_LOG_LEVEL_HARK || level > CORE_LOG_LEVEL_DEBUG)
 		return EINVAL;
 
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-	atomic_store_explicit(&Log_threshold[threshold], level,
-		__ATOMIC_SEQ_CST);
-	return 0;
-#else
 	enum core_log_level level_old;
-	while (EAGAIN == core_log_get_threshold(threshold, &level_old))
-		;
+	(void) core_log_get_threshold(threshold, &level_old);
 
-	if (__sync_bool_compare_and_swap(&Core_log_threshold[threshold],
-			level_old, level))
-		return 0;
-	else
+	if (!__sync_bool_compare_and_swap(&Core_log_threshold[threshold],
+			level_old, level)) {
 		return EAGAIN;
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
+	}
+
+	return 0;
 }
 
 /*
@@ -195,12 +187,7 @@ core_log_get_threshold(enum core_log_threshold threshold,
 	if (level == NULL)
 		return EINVAL;
 
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-	*level = atomic_load_explicit(&Log_threshold[threshold],
-		__ATOMIC_SEQ_CST);
-#else
 	*level = Core_log_threshold[threshold];
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
 
 	return 0;
 }

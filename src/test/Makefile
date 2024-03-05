@@ -110,6 +110,7 @@ OTHER_TESTS = \
 	arch_flags\
 	core_log_internal\
 	core_log_max\
+	core_log_mt\
 	checksum\
 	compat_incompat_features\
 	ctl_prefault\
