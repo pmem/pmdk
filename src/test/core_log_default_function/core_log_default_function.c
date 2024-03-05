@@ -93,15 +93,16 @@ FUNC_MOCK(snprintf, int, char *__restrict __s, size_t __maxlen,
 
 		if (Snprintf.ret != 0)
 			return Snprintf.ret;
-
-		memcpy(__s, FILE_INFO, sizeof(FILE_INFO));
-		return __maxlen;
+		UT_ASSERT(sizeof(FILE_INFO) <= __maxlen);
+		strcpy(__s, FILE_INFO);
+		return sizeof(FILE_INFO) - 1;
 	}
 /* get time prefix */
 	FUNC_MOCK_RUN(1) {
 		UT_ASSERTstreq(__format, "%s.%06ld ");
-		strncpy(__s, TIMESTAMP, __maxlen);
-		return __maxlen;
+		UT_ASSERT(sizeof(TIMESTAMP) <= __maxlen);
+		strcpy(__s, TIMESTAMP);
+		return sizeof(TIMESTAMP) - 1;
 	}
 FUNC_MOCK_RUN_DEFAULT {
 	UT_FATAL("Unexpected #%d sprintf: %s", RCOUNTER(snprintf), __format);
