@@ -38,12 +38,8 @@ pmemobj_log_get_threshold(enum pmemobj_log_threshold threshold,
  * a user-provided function pointer or to the default logging function.
  */
 int
-pmemobj_log_set_function(pmemobj_log_function *log_function, void *context)
+pmemobj_log_set_function(pmemobj_log_function *log_function)
 {
-	if (log_function == PMEMOBJ_LOG_USE_DEFAULT_FUNCTION)
-		context = NULL;
-
-	int ret = core_log_set_function((core_log_function *)log_function,
-		context);
+	int ret = core_log_set_function((core_log_function *)log_function);
 	return core_log_error_translate(ret);
 }

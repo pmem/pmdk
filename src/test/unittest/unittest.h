@@ -122,19 +122,19 @@ void ut_err(const char *file, int line, const char *func,
 	__attribute__((format(printf, 4, 5)));
 
 void
-ut_log_function(void *context, enum core_log_level level, const char *file_name,
+ut_log_function(enum core_log_level level, const char *file_name,
 	const int line_no, const char *function_name,
 	const char *message);
 
 #ifdef USE_LOG_PMEMCORE
-#define LOG_SET_PMEMCORE_FUNC core_log_set_function(ut_log_function, NULL)
+#define LOG_SET_PMEMCORE_FUNC core_log_set_function(ut_log_function)
 #else
 #define LOG_SET_PMEMCORE_FUNC
 #endif
 
 #ifdef USE_LOG_PMEMOBJ
 #define LOG_SET_PMEMOBJ_FUNC \
-	pmemobj_log_set_function((pmemobj_log_function *)ut_log_function, NULL)
+	pmemobj_log_set_function((pmemobj_log_function *)ut_log_function)
 #else
 #define LOG_SET_PMEMOBJ_FUNC
 #endif

@@ -52,11 +52,9 @@ static const int core_log_level_to_level[CORE_LOG_LEVEL_MAX] = {
 #define OUT_MAX_LEVEL 4
 
 static void
-out_legacy(void *context, enum core_log_level core_level, const char *file_name,
+out_legacy(enum core_log_level core_level, const char *file_name,
 	const int line_no, const char *function_name, const char *message)
 {
-	SUPPRESS_UNUSED(context);
-
 	int level = core_log_level_to_level[core_level];
 	out_log(file_name, line_no, function_name, level, "%s", message);
 }
@@ -149,7 +147,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	}
 
 	if (log_level != NULL || log_file != NULL) {
-		ret = core_log_set_function(out_legacy, NULL);
+		ret = core_log_set_function(out_legacy);
 		if (ret) {
 			CORE_LOG_FATAL("Cannot set legacy log function");
 		}
