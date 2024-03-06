@@ -62,6 +62,8 @@ int core_log_set_threshold(enum core_log_threshold threshold,
 int core_log_get_threshold(enum core_log_threshold threshold,
 	enum core_log_level *level);
 
+volatile enum core_log_level _core_log_get_threshold_internal(void);
+
 /*
  * the type used for defining logging functions
  */
@@ -97,13 +99,6 @@ _Atomic
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 void *Core_log_function_context;
 
-/* threshold levels */
-extern
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-_Atomic
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
-enum core_log_level Core_log_threshold[CORE_LOG_THRESHOLD_MAX];
-
 void core_log_init(void);
 
 void core_log_fini(void);
@@ -135,7 +130,8 @@ void core_log(enum core_log_level level, int errnum, const char *file_name,
 
 #define _CORE_LOG(level, errnum, format, ...) \
 	do { \
-		if (level <= Core_log_threshold[CORE_LOG_THRESHOLD]) { \
+		if (level <= \
+				_core_log_get_threshold_internal()) { \
 			core_log(level, errnum, __FILE__, __LINE__, \
 			__func__, format, ##__VA_ARGS__); \
 		} \

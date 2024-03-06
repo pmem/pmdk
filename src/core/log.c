@@ -57,7 +57,7 @@ _Atomic
 void *Core_log_function_context;
 
 /* threshold levels */
-enum core_log_level Core_log_threshold[] = {
+static enum core_log_level Core_log_threshold[] = {
 		CORE_LOG_THRESHOLD_DEFAULT,
 		CORE_LOG_THRESHOLD_AUX_DEFAULT
 };
@@ -148,6 +148,22 @@ core_log_set_function(core_log_function *log_function, void *context)
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 }
 
+static inline int
+core_log_set_threshold_attempt(enum core_log_threshold threshold,
+	enum core_log_level level)
+{
+	enum core_log_level level_old;
+	/* fed with already validated arguments it can't fail */
+	(void) core_log_get_threshold(threshold, &level_old);
+
+	if (!__sync_bool_compare_and_swap(&Core_log_threshold[threshold],
+			level_old, level)) {
+		return EAGAIN;
+	}
+
+	return 0;
+}
+
 /*
  * core_log_set_threshold -- set the log level threshold
  */
@@ -162,13 +178,8 @@ core_log_set_threshold(enum core_log_threshold threshold,
 	if (level < CORE_LOG_LEVEL_HARK || level > CORE_LOG_LEVEL_DEBUG)
 		return EINVAL;
 
-	enum core_log_level level_old;
-	(void) core_log_get_threshold(threshold, &level_old);
-
-	if (!__sync_bool_compare_and_swap(&Core_log_threshold[threshold],
-			level_old, level)) {
-		return EAGAIN;
-	}
+	while (EAGAIN == core_log_set_threshold_attempt(threshold, level))
+		;
 
 	return 0;
 }
@@ -190,6 +201,17 @@ core_log_get_threshold(enum core_log_threshold threshold,
 	*level = Core_log_threshold[threshold];
 
 	return 0;
+}
+
+/*
+ * _core_log_get_threshold_internal -- a core_log_get_threshold variant
+ * optimized for performance and not affecting the stack size of all
+ * the functions using the CORE_LOG_* macros.
+ */
+volatile enum core_log_level
+_core_log_get_threshold_internal()
+{
+	return Core_log_threshold[CORE_LOG_THRESHOLD];
 }
 
 static void inline
@@ -220,7 +242,7 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	 * the CORE_LOG() macro it has to be done here again since it is not
 	 * performed in the case of the CORE_LOG_TO_LAST macro. Sorry.
 	 */
-	if (level > Core_log_threshold[CORE_LOG_THRESHOLD])
+	if (level > _core_log_get_threshold_internal())
 		goto end;
 
 	if (0 == Core_log_function)
