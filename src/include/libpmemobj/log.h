@@ -153,8 +153,6 @@ int pmemobj_log_get_threshold(enum pmemobj_log_threshold threshold,
  * the type used for defining logging functions
  */
 typedef void pmemobj_log_function(
-	/* the context provided when setting the log function */
-	void *context,
 	/* the log level of the message */
 	enum pmemobj_log_level level,
 	/* name of the source file where the message coming from */
@@ -176,7 +174,6 @@ typedef void pmemobj_log_function(
  * SYNOPSIS
  *
  *	typedef void pmemobj_log_function(
- *		void *context,
  *		enum pmemobj_log_level level,
  *		const char *file_name,
  *		const int line_no,
@@ -184,18 +181,13 @@ typedef void pmemobj_log_function(
  *		const char *message_format,
  *		...);
  *
- *	int pmemobj_log_set_function(pmemobj_log_function *log_function,
- *              void *context);
+ *	int pmemobj_log_set_function(pmemobj_log_function *log_function);
  *
  * DESCRIPTION
  * pmemobj_log_set_function() allows choosing the function which will get all
  * the generated logging messages. The log_function can be either
  * PMEMOBJ_LOG_USE_DEFAULT_FUNCTION which will use the default logging function
  * (built into the library) or a pointer to a user-defined function.
- * The context allows to pass an additional value which will be passed along
- * with all the logging messages to the logging function. When the provided
- * log_function is PMEMOBJ_LOG_USE_DEFAULT_FUNCTION the provided context is
- * ignored.
  *
  * Parameters of a user-defined log function are as follow:
  * - level - the log level of the message
@@ -228,7 +220,7 @@ typedef void pmemobj_log_function(
  * SEE ALSO
  * pmemobj_log_get_threshold(3), pmemobj_log_set_threshold(3).
  */
-int pmemobj_log_set_function(pmemobj_log_function *log_function, void *context);
+int pmemobj_log_set_function(pmemobj_log_function *log_function);
 
 #ifdef __cplusplus
 }

@@ -190,7 +190,7 @@ test_default_function(const struct test_case *tc, int argc, char *argv[])
 		for (enum core_log_level level = CORE_LOG_LEVEL_HARK;
 			level < CORE_LOG_LEVEL_MAX; level++) {
 			TEST_STEP_SETUP(level, FILE_NAME);
-			core_log_default_function(NULL, level, FILE_NAME_W_PATH,
+			core_log_default_function(level, FILE_NAME_W_PATH,
 				LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 			if (level == CORE_LOG_LEVEL_HARK || level > treshold)
 				TEST_STEP_CHECK(1, 0);
@@ -211,7 +211,7 @@ test_default_function_bad_file_name(const struct test_case *tc, int argc,
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, FILE_INFO_ERROR);
 	Snprintf.ret = -1;
 	Common.exp_file_info = FILE_INFO_ERROR;
-	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, FILE_NAME_W_PATH,
+	core_log_default_function(CORE_LOG_LEVEL_DEBUG, FILE_NAME_W_PATH,
 		LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 	TEST_STEP_CHECK(2, 1);
 
@@ -227,7 +227,7 @@ test_default_function_short_file_name(const struct test_case *tc, int argc,
 	TEST_SETUP();
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, FILE_NAME);
 	Strchr_ret = NULL;
-	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, FILE_NAME,
+	core_log_default_function(CORE_LOG_LEVEL_DEBUG, FILE_NAME,
 		LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 	TEST_STEP_CHECK(2, 1);
 
@@ -243,7 +243,7 @@ test_default_function_no_file_name(const struct test_case *tc, int argc,
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, "");
 	FUNC_MOCK_RCOUNTER_SET(snprintf, 1); /* skip file_info snprintf() */
 	Common.exp_file_info = "";
-	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, NULL,
+	core_log_default_function(CORE_LOG_LEVEL_DEBUG, NULL,
 		LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
 	TEST_STEP_CHECK(2, 1);
 
@@ -259,8 +259,8 @@ test_default_function_no_function_name(const struct test_case *tc, int argc,
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, "");
 	FUNC_MOCK_RCOUNTER_SET(snprintf, 1); /* skip file_info snprintf() */
 	Common.exp_file_info = "";
-	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, NULL,
-		LINE_NO, NULL, MESSAGE_MOCK);
+	core_log_default_function(CORE_LOG_LEVEL_DEBUG, NULL, LINE_NO, NULL,
+		MESSAGE_MOCK);
 	TEST_STEP_CHECK(2, 1);
 
 	return NO_ARGS_CONSUMED;
@@ -275,8 +275,8 @@ test_default_function_bad_timestamp(const struct test_case *tc, int argc,
 	TEST_STEP_SETUP(CORE_LOG_LEVEL_DEBUG, FILE_NAME);
 	Os_clock_gettime_force_error = true; /* fail the file_info snprintf() */
 	Fprintf.exp_times_stamp = "[time error] ";
-	core_log_default_function(NULL, CORE_LOG_LEVEL_DEBUG, FILE_NAME,
-		LINE_NO, FUNCTION_NAME, MESSAGE_MOCK);
+	core_log_default_function(CORE_LOG_LEVEL_DEBUG, FILE_NAME, LINE_NO,
+		FUNCTION_NAME, MESSAGE_MOCK);
 	TEST_STEP_CHECK(1, 1);
 
 	return NO_ARGS_CONSUMED;

@@ -66,8 +66,6 @@ int core_log_get_threshold(enum core_log_threshold threshold,
  * the type used for defining logging functions
  */
 typedef void core_log_function(
-	/* the context provided when setting the log function */
-	void *context,
 	/* the log level of the message */
 	enum core_log_level level,
 	/* name of the source file where the message coming from */
@@ -81,7 +79,7 @@ typedef void core_log_function(
 
 #define CORE_LOG_USE_DEFAULT_FUNCTION (NULL)
 
-int core_log_set_function(core_log_function *log_function, void *context);
+int core_log_set_function(core_log_function *log_function);
 
 /* pointer to the logging function */
 extern
@@ -89,13 +87,6 @@ extern
 _Atomic
 #endif /* ATOMIC_OPERATIONS_SUPPORTED */
 uintptr_t Core_log_function;
-
-/* the logging function's context */
-extern
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-_Atomic
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
-void *Core_log_function_context;
 
 /* threshold levels */
 extern
