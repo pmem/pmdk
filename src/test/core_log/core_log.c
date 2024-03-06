@@ -216,7 +216,7 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "core_log");
-	core_log_set_function(CORE_LOG_USE_DEFAULT_FUNCTION, NULL);
+	core_log_set_function(CORE_LOG_USE_DEFAULT_FUNCTION);
 	openlog(NULL, LOG_NDELAY, LOG_USER);
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 	closelog();
