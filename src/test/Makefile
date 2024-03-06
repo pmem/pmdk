@@ -110,7 +110,7 @@ OTHER_TESTS = \
 	core_log_internal\
 	core_log_default_function\
 	core_log_max\
-	core_log_mt\
+	core_log_threshold_mt\
 	checksum\
 	compat_incompat_features\
 	ctl_prefault\
