@@ -114,7 +114,6 @@ enum pmemobj_log_threshold {
  * - EINVAL - threshold is not PMEMOBJ_LOG_THRESHOLD nor
  *   PMEMOBJ_LOG_THRESHOLD_AUX
  * - EINVAL - level is not a value defined by enum log_level type
- * - EAGAIN - a temporary error occurred, the retry may fix the problem
  *
  * SEE ALSO
  * pmemobj_log_get_threshold(3), pmemobj_log_set_function(3).
