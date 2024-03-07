@@ -7,6 +7,6 @@ OBJS = core_log_function_mt.o
 BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
 
-LIBPMEMCORE=nondebug
+LIBPMEMCORE=y
 
 include ../Makefile.inc

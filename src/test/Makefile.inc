@@ -385,13 +385,11 @@ endif
 
 ifeq ($(LIBPMEMCORE), y)
 LIBPMEM=y
-USE_LOG_PMEMCORE=y
 OBJS += $(LIBS_DIR)/debug/libpmemcore.a
 INCS += -I$(TOP)/src/core
 endif
 
 ifeq ($(LIBPMEMCORE), internal-nondebug)
-USE_LOG_PMEMCORE=y
 OBJS +=\
 	$(TOP)/src/nondebug/core/alloc.o\
 	$(TOP)/src/nondebug/core/fs_posix.o\
@@ -410,7 +408,6 @@ INCS += -I$(TOP)/src/core
 endif
 
 ifeq ($(LIBPMEMCORE), internal-debug)
-USE_LOG_PMEMCORE=y
 OBJS +=\
 	$(TOP)/src/debug/core/alloc.o\
 	$(TOP)/src/debug/core/fs_posix.o\
@@ -531,19 +528,13 @@ CFLAGS += -DFAULT_INJECTION=1
 CXXFLAGS += -DFAULT_INJECTION=1
 endif
 
-ifeq ($(USE_LOG_PMEMCORE),y)
-CFLAGS += -DUSE_LOG_PMEMCORE
-endif
-
 ifeq ($(USE_LOG_PMEMOBJ),y)
 CFLAGS += -DUSE_LOG_PMEMOBJ
 endif
 
-# USE_LOG_PMEMCORE != y means the binary is built without directly linking with
-# core units which are required by libut.a (ut_log.c to be exact).
-# In case the binary is built with directly linking with core units it is
-# assumed the following are among them already.
-ifneq ($(USE_LOG_PMEMCORE),y)
+# LIBPMEMCORE == '' means the binary is built without directly linking with
+# core units which are required whenever test makes use of core utils.
+ifeq ($(LIBPMEMCORE),)
 OBJS += $(TOP)/src/debug/core/out.o
 OBJS += $(TOP)/src/debug/core/last_error_msg.o
 OBJS += $(TOP)/src/debug/core/log.o
