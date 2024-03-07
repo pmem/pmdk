@@ -245,9 +245,6 @@ static struct test_case test_cases[] = {
 #undef abort
 extern void abort(void) __THROW __attribute__((__noreturn__));
 
-#undef LOG_SET_PMEMCORE_FUNC
-#define LOG_SET_PMEMCORE_FUNC
-
 int
 main(int argc, char *argv[])
 {
