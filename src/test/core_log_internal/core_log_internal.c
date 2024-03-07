@@ -254,7 +254,7 @@ main(int argc, char *argv[])
 	core_log_get_threshold(CORE_LOG_THRESHOLD, &Core_log_default_threshold);
 	core_log_set_function(CORE_LOG_USE_DEFAULT_FUNCTION, NULL);
 
-	START(argc, argv, "core_log");
+	START(argc, argv, "core_log_internal");
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 	DONE(NULL);
 }
