@@ -50,7 +50,7 @@ static struct {
 	const char *exp_file_info;
 } Common;
 
-char *Strchr_ret;
+static char *Strchr_ret;
 
 FUNC_MOCK(strrchr, char *, const char *__s, int __c)
 FUNC_MOCK_RUN_DEFAULT {
