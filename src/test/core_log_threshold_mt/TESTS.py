@@ -14,15 +14,15 @@ class CORE_LOG_MT(t.BaseTest):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('core_log_mt', self.test_case)
+        ctx.exec('core_log_threshold_mt', self.test_case)
 
 
 class THRESHOLD(CORE_LOG_MT):
-    test_case = 'test_threshold'
+    test_case = 'test_threshold_set_get'
 
 
 class THRESHOLD_AUX(CORE_LOG_MT):
-    test_case = 'test_threshold_aux'
+    test_case = 'test_threshold_aux_set_get'
 
 
 @t.require_valgrind_enabled('helgrind')
