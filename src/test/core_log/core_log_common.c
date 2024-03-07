@@ -62,11 +62,10 @@ FUNC_MOCK_RUN_DEFAULT {
 }
 FUNC_MOCK_END
 
-FUNC_MOCK(core_log_default_function, void, void *context,
-	enum core_log_level level, const char *file_name, const int line_no,
-	const char *function_name, const char *message)
+FUNC_MOCK(core_log_default_function, void, enum core_log_level level,
+	const char *file_name, const int line_no, const char *function_name,
+	const char *message)
 	FUNC_MOCK_RUN(VALIDATED_CALL) {
-		UT_ASSERTeq(context, NULL);
 		UT_ASSERTeq(level, Log_function_.exp_level);
 		UT_ASSERTstreq(file_name, FILE_NAME);
 		UT_ASSERTeq(line_no, LINE_NO);
@@ -79,8 +78,8 @@ FUNC_MOCK(core_log_default_function, void, void *context,
 		return;
 	}
 FUNC_MOCK_RUN_DEFAULT {
-	_FUNC_REAL(core_log_default_function)(context, level, file_name,
-		line_no, function_name, message);
+	_FUNC_REAL(core_log_default_function)(level, file_name, line_no,
+		function_name, message);
 }
 FUNC_MOCK_END
 

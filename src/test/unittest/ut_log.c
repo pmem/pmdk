@@ -20,7 +20,7 @@ static const int core_log_level_to_out_level[] = {
 };
 
 void
-ut_log_function(void *context, enum core_log_level level, const char *file_name,
+ut_log_function(enum core_log_level level, const char *file_name,
 	const int line_no, const char *function_name, const char *message)
 {
 	out_log(file_name, line_no, function_name,
