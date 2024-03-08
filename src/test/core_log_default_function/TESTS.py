@@ -9,6 +9,9 @@ from testframework import granularity as g
 
 
 @g.require_granularity(g.ANY)
+# The 'debug' build is chosen arbitrarily to ensure these tests are run only
+# once. No dynamic libraries are used nor .static_* builds are available.
+@t.require_build('debug')
 class CORE_LOG(t.BaseTest):
     test_type = t.Short
 
