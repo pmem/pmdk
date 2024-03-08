@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 
 #
@@ -18,6 +18,7 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemobj/pmemobj_list_insert.3.md libpmemobj/pmemobj_memcpy_persist.3.md libpmemobj/pmemobj_mutex_zero.3.md \
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
+		libpmemobj/pmemobj_log_get_threshold.3.md libpmemobj/pmemobj_log_set_function.3.md libpmemobj/pmemobj_log_set_threshold.3.md \
 		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md
 
 MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
