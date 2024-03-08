@@ -9,6 +9,8 @@ from testframework import granularity as g
 
 
 @g.require_granularity(g.ANY)
+# No dynamic libraries are used nor .static_* builds are available.
+@t.require_build(['debug','nondebug'])
 class CORE_LOG(t.BaseTest):
     test_type = t.Short
 
