@@ -12,22 +12,19 @@ from testframework import granularity as g
 # The 'nondebug' build is chosen arbitrarily to ensure these tests are run only
 # once. No dynamic libraries are used nor .static_* builds are available.
 @t.require_build('nondebug')
-class CORE_LOG_MT(t.BaseTest):
+class TEST0(t.BaseTest):
     test_type = t.Short
+    test_case = 'test_function_set_call'
 
     def run(self, ctx):
         ctx.exec('core_log_function_mt', self.test_case)
 
 
-class SET_CALL(CORE_LOG_MT):
-    test_case = 'test_function_set_call'
-
-
 @t.require_valgrind_enabled('helgrind')
-class TEST0(SET_CALL):
+class TEST1(TEST0):
     pass
 
 
 @t.require_valgrind_enabled('drd')
-class TEST1(SET_CALL):
+class TEST2(TEST0):
     pass
