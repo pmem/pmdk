@@ -51,6 +51,14 @@ jobs:
   basic_build:
     name: Basic build
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - CC: gcc
+            CXX: g++
+          - CC: clang
+            CXX: clang++
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v3
@@ -61,6 +69,8 @@ jobs:
       - name: Build sources
         env:
           NDCTL_ENABLE: n # just to speed up the job
+          CC: ${{ matrix.CC }}
+          CXX: ${{ matrix.CXX }}
         run: make -j$(nproc) test
 
 
