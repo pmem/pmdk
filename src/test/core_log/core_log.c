@@ -2,7 +2,8 @@
 /* Copyright 2024, Intel Corporation */
 
 /*
- * core_log.c -- unit test for core_log() and core_log_va()
+ * core_log.c -- unit test for core_log(), core_log_va() and
+ * core_log_set_function()
  */
 
 #include <syslog.h>
@@ -172,10 +173,24 @@ test_level_gt_threshold(const struct test_case *tc, int argc, char *argv[])
 }
 
 static int
-test_happy_day(const struct test_case *tc, int argc, char *argv[])
+test_happy_day_helper(core_log_function *log_function)
 {
 	/* Pass the message all the way to the logging function. */
 	core_log_set_threshold(CORE_LOG_THRESHOLD, CORE_LOG_LEVEL_ERROR);
+
+	/*
+	 * Disable the validation as custom_log_function() may be called from
+	 * core_log_set_function().
+	 */
+	if (log_function == CORE_LOG_USE_DEFAULT_FUNCTION) {
+		FUNC_MOCK_RCOUNTER_SET(core_log_default_function,
+			NOT_VALIDATED_CALL);
+	} else {
+		FUNC_MOCK_RCOUNTER_SET(custom_log_function,
+			NOT_VALIDATED_CALL);
+	}
+
+	core_log_set_function(log_function);
 
 	reset_mocks();
 
@@ -195,9 +210,28 @@ test_happy_day(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(RCOUNTER(last_error_msg_get), CALLED);
 	UT_ASSERTeq(RCOUNTER(vsnprintf), CALLED);
 	UT_ASSERTeq(RCOUNTER(__xpg_strerror_r), CALLED);
-	UT_ASSERTeq(RCOUNTER(core_log_default_function), CALLED);
+	if (log_function == CORE_LOG_USE_DEFAULT_FUNCTION) {
+		UT_ASSERTeq(RCOUNTER(core_log_default_function), CALLED);
+		UT_ASSERTeq(RCOUNTER(custom_log_function), NOT_CALLED);
+	} else {
+		UT_ASSERTeq(RCOUNTER(core_log_default_function), NOT_CALLED);
+		UT_ASSERTeq(RCOUNTER(custom_log_function), CALLED);
+	}
 
 	return NO_ARGS_CONSUMED;
+}
+
+static int
+test_happy_day(const struct test_case *tc, int argc, char *argv[])
+{
+	return test_happy_day_helper(CORE_LOG_USE_DEFAULT_FUNCTION);
+}
+
+/* Happy day scenario with custom logging function */
+static int
+test_set_custom_function(const struct test_case *tc, int argc, char *argv[])
+{
+	return test_happy_day_helper(custom_log_function);
 }
 
 static struct test_case test_cases[] = {
@@ -208,6 +242,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_strerror_r_fail),
 	TEST_CASE(test_level_gt_threshold),
 	TEST_CASE(test_happy_day),
+	TEST_CASE(test_set_custom_function),
 };
 
 #define NTESTS ARRAY_SIZE(test_cases)
