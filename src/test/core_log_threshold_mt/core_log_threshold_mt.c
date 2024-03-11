@@ -20,14 +20,14 @@
 
 #define OP_REDO 4096
 
-struct helper_ctx {
+static struct helper_ctx {
 	enum core_log_threshold threshold;
 	int idx;
 } helper_ctx_ [TOTAL_THREADS];
 
-os_mutex_t mutex;
-os_cond_t cond;
-unsigned threads_waiting;
+static os_mutex_t mutex;
+static os_cond_t cond;
+static unsigned threads_waiting;
 
 static void *
 helper_set(void *arg)
