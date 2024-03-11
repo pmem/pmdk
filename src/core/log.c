@@ -18,9 +18,6 @@
 #include <syslog.h>
 #include <time.h>
 #include <errno.h>
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-#include <stdatomic.h>
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
 #include <stdio.h>
 
 #include "log_internal.h"
@@ -40,15 +37,11 @@
 #endif
 
 /*
- * Core_log_function -- pointer to the logging function saved as uintptr_t to
- * make it _Atomic, because function pointers cannot be _Atomic. By default it
- * is core_log_default_function(), but could be a user-defined logging function
+ * Core_log_function -- pointer to the logging function. By default it is
+ * core_log_default_function(), but could be a user-defined logging function
  * provided via core_log_set_function().
  */
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-_Atomic
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
-uintptr_t Core_log_function = 0;
+static core_log_function *Core_log_function = NULL;
 
 /* threshold levels */
 static enum core_log_level Core_log_threshold[] = {
@@ -87,7 +80,7 @@ core_log_fini()
 	 * the previous value was the default logging function or a user
 	 * logging function.
 	 */
-	Core_log_function = 0;
+	Core_log_function = NULL;
 
 	/* cleanup the default logging function */
 	core_log_default_fini();
@@ -116,19 +109,13 @@ core_log_set_function(core_log_function *log_function)
 	if (log_function == CORE_LOG_USE_DEFAULT_FUNCTION)
 		log_function = core_log_default_function;
 
-#ifdef ATOMIC_OPERATIONS_SUPPORTED
-	atomic_store_explicit(&Core_log_function, (uintptr_t)log_function,
-		__ATOMIC_SEQ_CST);
-	return 0;
-#else
-	uintptr_t core_log_function_old = Core_log_function;
+	core_log_function *core_log_function_old = Core_log_function;
 	if (__sync_bool_compare_and_swap(&Core_log_function,
-			core_log_function_old, (uintptr_t)log_function)) {
+			core_log_function_old, log_function)) {
 		core_log_lib_info();
 		return 0;
 	}
 	return EAGAIN;
-#endif /* ATOMIC_OPERATIONS_SUPPORTED */
 }
 
 /*
@@ -218,11 +205,10 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	if (level > _core_log_get_threshold_internal())
 		goto end;
 
-	if (0 == Core_log_function)
+	if (NULL == Core_log_function)
 		goto end;
 
-	((core_log_function *)Core_log_function)(level, file_name, line_no,
-		function_name, buf);
+	Core_log_function(level, file_name, line_no, function_name, buf);
 
 end:
 	if (errnum != NO_ERRNO)
