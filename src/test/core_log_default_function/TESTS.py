@@ -9,6 +9,7 @@ from testframework import granularity as g
 
 
 @g.require_granularity(g.ANY)
+@t.require_valgrind_disabled('pmemcheck')
 # The 'debug' build is chosen arbitrarily to ensure these tests are run only
 # once. No dynamic libraries are used nor .static_* builds are available.
 @t.require_build('debug')
