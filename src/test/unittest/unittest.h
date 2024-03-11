@@ -557,12 +557,21 @@ int ut_thread_join(const char *file, int line, const char *func,
 #define FUNC_MOCK_RCOUNTER_SET(name, val)\
     RCOUNTER(name) = val;
 
-#define FUNC_MOCK(name, ret_type, ...)\
+#define _FUNC_MOCK(type, name, ret_type, ...)\
 	_FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
-	unsigned RCOUNTER(name);\
+	type unsigned RCOUNTER(name);\
 	ret_type __wrap_##name(__VA_ARGS__);\
 	ret_type __wrap_##name(__VA_ARGS__) {\
 		switch (util_fetch_and_add32(&RCOUNTER(name), 1)) {
+
+#define FUNC_MOCK(name, ret_type, ...) \
+	_FUNC_MOCK(static, name, ret_type, ##__VA_ARGS__)
+
+#define FUNC_MOCK_NONSTATIC(name, ret_type, ...) \
+	_FUNC_MOCK(, name, ret_type, ##__VA_ARGS__)
+
+#define FUNC_MOCK_EXTERN(name) \
+	extern unsigned RCOUNTER(name)
 
 #define FUNC_MOCK_DLLIMPORT(name, ret_type, ...)\
 	__declspec(dllimport) _FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
