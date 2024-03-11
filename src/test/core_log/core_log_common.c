@@ -83,6 +83,34 @@ FUNC_MOCK_RUN_DEFAULT {
 }
 FUNC_MOCK_END
 
+FUNC_MOCK(custom_log_function, void, enum core_log_level level,
+	const char *file_name, const int line_no, const char *function_name,
+	const char *message)
+	FUNC_MOCK_RUN(VALIDATED_CALL) {
+		UT_ASSERTeq(level, Log_function_.exp_level);
+		UT_ASSERTstreq(file_name, FILE_NAME);
+		UT_ASSERTeq(line_no, LINE_NO);
+		UT_ASSERTstreq(function_name, FUNC_NAME);
+		if (Common.use_last_error_msg) {
+			UT_ASSERTeq(message, LAST_ERROR_MSG_MOCK);
+		} else {
+			UT_ASSERTne(message, LAST_ERROR_MSG_MOCK);
+		}
+		return;
+	}
+FUNC_MOCK_RUN_DEFAULT {
+	_FUNC_REAL(custom_log_function)(level, file_name, line_no,
+		function_name, message);
+}
+FUNC_MOCK_END
+
+void
+custom_log_function(enum core_log_level level, const char *file_name,
+	const int line_no, const char *function_name, const char *message)
+{
+	SUPPRESS_UNUSED(level, file_name, line_no, function_name, message);
+}
+
 /* helpers */
 
 void
@@ -92,6 +120,7 @@ reset_mocks(void)
 	FUNC_MOCK_RCOUNTER_SET(vsnprintf, VALIDATED_CALL);
 	FUNC_MOCK_RCOUNTER_SET(__xpg_strerror_r, VALIDATED_CALL);
 	FUNC_MOCK_RCOUNTER_SET(core_log_default_function, VALIDATED_CALL);
+	FUNC_MOCK_RCOUNTER_SET(custom_log_function, VALIDATED_CALL);
 }
 
 void

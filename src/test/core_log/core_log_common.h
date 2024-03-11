@@ -23,6 +23,7 @@
 #define VALIDATED_CALL 127
 #define NOT_CALLED VALIDATED_CALL
 #define CALLED (VALIDATED_CALL + 1)
+#define NOT_VALIDATED_CALL 0
 
 extern struct common_ctx {
 	bool use_last_error_msg;
@@ -49,6 +50,7 @@ extern unsigned RCOUNTER(last_error_msg_get);
 extern unsigned RCOUNTER(vsnprintf);
 extern unsigned RCOUNTER(__xpg_strerror_r);
 extern unsigned RCOUNTER(core_log_default_function);
+extern unsigned RCOUNTER(custom_log_function);
 
 /* helpers */
 
@@ -60,3 +62,6 @@ void test_strerror_r_fail_helper(bool before_glibc_2_13);
 
 void test_log_function_call_helper(enum core_log_level level,
 	bool call_log_function);
+
+void custom_log_function(enum core_log_level level, const char *file_name,
+	const int line_no, const char *function_name, const char *message);
