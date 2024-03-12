@@ -45,7 +45,6 @@ enum pmemobj_log_threshold {
 	 * function
 	 */
 	PMEMOBJ_LOG_THRESHOLD_AUX,
-	PMEMOBJ_LOG_THRESHOLD_MAX
 };
 
 /*
@@ -72,10 +71,8 @@ typedef void pmemobj_log_function(
 	const int line_no,
 	/* the function name where the message coming from */
 	const char *function_name,
-	/* printf(3)-like format string of the message */
-	const char *message_format,
-	/* additional arguments of the message format string */
-	...);
+	/* message */
+	const char *message);
 
 #define PMEMOBJ_LOG_USE_DEFAULT_FUNCTION (NULL)
 
