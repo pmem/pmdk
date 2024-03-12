@@ -10,6 +10,7 @@ from testframework import granularity as g
 
 @g.require_granularity(g.ANY)
 @t.require_build('nondebug')
+@t.require_valgrind_disabled('pmemcheck', 'memcheck')
 class CORE_LOG_MT(t.BaseTest):
     test_type = t.Short
 

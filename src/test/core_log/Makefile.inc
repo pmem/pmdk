@@ -4,8 +4,7 @@
 BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
 
-# 'internal' is required for proper mock integration
-# 'debug' provides 'out_log()' required for 'ut_log_function()'
+# required for proper mock integration
 LIBPMEMCORE=internal-debug
 
 include ../Makefile.inc

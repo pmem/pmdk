@@ -55,9 +55,6 @@ static struct test_case test_cases[] = {
 
 #define NTESTS ARRAY_SIZE(test_cases)
 
-#undef LOG_SET_PMEMCORE_FUNC
-#define LOG_SET_PMEMCORE_FUNC
-
 int
 main(int argc, char *argv[])
 {

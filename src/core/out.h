@@ -68,8 +68,11 @@ void out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version);
 void out_fini(void);
+
+#ifdef DEBUG
 void out_log(const char *file, int line, const char *func, int level,
 	const char *fmt, ...) FORMAT_PRINTF(5, 6);
+#endif
 
 #ifdef __cplusplus
 }
