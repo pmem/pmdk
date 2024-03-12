@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2021, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * ctl_debug.c -- implementation of the debug CTL namespace
@@ -38,6 +38,8 @@ CTL_READ_HANDLER(alloc_pattern)(void *ctx,
 
 	PMEMobjpool *pop = ctx;
 	int *arg_out = arg;
+	if (pop == NULL)
+		return -1;
 
 	*arg_out = pop->heap.alloc_pattern;
 	return 0;
