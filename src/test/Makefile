@@ -62,6 +62,7 @@ OBJ_TESTS = \
 	obj_list_valgrind\
 	obj_list_macro\
 	obj_locks\
+	obj_log_function\
 	obj_mem\
 	obj_memblock\
 	obj_memcheck\
