@@ -17,13 +17,13 @@ struct vsnprintf_ctx Vsnprintf_;
 struct strerror_r_ctx Strerror_r;
 struct log_function_ctx Log_function_;
 
-FUNC_MOCK(last_error_msg_get, const char *, void)
+FUNC_MOCK_NONSTATIC(last_error_msg_get, const char *, void)
 FUNC_MOCK_RUN_DEFAULT {
 	return LAST_ERROR_MSG_MOCK;
 }
 FUNC_MOCK_END
 
-FUNC_MOCK(vsnprintf, int, char *__restrict __s, size_t __maxlen,
+FUNC_MOCK_NONSTATIC(vsnprintf, int, char *__restrict __s, size_t __maxlen,
 	const char *__restrict __format, va_list __arg)
 	FUNC_MOCK_RUN(VALIDATED_CALL) {
 		if (Common.use_last_error_msg) {
@@ -43,7 +43,8 @@ FUNC_MOCK_RUN_DEFAULT {
 }
 FUNC_MOCK_END
 
-FUNC_MOCK(__xpg_strerror_r, int, int __errnum, char *__buf, size_t __buflen)
+FUNC_MOCK_NONSTATIC(__xpg_strerror_r, int, int __errnum, char *__buf,
+	size_t __buflen)
 FUNC_MOCK_RUN_DEFAULT {
 	UT_ASSERTeq(__errnum, DUMMY_ERRNO1);
 	UT_ASSERTeq(__buf, Strerror_r.exp__buf);
@@ -62,7 +63,7 @@ FUNC_MOCK_RUN_DEFAULT {
 }
 FUNC_MOCK_END
 
-FUNC_MOCK(core_log_default_function, void, enum core_log_level level,
+FUNC_MOCK_NONSTATIC(core_log_default_function, void, enum core_log_level level,
 	const char *file_name, const int line_no, const char *function_name,
 	const char *message)
 	FUNC_MOCK_RUN(VALIDATED_CALL) {

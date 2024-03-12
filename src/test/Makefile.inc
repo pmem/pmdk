@@ -452,7 +452,7 @@ endif
 PAREN=(
 extract_funcs = $(shell \
     awk -F '[$(PAREN),]' \
-    '/(FUNC_MOCK_RET_ALWAYS|FUNC_MOCK_RET_ALWAYS_VOID|FUNC_MOCK)\$(PAREN)[^,]/ \
+    '/(FUNC_MOCK_RET_ALWAYS|FUNC_MOCK_RET_ALWAYS_VOID|FUNC_MOCK|FUNC_MOCK_NONSTATIC)\$(PAREN)[^,]/ \
     { \
         print "-Wl,--wrap=" $$2 \
     }' $(1) )

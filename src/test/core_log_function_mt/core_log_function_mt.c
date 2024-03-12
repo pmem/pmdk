@@ -40,7 +40,7 @@ LOG_FUNC(log_func7)
 LOG_FUNC(log_func8)
 LOG_FUNC(log_func9)
 
-core_log_function *log_funcs[] = {
+static core_log_function *log_funcs[] = {
 	log_func0,
 	log_func1,
 	log_func2,
@@ -55,9 +55,9 @@ core_log_function *log_funcs[] = {
 
 #define N_LOG_FUNCS ARRAY_SIZE(log_funcs)
 
-os_mutex_t mutex;
-os_cond_t cond;
-unsigned threads_waiting;
+static os_mutex_t mutex;
+static os_cond_t cond;
+static unsigned threads_waiting;
 
 static void *
 helper_set(void *arg)

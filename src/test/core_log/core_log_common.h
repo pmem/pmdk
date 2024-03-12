@@ -45,10 +45,10 @@ extern struct log_function_ctx {
 
 /* mocks */
 
-extern unsigned RCOUNTER(last_error_msg_get);
-extern unsigned RCOUNTER(vsnprintf);
-extern unsigned RCOUNTER(__xpg_strerror_r);
-extern unsigned RCOUNTER(core_log_default_function);
+FUNC_MOCK_EXTERN(last_error_msg_get);
+FUNC_MOCK_EXTERN(vsnprintf);
+FUNC_MOCK_EXTERN(__xpg_strerror_r);
+FUNC_MOCK_EXTERN(core_log_default_function);
 
 /* helpers */
 
