@@ -32,6 +32,7 @@ enum pmemobj_log_level {
 	PMEMOBJ_LOG_LEVEL_INFO,
 	/* debug info e.g. write operation dump */
 	PMEMOBJ_LOG_LEVEL_DEBUG,
+	PMEMOBJ_LOG_LEVEL_MAX,
 };
 
 enum pmemobj_log_threshold {
@@ -64,6 +65,7 @@ enum pmemobj_log_threshold {
  *		PMEMOBJ_LOG_LEVEL_NOTICE,
  *		PMEMOBJ_LOG_LEVEL_INFO,
  *		PMEMOBJ_LOG_LEVEL_DEBUG,
+ *		PMEMOBJ_LOG_LEVEL_MAX,
  *	};
  *
  *	enum log_threshold {
@@ -161,10 +163,8 @@ typedef void pmemobj_log_function(
 	const int line_no,
 	/* the function name where the message coming from */
 	const char *function_name,
-	/* printf(3)-like format string of the message */
-	const char *message_format,
-	/* additional arguments of the message format string */
-	...);
+	/* message */
+	const char *message);
 
 #define PMEMOBJ_LOG_USE_DEFAULT_FUNCTION (NULL)
 
@@ -178,8 +178,7 @@ typedef void pmemobj_log_function(
  *		const char *file_name,
  *		const int line_no,
  *		const char *function_name,
- *		const char *message_format,
- *		...);
+ *		const char *message);
  *
  *	int pmemobj_log_set_function(pmemobj_log_function *log_function);
  *
