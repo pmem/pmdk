@@ -31,8 +31,7 @@ enum pmemobj_log_level {
 	/* massive info e.g. every write operation indication */
 	PMEMOBJ_LOG_LEVEL_INFO,
 	/* debug info e.g. write operation dump */
-	PMEMOBJ_LOG_LEVEL_DEBUG,
-	PMEMOBJ_LOG_LEVEL_MAX,
+	PMEMOBJ_LOG_LEVEL_DEBUG
 };
 
 enum pmemobj_log_threshold {
@@ -45,8 +44,7 @@ enum pmemobj_log_threshold {
 	 * the auxiliary threshold level - may or may not be used by the logging
 	 * function
 	 */
-	PMEMOBJ_LOG_THRESHOLD_AUX,
-	PMEMOBJ_LOG_THRESHOLD_MAX
+	PMEMOBJ_LOG_THRESHOLD_AUX
 };
 
 /*
@@ -64,14 +62,12 @@ enum pmemobj_log_threshold {
  *		PMEMOBJ_LOG_LEVEL_WARNING,
  *		PMEMOBJ_LOG_LEVEL_NOTICE,
  *		PMEMOBJ_LOG_LEVEL_INFO,
- *		PMEMOBJ_LOG_LEVEL_DEBUG,
- *		PMEMOBJ_LOG_LEVEL_MAX,
+ *		PMEMOBJ_LOG_LEVEL_DEBUG
  *	};
  *
  *	enum log_threshold {
  *		PMEMOBJ_LOG_THRESHOLD,
- *		PMEMOBJ_LOG_THRESHOLD_AUX,
- *		PMEMOBJ_LOG_THRESHOLD_MAX
+ *		PMEMOBJ_LOG_THRESHOLD_AUX
  *	};
  *
  * DESCRIPTION

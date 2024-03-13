@@ -89,10 +89,10 @@ test_log_set_function_EAGAIN(const struct test_case *tc, int argc, char *argv[])
 /*
  * *** pmemobj_log_set_treshold() tests ***
  */
-static enum core_log_threshold tresholds[PMEMOBJ_LOG_THRESHOLD_MAX] = {
+static enum core_log_threshold tresholds[] = {
 	CORE_LOG_THRESHOLD, CORE_LOG_THRESHOLD_AUX};
 
-static enum core_log_level levels[PMEMOBJ_LOG_LEVEL_MAX] = {
+static enum core_log_level levels[] = {
 	CORE_LOG_LEVEL_HARK, CORE_LOG_LEVEL_FATAL, CORE_LOG_LEVEL_ERROR,
 	CORE_LOG_LEVEL_WARNING, CORE_LOG_LEVEL_NOTICE, CORE_LOG_LEVEL_INFO,
 	CORE_LOG_LEVEL_DEBUG};
@@ -123,10 +123,10 @@ test_log_set_treshold_helper(int error)
 	errno = NO_ERRNO;
 	Core_log_set_treshold.ret = error == NO_ERRNO? 0: error;
 	for (enum pmemobj_log_threshold treshold = PMEMOBJ_LOG_THRESHOLD;
-		treshold < PMEMOBJ_LOG_THRESHOLD_MAX; treshold++) {
+		treshold <= PMEMOBJ_LOG_THRESHOLD_AUX; treshold++) {
 		Core_log_set_treshold.threshold = tresholds[treshold];
 		for (enum pmemobj_log_level level = PMEMOBJ_LOG_LEVEL_HARK;
-			level < PMEMOBJ_LOG_LEVEL_MAX; level++) {
+			level <= PMEMOBJ_LOG_LEVEL_DEBUG; level++) {
 			Core_log_set_treshold.level = levels[level];
 			FUNC_MOCK_RCOUNTER_SET(core_log_set_threshold,
 				VALIDATED_CALL);
@@ -204,10 +204,10 @@ test_log_get_treshold_helper(int error)
 	errno = NO_ERRNO;
 	Core_log_get_treshold.ret = error == NO_ERRNO? 0: error;
 	for (enum pmemobj_log_threshold treshold = PMEMOBJ_LOG_THRESHOLD;
-		treshold < PMEMOBJ_LOG_THRESHOLD_MAX; treshold++) {
+		treshold <= PMEMOBJ_LOG_THRESHOLD_AUX; treshold++) {
 		Core_log_get_treshold.threshold = tresholds[treshold];
 		for (enum pmemobj_log_level exp_level = PMEMOBJ_LOG_LEVEL_HARK;
-			exp_level < PMEMOBJ_LOG_LEVEL_MAX; exp_level++) {
+			exp_level <= PMEMOBJ_LOG_LEVEL_DEBUG; exp_level++) {
 			enum pmemobj_log_level level;
 			Core_log_get_treshold.level = levels[exp_level];
 			FUNC_MOCK_RCOUNTER_SET(core_log_get_threshold,
