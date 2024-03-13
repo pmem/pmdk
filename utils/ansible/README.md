@@ -46,7 +46,7 @@ export SETUP_SCRIPT= # opensuse-setup.yml or rockylinux-setup.yml
 
 ansible-playbook -i $TARGET_IP, $SETUP_SCRIPT \
   --extra-vars "host=all ansible_user=root ansible_password=$ROOT_PASSWORD \
-  testUser=pmdkuser testUserPass=pmdkpass"
+  new_user=pmdkuser new_user_pass=pmdkpass"
 ```
 **Note**: If the Linux kernel is outdated, `opensuse-setup.yml` and
 `rockylinux-setup.yml` playbooks will reboot the target platform.
@@ -128,7 +128,7 @@ uncomment the following two:
 and run commands as follows e.g.
 ```sh
 export SETUP_SCRIPT= # opensuse-setup.yml or rockylinux-setup.yml
-sudo ansible-playbook $SETUP_SCRIPT --extra-vars "ansible_user=pmdkuser"
+sudo ansible-playbook $SETUP_SCRIPT --extra-vars "new_user=pmdkuser"
 ```
 **Note**: If a reboot is necessary, as described above, perform it manually and
 rerun the playbook without in question.
@@ -161,12 +161,12 @@ Update playbooks to be used directly on the target as described [above](#provisi
 and execute:
 ```sh
 # as root:
-ansible-playbook rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook rockylinux-setup.yml --extra-vars "new_user=pmdkuser new_user_pass=pmdkpass"
 # reboot shall be performed only if the playbook requests to do it.
 reboot
 # ...
 cd pmdk/utils/ansible
-ansible-playbook rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook rockylinux-setup.yml --extra-vars "new_user=pmdkuser new_user_pass=pmdkpass"
 ```
 Log in as `pmdkuser` and execute:
 ```sh
@@ -201,12 +201,12 @@ Update playbooks to be used directly on the target as described [above](#provisi
 and execute:
 ```sh
 # as root:
-ansible-playbook opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook opensuse-setup.yml --extra-vars "new_user=pmdkuser new_user_pass=pmdkpass"
 # reboot shall be performed only if the playbook requests to do it.
 reboot
 # ...
 cd pmdk/utils/ansible
-ansible-playbook opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook opensuse-setup.yml --extra-vars "new_user=pmdkuser new_user_pass=pmdkpass"
 ```
 Log in as `pmdkuser` and execute:
 ```sh

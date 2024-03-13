@@ -6,10 +6,10 @@
 # The playbook description and how to use it are available
 # in the README.md file.
 #
-# Below is an example of how to use this file localy:
+# Below is an example of how to use this file locally:
 #
 # a) comment out the first command:
-# -hosts: "{{ host }}"
+# - hosts: "{{ host }}"
 # b) uncomment the next two lines:
 # - hosts: localhost
 #   connection: local
@@ -21,8 +21,8 @@
 # - hosts: localhost
 #   connection: local
   vars:
-    testUser: null
-    testUserPass: pmdkpass
+    new_user: null
+    new_user_pass: pmdkpass
 
   tasks:
     - name: Update kernel packages
@@ -173,8 +173,8 @@
     - name: Add new user
       shell: |
         #!/usr/bin/env bash
-        export USER={{ testUser }}
-        export USERPASS={{ testUserPass }}
+        export USER={{ new_user }}
+        export USERPASS={{ new_user_pass }}
         useradd -m $USER
         export PFILE=./password
         echo $USERPASS > $PFILE
@@ -184,7 +184,7 @@
         sed -i 's/# %wheel/%wheel/g' /etc/sudoers
         groupadd wheel
         gpasswd wheel -a $USER
-      when: testUser != None
+      when: new_user != None
 
     - name: Set variable OS
       env:
