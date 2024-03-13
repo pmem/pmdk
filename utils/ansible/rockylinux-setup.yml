@@ -21,8 +21,8 @@
 # - hosts: localhost
 #   connection: local
   vars:
-    testUser: null
-    testUserPass: pmdkpass
+    new_user: null
+    new_user_pass: pmdkpass
 
   tasks:
     - name: Update kernel packages
@@ -161,13 +161,13 @@
     - name: Add new user
       shell: |
         #!/usr/bin/env bash
-        export USER={{ testUser }}
-        export USERPASS={{ testUserPass }}
+        export USER={{ new_user }}
+        export USERPASS={{ new_user_pass }}
         useradd -m $USER
         echo $USERPASS | passwd $USER --stdin
         gpasswd wheel -a $USER
         echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-      when: testUser != none
+      when: new_user != none
 
     - name: Set variable OS
       env:
