@@ -16,7 +16,6 @@
 #include <sys/sysmacros.h>
 #include <fcntl.h>
 #include <ndctl/libndctl.h>
-#include <daxctl/libdaxctl.h>
 
 #include "libpmem2.h"
 #include "pmem2_utils.h"
