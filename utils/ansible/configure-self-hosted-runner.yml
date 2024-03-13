@@ -16,7 +16,7 @@
 #
 # 2) locally
 # For a playbook to be used on a local server please log in as pmdkuser:
-# a) comment out the first command: # -hosts: "{{ host }}"
+# a) comment out the first command: # - hosts: "{{ host }}"
 # b) uncomment the next two lines:
 # - hosts: localhost
 #   connection: local
