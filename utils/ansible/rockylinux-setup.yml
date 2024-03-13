@@ -1,10 +1,21 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 # This playbook is designed to install all required packages and
 # configure Rocky Linux to execute tests.
 # The playbook description and how to use it are available
 # in the README.md file.
+#
+# Below is an example of how to use this file localy:
+#
+# a) comment out the first command:
+# -hosts: "{{ host }}"
+# b) uncomment the next two lines:
+# - hosts: localhost
+#   connection: local
+# and run commands as follows e.g.
+# sudo ansible-playbook rockylinux-setup.yml
+#
 
 - hosts: "{{ host }}"
 # - hosts: localhost
