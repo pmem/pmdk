@@ -2,7 +2,7 @@
 /* Copyright 2024, Intel Corporation */
 
 /*
- * obj_log_function.c -- unit test for obj_log_function
+ * obj_log_set_function.c -- unit test for pmemobj_log_set_function
  */
 
 #include "unittest.h"
@@ -267,7 +267,7 @@ static struct test_case test_cases[] = {
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_log_function");
+	START(argc, argv, "obj_log_set_function");
 	TEST_CASE_PROCESS(argc, argv, test_cases, ARRAY_SIZE(test_cases));
 	DONE(NULL);
 }
