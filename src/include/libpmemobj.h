@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * libpmemobj.h -- definitions of libpmemobj entry points
@@ -19,6 +19,7 @@
 #include <libpmemobj/ctl.h>
 #include <libpmemobj/iterator.h>
 #include <libpmemobj/lists_atomic.h>
+#include <libpmemobj/log.h>
 #include <libpmemobj/pool.h>
 #include <libpmemobj/thread.h>
 #include <libpmemobj/tx.h>
