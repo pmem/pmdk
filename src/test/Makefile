@@ -62,7 +62,9 @@ OBJ_TESTS = \
 	obj_list_valgrind\
 	obj_list_macro\
 	obj_locks\
+	obj_log_get_treshold\
 	obj_log_set_function\
+	obj_log_set_treshold\
 	obj_mem\
 	obj_memblock\
 	obj_memcheck\

@@ -16,12 +16,16 @@ class OBJ_LOG(t.BaseTest):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('obj_log_set_function', self.test_case)
+        ctx.exec('obj_log_set_treshold', self.test_case)
 
 
 class TEST0(OBJ_LOG):
-    test_case = 'test_log_set_function'
+    test_case = 'test_log_set_treshold'
 
 
 class TEST1(OBJ_LOG):
-    test_case = 'test_log_set_function_EAGAIN'
+    test_case = 'test_log_set_treshold_EAGAIN'
+
+
+class TEST2(OBJ_LOG):
+    test_case = 'test_log_set_treshold_EINVAL'
