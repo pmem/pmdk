@@ -16,7 +16,7 @@ class OBJ_LOG(t.BaseTest):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('obj_log_function', self.test_case)
+        ctx.exec('obj_log_set_function', self.test_case)
 
 
 class TEST0(OBJ_LOG):
