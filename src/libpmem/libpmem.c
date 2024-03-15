@@ -96,3 +96,27 @@ pmem_errormsg(void)
 {
 	return pmem_errormsgU();
 }
+
+/*
+ * pmem_log_set_threshold -- set the log level threshold
+ */
+int
+pmem_log_set_threshold(enum pmem_log_threshold threshold,
+	enum pmem_log_level level)
+{
+	int ret = core_log_set_threshold((enum core_log_threshold)threshold,
+		(enum core_log_level)level);
+	return core_log_error_translate(ret);
+}
+
+/*
+ * pmem_log_get_threshold -- get the log level threshold
+ */
+int
+pmem_log_get_threshold(enum pmem_log_threshold threshold,
+	enum pmem_log_level *level)
+{
+	int ret = core_log_get_threshold((enum core_log_threshold)threshold,
+		(enum core_log_level *)level);
+	return core_log_error_translate(ret);
+}

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * libpmem.h -- definitions of libpmem entry points
@@ -90,6 +90,53 @@ const char *pmem_check_version(unsigned major_required,
 	unsigned minor_required);
 
 const char *pmem_errormsg(void);
+
+/*
+ * Available log levels. Log levels are used in the logging API calls
+ * to indicate logging message severity. Log levels are also used
+ * to define thresholds for the logging.
+ */
+enum pmem_log_level {
+	/* only basic library info */
+	PMEM_LOG_LEVEL_HARK,
+	/* an error that causes the library to stop working immediately */
+	PMEM_LOG_LEVEL_FATAL,
+	/* an error that causes the library to stop working properly */
+	PMEM_LOG_LEVEL_ERROR,
+	/* an errors that could be handled in the upper level */
+	PMEM_LOG_LEVEL_WARNING,
+	/* non-massive info mainly related to public API function completions */
+	PMEM_LOG_LEVEL_NOTICE,
+	/* massive info e.g. every write operation indication */
+	PMEM_LOG_LEVEL_INFO,
+	/* debug info e.g. write operation dump */
+	PMEM_LOG_LEVEL_DEBUG,
+};
+
+enum pmem_log_threshold {
+	/*
+	 * the main threshold level - the logging messages above this level
+	 * won't trigger the logging functions
+	 */
+	PMEM_LOG_THRESHOLD,
+	/*
+	 * the auxiliary threshold level - may or may not be used by the logging
+	 * function
+	 */
+	PMEM_LOG_THRESHOLD_AUX,
+};
+
+/*
+ * pmem_log_set_threshold - set the logging threshold level
+ */
+int pmem_log_set_threshold(enum pmem_log_threshold threshold,
+	enum pmem_log_level level);
+
+/*
+ * pmem_log_get_threshold - get the logging threshold level
+ */
+int pmem_log_get_threshold(enum pmem_log_threshold threshold,
+	enum pmem_log_level *level);
 
 #ifdef __cplusplus
 }

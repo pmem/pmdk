@@ -129,12 +129,6 @@
  *	Func_memset_nodrain is used by memset_nodrain() to call one of:
  *		memset_nodrain_libc()
  *		memset_nodrain_movnt()
- *
- * DEBUG LOGGING
- *
- * Many of the functions here get called hundreds of times from loops
- * iterating over ranges, making the usual LOG() calls at level 3
- * impractical.  The call tracing log for those functions is set at 15.
  */
 
 #include <sys/mman.h>
@@ -152,6 +146,7 @@
 #include "valgrind_internal.h"
 #include "os_deep.h"
 #include "auto_flush.h"
+#include "log_internal.h"
 
 struct pmem_funcs {
 	struct memmove_nodrain memmove_funcs;
