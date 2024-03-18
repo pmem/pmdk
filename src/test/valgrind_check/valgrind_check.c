@@ -12,7 +12,7 @@ int
 main(int argc, char *argv[])
 {
 #ifndef VALGRIND_ENABLED
-	return 0;
+	return 1;
 #else
 #if VALGRIND_ENABLED
 	return 0;
