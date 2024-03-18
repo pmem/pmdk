@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 # src/tools/Makefile.inc -- Makefile include for all tools
 #
@@ -67,6 +67,9 @@ endif
 ifeq ($(VALGRIND),1)
 CFLAGS += -DVALGRIND_ENABLED=1
 CXXFLAGS += -DVALGRIND_ENABLED=1
+else
+CFLAGS += -DVALGRIND_ENABLED=0
+CXXFLAGS += -DVALGRIND_ENABLED=0
 endif
 
 ifeq ($(FAULT_INJECTION),1)
