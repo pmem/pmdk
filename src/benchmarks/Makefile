@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 #
 # src/benchmarks/Makefile -- build all benchmarks
@@ -107,6 +107,14 @@ ifeq ($(COVERAGE),1)
 CXXFLAGS += $(GCOV_CFLAGS)
 LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
+endif
+
+ifeq ($(VALGRIND),1)
+CFLAGS += -DVALGRIND_ENABLED=1
+CXXFLAGS += -DVALGRIND_ENABLED=1
+else
+CFLAGS += -DVALGRIND_ENABLED=0
+CXXFLAGS += -DVALGRIND_ENABLED=0
 endif
 
 ifneq ($(SANITIZE),)
