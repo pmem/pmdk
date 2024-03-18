@@ -46,4 +46,3 @@ jobs:
           test_script: ${{ matrix.test_script }}
           build: ${{ matrix.build }}
           force_enable: ${{ matrix.force_enable }}
-          valgrind: ${{ fromJSON(inputs.valgrind) }}

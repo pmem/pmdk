@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * valgrind_internal.h -- internal definitions for valgrind macros
@@ -10,7 +10,7 @@
 
 #if !defined(__riscv) && !defined(__loongarch64)
 #ifndef VALGRIND_ENABLED
-#define VALGRIND_ENABLED 0
+#error VALGRIND_ENABLED must be explicitly set
 #endif
 #endif
 
