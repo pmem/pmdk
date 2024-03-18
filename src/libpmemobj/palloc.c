@@ -403,9 +403,6 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 			void *ptr = act->m.m_ops->get_user_data(&act->m);
 			VALGRIND_DO_MEMPOOL_FREE(heap->layout, ptr);
 		}
-#if VG_PMEMCHECK_ENABLED
-		else
-#endif /* VG_PMEMCHECK_ENABLED */
 #endif /* VG_MEMCHECK_ENABLED */
 #if VG_PMEMCHECK_ENABLED
 		if (On_pmemcheck) {
@@ -425,8 +422,7 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 			size_t size = act->m.m_ops->get_real_size(&act->m);
 			VALGRIND_REGISTER_PMEM_MAPPING(ptr, size);
 		}
-#endif
-
+#endif /* VG_MEMCHECK_ENABLED */
 		STATS_SUB(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
 		if (act->m.type == MEMORY_BLOCK_RUN) {
