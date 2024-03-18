@@ -10,23 +10,15 @@
 
 #if !defined(__riscv) && !defined(__loongarch64)
 #ifndef VALGRIND_ENABLED
-#define VALGRIND_ENABLED 1
+#define VALGRIND_ENABLED 0
 #endif
 #endif
 
 #if VALGRIND_ENABLED
-#ifndef VG_PMEMCHECK_ENABLED
 #define VG_PMEMCHECK_ENABLED 1
-#endif
-#ifndef VG_HELGRIND_ENABLED
 #define VG_HELGRIND_ENABLED 1
-#endif
-#ifndef VG_MEMCHECK_ENABLED
 #define VG_MEMCHECK_ENABLED 1
-#endif
-#ifndef VG_DRD_ENABLED
 #define VG_DRD_ENABLED 1
-#endif
 #else
 #define VG_PMEMCHECK_ENABLED 0
 #define VG_HELGRIND_ENABLED 0
