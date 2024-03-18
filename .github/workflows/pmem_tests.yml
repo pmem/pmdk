@@ -25,6 +25,7 @@ jobs:
     uses: ./.github/workflows/pmem_test_matrix.yml
     with:
       force_enable: '["pmemcheck", "memcheck"]'
+      valgrind: 0
 
 
 
