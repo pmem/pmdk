@@ -25,7 +25,6 @@ jobs:
     uses: ./.github/workflows/pmem_test_matrix.yml
     with:
       force_enable: '["pmemcheck", "memcheck"]'
-      valgrind: 0
 
 
   # Test the default build with force-enabled Valgrind tooling for thread error
