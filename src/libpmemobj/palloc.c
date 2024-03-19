@@ -1279,6 +1279,7 @@ palloc_init(void *heap_start, uint64_t heap_size, uint64_t *sizep,
 	return heap_init(heap_start, heap_size, sizep, p_ops);
 }
 
+#if VG_MEMCHECK_ENABLED
 /*
  * palloc_heap_end -- returns first address after heap
  */
@@ -1287,6 +1288,7 @@ palloc_heap_end(struct palloc_heap *h)
 {
 	return heap_end(h);
 }
+#endif /* VG_MEMCHECK_ENABLED */
 
 /*
  * palloc_heap_check -- verifies heap state
