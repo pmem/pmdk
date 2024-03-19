@@ -167,6 +167,9 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 			else
 				NEW=$COMMIT_FIRST-$COMMIT_LAST
 			fi
+			if [ $HEADER_FIRST == $HEADER_LAST ]; then
+				YEARS=$HEADER_LAST
+			fi
 			echo "$file:2: error: wrong copyright date: (is: $YEARS, should be: $NEW)" >&2
 			RV=1
 		fi
