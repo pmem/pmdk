@@ -3,6 +3,8 @@ XXX
 	* Version 2.1.0
 
 	This release
+	- introduces fuses against ill-considered use of NDCTL_ENABLE=n
+	  - PMEMOBJ_IGNORE_DIRTY_SHUTDOWN and PMEMOBJ_IGNORE_BAD_BLOCKS are required to acknowledge the understanding of what production-critical functions are missing for the build without NDCTL
 	- does not allow opening pmem pool without unsafe shoutdown counter if not explicitly disabled
 	- remove support for build time define NO_LIBPTHREAD
 

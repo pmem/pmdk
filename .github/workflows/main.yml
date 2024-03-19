@@ -39,12 +39,16 @@ jobs:
       - name: Check licenses
         env:
           NDCTL_ENABLE: n # just to speed up the job
+          PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: y # not recommended for production
+          PMEMOBJ_IGNORE_BAD_BLOCKS: y # not recommended for production
         run: make -j$(nproc) check-license
 
       - name: Check style
         env:
           CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING: 1
           NDCTL_ENABLE: n # just to speed up the job
+          PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: y # not recommended for production
+          PMEMOBJ_IGNORE_BAD_BLOCKS: y # not recommended for production
         run: make -j$(nproc) cstyle
 
 
@@ -69,6 +73,8 @@ jobs:
       - name: Build sources
         env:
           NDCTL_ENABLE: n # just to speed up the job
+          PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: y # not recommended for production
+          PMEMOBJ_IGNORE_BAD_BLOCKS: y # not recommended for production
           CC: ${{ matrix.CC }}
           CXX: ${{ matrix.CXX }}
         run: make -j$(nproc) test
