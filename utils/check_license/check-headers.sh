@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 # check-headers.sh - check copyright and license in source files
 
@@ -26,7 +26,6 @@ shift
 PATTERN=`mktemp`
 TMP=`mktemp`
 TMP2=`mktemp`
-TEMPFILE=`mktemp`
 rm -f $PATTERN $TMP $TMP2
 
 if [ "$1" == "-h" -o "$1" == "--help" ]; then
@@ -99,9 +98,6 @@ for file in $FILES ; do
 	# git is called with -C flag so filepaths should be relative to SOURCE_ROOT
 	src_path="${SOURCE_ROOT}/$file"
 	[ ! -f $src_path ] && continue
-	# ensure that file is UTF-8 encoded
-	ENCODING=`file -b --mime-encoding $src_path`
-	iconv -f $ENCODING -t "UTF-8" $src_path > $TEMPFILE
 
 	if ! grep -q "SPDX-License-Identifier: $LICENSE" $src_path; then
 		echo "$src_path:1: no $LICENSE SPDX tag found " >&2
@@ -179,7 +175,7 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 		RV=1
 	fi
 done
-rm -f $TMP $TMP2 $TEMPFILE
+rm -f $TMP $TMP2
 
 $(dirname "$0")/check-ms-license.pl $FILES
 
