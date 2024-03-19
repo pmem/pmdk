@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * heap.h -- internal definitions for heap
@@ -83,7 +83,9 @@ void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 
 struct alloc_class_collection *heap_alloc_classes(struct palloc_heap *heap);
 
+#if VG_MEMCHECK_ENABLED
 void *heap_end(struct palloc_heap *heap);
+#endif /* VG_MEMCHECK_ENABLED */
 
 unsigned heap_get_narenas_total(struct palloc_heap *heap);
 
