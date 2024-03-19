@@ -956,7 +956,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			VALGRIND_DO_MAKE_MEM_NOACCESS(end,
 				(char *)pop + pop->set->poolsize - (char *)end);
 		}
-#endif
+#endif /* VG_MEMCHECK_ENABLED */
 
 		obj_pool_init();
 
