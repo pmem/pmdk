@@ -36,12 +36,30 @@ jobs:
           sudo pip install flake8
           sudo apt-get install clang-format-14
 
-      - name: Check licenses
+      - name: Check license
+        id: check_license
+        continue-on-error: true
         env:
           NDCTL_ENABLE: n # just to speed up the job
           PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: y # not recommended for production
           PMEMOBJ_IGNORE_BAD_BLOCKS: y # not recommended for production
-        run: make -j$(nproc) check-license
+        run: |
+          make -j$(nproc) check-license || true
+          git diff > /tmp/check-license.diff
+          [ $(cat /tmp/check-license.diff | wc -l ) -gt 0 ] && exit 1
+          exit 0
+
+      - name: Upload check license diff
+        if: steps.check_license.outcome != 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-license.diff
+          path: /tmp/check-license.diff
+
+      - name: Check license - Exit code
+        run: |
+          [ "${{steps.check_license.outcome}}" != "success" ] && exit 1
+          exit 0
 
       - name: Check style
         env:
