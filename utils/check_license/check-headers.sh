@@ -146,7 +146,7 @@ for file in $FILES ; do
 s/.*Copyright \([0-9]\+\)-\([0-9]\+\),.*/\1-\2/
 s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 	if [ -z "$YEARS" ]; then
-		echo >&2 "$src_path:1: No copyright years found"
+		echo >&2 "$src_path:2: No copyright years found"
 		RV=1
 		continue
 	fi
@@ -167,7 +167,7 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 			else
 				NEW=$COMMIT_FIRST-$COMMIT_LAST
 			fi
-			echo "$file:1: error: wrong copyright date: (is: $YEARS, should be: $NEW)" >&2
+			echo "$file:2: error: wrong copyright date: (is: $YEARS, should be: $NEW)" >&2
 			RV=1
 		fi
 	else
