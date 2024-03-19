@@ -1240,6 +1240,7 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	return 0;
 }
 
+#if VG_MEMCHECK_ENABLED
 /*
  * heap_end -- returns first address after heap
  */
@@ -1252,6 +1253,7 @@ heap_end(struct palloc_heap *h)
 
 	return &last_zone->chunks[last_zone->header.size_idx];
 }
+#endif /* VG_MEMCHECK_ENABLED */
 
 /*
  * heap_arena_create -- create a new arena, push it to the vector
