@@ -11,8 +11,8 @@ inputs:
     default: '0'
   valgrind:
     description: Build with Valgrind support
-    required: false
-    default: 1
+    required: true
+
 runs:
   using: composite
   steps:
