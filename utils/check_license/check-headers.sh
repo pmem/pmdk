@@ -46,6 +46,12 @@ else
 	SHALLOW_CLONE=0
 fi
 
+if [ $($GIT diff | wc -l) -gt 0 ]; then
+	DIRTY_SOURCE=1
+else
+	DIRTY_SOURCE=0
+fi
+
 VERBOSE=0
 CHECK_ALL=0
 while [ "$1" != "" ]; do
@@ -171,6 +177,9 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 				YEARS=$HEADER_LAST
 			fi
 			echo "$file:2: error: wrong copyright date: (is: $YEARS, should be: $NEW)" >&2
+			if [ $DIRTY_SOURCE -eq 0 ]; then
+				sed -i "s/\(Copyright\) $YEARS\(, Intel Corporation\)/\1 $NEW\2/" $src_path
+			fi
 			RV=1
 		fi
 	else
@@ -187,5 +196,10 @@ if [ $RV -eq 0 ]; then
 	echo "Copyright headers are OK."
 else
 	echo "Error(s) in copyright headers found!" >&2
+	if [ $DIRTY_SOURCE -eq 0 ]; then
+		echo "Please see the proposed changes to fix the found issues." >&2
+	else
+		echo "Since the source is dirty no changes have been proposed." >&2
+	fi
 fi
 exit $RV
