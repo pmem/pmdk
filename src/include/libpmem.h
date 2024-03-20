@@ -142,6 +142,28 @@ int pmem_log_set_threshold(enum pmem_log_threshold threshold,
 int pmem_log_get_threshold(enum pmem_log_threshold threshold,
 	enum pmem_log_level *value);
 
+/*
+ * the type used for defining logging functions
+ */
+typedef void pmem_log_function(
+	/* the log level of the message */
+	enum pmem_log_level level,
+	/* name of the source file where the message coming from */
+	const char *file_name,
+	/* the source file line where the message coming from */
+	const int line_no,
+	/* the function name where the message coming from */
+	const char *function_name,
+	/* message */
+	const char *message);
+
+#define PMEM_LOG_USE_DEFAULT_FUNCTION (NULL)
+
+/*
+ * pmem_log_set_function - set the logging function
+ */
+int pmem_log_set_function(pmem_log_function *log_function);
+
 #ifdef __cplusplus
 }
 #endif
