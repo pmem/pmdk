@@ -18,7 +18,6 @@ Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 	- Reduces libpmemobj's stack usage below the 11kB threshold.
 	- Fixing minor Coverity issues
 	- Add a new toolset for stack usage analysis (https://github.com/pmem/pmdk/tree/master/utils/call_stacks_analysis)
-	
 
 Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
