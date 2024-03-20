@@ -110,7 +110,7 @@ pmem2_memmove_nodrain_eadr(void *dest, const void *src, size_t len,
 }
 
 static void *
-pmem_memset_nodrain(void *dest, int c, size_t len, unsigned flags,
+pmem2_memset_nodrain(void *dest, int c, size_t len, unsigned flags,
 		flush_func flushf, const struct memset_nodrain *memset_funcs)
 {
 	/* suppress unused-parameter errors */
@@ -134,7 +134,7 @@ pmem_memset_nodrain(void *dest, int c, size_t len, unsigned flags,
 }
 
 static void *
-pmem_memset_nodrain_eadr(void *dest, int c, size_t len, unsigned flags,
+pmem2_memset_nodrain_eadr(void *dest, int c, size_t len, unsigned flags,
 		flush_func flushf, const struct memset_nodrain *memset_funcs)
 {
 	/* suppress unused-parameter errors */
@@ -158,8 +158,8 @@ pmem_set_mem_funcs(struct pmem2_arch_info *info)
 {
 	info->memmove_nodrain = pmem2_memmove_nodrain;
 	info->memmove_nodrain_eadr = pmem2_memmove_nodrain_eadr;
-	info->memset_nodrain = pmem_memset_nodrain;
-	info->memset_nodrain_eadr = pmem_memset_nodrain_eadr;
+	info->memset_nodrain = pmem2_memset_nodrain;
+	info->memset_nodrain_eadr = pmem2_memset_nodrain_eadr;
 }
 
 enum memcpy_impl {
