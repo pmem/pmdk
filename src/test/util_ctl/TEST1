@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 . ../unittest/unittest.sh
 
@@ -12,6 +12,6 @@ configure_valgrind memcheck force-enable
 setup
 
 expect_normal_exit\
-	./util_ctl$EXESUFFIX $DIR/testconfig
+	./util_ctl$EXESUFFIX $DIR/testconfig 2>/dev/null
 
 pass
