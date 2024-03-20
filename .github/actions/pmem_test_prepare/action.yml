@@ -34,6 +34,8 @@ runs:
     - env:
         FAULT_INJECTION: ${{ inputs.fault_injection }}
         NDCTL_ENABLE: ${{ inputs.ndctl_enable }}
+        PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: ${{ inputs.ndctl_enable == 'n' && 'y' || 'n' }}
+        PMEMOBJ_IGNORE_BAD_BLOCKS: ${{ inputs.ndctl_enable == 'n' && 'y' || 'n' }}
         VALGRIND: ${{ inputs.valgrind }}
       run: |
         echo '::group::Build'
