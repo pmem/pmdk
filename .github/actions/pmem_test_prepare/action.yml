@@ -9,6 +9,17 @@ inputs:
     description: Build with the fault injection capability
     required: false
     default: '0'
+  _env_ignore_dict:
+    description: |
+      Dictionary providing the PMEMOBJ_IGNORE_(DIRTY_SHUTDOWN|BAD_BLOCKS) values
+      required to acknowledge missing functionality. Indexed by the NDCTL_ENABLE
+      value.
+    required: false
+    default: |
+      {
+        "n": "y",
+        "y": "n"
+      }
 runs:
   using: composite
   steps:
@@ -30,6 +41,8 @@ runs:
     - env:
         FAULT_INJECTION: ${{ inputs.fault_injection }}
         NDCTL_ENABLE: ${{ inputs.ndctl_enable }}
+        PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: ${{ fromJSON(inputs._env_ignore_dict)[inputs.ndctl_enable] }}
+        PMEMOBJ_IGNORE_BAD_BLOCKS: ${{ fromJSON(inputs._env_ignore_dict)[inputs.ndctl_enable] }}
       run: |
         echo '::group::Build'
         $WORKDIR/build-pmdk.sh
