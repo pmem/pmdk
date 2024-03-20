@@ -73,7 +73,7 @@ typedef void core_log_function(
 	/* name of the source file where the message coming from */
 	const char *file_name,
 	/* the source file line where the message coming from */
-	const int line_no,
+	const unsigned line_no,
 	/* the function name where the message coming from */
 	const char *function_name,
 	/* message */
@@ -109,7 +109,7 @@ core_log_error_translate(int ret)
 #define NO_ERRNO (-1)
 
 void core_log(enum core_log_level level, int errnum, const char *file_name,
-	int line_no, const char *function_name,
+	const unsigned line_no, const char *function_name,
 	const char *message_format, ...);
 
 #define _CORE_LOG(level, errnum, format, ...) \

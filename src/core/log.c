@@ -176,7 +176,7 @@ _core_log_get_threshold_internal()
 
 static void inline
 core_log_va(char *buf, size_t buf_len, enum core_log_level level,
-	int errnum, const char *file_name, int line_no,
+	int errnum, const char *file_name, const unsigned line_no,
 	const char *function_name, const char *message_format, va_list arg)
 {
 	int msg_len = vsnprintf(buf, buf_len, message_format, arg);
@@ -217,7 +217,8 @@ end:
 
 void
 core_log(enum core_log_level level, int errnum, const char *file_name,
-	int line_no, const char *function_name, const char *message_format, ...)
+	const unsigned line_no, const char *function_name,
+	const char *message_format, ...)
 {
 	char message[_CORE_LOG_MSG_MAXPRINT] = "";
 	char *buf = message;

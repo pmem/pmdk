@@ -64,8 +64,8 @@ FUNC_MOCK_RUN_DEFAULT {
 FUNC_MOCK_END
 
 FUNC_MOCK_NONSTATIC(core_log_default_function, void, enum core_log_level level,
-	const char *file_name, const int line_no, const char *function_name,
-	const char *message)
+	const char *file_name, const unsigned line_no,
+	const char *function_name, const char *message)
 	FUNC_MOCK_RUN(VALIDATED_CALL) {
 		UT_ASSERTeq(level, Log_function_.exp_level);
 		UT_ASSERTstreq(file_name, FILE_NAME);
@@ -85,8 +85,8 @@ FUNC_MOCK_RUN_DEFAULT {
 FUNC_MOCK_END
 
 FUNC_MOCK_NONSTATIC(custom_log_function, void, enum core_log_level level,
-	const char *file_name, const int line_no, const char *function_name,
-	const char *message)
+	const char *file_name, const unsigned line_no,
+	const char *function_name, const char *message)
 	FUNC_MOCK_RUN(VALIDATED_CALL) {
 		UT_ASSERTeq(level, Log_function_.exp_level);
 		UT_ASSERTstreq(file_name, FILE_NAME);
@@ -107,7 +107,7 @@ FUNC_MOCK_END
 
 void
 custom_log_function(enum core_log_level level, const char *file_name,
-	const int line_no, const char *function_name, const char *message)
+	const unsigned line_no, const char *function_name, const char *message)
 {
 	SUPPRESS_UNUSED(level, file_name, line_no, function_name, message);
 }

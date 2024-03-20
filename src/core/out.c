@@ -53,7 +53,7 @@ static const int core_log_level_to_level[CORE_LOG_LEVEL_MAX] = {
 
 static void
 out_legacy(enum core_log_level core_level, const char *file_name,
-	const int line_no, const char *function_name, const char *message)
+	const unsigned line_no, const char *function_name, const char *message)
 {
 	int level = core_log_level_to_level[core_level];
 	out_log(file_name, line_no, function_name, level, "%s", message);
@@ -247,7 +247,7 @@ out_snprintf(char *str, size_t size, const char *format, ...)
  * out_common -- common output code, all output goes through here
  */
 static void
-out_common(const char *file, int line, const char *func, int level,
+out_common(const char *file, const unsigned line, const char *func, int level,
 		const char *suffix, const char *fmt, va_list ap)
 {
 	int oerrno = errno;
@@ -301,7 +301,7 @@ end:
  * out_log_va/out_log -- output a log line if Log_level >= level
  */
 static void
-out_log_va(const char *file, int line, const char *func, int level,
+out_log_va(const char *file, const unsigned line, const char *func, int level,
 		const char *fmt, va_list ap)
 {
 	if (Log_level < level)
@@ -310,7 +310,7 @@ out_log_va(const char *file, int line, const char *func, int level,
 }
 
 void
-out_log(const char *file, int line, const char *func, int level,
+out_log(const char *file, const unsigned line, const char *func, int level,
 		const char *fmt, ...)
 {
 	va_list ap;

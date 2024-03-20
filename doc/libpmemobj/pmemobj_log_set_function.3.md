@@ -34,7 +34,7 @@ header: "pmemobj API version 2.3"
 	typedef void pmemobj_log_function(
 		enum pmemobj_log_level level,
 		const char *file_name,
-		const int line_no,
+		const unsigned line_no,
 		const char *function_name,
 		const char *message);
 

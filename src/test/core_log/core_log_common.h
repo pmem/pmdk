@@ -64,4 +64,4 @@ void test_log_function_call_helper(enum core_log_level level,
 	bool call_log_function);
 
 void custom_log_function(enum core_log_level level, const char *file_name,
-	const int line_no, const char *function_name, const char *message);
+	const unsigned line_no, const char *function_name, const char *message);
