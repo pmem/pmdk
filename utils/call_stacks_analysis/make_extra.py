@@ -61,7 +61,7 @@ def pmem_function_pointers(calls: Calls) -> Calls:
         calls['pmem_memmove_persist'] = memmove_nodrain_all
         calls['pmem_memcpy_persist'] = memmove_nodrain_all
 
-        memset_nodrain_all = ['memset_nodrain_libc', 'memset_nodrain_generic', 'pmem_memset_nodrain.static', 'pmem_memset_nodrain_eadr.static']
+        memset_nodrain_all = ['memset_nodrain_libc', 'memset_nodrain_generic', 'pmem2_memset_nodrain', 'pmem2_memset_nodrain_eadr']
         calls['pmem_memset'] = memset_nodrain_all
         calls['pmem_memset_nodrain'] = memset_nodrain_all
         calls['pmem_memset_persist'] = memset_nodrain_all
@@ -154,12 +154,12 @@ def pmem_function_pointers(calls: Calls) -> Calls:
         memsetfuncs['nt']['empty'].extend(memsetfuncs_extras['nt']['empty'])
         memsetfuncs['nt']['flush'].extend(memsetfuncs_extras['nt']['flush'])
 
-        calls['pmem_memset_nodrain.static'] = \
+        calls['pmem2_memset_nodrain'] = \
                             memsetfuncs['t']['noflush'] + \
                             memsetfuncs['nt']['flush'] + \
                             memsetfuncs['t']['flush']
 
-        calls['pmem_memset_nodrain_eadr.static'] = \
+        calls['pmem2_memset_nodrain_eadr'] = \
                             memsetfuncs['t']['noflush'] + \
                             memsetfuncs['nt']['empty'] + \
                             memsetfuncs['t']['empty']
