@@ -7,7 +7,6 @@
  * usage: valgrind_check
  *
  */
-
 #include "valgrind_internal.h"
 
 #ifndef VALGRIND_ENABLED
