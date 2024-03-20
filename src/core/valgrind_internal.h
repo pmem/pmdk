@@ -10,7 +10,7 @@
 
 #if !defined(__riscv) && !defined(__loongarch64)
 #ifndef VALGRIND_ENABLED
-#error VALGRIND_ENABLED must be explicitly set
+#define VALGRIND_ENABLED 1
 #endif
 #endif
 

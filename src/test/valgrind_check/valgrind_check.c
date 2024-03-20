@@ -7,6 +7,7 @@
  * usage: valgrind_check
  *
  */
+#include "valgrind_internal.h"
 
 int
 main(int argc, char *argv[])

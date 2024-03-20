@@ -108,10 +108,10 @@ Both building and installation scripts are very flexible. To see additional opti
 ### Memory Management Tools
 
 The PMDK libraries support standard Valgrind DRD, Helgrind and Memcheck, as well as a PM-aware version of [Valgrind](https://github.com/pmem/valgrind).
-By default, support for all tools is disabled. If you wish to enable it, supply the compiler with `VALGRIND` flag set to 1:
+By default, support for all tools is enabled. If you wish to disable it, supply the compiler with `VALGRIND` flag set to 0:
 
 ```sh
-make VALGRIND=1
+make VALGRIND=0
 ```
 
 The `SANITIZE` flag allows the libraries to be tested with various
