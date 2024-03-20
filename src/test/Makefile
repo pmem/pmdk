@@ -161,6 +161,7 @@ PMEM_TESTS = \
 	pmem_include\
 	pmem_is_pmem\
 	pmem_is_pmem_posix\
+	pmem_log_set_function\
 	pmem_map_file\
 	pmem_has_auto_flush\
 	pmem_deep_persist\

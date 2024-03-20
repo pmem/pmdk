@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * libpmem.h -- definitions of libpmem entry points
@@ -90,6 +90,50 @@ const char *pmem_check_version(unsigned major_required,
 	unsigned minor_required);
 
 const char *pmem_errormsg(void);
+
+/*
+ * Available log levels. Log levels are used in the logging API calls
+ * to indicate logging message severity. Log levels are also used
+ * to define thresholds for the logging.
+ */
+enum pmem_log_level {
+	/* only basic library info */
+	PMEM_LOG_LEVEL_HARK,
+	/* an error that causes the library to stop working immediately */
+	PMEM_LOG_LEVEL_FATAL,
+	/* an error that causes the library to stop working properly */
+	PMEM_LOG_LEVEL_ERROR,
+	/* an errors that could be handled in the upper level */
+	PMEM_LOG_LEVEL_WARNING,
+	/* non-massive info mainly related to public API function completions */
+	PMEM_LOG_LEVEL_NOTICE,
+	/* massive info e.g. every write operation indication */
+	PMEM_LOG_LEVEL_INFO,
+	/* debug info e.g. write operation dump */
+	PMEM_LOG_LEVEL_DEBUG,
+};
+
+/*
+ * the type used for defining logging functions
+ */
+typedef void pmem_log_function(
+	/* the log level of the message */
+	enum pmem_log_level level,
+	/* name of the source file where the message coming from */
+	const char *file_name,
+	/* the source file line where the message coming from */
+	const int line_no,
+	/* the function name where the message coming from */
+	const char *function_name,
+	/* message */
+	const char *message);
+
+#define PMEM_LOG_USE_DEFAULT_FUNCTION (NULL)
+
+/*
+ * pmem_log_set_function - set the logging function
+ */
+int pmem_log_set_function(pmem_log_function *log_function);
 
 #ifdef __cplusplus
 }
