@@ -99,7 +99,7 @@ err_message:
  */
 void
 core_log_default_function(enum core_log_level level, const char *file_name,
-	const int line_no, const char *function_name, const char *message)
+	unsigned line_no, const char *function_name, const char *message)
 {
 	char file_info_buffer[256] = "";
 	const char *file_info = file_info_buffer;
