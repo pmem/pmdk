@@ -27,6 +27,7 @@ jobs:
       force_enable: '["pmemcheck", "memcheck"]'
 
 
+
   # Test the default build with force-enabled Valgrind tooling for thread error
   # detection.
   Thread:
@@ -101,3 +102,12 @@ jobs:
         uses: ./.github/actions/pmem_test_run
         with:
           build: nondebug # only the production build is considered
+
+
+  # Test the default build with the basic test suite.
+  Basic_w_Valgrind:
+    uses: ./.github/workflows/pmem_test_matrix.yml
+    with:
+      # Exclude all Valgrind tests but keep Valgrind tools built-in.
+      force_enable: '["none"]'
+      valgrind: 1
