@@ -120,3 +120,14 @@ pmem_log_get_threshold(enum pmem_log_threshold threshold,
 		(enum core_log_level *)value);
 	return core_log_error_translate(ret);
 }
+
+/*
+ * pmem_log_set_function -- set the log function pointer either to
+ * a user-provided function pointer or to the default logging function.
+ */
+int
+pmem_log_set_function(pmem_log_function *log_function)
+{
+	int ret = core_log_set_function((core_log_function *)log_function);
+	return core_log_error_translate(ret);
+}
