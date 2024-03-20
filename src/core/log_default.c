@@ -99,7 +99,7 @@ err_message:
  */
 void
 core_log_default_function(enum core_log_level level, const char *file_name,
-	const int line_no, const char *function_name, const char *message)
+	unsigned line_no, const char *function_name, const char *message)
 {
 	char file_info_buffer[256] = "";
 	const char *file_info = file_info_buffer;
@@ -116,7 +116,7 @@ core_log_default_function(enum core_log_level level, const char *file_name,
 			base_file_name++;
 
 		if (snprintf(file_info_buffer, sizeof(file_info_buffer),
-				"%s: %3d: %s: ", base_file_name, line_no,
+				"%s: %3u: %s: ", base_file_name, line_no,
 				function_name) < 0) {
 			file_info = file_info_error;
 		}
