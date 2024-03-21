@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 #
 # src/libpmem.link -- linker link file for libpmem
@@ -20,6 +20,9 @@ LIBPMEM_1.0 {
 		pmem_has_hw_drain;
 		pmem_check_version;
 		pmem_errormsg;
+		pmem_log_get_threshold;
+		pmem_log_set_function;
+		pmem_log_set_threshold;
 		pmem_memmove_persist;
 		pmem_memcpy_persist;
 		pmem_memset_persist;
