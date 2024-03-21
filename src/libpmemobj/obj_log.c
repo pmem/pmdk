@@ -10,26 +10,26 @@
 #include "util.h"
 
 /*
- * pmemobj_log_set_threshold -- set the log level threshold
+ * pmemobj_log_set_threshold -- set the logging threshold value
  */
 int
 pmemobj_log_set_threshold(enum pmemobj_log_threshold threshold,
-	enum pmemobj_log_level level)
+	enum pmemobj_log_level value)
 {
 	int ret = core_log_set_threshold((enum core_log_threshold)threshold,
-		(enum core_log_level)level);
+		(enum core_log_level)value);
 	return core_log_error_translate(ret);
 }
 
 /*
- * pmemobj_log_get_threshold -- get the log level threshold
+ * pmemobj_log_get_threshold -- get the logging value threshold value
  */
 int
 pmemobj_log_get_threshold(enum pmemobj_log_threshold threshold,
-	enum pmemobj_log_level *level)
+	enum pmemobj_log_level *value)
 {
 	int ret = core_log_get_threshold((enum core_log_threshold)threshold,
-		(enum core_log_level *)level);
+		(enum core_log_level *)value);
 	return core_log_error_translate(ret);
 }
 
