@@ -15,6 +15,7 @@ jobs:
     strategy:
       matrix:
         VALGRIND: [0, 1]
+    name: Basic ${{ matrix.VALGRIND == 0  && 'w/o Valgrind' || 'w/ Valgrind' }}
     uses: ./.github/workflows/pmem_test_matrix.yml
     with:
       # Exclude all Valgrind tests. All tests employing Valgrind tooling are run
