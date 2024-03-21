@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 #
 # src/libpmemobj.link -- linker link file for libpmemobj
@@ -16,6 +16,9 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_ctl_exec;
 		pmemobj_ctl_get;
 		pmemobj_ctl_set;
+		pmemobj_log_get_threshold;
+		pmemobj_log_set_function;
+		pmemobj_log_set_threshold;
 		pmemobj_mutex_zero;
 		pmemobj_mutex_lock;
 		pmemobj_mutex_timedlock;
