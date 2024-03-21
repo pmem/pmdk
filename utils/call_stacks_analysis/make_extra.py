@@ -21,13 +21,10 @@ def dict_extend(dict_, key, values):
 
 def inlines(calls: Calls) -> Calls:
         # common
-        calls['core_init'] = ['util_init', 'core_log_init', 'out_init']
-        calls['core_fini'] = ['out_fini']
         calls['common_init'] = ['core_init', 'util_mmap_init']
         calls['common_fini'] = ['util_mmap_fini', 'core_fini']
         calls['Last_errormsg_key_alloc'] = ['_Last_errormsg_key_alloc']
         calls['_Last_errormsg_key_alloc'] = ['os_once', 'os_tls_key_create']
-        calls['core_log_va'] = ['core_log_default_function']
 
         # libpmem
         calls['flush_empty'] = ['flush_empty_nolog']
@@ -39,6 +36,10 @@ def inlines(calls: Calls) -> Calls:
         calls['palloc_heap_action_on_cancel'] = ['palloc_reservation_clear']
         calls['util_uuid_generate'] = ['util_uuid_from_string']
 
+        return calls
+
+def function_pointers(calls: Calls) -> Calls:
+        calls['core_log_va'] = ['core_log_default_function']
         return calls
 
 def pmem_function_pointers(calls: Calls) -> Calls:
@@ -424,6 +425,7 @@ def get_callees(calls):
 
 def main():
         extra_calls = inlines({})
+        extra_calls = function_pointers(extra_calls)
         extra_calls = pmem_function_pointers(extra_calls)
         extra_calls = pmemobj_function_pointers(extra_calls)
         with open("extra_calls.json", "w") as outfile:
