@@ -101,7 +101,13 @@ def parse_stack_usage(stack_usage_file: str) -> StackUsage:
                         # 112 ctl_find_node.isra.5 : src/nondebug/common/ctl.su:ctl.c static
                         found = re.search('([0-9]+) ([a-zA-Z0-9_]+)(.[a-zA-Z0-9.]+)* : ([a-zA-Z0-9.:/_-]+) ([a-z,]+)', line)
                         if found:
-                                funcs[found.group(2)] = {'size': int(found.group(1)), 'type': found.group(5)}
+                                func = found.group(2)
+                                size = int(found.group(1))
+                                if func in funcs.keys() and funcs[func]['size'] != size:
+                                        print('Incompatible function records [{}]: {} != {}'.format(func, size, funcs[func]['size']))
+                                        if funcs[func]['size'] > size:
+                                                size = funcs[func]['size']
+                                funcs[func] = {'size': size, 'type': found.group(5)}
                         else:
                                 print(f'An unexpected line format: {line}')
                                 exit(1)
