@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2024, Intel Corporation
+
+# You must instal pre-commit and configure your project to use it:
+# $ pip install pre-commit
+# $ pre-commit install --config .pre-commit-config.yml (in the repository root directory)
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+# Use the following command to verify that pre-commit is installed and configured properly:
+# $ pre-commit run --config ./.pre-commit-config.yml --all
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.6.0
+  hooks:
+  - id: trailing-whitespace
+    exclude: |
+      (?x)(\.match$)
+  - id: end-of-file-fixer
+    exclude: |
+      (?x)(\.match$|
+           ^GIT_VERSION$)
+  - id: check-yaml
+  - id: check-added-large-files
