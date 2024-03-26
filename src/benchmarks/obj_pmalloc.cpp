@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * obj_pmalloc.cpp -- pmalloc benchmarks definition
@@ -27,7 +27,7 @@
  * The factor used for PMEM pool size calculation, accounts for metadata,
  * fragmentation and etc.
  */
-#define FACTOR 1.2f
+#define FACTOR 1.9f
 
 /* The minimum allocation size that pmalloc can perform */
 #define ALLOC_MIN_SIZE 64
@@ -236,7 +236,7 @@ pmalloc_op(struct benchmark *bench, struct operation_info *info)
 
 	int ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i], 0, 0);
 	if (ret) {
-		fprintf(stderr, "pmalloc ret: %d\n", ret);
+		fprintf(stderr, "pmalloc ret: %d (%s)\n", ret, strerror(errno));
 		return ret;
 	}
 

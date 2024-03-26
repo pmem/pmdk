@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * pmemobj_tx.cpp -- pmemobj_tx_alloc(), pmemobj_tx_free(),
@@ -19,7 +19,7 @@
 #include "poolset_util.hpp"
 
 #define LAYOUT_NAME "benchmark"
-#define FACTOR 1.2f
+#define FACTOR 1.3f
 #define ALLOC_OVERHEAD 64
 /*
  * operations number is limited to prevent stack overflow during
