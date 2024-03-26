@@ -20,15 +20,6 @@ def dict_extend(dict_, key, values):
         return dict_
 
 def inlines(calls: Calls) -> Calls:
-        # common
-        calls['core_init'] = ['util_init', 'core_log_init', 'out_init']
-        calls['core_fini'] = ['out_fini', 'core_log_fini', 'last_error_msg_fini']
-        calls['common_init'] = ['core_init', 'util_mmap_init']
-        calls['common_fini'] = ['util_mmap_fini', 'core_fini']
-        calls['Last_errormsg_key_alloc'] = ['_Last_errormsg_key_alloc']
-        calls['_Last_errormsg_key_alloc'] = ['os_once', 'os_tls_key_create']
-        calls['core_log_init'] = ['core_log_default_init', 'core_log_set_function']
-
         # libpmem
         calls['flush_empty'] = ['flush_empty_nolog']
 
