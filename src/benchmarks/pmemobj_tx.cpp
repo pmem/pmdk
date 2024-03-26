@@ -19,7 +19,7 @@
 #include "poolset_util.hpp"
 
 #define LAYOUT_NAME "benchmark"
-#define FACTOR 1.2f
+#define FACTOR 1.3f
 #define ALLOC_OVERHEAD 64
 /*
  * operations number is limited to prevent stack overflow during
