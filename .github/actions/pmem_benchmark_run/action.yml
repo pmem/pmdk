@@ -1,0 +1,45 @@
+name: PMEM benchmark procedure
+description: PMDK benchmarking procedure for self-hosted runners equipped with PMEM
+inputs:
+  runtime_dir:
+    description: The root directory of the repository designated as runtime
+    required: true
+  reference_LIB_PATH:
+    description: LD_LIBRARY_PATH where the first version of PMDK is built
+    required: true
+  rival_LIB_PATH:
+    description: LD_LIBRARY_PATH where the second version of PMDK is built
+    required: true
+  config:
+    description: Name of the .cfg file to use
+    required: true
+  scenario:
+    description: Name of the scenario to run
+    required: true
+  pmem_path:
+    description: A PMEM-mounted directory to use
+    default: /mnt/pmem0
+runs:
+  using: composite
+  steps:
+    - name: Run the benchmark
+      working-directory: ${{ inputs.runtime_dir }}
+      shell: bash
+      run: >-
+        ./utils/benchmarks/run_and_combine.py
+        --reference ${{ inputs.reference_LIB_PATH }} --rival ${{ inputs.rival_LIB_PATH }}
+        --config ${{ inputs.config }} --scenario ${{ inputs.scenario }}
+        --pmem_path ${{ inputs.pmem_path }}
+
+    - name: Archive logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.config }}__${{ inputs.scenario }}
+        path: '${{ inputs.runtime_dir }}/*.csv'
+
+    - name: Remove logs
+      if: always()
+      working-directory: ${{ inputs.runtime_dir }}
+      shell: bash
+      run: rm -f *.csv
