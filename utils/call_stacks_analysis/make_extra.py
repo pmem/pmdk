@@ -22,12 +22,10 @@ def dict_extend(dict_, key, values):
 def inlines(calls: Calls) -> Calls:
         # common
         calls['core_init'] = ['util_init', 'core_log_init', 'out_init']
-        calls['core_fini'] = ['out_fini', 'core_log_fini']
+        calls['core_fini'] = ['out_fini', 'core_log_fini', 'last_error_msg_fini']
         calls['common_init'] = ['core_init', 'util_mmap_init']
         calls['common_fini'] = ['util_mmap_fini', 'core_fini']
-        calls['Last_errormsg_key_alloc'] = ['_Last_errormsg_key_alloc']
-        calls['_Last_errormsg_key_alloc'] = ['os_once', 'os_tls_key_create']
-        calls['core_log_va'] = ['core_log_default_function']
+        calls['core_log_init'] = ['core_log_default_init', 'core_log_set_function']
 
         # libpmem
         calls['flush_empty'] = ['flush_empty_nolog']
@@ -39,6 +37,10 @@ def inlines(calls: Calls) -> Calls:
         calls['palloc_heap_action_on_cancel'] = ['palloc_reservation_clear']
         calls['util_uuid_generate'] = ['util_uuid_from_string']
 
+        return calls
+
+def core_function_pointers(calls: Calls) -> Calls:
+        calls['core_log_va'] = ['core_log_default_function']
         return calls
 
 def pmem_function_pointers(calls: Calls) -> Calls:
@@ -422,13 +424,17 @@ def get_callees(calls):
                 callees.extend(v)
         return list(set(callees))
 
+# XXX
+# The way how inlines() function is used shall be changed according to:
+# https://github.com/pmem/pmdk/issues/6070
 def main():
-        extra_calls = inlines({})
+        extra_calls = core_function_pointers({})
         extra_calls = pmem_function_pointers(extra_calls)
         extra_calls = pmemobj_function_pointers(extra_calls)
         with open("extra_calls.json", "w") as outfile:
                 json.dump(extra_calls, outfile, indent = 4)
 
+        extra_calls = inlines(extra_calls)
         # All functions accessed via function pointers have to be provided
         # on top of regular API calls for cflow to process their call stacks.
         extra_entry_points = get_callees(extra_calls)
