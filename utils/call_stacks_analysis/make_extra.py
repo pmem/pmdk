@@ -424,14 +424,33 @@ def get_callees(calls):
                 callees.extend(v)
         return list(set(callees))
 
+# XXX to be redesign
+# It seems that cflow properly identifies inline functions but in some
+# situations does not pars properly funtions that are used inside inline
+# funcion:
+# libpmem_init() <__attribute__ ((constructor)) void libpmem_init (void) at /home/tgromadz/repos/pmdk/src/libpmem/libpmem.c:23>:
+#       common_init() <inline void common_init (const char *log_prefix, const char *log_level_var, const char *log_file_var, int major_version, int minor_version) at /home/tgromadz/repos/pmdk/src/common/pmemcommon.h:19>:
+#               core_init() <inline void core_init (const char *log_prefix, const char *log_level_var, const char *log_file_var, int major_version, int minor_version) at /home/tgromadz/repos/pmdk/src/core/pmemcore.h:24>:
+#                       util_init()
+#                       core_log_init()
+#                       out_init()
+#               util_mmap_init()
+#
+# In the above example util_init(), core_log_init(), out_init() are not
+# parsed properly. This causes a "not called" error of make_call_stacks.py
+# script.
+# Acccording to very brife analysis all calles listed on the right hand side
+# shall be added to extra_entry_points.txt but they are not required in
+# extra_calls.json file
+#
 def main():
-        extra_calls = inlines({})
-        extra_calls = core_function_pointers(extra_calls)
+        extra_calls = core_function_pointers({})
         extra_calls = pmem_function_pointers(extra_calls)
         extra_calls = pmemobj_function_pointers(extra_calls)
         with open("extra_calls.json", "w") as outfile:
                 json.dump(extra_calls, outfile, indent = 4)
 
+        extra_calls = inlines(extra_calls)
         # All functions accessed via function pointers have to be provided
         # on top of regular API calls for cflow to process their call stacks.
         extra_entry_points = get_callees(extra_calls)
