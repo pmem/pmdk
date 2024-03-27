@@ -424,14 +424,17 @@ def get_callees(calls):
                 callees.extend(v)
         return list(set(callees))
 
+# XXX
+# The way how inlines() function is used shall be changed according to:
+# https://github.com/pmem/pmdk/issues/6070
 def main():
-        extra_calls = inlines({})
-        extra_calls = core_function_pointers(extra_calls)
+        extra_calls = core_function_pointers({})
         extra_calls = pmem_function_pointers(extra_calls)
         extra_calls = pmemobj_function_pointers(extra_calls)
         with open("extra_calls.json", "w") as outfile:
                 json.dump(extra_calls, outfile, indent = 4)
 
+        extra_calls = inlines(extra_calls)
         # All functions accessed via function pointers have to be provided
         # on top of regular API calls for cflow to process their call stacks.
         extra_entry_points = get_callees(extra_calls)
