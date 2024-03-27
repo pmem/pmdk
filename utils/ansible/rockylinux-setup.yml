@@ -76,6 +76,12 @@
         state: present
         name:
           - glib2-devel
+          - numactl
+          - python3-pip
+
+    - name: Install benchmarks dependencies part 2 (optional)
+      ansible.builtin.pip:
+        name: pandas
 
     - name: Install examples dependencies (optional)
       package:
