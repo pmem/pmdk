@@ -56,8 +56,8 @@ jobs:
 
       - name: Write the manifest
         run: |
-          git -C $competitor describe >> $MANIFEST
-          git -C $competitor rev-parse HEAD >> $MANIFEST
+          git -C ${{ matrix.ROLE }} describe >> $MANIFEST
+          git -C ${{ matrix.ROLE }} rev-parse HEAD >> $MANIFEST
 
       - name: Archive the manifest
         uses: actions/upload-artifact@v4
