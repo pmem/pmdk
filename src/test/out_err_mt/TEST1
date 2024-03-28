@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2023, Intel Corporation
+# Copyright 2015-2024, Intel Corporation
 #
 
 #
@@ -26,7 +26,7 @@ unset PMEM_LOG_FILE
 unset PMEMOBJ_LOG_FILE
 unset PMEMPOOL_LOG_FILE
 
-expect_normal_exit ./out_err_mt$EXESUFFIX $DIR/testfile1
+expect_normal_exit ./out_err_mt$EXESUFFIX $DIR/testfile1 2>/dev/null
 
 check
 
