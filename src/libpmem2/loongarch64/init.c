@@ -36,6 +36,6 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 {
 	LOG(3, NULL);
 
-	info->fence = loongarch_fence;
+	info->fence = loongarch_memory_fence;
 	info->flush = loongarch_flush;
 }
