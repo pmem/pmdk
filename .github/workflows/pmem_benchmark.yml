@@ -27,6 +27,7 @@ jobs:
       - name: Build
         run: make -j
 
+
   prep_contesters:
     name: Prepare ${{ matrix.ROLE }} (${{ matrix.GITHUB_REF }})
     runs-on: [self-hosted, benchmark]
@@ -60,10 +61,10 @@ jobs:
     strategy:
       matrix:
         SCENARIO:
-          - obj_tx_alloc_small_v_thread
+          # - obj_tx_alloc_small_v_thread
           - obj_pmalloc_small_v_threads
-          - obj_rbtree_map_insert
-          - obj_hashmap_tx_map_insert
+          # - obj_rbtree_map_insert
+          # - obj_hashmap_tx_map_insert
     steps:
       - name: Benchmark
         uses: ./.github/actions/pmem_benchmark_run
