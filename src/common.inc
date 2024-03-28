@@ -56,12 +56,6 @@ GCOV_LIBS=-lgcov
 
 LIBS += $(EXTRA_LIBS)
 
-ifeq ($(OS_KERNEL_NAME),)
-export OS_KERNEL_NAME := $(shell uname -s)
-endif
-
-osdep = $(1)_$(shell echo $(OS_KERNEL_NAME) | tr "[:upper:]" "[:lower:]")$(2)
-
 get_arch = $(shell $(CC) -dumpmachine | awk -F'[/-]' '{print $$1}')
 ifeq ($(ARCH),)
 export ARCH := $(call get_arch)
