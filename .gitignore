@@ -5,6 +5,7 @@
 !.clang-format
 !.mailmap
 !.codecov.yml
+!.pre-commit-config.yaml
 
 *~
 *.swp
