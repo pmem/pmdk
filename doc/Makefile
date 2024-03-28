@@ -14,6 +14,7 @@ MANPAGES_7_MD = libpmem/libpmem.7.md libpmemobj/libpmemobj.7.md \
 MANPAGES_5_MD = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
 
 MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_memmove_persist.3.md \
+		libpmem/pmem_log_get_threshold.3.md libpmem/pmem_log_set_function.3.md libpmem/pmem_log_set_threshold.3.md \
 		libpmemobj/oid_is_null.3.md libpmemobj/pmemobj_action.3.md libpmemobj/pmemobj_alloc.3.md libpmemobj/pmemobj_ctl_get.3.md libpmemobj/pmemobj_first.3.md \
 		libpmemobj/pmemobj_list_insert.3.md libpmemobj/pmemobj_memcpy_persist.3.md libpmemobj/pmemobj_mutex_zero.3.md \
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
@@ -31,6 +32,7 @@ MANPAGES_3_DUMMY = libpmem/pmem_drain.3 libpmem/pmem_has_hw_drain.3 libpmem/pmem
 		   libpmem/pmem_memcpy_persist.3 libpmem/pmem_memset_persist.3 libpmem/pmem_memmove_nodrain.3 libpmem/pmem_memcpy_nodrain.3 libpmem/pmem_memset_nodrain.3 \
 		   libpmem/pmem_memcpy.3 libpmem/pmem_memset.3 libpmem/pmem_memmove.3 \
 		   libpmem/pmem_check_version.3 libpmem/pmem_errormsg.3 \
+		   libpmem/pmem_log_use_default_function.3 \
 		   libpmempool/pmempool_check.3 libpmempool/pmempool_check_end.3 \
 		   libpmempool/pmempool_feature_enable.3 libpmempool/pmempool_feature_disable.3 \
 		   libpmempool/pmempool_transform.3 \
