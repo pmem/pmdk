@@ -2,17 +2,30 @@ XXX
 
 	* Version 2.1.0
 
-	This release
-	- introduces fuses against ill-considered use of NDCTL_ENABLE=n
-	  - PMEMOBJ_IGNORE_DIRTY_SHUTDOWN and PMEMOBJ_IGNORE_BAD_BLOCKS are required to acknowledge the understanding of what production-critical functions are missing for the build without NDCTL
-	- does not allow opening pmem pool without unsafe shoutdown counter if not explicitly disabled
-	- remove support for build time define NO_LIBPTHREAD
+	This release:
+	- Introduces the new logging subsystem in the release build for all libraries.
+	  - Messages by default are printed to syslog and stderr but might be redirected to a user-defined function,
+	    see pmem(obj)_log_set_function() for details.
+	  - Log level thresholds are cntroled via new API, see pmem(obj)_log_set_treshold() for details.
+	  - These new APIs are not available for LIBPMEM2 and LIBPMEMPOOL at the moment.
+	  - The new logging subsystem is suppressed in the debug build when any of the legacy debug logging environment variable is set:
+	    - PMEM_LOG_LEVEL/_FILE
+	    - PMEM2_LOG_LEVEL/_FILE
+	    - PMEMOBJ_LOG_LEVEL/_FILE
+	    - PMEMPOOL_LOG_LEVEL/_FILE
+	  - The debug logging subsystem becomes DEPRECATED.
+	- Introduces fuses against ill-considered use of NDCTL_ENABLE=n
+	  - PMEMOBJ_IGNORE_DIRTY_SHUTDOWN and PMEMOBJ_IGNORE_BAD_BLOCKS are required to acknowledge
+	    the understanding of what production-critical functions are missing for the build without NDCTL.
+	- Does not allow opening PMEMOBJ pool without unsafe shutdown counter (USC) if not explicitly disabled (#5968)
+	  - use PMEMOBJ_CONF="sds.at_create=0" to disable USC when working without PMem (emulated PMem, Docker, etc.).
+	- Drops support for building without libpthread (NO_LIBPTHREAD build-time define).
 
 Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 2.0.1
 
-	This release :
+	This release:
 	- Significantly reduces the libpmem's stack usage.
 	- Reduces libpmemobj's stack usage below the 11kB threshold.
 	- Fixing minor Coverity issues
@@ -22,7 +35,7 @@ Tue Aug 8 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 2.0.0
 
-	This release :
+	This release:
 	- Removes libpmemlog, libpmemblk, btt, and their support in (lib)pmempool
 	- Removes Windows support
 	- Removes FreeBSD support
@@ -42,7 +55,7 @@ Wed May 31 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 1.13.1
 
-	This release :
+	This release:
 	- Identifies and temporarily disables tests permanently or sporadically
 	failing in some configurations:
 		- ex_libpmem2 (#5593, #5635, #5638, #5641)
