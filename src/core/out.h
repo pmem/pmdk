@@ -33,7 +33,7 @@ extern "C" {
 #else
 
 static __attribute__((always_inline)) inline void
-out_log_discard(const char *file, int line, const char *func, int level,
+out_log_discard(const char *file, unsigned line, const char *func, int level,
 		const char *fmt, ...)
 {
 	/* suppress unused-parameter errors */
@@ -70,8 +70,8 @@ void out_init(const char *log_prefix, const char *log_level_var,
 void out_fini(void);
 
 #ifdef DEBUG
-void out_log(const char *file, int line, const char *func, int level,
-	const char *fmt, ...) FORMAT_PRINTF(5, 6);
+void out_log(const char *file, unsigned line, const char *func,
+	int level, const char *fmt, ...) FORMAT_PRINTF(5, 6);
 #endif
 
 #ifdef __cplusplus

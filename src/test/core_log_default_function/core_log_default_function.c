@@ -83,7 +83,7 @@ FUNC_MOCK(snprintf, int, char *__restrict __s, size_t __maxlen,
 		UT_ASSERTstreq(__format, "%s: %3d: %s: ");
 		char *file_name = va_arg(arg, char *);
 		UT_ASSERTstreq(file_name, Snprintf.exp_file_name);
-		int line_no = va_arg(arg, int);
+		unsigned line_no = va_arg(arg, unsigned);
 		UT_ASSERTeq(line_no, LINE_NO);
 		char *function_name = va_arg(arg, char *);
 		UT_ASSERTstreq(function_name, FUNCTION_NAME);

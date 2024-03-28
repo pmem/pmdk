@@ -23,7 +23,7 @@
 
 #define LOG_FUNC(FUNC_NAME) \
 static void \
-FUNC_NAME(enum core_log_level level, const char *file_name, const int line_no, \
+FUNC_NAME(enum core_log_level level, const char *file_name, unsigned line_no, \
 	const char *function_name, const char *message) \
 { \
 	SUPPRESS_UNUSED(level, file_name, line_no, function_name, message); \
