@@ -74,6 +74,8 @@
         state: present
         name:
           - glib2-devel
+          - numactl
+          - python3-pandas
 
     - name: Install examples dependencies (optional)
       package:
