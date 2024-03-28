@@ -56,7 +56,7 @@ jobs:
 
       - name: Write the manifest
         run: |
-          git -C ${{ matrix.ROLE }} describe >> $MANIFEST
+          echo "${{ matrix.GITHUB_REF }}" >> $MANIFEST
           git -C ${{ matrix.ROLE }} rev-parse HEAD >> $MANIFEST
 
       - name: Archive the manifest
