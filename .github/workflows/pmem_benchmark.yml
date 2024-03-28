@@ -104,7 +104,7 @@ jobs:
         run: |
           for competitor in reference rival; do
             echo "$competitor:" >> $OUTPUT
-            cat csvs/$competitor/manifest.txt >> $OUTPUT
+            cat csvs/manifest_$competitor/manifest.txt >> $OUTPUT
             echo >> $OUTPUT
           done
 
