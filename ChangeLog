@@ -3,10 +3,17 @@ XXX
 	* Version 2.1.0
 
 	This release
-	- introduces fuses against ill-considered use of NDCTL_ENABLE=n
-	  - PMEMOBJ_IGNORE_DIRTY_SHUTDOWN and PMEMOBJ_IGNORE_BAD_BLOCKS are required to acknowledge the understanding of what production-critical functions are missing for the build without NDCTL
-	- does not allow opening pmem pool without unsafe shoutdown counter if not explicitly disabled
-	- remove support for build time define NO_LIBPTHREAD
+	- Introduces the new logging subsystem in the release version of all libraries.
+	  Messages by default are printed to syslog and stderr but might be redirected to user defined function,
+	  see pmemobj_log_set_function() for details.
+	  Log level threshold is cntroled via new API, see pmem(obj)_log_set_treshold() for details.
+	  The new logging is suppressed in debug version when PMEM_LOG_LEVEL/PMEM2_LOG_LEVEL/PMEMOBJ_LOG_LEVEL environment varaibles are set.
+	- Introduces fuses against ill-considered use of NDCTL_ENABLE=n
+	  - PMEMOBJ_IGNORE_DIRTY_SHUTDOWN and PMEMOBJ_IGNORE_BAD_BLOCKS are required to acknowledge
+	    the understanding of what production-critical functions are missing for the build without NDCTL
+	- Does not allow opening PMem pool without unsafe shoutdown counter (USC) if not explicitly disabled (#5968)
+	  - use PMEMOBJ_CONF="sds.at_create=0" to disable USC when working without PMem (emulated PMem, Docker, etc.)
+	- Removes support for build time define NO_LIBPTHREAD
 
 Mon Dec 4 2023 Oksana Sałyk <oksana.salyk@intel.com>
 
