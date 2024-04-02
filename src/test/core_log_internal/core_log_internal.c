@@ -40,13 +40,13 @@ static struct {
 	enum core_log_level level;
 	int errnum;
 	const char *file_name;
-	int line_no;
+	unsigned line_no;
 	const char *function_name;
 	const char *message_format;
 } Core_log_context;
 
 FUNC_MOCK(core_log, void, enum core_log_level level, int errnum,
-	const char *file_name, int line_no, const char *function_name,
+	const char *file_name, unsigned line_no, const char *function_name,
 	const char *message_format, ...)
 FUNC_MOCK_RUN_DEFAULT {
 	Core_log_no_of_calls++;

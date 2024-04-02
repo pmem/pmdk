@@ -151,7 +151,7 @@ typedef void pmem_log_function(
 	/* name of the source file where the message coming from */
 	const char *file_name,
 	/* the source file line where the message coming from */
-	const int line_no,
+	unsigned line_no,
 	/* the function name where the message coming from */
 	const char *function_name,
 	/* message */

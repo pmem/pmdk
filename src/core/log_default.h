@@ -9,7 +9,7 @@
 #define CORE_LOG_DEFAULT_H
 
 void core_log_default_function(enum core_log_level level, const char *file_name,
-	const int line_no, const char *function_name, const char *message);
+	unsigned line_no, const char *function_name, const char *message);
 
 void core_log_default_init(void);
 
