@@ -20,11 +20,14 @@ extern "C" {
 enum pmemobj_log_level {
 	/* only basic library info */
 	PMEMOBJ_LOG_LEVEL_HARK,
-	/* an error that causes the library to stop working immediately */
+	/* an error that causes the program to stop working immediately */
 	PMEMOBJ_LOG_LEVEL_FATAL,
-	/* an error that causes the library to stop working properly */
+	/* an error that causes the current operation or transaction to fail */
 	PMEMOBJ_LOG_LEVEL_ERROR,
-	/* an errors that could be handled in the upper level */
+	/*
+	 * an unexpected situation that does NOT cause
+	 * the current operation to fail
+	 */
 	PMEMOBJ_LOG_LEVEL_WARNING,
 	/* non-massive info mainly related to public API function completions */
 	PMEMOBJ_LOG_LEVEL_NOTICE,
@@ -36,8 +39,9 @@ enum pmemobj_log_level {
 
 enum pmemobj_log_threshold {
 	/*
-	 * the main threshold level - the logging messages above this level
-	 * won't trigger the logging functions
+	 * the main threshold level - the logging messages less severe than
+	 * indicated by this threshold's value won't trigger the logging
+	 * functions
 	 */
 	PMEMOBJ_LOG_THRESHOLD,
 	/*
