@@ -2786,6 +2786,10 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 	/* read shutdown state toggle from header */
 	set->ignore_sds |= IGNORE_SDS(HDR(REP(set, 0), 0));
 
+	/* verify the shutdown state */
+	if (set->ignore_sds)
+		CORE_LOG_WARNING("you open a pool that does not support SDS");
+
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		for (unsigned p = 0; p < rep->nhdrs; p++) {
