@@ -2784,7 +2784,18 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 	LOG(3, "set %p attr %p", set, attr);
 
 	/* read shutdown state toggle from header */
-	set->ignore_sds |= IGNORE_SDS(HDR(REP(set, 0), 0));
+	int pool_ignore_sds = IGNORE_SDS(HDR(REP(set, 0), 0));
+	if (pool_ignore_sds && (attr->features.incompat & POOL_E_FEAT_SDS)) {
+		/*
+		 * In case, the user has a pool with the SDS feature turned off
+		 * despite the PMEMOBJ can support it. It is the last call to
+		 * turn on this crucial feature if possible.
+		 */
+		CORE_LOG_WARNING(
+			"Possible silent data corruption. The unsafe shutdown detection (SDS) is not supported in the pool: %s",
+			set->path);
+	}
+	set->ignore_sds |= pool_ignore_sds;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
