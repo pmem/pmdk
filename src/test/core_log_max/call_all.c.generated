@@ -452,6 +452,8 @@ call_all_CORE_LOG_WARNING(void)
 	// src/common/set.c
 	CORE_LOG_WARNING("usable space mapping failed - part #%d - retrying", _d);
 	// src/common/set.c
+	CORE_LOG_WARNING("Possible silent data corruption. The unsafe shutdown detection (SDS) is not supported in the pool: %s", _s);
+	// src/common/set.c
 	CORE_LOG_WARNING("pool set contains bad blocks, ignoring");
 	// src/common/set.c
 	CORE_LOG_WARNING("cannot open the part -- \"%s\"", _s);
