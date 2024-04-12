@@ -61,22 +61,24 @@ def get_macros(pmdk_path):
     macros = []
     exceptions = get_exceptions(pmdk_path)
     is_macro_in_next_line = False
-    includes_path = path.join(pmdk_path, 'src', 'include', 'libpmemobj')
+    includes_path = [path.join(pmdk_path, 'src', 'include', 'libpmemobj'),
+                     path.join(pmdk_path, 'src', 'include')]
     # Definition of macro occurs after the phrases: 'static inline' or '#define'
-    for header_file in listdir(includes_path):
-        with open(path.join(includes_path, header_file), 'r') as f:
-            file_lines = f.readlines()
-        for line in file_lines:
-            if line.startswith('static inline'):
-                is_macro_in_next_line = True
-            elif is_macro_in_next_line:
-                parse_macro_name(exceptions, line,
-                                 EXPRESSION_AT_THE_LINE_START, macros)
-                is_macro_in_next_line = False
-            elif '#define' in line:
-                parse_macro_name(exceptions, line,
-                                 EXPRESSION_AFTER_DEFINE_PHRASE, macros)
-    return macros
+    for include_path in includes_path:
+    	for header_file in listdir(include_path):
+            with open(path.join(include_path, header_file), 'r') as f:
+                file_lines = f.readlines()
+            for line in file_lines:
+                if line.startswith('static inline'):
+                    is_macro_in_next_line = True
+                elif is_macro_in_next_line:
+                    parse_macro_name(exceptions, line,
+                                     EXPRESSION_AT_THE_LINE_START, macros)
+                    is_macro_in_next_line = False
+                elif '#define' in line:
+                    parse_macro_name(exceptions, line,
+                                     EXPRESSION_AFTER_DEFINE_PHRASE, macros)
+            return macros
 
 
 def get_functions_from_so_files(lib_path):
