@@ -119,7 +119,7 @@ test_ERR_W_ERRNO(const struct test_case *tc, int argc, char *argv[])
 	return NO_ARGS_CONSUMED;
 }
 
-#define TOTAL_MESSAGE_NUM_EXPECTED 212
+#define TOTAL_MESSAGE_NUM_EXPECTED 213
 static int Max_message_len = 0;
 static int Total_message_num = 0;
 static char The_longest_message[BIG_BUF_SIZE];
