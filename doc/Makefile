@@ -32,7 +32,6 @@ MANPAGES_3_DUMMY = libpmem/pmem_drain.3 libpmem/pmem_has_hw_drain.3 libpmem/pmem
 		   libpmem/pmem_memcpy_persist.3 libpmem/pmem_memset_persist.3 libpmem/pmem_memmove_nodrain.3 libpmem/pmem_memcpy_nodrain.3 libpmem/pmem_memset_nodrain.3 \
 		   libpmem/pmem_memcpy.3 libpmem/pmem_memset.3 libpmem/pmem_memmove.3 \
 		   libpmem/pmem_check_version.3 libpmem/pmem_errormsg.3 \
-		   libpmem/pmem_log_use_default_function.3 \
 		   libpmempool/pmempool_check.3 libpmempool/pmempool_check_end.3 \
 		   libpmempool/pmempool_feature_enable.3 libpmempool/pmempool_feature_disable.3 \
 		   libpmempool/pmempool_transform.3 \
