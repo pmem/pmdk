@@ -106,4 +106,6 @@ jobs:
   coverage_scan:
     needs: [src_checkers, basic_build]
     uses: ./.github/workflows/scan_coverage.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     name: Coverage
