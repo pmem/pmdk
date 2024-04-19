@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
@@ -82,9 +82,6 @@ ENV PYTHON_DEPS "\
 
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
-
-# Copy script to download codecov script required in run-coverage.sh
-COPY download-scripts.sh download-scripts.sh
 
 # Update the Apt cache and install basic tools
 RUN apt-get update && apt-get dist-upgrade -y \
