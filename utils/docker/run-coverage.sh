@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2023, Intel Corporation
+# Copyright 2017-2024, Intel Corporation
 
 #
 # run-coverage.sh - is called inside a Docker container; runs tests
@@ -35,17 +35,3 @@ popd
 # prepare flag for codecov report to differentiate builds
 flag=tests
 [ -n "${GITHUB_ACTIONS}" ] && flag=GHA
-
-# validate codecov.yaml file
-cat "${WORKDIR}/.codecov.yml" | curl --data-binary @- https://codecov.io/validate
-
-# run codecov's uploader in current dir (WORKDIR), with gcov executable
-# (clean parsed coverage files, set flag and exit 1 if not successful)
-/opt/scripts/codecov --rootDir . --gcov --clean --flags ${flag} --nonZero --verbose
-echo "Check for any leftover gcov files"
-leftover_files=$(find . -name "*.gcov")
-if [[ -n "${leftover_files}" ]]; then
-	# display found files and exit with error (they all should be parsed)
-	echo "${leftover_files}"
-	return 1
-fi

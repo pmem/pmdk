@@ -3,6 +3,9 @@ name: Coverage
 
 on:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
 
 env:
   # Note: All coverage scans, e.g. on pull requests, should be run in the same
@@ -20,6 +23,7 @@ env:
   COVERAGE:     1
   TEST_BUILD:   debug
   FAULT_INJECTION: 1
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 jobs:
   linux:
@@ -32,5 +36,12 @@ jobs:
       - name: Pull the image
         run: cd $WORKDIR && ./pull-or-rebuild-image.sh
 
-      - name: Measure and upload code coverage
+      - name: Run the build
         run: cd $WORKDIR && ./build-CI.sh
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          root_dir: /home/runner/work/pmdk/pmdk/
+          directory: /home/runner/work/pmdk/pmdk/
+          verbose: true
