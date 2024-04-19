@@ -17,7 +17,6 @@ env:
   SRC_CHECKERS: 0
   OS:           ubuntu
   OS_VER:       22.04
-  COVERAGE:     1
   TEST_BUILD:   debug
   FAULT_INJECTION: 1
 
@@ -32,5 +31,13 @@ jobs:
       - name: Pull the image
         run: cd $WORKDIR && ./pull-or-rebuild-image.sh
 
-      - name: Measure and upload code coverage
+      - name: Run the build
         run: cd $WORKDIR && ./build-CI.sh
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          gcov: true
+          root_dir: /home/runner/work/pmdk/pmdk/
+          directory: /home/runner/work/pmdk/pmdk/
+          verbose: true
