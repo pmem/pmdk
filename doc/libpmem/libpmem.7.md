@@ -223,7 +223,7 @@ affects all the PMDK libraries,** disabling mapping address randomization
 and causing the specified address to be used as a hint about where to
 place the mapping.
 
-# DEBUGGING AND ERROR HANDLING #
+# ERROR HANDLING #
 
 If an error is detected during the call to a **libpmem** function, the
 application may retrieve an error message describing the reason of the failure
@@ -237,6 +237,24 @@ content is significant only when the return value of the immediately preceding
 call to a **libpmem** function indicated an error.
 The application must not modify or free the error message string.
 Subsequent calls to other library functions may modify the previous message.
+
+In parallel to above mechanism, errors, warnings and basic library information
+are written by the **libmem** library to **syslog**(3). This functionality is
+enabled during library initialization and can also be restored using
+**PMEM_LOG_USE_DEFAULT_FUNCTION** value as the *log_function* argument of
+**pmem_log_set_function**(3) function.
+User can control the severity of messages reported to **syslog**(3) via
+**pmem_log_set_threshold**(3) function with **PMEM_LOG_THRESHOLD** value of
+*threshold* argument. Basic library information can not be supressed at all.
+It is also possible to enable error/warnign messages to be written to
+**stderr**(3) via **pmem_log_set_threshold**(3) function with
+**PMEM_LOG_THRESHOLD_AUX** value of *threshold* argument.
+
+User can provide a custom logging function via **pmem_log_set_function**(3).
+In such case all error/warning/info messages are redirected to the custom
+function and are written neither to **syslog**(3) nor to **stderr**(3).
+
+# DEBBUGING #
 
 Two versions of **libpmem** are typically available on a development
 system. The normal version, accessed when a program is linked using the
@@ -253,8 +271,8 @@ variables. These variables have no effect on the non-debug version of the librar
 
 + **PMEM_LOG_LEVEL**
 
-The value of **PMEM_LOG_LEVEL** enables trace points in the debug version
-of the library, as follows:
+The value of **PMEM_LOG_LEVEL** environment variable enables trace points in
+the debug version of the library, as follows:
 
 + **0** - This is the default level when **PMEM_LOG_LEVEL** is not set.
 No log messages are emitted at this level.
@@ -271,7 +289,8 @@ library.
 + **4** - Enables voluminous and fairly obscure tracing
 information that is likely only useful to the **libpmem** developers.
 
-Unless **PMEM_LOG_FILE** is set, debugging output is written to *stderr*.
+Unless **PMEM_LOG_FILE** environment variable is set, debugging output is
+written to *stderr*.
 
 + **PMEM_LOG_FILE**
 
@@ -280,6 +299,10 @@ all logging information should be written. If the last character in the name
 is "-", the *PID* of the current process will be appended to the file name when
 the log file is created. If **PMEM_LOG_FILE** is not set, output is
 written to *stderr*.
+
+Whenever either **PMEM_LOG_LEVEL** or **PMEM_LOG_FILE** environment variable is
+set no messages are written to **syslog**(3). The same apply to the custom
+logging function.
 
 # EXAMPLE #
 
