@@ -154,7 +154,7 @@ The typical way to access the debug version is to set the environment variable
 as appropriate. Debugging output is controlled using the following environment
 variables. These variables have no effect on the non-debug version of the library.
 
-+ **PMEMPOOL_LOG_LEVEL**
++ **PMEMPOOL_LOG_LEVEL** (DEPRECATED)
 
 The value of **PMEMPOOL_LOG_LEVEL** enables trace points in the debug version
 of the library, as follows:
@@ -175,7 +175,7 @@ information that is likely only useful to the **libpmempool** developers.
 
 Unless **PMEMPOOL_LOG_FILE** is set, debugging output is written to *stderr*.
 
-+ **PMEMPOOL_LOG_FILE**
++ **PMEMPOOL_LOG_FILE** (DEPRECATED)
 
 Specifies the name of a file where
 all logging information should be written. If the last character in the name

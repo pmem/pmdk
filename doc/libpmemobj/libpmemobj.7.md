@@ -190,7 +190,7 @@ The typical way to access the debug version is to set the environment variable
 as appropriate. Debugging output is controlled using the following environment
 variables. These variables have no effect on the non-debug version of the library.
 
-+ **PMEMOBJ_LOG_LEVEL**
++ **PMEMOBJ_LOG_LEVEL** (DEPRECATED)
 
 The value of **PMEMOBJ_LOG_LEVEL** enables trace points in the debug version
 of the library, as follows:
@@ -212,7 +212,7 @@ that is likely only useful to the **libpmemobj** developers.
 
 Unless **PMEMOBJ_LOG_FILE** is set, debugging output is written to *stderr*.
 
-+ **PMEMOBJ_LOG_FILE**
++ **PMEMOBJ_LOG_FILE** (DEPRECATED)
 
 Specifies the name of a file where all logging information should be written.
 If the last character in the name is "-", the *PID* of the current process will
