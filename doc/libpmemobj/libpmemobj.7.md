@@ -162,7 +162,7 @@ transactions/allocations. For debugging purposes it is possible to decrease
 this value by setting the **PMEMOBJ_NLANES** environment variable to the
 desired limit.
 
-# DEBUGGING AND ERROR HANDLING #
+# ERROR HANDLING #
 
 If an error is detected during the call to a **libpmemobj** function, the
 application may retrieve an error message describing the reason for the failure
@@ -176,6 +176,24 @@ content is significant only when the return value of the immediately preceding
 call to a **libpmemobj** function indicated an error, or if *errno* was set.
 The application must not modify or free the error message string, but it may
 be modified by subsequent calls to other library functions.
+
+In parallel to above mechanism, errors, warnings and basic library information
+are written by the **libmemobj** library to **syslog**(3). This functionality is
+enabled during library initialization and can also be restored using
+**PMEMOBJ_LOG_USE_DEFAULT_FUNCTION** value as the *log_function* argument of
+**pmemobj_log_set_function**(3) function.
+User can control the severity of messages reported to **syslog**(3) via
+**pmemobj_log_set_threshold**(3) function with **PMEMOBJ_LOG_THRESHOLD** value
+of *threshold* argument. Basic library information can not be supressed at all.
+It is also possible to enable error/warnign messages to be written to
+**stderr**(3) via **pmemobj_log_set_threshold**(3) function with
+**PMEMOBJ_LOG_THRESHOLD_AUX** value of *threshold* argument.
+
+User can provide a custom logging function via **pmemobj_log_set_function**(3).
+In such case all error/warning/info messages are redirected to the custom
+function and are written neither to **syslog**(3) nor to **stderr**(3).
+
+# DEBBUGING #
 
 Two versions of **libpmemobj** are typically available on a development
 system. The normal version, accessed when a program is linked using the
@@ -218,6 +236,10 @@ Specifies the name of a file where all logging information should be written.
 If the last character in the name is "-", the *PID* of the current process will
 be appended to the file name when the log file is created. If
 **PMEMOBJ_LOG_FILE** is not set, logging output is written to *stderr*.
+
+Whenever either **PMEMOBJ_LOG_LEVEL** or **PMEMOBJ_LOG_FILE** environment
+variable is set no messages are written to **syslog**(3). The same apply to
+the custom logging function.
 
 See also **libpmem**(7) to get information
 about other environment variables affecting **libpmemobj** behavior.
