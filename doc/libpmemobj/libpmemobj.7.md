@@ -18,7 +18,8 @@ header: "pmemobj API version 2.3"
 [DESCRIPTION](#description)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [MANAGING LIBRARY BEHAVIOR](#managing-library-behavior-1)<br />
-[DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
+[ERROR HANDLING](#error-handling)<br />
+[DEBUGGING](#debugging)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)<br />

@@ -19,7 +19,8 @@ header: "pmem API version 1.1"
 [CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [ENVIRONMENT](#environment)<br />
-[DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
+[ERROR HANDLING](#error-handling)<br />
+[DEBUGGING](#debugging)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
