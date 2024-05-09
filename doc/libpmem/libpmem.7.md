@@ -21,6 +21,7 @@ header: "pmem API version 1.1"
 [ENVIRONMENT](#environment)<br />
 [ERROR HANDLING](#error-handling)<br />
 [DEBUGGING](#debugging)<br />
+[LOGGING](#logging)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
@@ -245,7 +246,7 @@ function. Please see **pmem_log_set_function**(3) for details.
 The influx of the reported messages can be controlled by setting a respective
 threshold value. Please see **pmem_log_set_threshold**(3) for details.
 
-# DEBBUGING #
+# DEBUGGING #
 
 Two versions of **libpmem** are typically available on a development
 system. The normal version, accessed when a program is linked using the
@@ -257,7 +258,12 @@ A second version of **libpmem**, accessed when a program uses the libraries
 under **/usr/lib/pmdk_debug**, contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
 **LD_LIBRARY_PATH** to **/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**,
-as appropriate. Debugging output is controlled using the following environment
+as appropriate.
+
+# LOGGING #
+**(DEPRECATED)**
+
+Debugging output is controlled using the following environment
 variables. These variables have no effect on the non-debug version of the library.
 
 + **PMEM_LOG_LEVEL**
