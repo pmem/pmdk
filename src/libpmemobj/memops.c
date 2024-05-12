@@ -104,8 +104,7 @@ operation_log_transient_init(struct operation_log *log)
  *	containing persistent memory resident changes
  */
 static int
-operation_log_persistent_init(struct operation_log *log,
-	size_t ulog_base_nbytes)
+operation_log_persistent_init(struct operation_log *log)
 {
 	log->capacity = ULOG_BASE_SIZE;
 	log->offset = 0;
@@ -118,7 +117,7 @@ operation_log_persistent_init(struct operation_log *log,
 	}
 
 	/* initialize underlying redo log structure */
-	src->capacity = ulog_base_nbytes;
+	src->capacity = ULOG_BASE_SIZE;
 	memset(src->unused, 0, sizeof(src->unused));
 
 	log->ulog = src;
@@ -210,8 +209,7 @@ operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
 	if (operation_log_transient_init(&ctx->transient_ops) != 0)
 		goto error_ulog_alloc;
 
-	if (operation_log_persistent_init(&ctx->pshadow_ops,
-	    ulog_base_nbytes) != 0)
+	if (operation_log_persistent_init(&ctx->pshadow_ops) != 0)
 		goto error_ulog_alloc;
 
 	return ctx;

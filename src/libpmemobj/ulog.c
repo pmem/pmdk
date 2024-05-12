@@ -353,6 +353,8 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 	 * ulog.
 	 */
 	size_t old_capacity = src->capacity;
+	uint64_t old_next = src->next;
+	uint64_t old_checksum = src->checksum;
 	src->capacity = base_nbytes;
 	src->next = VEC_SIZE(next) == 0 ? 0 : VEC_FRONT(next);
 	ulog_checksum(src, checksum_nbytes, 1);
@@ -361,7 +363,10 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 		SIZEOF_ULOG(base_nbytes),
 		PMEMOBJ_F_MEM_WC);
 
+	/* Restore the initial state of the source */
 	src->capacity = old_capacity;
+	src->next = old_next;
+	src->checksum = old_checksum;
 }
 
 /*
