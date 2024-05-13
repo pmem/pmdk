@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -45,7 +45,7 @@
 
 #include <sys/types.h>
 
-#include "out.h"
+#include "core_assert.h"
 #include "vec.h"
 #include "pool_hdr.h"
 

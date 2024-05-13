@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2023, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 /*
  * os_deep_linux.c -- Linux abstraction layer
@@ -35,11 +35,13 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 		if (ret < 0) {
 			if (ret == PMEM2_E_NOSUPP) {
 				errno = ENOTSUP;
-				LOG(1, "!deep_flush not supported");
+				CORE_LOG_ERROR_W_ERRNO(
+					"deep_flush not supported");
 			} else {
 				errno = pmem2_err_to_errno(ret);
-				LOG(2, "cannot write to deep_flush"
-					"in region %u", mt->region_id);
+				CORE_LOG_ERROR(
+					"cannot write to deep_flush in region %u",
+					mt->region_id);
 			}
 			return -1;
 		}
@@ -122,7 +124,7 @@ os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 			return 0;
 
 		if (pmem_msync(addr, len)) {
-			LOG(1, "pmem_msync(%p, %lu)", addr, len);
+			CORE_LOG_ERROR("pmem_msync(%p, %lu)", addr, len);
 			return -1;
 		}
 		return 0;
@@ -151,16 +153,17 @@ os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 		if (ret < 0) {
 			if (errno == ENOENT) {
 				errno = ENOTSUP;
-				LOG(1, "!deep_flush not supported");
+				CORE_LOG_ERROR_W_ERRNO(
+					"deep_flush not supported");
 			} else {
-				LOG(1, "invalid dax_region id %u", region_id);
+				CORE_LOG_ERROR("invalid dax_region id %u",
+					region_id);
 			}
 			return -1;
 		}
 
 		if (pmem2_deep_flush_write(region_id)) {
-			LOG(1, "pmem2_deep_flush_write(%u)",
-				region_id);
+			CORE_LOG_ERROR("pmem2_deep_flush_write(%u)", region_id);
 			return -1;
 		}
 	} else {
@@ -169,7 +172,7 @@ os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 		 * call msync on one page.
 		 */
 		if (pmem_msync(addr, MIN(Pagesize, len))) {
-			LOG(1, "pmem_msync(%p, %lu)", addr, len);
+			CORE_LOG_ERROR("pmem_msync(%p, %lu)", addr, len);
 			return -1;
 		}
 	}

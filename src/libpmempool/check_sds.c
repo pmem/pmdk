@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2022, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * check_shutdown_state.c -- shutdown state check
@@ -126,7 +126,7 @@ sds_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 		++loc->healthy_replicas;
 		break;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 	return 0;
 }
@@ -187,7 +187,7 @@ init_prefix(location *loc)
 			"replica %u: ",
 			loc->replica);
 		if (ret < 0)
-			FATAL("!snprintf");
+			CORE_LOG_FATAL_W_ERRNO("snprintf");
 	} else
 		loc->prefix[0] = '\0';
 	loc->step = 0;

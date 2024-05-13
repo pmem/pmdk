@@ -3,6 +3,9 @@ name: Coverage
 
 on:
   workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
 
 env:
   # Note: All coverage scans, e.g. on pull requests, should be run in the same
@@ -27,10 +30,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Pull the image
         run: cd $WORKDIR && ./pull-or-rebuild-image.sh
 
-      - name: Measure and upload code coverage
+      - name: Run the build
         run: cd $WORKDIR && ./build-CI.sh
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          root_dir: /home/runner/work/pmdk/pmdk/
+          directory: /home/runner/work/pmdk/pmdk/
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true

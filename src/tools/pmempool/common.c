@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * common.c -- definitions of common functions
@@ -1304,7 +1304,7 @@ util_pool_clear_badblocks(const char *path, int create)
 	int ret = util_poolset_create_set(&setp, path, 0, 0,
 						POOL_OPEN_IGNORE_SDS);
 	if (ret < 0) {
-		LOG(2, "cannot open pool set -- '%s'", path);
+		CORE_LOG_ERROR("cannot open pool set -- '%s'", path);
 		return -1;
 	}
 

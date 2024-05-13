@@ -20,7 +20,7 @@ You will need to install the following required packages on the build system:
 The following packages are required only by selected PMDK components
 or features:
 
-PMDK depends on libndctl to support RAS features. It is possible
+PMDK depends on libndctl and libdaxctl to support RAS features. It is possible
 to disable this support by passing `NDCTL_ENABLE=n` to `make`, but we strongly
 discourage users from doing that. Disabling NDCTL strips PMDK from ability to
 detect hardware failures, which may lead to silent data corruption.
@@ -39,7 +39,7 @@ cd pmdk
 For a stable version, checkout a [release tag](https://github.com/pmem/pmdk/releases) as follows. Otherwise skip this step to build the latest development release.
 
 ```sh
-git checkout tags/2.0.1
+git checkout tags/2.1.0
 ```
 
 Once all required [dependencies](#dependencies) are installed, PMDK is built using the
@@ -108,14 +108,11 @@ Both building and installation scripts are very flexible. To see additional opti
 ### Memory Management Tools
 
 The PMDK libraries support standard Valgrind DRD, Helgrind and Memcheck, as well as a PM-aware version of [Valgrind](https://github.com/pmem/valgrind).
-By default, support for all tools is enabled. If you wish to disable it, supply the compiler with `VG_\<TOOL\>_ENABLED` flag set to 0, for example:
+By default, support for all tools is enabled. If you wish to disable it, supply the compiler with `VALGRIND` flag set to 0:
 
 ```sh
-make EXTRA_CFLAGS=-DVG_MEMCHECK_ENABLED=0
+make VALGRIND=0
 ```
-
-`VALGRIND_ENABLED` flag, when set to 0, disables all Valgrind tools
-(drd, helgrind, memcheck and pmemcheck).
 
 The `SANITIZE` flag allows the libraries to be tested with various
 sanitizers. For example, to test the libraries with AddressSanitizer

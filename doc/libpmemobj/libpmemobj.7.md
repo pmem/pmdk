@@ -18,7 +18,9 @@ header: "pmemobj API version 2.3"
 [DESCRIPTION](#description)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [MANAGING LIBRARY BEHAVIOR](#managing-library-behavior-1)<br />
-[DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
+[ERROR HANDLING](#error-handling)<br />
+[DEBUGGING](#debugging)<br />
+[LOGGING (DEPRECATED)](#logging-deprecated)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)<br />
@@ -162,7 +164,7 @@ transactions/allocations. For debugging purposes it is possible to decrease
 this value by setting the **PMEMOBJ_NLANES** environment variable to the
 desired limit.
 
-# DEBUGGING AND ERROR HANDLING #
+# ERROR HANDLING #
 
 If an error is detected during the call to a **libpmemobj** function, the
 application may retrieve an error message describing the reason for the failure
@@ -177,6 +179,14 @@ call to a **libpmemobj** function indicated an error, or if *errno* was set.
 The application must not modify or free the error message string, but it may
 be modified by subsequent calls to other library functions.
 
+In parallel to the above mechanism, all logging messages are written to
+**syslog**(3) and/or **stderr**(3) or passed to the user-provided logging
+function. Please see **pmemobj_log_set_function**(3) for details.
+The influx of the reported messages can be controlled by setting a respective
+threshold value. Please see **pmemobj_log_set_threshold**(3) for details.
+
+# DEBUGGING #
+
 Two versions of **libpmemobj** are typically available on a development
 system. The normal version, accessed when a program is linked using the
 **-lpmemobj** option, is optimized for performance. That version skips checks
@@ -187,13 +197,17 @@ A second version of **libpmemobj**, accessed when a program uses the libraries
 under **/usr/lib/pmdk_debug**, contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
 **LD_LIBRARY_PATH** to **/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**,
-as appropriate. Debugging output is controlled using the following environment
+as appropriate.
+
+# LOGGING (DEPRECATED) #
+
+Debugging output is controlled using the following environment
 variables. These variables have no effect on the non-debug version of the library.
 
 + **PMEMOBJ_LOG_LEVEL**
 
-The value of **PMEMOBJ_LOG_LEVEL** enables trace points in the debug version
-of the library, as follows:
+The value of the **PMEMOBJ_LOG_LEVEL** environment variable enables trace points
+in the debug version of the library, as follows:
 
 + **0** - This is the default level when **PMEMOBJ_LOG_LEVEL** is not set.
 No log messages are emitted at this level.
@@ -210,7 +224,8 @@ tracing in the library.
 + **4** - Enables voluminous and fairly obscure tracing information
 that is likely only useful to the **libpmemobj** developers.
 
-Unless **PMEMOBJ_LOG_FILE** is set, debugging output is written to *stderr*.
+Unless the **PMEMOBJ_LOG_FILE** environment variable is set, the debugging
+output is written to *stderr*.
 
 + **PMEMOBJ_LOG_FILE**
 
@@ -218,6 +233,11 @@ Specifies the name of a file where all logging information should be written.
 If the last character in the name is "-", the *PID* of the current process will
 be appended to the file name when the log file is created. If
 **PMEMOBJ_LOG_FILE** is not set, logging output is written to *stderr*.
+
+Whenever either **PMEMOBJ_LOG_LEVEL** or **PMEMOBJ_LOG_FILE** environment
+variable is set the messages are not passed via the routes described in
+the [ERROR HANDLING](#error-handling) section except for
+the **pmemobj_errormsg**() which works unconditionally.
 
 See also **libpmem**(7) to get information
 about other environment variables affecting **libpmemobj** behavior.

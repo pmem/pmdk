@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2022, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * usc_ndctl.c -- pmem2 usc function for platforms using ndctl
  */
 #include <ndctl/libndctl.h>
-#include <daxctl/libdaxctl.h>
 #include <sys/types.h>
 #include <sys/sysmacros.h>
 #include <fcntl.h>
@@ -26,7 +25,8 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 	PMEM2_ERR_CLR();
 
 	if (src->type == PMEM2_SOURCE_ANON) {
-		ERR("Anonymous source does not support unsafe shutdown count");
+		ERR_WO_ERRNO(
+			"Anonymous source does not support unsafe shutdown count");
 		return PMEM2_E_NOSUPP;
 	}
 
@@ -38,7 +38,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR("!ndctl_new");
+		ERR_W_ERRNO("ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -51,7 +51,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 	ret = PMEM2_E_NOSUPP;
 
 	if (region == NULL) {
-		ERR(
+		ERR_WO_ERRNO(
 			"Unsafe shutdown count is not supported for this source");
 		goto err;
 	}
@@ -62,7 +62,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 		long long dimm_usc = ndctl_dimm_get_dirty_shutdown(dimm);
 		if (dimm_usc < 0) {
 			ret = PMEM2_E_NOSUPP;
-			ERR(
+			ERR_WO_ERRNO(
 				"Unsafe shutdown count is not supported for this source");
 			goto err;
 		}
@@ -88,7 +88,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 	const char *dimm_uid;
 
 	if (src->type == PMEM2_SOURCE_ANON) {
-		ERR("Anonymous source does not have device id");
+		ERR_WO_ERRNO("Anonymous source does not have device id");
 		return PMEM2_E_NOSUPP;
 	}
 
@@ -96,7 +96,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 
 	errno = ndctl_new(&ctx) * (-1);
 	if (errno) {
-		ERR("!ndctl_new");
+		ERR_W_ERRNO("ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
 

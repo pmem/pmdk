@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 # check-headers.sh - check copyright and license in source files
 
@@ -26,7 +26,6 @@ shift
 PATTERN=`mktemp`
 TMP=`mktemp`
 TMP2=`mktemp`
-TEMPFILE=`mktemp`
 rm -f $PATTERN $TMP $TMP2
 
 if [ "$1" == "-h" -o "$1" == "--help" ]; then
@@ -45,6 +44,12 @@ if [ -f $SOURCE_ROOT/.git/shallow ]; then
 	echo
 else
 	SHALLOW_CLONE=0
+fi
+
+if [ $($GIT diff | wc -l) -gt 0 ]; then
+	DIRTY_SOURCE=1
+else
+	DIRTY_SOURCE=0
 fi
 
 VERBOSE=0
@@ -99,9 +104,6 @@ for file in $FILES ; do
 	# git is called with -C flag so filepaths should be relative to SOURCE_ROOT
 	src_path="${SOURCE_ROOT}/$file"
 	[ ! -f $src_path ] && continue
-	# ensure that file is UTF-8 encoded
-	ENCODING=`file -b --mime-encoding $src_path`
-	iconv -f $ENCODING -t "UTF-8" $src_path > $TEMPFILE
 
 	if ! grep -q "SPDX-License-Identifier: $LICENSE" $src_path; then
 		echo "$src_path:1: no $LICENSE SPDX tag found " >&2
@@ -150,7 +152,7 @@ for file in $FILES ; do
 s/.*Copyright \([0-9]\+\)-\([0-9]\+\),.*/\1-\2/
 s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 	if [ -z "$YEARS" ]; then
-		echo >&2 "$src_path:1: No copyright years found"
+		echo >&2 "$src_path:2: No copyright years found"
 		RV=1
 		continue
 	fi
@@ -171,7 +173,13 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 			else
 				NEW=$COMMIT_FIRST-$COMMIT_LAST
 			fi
-			echo "$file:1: error: wrong copyright date: (is: $YEARS, should be: $NEW)" >&2
+			if [ $HEADER_FIRST == $HEADER_LAST ]; then
+				YEARS=$HEADER_LAST
+			fi
+			echo "$file:2: error: wrong copyright date: (is: $YEARS, should be: $NEW)" >&2
+			if [ $DIRTY_SOURCE -eq 0 ]; then
+				sed -i "s/\(Copyright\) $YEARS\(, Intel Corporation\)/\1 $NEW\2/" $src_path
+			fi
 			RV=1
 		fi
 	else
@@ -179,7 +187,7 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 		RV=1
 	fi
 done
-rm -f $TMP $TMP2 $TEMPFILE
+rm -f $TMP $TMP2
 
 $(dirname "$0")/check-ms-license.pl $FILES
 
@@ -188,5 +196,10 @@ if [ $RV -eq 0 ]; then
 	echo "Copyright headers are OK."
 else
 	echo "Error(s) in copyright headers found!" >&2
+	if [ $DIRTY_SOURCE -eq 0 ]; then
+		echo "Please see the proposed changes to fix the found issues." >&2
+	else
+		echo "Since the source is dirty no changes have been proposed." >&2
+	fi
 fi
 exit $RV

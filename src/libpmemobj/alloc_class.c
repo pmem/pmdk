@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * alloc_class.c -- implementation of allocation classes
@@ -11,7 +11,7 @@
 #include "alloc_class.h"
 #include "heap_layout.h"
 #include "util.h"
-#include "out.h"
+#include "core_assert.h"
 #include "bucket.h"
 #include "critnib.h"
 
@@ -167,8 +167,10 @@ alloc_class_reservation_clear(struct alloc_class_collection *ac, int id)
 {
 	LOG(10, NULL);
 
-	int ret = util_bool_compare_and_swap64(&ac->aclasses[id],
-		ACLASS_RESERVED, NULL);
+#ifdef DEBUG /* variables required for ASSERTs below */
+	int ret =
+#endif
+	util_bool_compare_and_swap64(&ac->aclasses[id], ACLASS_RESERVED, NULL);
 	ASSERT(ret);
 }
 
@@ -226,7 +228,8 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 				flags_s, size_idx_s);
 			if (critnib_insert(ac->class_map_by_unit_size,
 			    k, c) != 0) {
-				ERR("unable to register allocation class");
+				ERR_WO_ERRNO(
+					"unable to register allocation class");
 				goto error_map_insert;
 			}
 

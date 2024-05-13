@@ -11,6 +11,10 @@ REPLICA
 20M $(nW)testfile01
 20M $(nW)testfile21
 
+$(OPT)$(*) *ERROR* transform.c:  $(N): check_if_part_used_once: cannot get absolute path for $(*)/test_pmempool_transform10/testfile00, replica 0, part 0
+$(OPT)$(*) *ERROR* util_posix.c:  $(N): util_compare_file_inodes: stat failed for $(*)/test_pmempool_transform10/testfile21
+$(OPT)$(*) *ERROR* transform.c:  $(N): check_if_part_used_once: some part file's path is used multiple times
+$(OPT)$(*) *ERROR* replica.c: $(N): pmempool_transformU: transformation failed
 error: Invalid argument
 error: failed to transform $(nW)poolset.in -> $(nW)poolset.out: some part file's path is used multiple times
 Poolset structure:

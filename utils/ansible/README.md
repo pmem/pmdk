@@ -56,10 +56,10 @@ Use the below command to configure persistent memory on Intel servers to be
 used for PMDK libraries tests execution.
 ```sh
 export TARGET_IP= # ip of the target
-export ROOT_PASSWORD= # a password of root on the target
+export USER_PASSWORD= # a password on the target
 ansible-playbook -i $TARGET_IP, configure-pmem.yml \
-  --extra-vars "host=all ansible_user=root ansible_password=$ROOT_PASSWORD \
-  newRegions=true testUser=pmdkuser"
+  --extra-vars "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD \
+  newRegions=true"
 ```
 The script creates a new region and set of namespaces regardless of the
 configuration already available on the target platform.
@@ -81,10 +81,9 @@ the test environment.
 parameter in this case.
 ```sh
 export TARGET_IP= # ip of the target
-export ROOT_PASSWORD= # a password of root on the target
+export USER_PASSWORD= # a password on the target
 ansible-playbook -i $TARGET_IP, configure-pmem.yml \
-  --extra-vars "host=all ansible_user=root ansible_password=$ROOT_PASSWORD \
-  testUser=pmdkuser"
+  --extra-vars "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD"
 ```
 
 # Installing a GitHub Action self-hosted runner using Ansible palybook
@@ -94,16 +93,16 @@ the pmem/pmdk repository.
 
 ```sh
 export TARGET_IP= # ip of the target
-export ROOT_PASSWORD= # a password of root on the target
+export USER_PASSWORD= # a password on the target
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME= # host's name that will be visible on GitHub
 export LABELS= # rhel or opensuse
 export VARS_GHA= # e.g. proxy settings: http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars
-  "host=all ansible_user=root ansible_password=$ROOT_PASSWORD testUser=pmdkuser \
+  "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD \
   runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 ```
-**Note**: To obtain a token for a new self hosted runer visit
+**Note**: To obtain a token for a new self-hosted runer visit
 [Create self-hosted runner](https://gib.com/pmem/pmdk/settings/actions/runners/new)
 .
 
@@ -127,15 +126,15 @@ export SETUP_SCRIPT= # opensuse-setup.yml or rockylinux-setup.yml
 sudo ansible-playbook $SETUP_SCRIPT --extra-vars "testUser=pmdkuser"
 ```
 **Note**: If a reboot is necessary, as described above, perform it manually and
-rerun the playbook withot  in question.
+rerun the playbook without in question.
 
-And next:
+And next log in as `pmdkuser`:
 ```sh
-sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser newRegions=true"
+ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
 # you will have to perform a reboot manually
-reboot
+sudo reboot
 # and re-run the playbook without newRegions=true to finalize the setup
-sudo ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
+ansible-playbook configure-pmem.yml
 ```
 
 # Example - GitHub self-hosted runner setup
@@ -163,19 +162,24 @@ reboot
 # ...
 cd pmdk/utils/ansible
 ansible-playbook rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+```
+Log in as `pmdkuser` and execute:
+```sh
+# as pmdkuser
+cd pmdk/utils/ansible
 ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
-reboot
+sudo reboot
 # ...
 cd pmdk/utils/ansible
 # note - no newRegions=true when running the playbook after the reboot
-ansible-playbook configure-pmem.yml --extra-vars "testUser=pmdkuser"
+ansible-playbook configure-pmem.yml
 
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME=`hostname`
-export LABELS= rhel
+export LABELS=rhel
 export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 ansible-playbook configure-self-hosted-runner.yml -extra-vars \
-"testUser=pmdkuser runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
+"runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 cd
 rm -rf pmdk
 ```
@@ -192,25 +196,30 @@ Update playbooks to be used directly on the target as described [above](#provisi
 and execute:
 ```sh
 # as root:
-ansible-playbook ./opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
 # reboot shall be performed only if the playbook requests to do it.
 reboot
 # ...
 cd pmdk/utils/ansible
-ansible-playbook ./opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
-ansible-playbook ./configure-pmem.yml --extra-vars "newRegions=true"
-reboot
+ansible-playbook opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+```
+Log in as `pmdkuser` and execute:
+```sh
+# as pmdkuser:
+cd pmdk/utils/ansible
+ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
+sudo reboot
 # ...
 cd pmdk/utils/ansible
 # note - no newRegions=true when running the playbook after the reboot
-ansible-playbook ./configure-pmem.yml --extra-vars "testUser=pmdkuser"
+ansible-playbook configure-pmem.yml
 
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME=`hostname`
-export LABELS= opensuse
+export LABELS=opensuse
 export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 ansible-playbook configure-self-hosted-runner.yml -extra-vars \
-"testUser=pmdkuser runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
+"runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 cd
 rm -rf pmdk
 ```

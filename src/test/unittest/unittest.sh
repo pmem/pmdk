@@ -1,6 +1,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -126,7 +126,7 @@ fi
 [ "$CHECK_POOL" ] || CHECK_POOL=0
 [ "$VERBOSE" ] || VERBOSE=0
 [ "$TEST_LABEL" ] || TEST_LABEL=
-[ -n "${SUFFIX+x}" ] || SUFFIX="😘⠏⠍⠙⠅ɗPMDKӜ⥺🙋"
+[ -n "${SUFFIX+x}" ] || SUFFIX=""
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
@@ -1268,8 +1268,10 @@ function require_native_fallocate() {
 #
 function require_usc_permission() {
 	set +e
-	$USC_PERMISSION $1 2> $DIR/usc_permission.txt
+	touch $1/test.tmp
+	$USC_PERMISSION $1/test.tmp 2> $DIR/usc_permission.txt
 	status=$?
+	rm -rf $1/test.tmp
 	set -e
 
 	# check if there were any messages printed to stderr, skip test if there were
@@ -1473,6 +1475,17 @@ function require_valgrind() {
 			exit 0
 		fi
 	fi
+
+	# Check if Valgrind is enabled in the test build
+	disable_exit_on_error
+	../valgrind_check/valgrind_check
+	ret=$?
+	restore_exit_on_error
+	if [ $ret -ne 0 ]; then
+		msg=$(interactive_yellow STDOUT "SKIP:")
+		echo -e "$UNITTEST_NAME: $msg Valgrind is required but the Valgrind support has been disabled at compile time"
+		exit 0
+	fi
 }
 
 #
@@ -1648,6 +1661,10 @@ function require_sds() {
 		grep -q "compiled with support for shutdown state" && true
 	if [ $? -ne 0 ]; then
 		msg "$UNITTEST_NAME: SKIP not compiled with support for shutdown state"
+		exit 0
+	fi
+	if [[ $PMEMOBJ_CONF = *'sds.at_create=0'* ]]; then
+		msg "$UNITTEST_NAME: SKIP the shutdown state has been disabled by the PMEMOBJ_CONF environment variable"
 		exit 0
 	fi
 	return 0
@@ -1859,7 +1876,12 @@ function setup() {
 		lock_devdax
 	fi
 
-	export PMEMOBJ_CONF="fallocate.at_create=0;"
+	export PMEMOBJ_CONF="${PMEMOBJ_CONF};fallocate.at_create=0"
+
+	# disable SDS for non-pmem tests
+	if [ "$REAL_FS" = "non-pmem" ]; then
+		export PMEMOBJ_CONF="${PMEMOBJ_CONF};sds.at_create=0"
+	fi
 }
 
 #

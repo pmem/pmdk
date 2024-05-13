@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * extent_linux.c - implementation of the linux fs extent query API
@@ -37,7 +37,7 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 	os_stat_t st;
 
 	if (os_fstat(fd, &st) < 0) {
-		ERR("!fstat %d", fd);
+		ERR_W_ERRNO("fstat %d", fd);
 		return PMEM2_E_ERRNO;
 	}
 
@@ -47,7 +47,7 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 
 	/* directories do not have any extents */
 	if (pmem2_type == PMEM2_FTYPE_DIR) {
-		ERR(
+		ERR_WO_ERRNO(
 			"checking extents does not make sense in case of directories");
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
@@ -80,7 +80,7 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 	fmap->fm_mapped_extents = 0;
 
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0) {
-		ERR("!fiemap ioctl() for fd=%d failed", fd);
+		ERR_W_ERRNO("fiemap ioctl() for fd=%d failed", fd);
 		ret = PMEM2_E_ERRNO;
 		goto error_free;
 	}
@@ -99,7 +99,7 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 	fmap->fm_mapped_extents = 0;
 
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0) {
-		ERR("!fiemap ioctl() for fd=%d failed", fd);
+		ERR_W_ERRNO("fiemap ioctl() for fd=%d failed", fd);
 		ret = PMEM2_E_ERRNO;
 		goto error_free;
 	}

@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 
 """unit tests for pmemobj_tx_add_range and pmemobj_tx_xadd_range"""
 

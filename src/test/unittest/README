@@ -6,7 +6,8 @@ This directory contains the unit test framework used by
 the Persistent Memory Development Kit unit tests.
 
 This framework provides a support for mock objects. To mock an interface use
-FUNC_MOCK_RET_ALWAYS or FUNC_MOCK macros in the test code.
+FUNC_MOCK_RET_ALWAYS, FUNC_MOCK_RET_ALWAYS_VOID, FUNC_MOCK or
+FUNC_MOCK_NONSTATIC macros in the test code.
 
 The FUNC_MOCK_RET_ALWAYS is quite straightforward, it simply takes a function
 name and a value that the given function has to return. For example:

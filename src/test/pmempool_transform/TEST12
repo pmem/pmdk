@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 #
 #
 # pmempool_transform/TEST12 -- test for transform with SINGLEHDR option
@@ -31,6 +31,7 @@ dax_device_zero
 LOG=out${UNITTEST_NUM}.log
 ERR_LOG=err${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
+ERR_TEMP=err${UNITTEST_NUM}_temp.log
 rm -f $LOG && touch $LOG
 rm -f $LOG_TEMP && touch $LOG_TEMP
 
@@ -104,6 +105,7 @@ dump_pool_info $POOLSET_2 >> $LOG_TEMP
 dump_pool_info ${DEVICE_DAX_PATH[0]} >> $LOG_TEMP
 
 mv $LOG_TEMP $LOG
+
 check
 
 pass

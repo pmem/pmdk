@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * sync.c -- a module for poolset synchronizing
@@ -41,7 +41,7 @@ validate_args(struct pool_set *set)
 	 * (now replication works only for pmemobj pools)
 	 */
 	if (replica_check_part_sizes(set, PMEMOBJ_MIN_POOL)) {
-		LOG(2, "part sizes check failed");
+		CORE_LOG_ERROR("part sizes check failed");
 		goto err;
 	}
 
@@ -49,7 +49,7 @@ validate_args(struct pool_set *set)
 	 * check if all directories for part files exist
 	 */
 	if (replica_check_part_dirs(set)) {
-		LOG(2, "part directories check failed");
+		CORE_LOG_ERROR("part directories check failed");
 		goto err;
 	}
 
@@ -98,7 +98,8 @@ sync_recreate_header(struct pool_set *set, unsigned r, unsigned p,
 	util_pool_hdr2attr(&attr, src_hdr);
 
 	if (util_header_create(set, r, p, &attr, 1) != 0) {
-		LOG(1, "part headers create failed for replica %u part %u",
+		CORE_LOG_ERROR(
+			"part headers create failed for replica %u part %u",
 			r, p);
 		errno = EINVAL;
 		return -1;
@@ -532,7 +533,9 @@ sync_badblocks_assign_healthy_replica(struct part_health_status *phs,
 
 	struct bb_vec bbv_new = VEC_INITIALIZER;
 
+#ifdef DEBUG /* variables required for ASSERTs below */
 	size_t size_all = VEC_SIZE(pbbv_all);
+#endif
 	pbb_all = VEC_GET(pbbv_all, *i_all);
 
 	for (unsigned i = 0; i < phs->bbs.bb_cnt; i++) {
@@ -711,7 +714,7 @@ sync_check_bad_blocks_overlap(struct pool_set *set,
 		if (pbb_all->nhealthy == NO_HEALTHY_REPLICA) {
 			ret = 1; /* this bad block cannot be fixed */
 
-			LOG(1,
+			CORE_LOG_ERROR(
 				"uncorrectable bad block found: offset 0x%zx, length 0x%zx",
 				pbb_all->offset, pbb_all->length);
 
@@ -816,10 +819,10 @@ sync_badblocks_data(struct pool_set *set, struct poolset_health_status *set_hs)
 		sync_mark_replica_no_badblocks(r, set_hs);
 	}
 
-	LOG(1, "all bad blocks have been fixed");
+	CORE_LOG_HARK("all bad blocks have been fixed");
 
 	if (replica_remove_all_recovery_files(set_hs)) {
-		LOG(1, "removing bad block recovery files failed");
+		CORE_LOG_ERROR("removing bad block recovery files failed");
 		return -1;
 	}
 
@@ -848,14 +851,14 @@ recreate_broken_parts(struct pool_set *set,
 
 			/* remove parts from broken replica */
 			if (replica_remove_part(set, r, p, fix_bad_blocks)) {
-				LOG(2, "cannot remove part");
+				CORE_LOG_ERROR("cannot remove part");
 				return -1;
 			}
 
 			/* create removed part and open it */
 			if (util_part_open(&broken_r->part[p], 0,
 						1 /* create */)) {
-				LOG(2, "cannot open/create parts");
+				CORE_LOG_ERROR("cannot open/create parts");
 				return -1;
 			}
 
@@ -921,7 +924,8 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 		if (replica_is_poolset_transformed(flags)) {
 			/* generate new uuid for this part */
 			if (util_uuid_generate(rep->part[p].uuid) < 0) {
-				ERR("cannot generate pool set part UUID");
+				ERR_WO_ERRNO(
+					"cannot generate pool set part UUID");
 				errno = EINVAL;
 				return -1;
 			}
@@ -946,7 +950,7 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			hdrp = HDR(REPP(set, repn), 0);
 			if (is_uuid_already_used(hdrp->next_repl_uuid, set,
 					repn)) {
-				ERR(
+				ERR_WO_ERRNO(
 					"repeated uuid - some replicas were created with a different poolset file");
 				errno = EINVAL;
 				return -1;
@@ -959,7 +963,7 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			hdrp = HDR(REPN(set, repn), 0);
 			if (is_uuid_already_used(hdrp->prev_repl_uuid, set,
 					repn)) {
-				ERR(
+				ERR_WO_ERRNO(
 					"repeated uuid - some replicas were created with a different poolset file");
 				errno = EINVAL;
 				return -1;
@@ -969,7 +973,8 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 		} else {
 			/* generate new uuid for this part */
 			if (util_uuid_generate(rep->part[p].uuid) < 0) {
-				ERR("cannot generate pool set part UUID");
+				ERR_WO_ERRNO(
+					"cannot generate pool set part UUID");
 				errno = EINVAL;
 				return -1;
 			}
@@ -1110,7 +1115,8 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 	mode_t src_mode;
 	os_stat_t sb;
 	if (os_stat(PART(REP(set, src_repn), 0)->path, &sb) != 0) {
-		ERR("cannot check file permissions of %s (replica %u, part %u)",
+		ERR_WO_ERRNO(
+			"cannot check file permissions of %s (replica %u, part %u)",
 			PART(REP(set, src_repn), 0)->path, src_repn, 0);
 		src_mode = def_mode;
 	} else {
@@ -1133,7 +1139,7 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 
 			/* set rights to those of existing part files */
 			if (os_chmod(PART(REP(set, r), p)->path, src_mode)) {
-				ERR(
+				ERR_WO_ERRNO(
 					"cannot set permission rights for created parts: replica %u, part %u",
 					r, p);
 				errno = EPERM;
@@ -1314,13 +1320,13 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 		if (replica_check_poolset_health(set, &set_hs,
 						1 /* called from sync */,
 						flags)) {
-			LOG(1, "poolset health check failed");
+			CORE_LOG_ERROR("poolset health check failed");
 			return -1;
 		}
 
 		/* check if poolset is broken; if not, nothing to do */
 		if (replica_is_poolset_healthy(set_hs)) {
-			LOG(1, "poolset is healthy");
+			CORE_LOG_HARK("poolset is healthy");
 			goto out;
 		}
 	} else {
@@ -1333,7 +1339,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	if (healthy_header == UNDEF_REPLICA) {
 		healthy_header = replica_find_replica_healthy_header(set_hs);
 		if (healthy_header == UNDEF_REPLICA) {
-			ERR("no healthy replica found");
+			ERR_WO_ERRNO("no healthy replica found");
 			errno = EINVAL;
 			ret = -1;
 			goto out;
@@ -1342,27 +1348,27 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 	/* in dry-run mode we can stop here */
 	if (is_dry_run(flags)) {
-		LOG(1, "Sync in dry-run mode finished successfully");
+		CORE_LOG_HARK("Sync in dry-run mode finished successfully");
 		goto out;
 	}
 
 	/* recreate broken parts */
 	if (recreate_broken_parts(set, set_hs, fix_bad_blocks(flags))) {
-		ERR("recreating broken parts failed");
+		ERR_WO_ERRNO("recreating broken parts failed");
 		ret = -1;
 		goto out;
 	}
 
 	/* open all part files */
 	if (replica_open_poolset_part_files(set)) {
-		ERR("opening poolset part files failed");
+		ERR_WO_ERRNO("opening poolset part files failed");
 		ret = -1;
 		goto out;
 	}
 
 	/* map all replicas */
 	if (util_poolset_open(set)) {
-		ERR("opening poolset failed");
+		ERR_WO_ERRNO("opening poolset failed");
 		ret = -1;
 		goto out;
 	}
@@ -1373,7 +1379,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 	/* recalculate offset and length of bad blocks */
 	if (sync_recalc_badblocks(set, set_hs)) {
-		LOG(1, "syncing bad blocks data failed");
+		CORE_LOG_ERROR("syncing bad blocks data failed");
 		ret = -1;
 		goto out;
 	}
@@ -1384,13 +1390,13 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	 */
 	int status = sync_check_bad_blocks_overlap(set, set_hs);
 	if (status == -1) {
-		LOG(1, "checking bad blocks failed");
+		CORE_LOG_ERROR("checking bad blocks failed");
 		ret = -1;
 		goto out;
 	}
 
 	if (status == 1) {
-		ERR(
+		ERR_WO_ERRNO(
 			"a part of the pool has uncorrectable errors in all replicas");
 		errno = EINVAL;
 		ret = -1;
@@ -1401,7 +1407,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 	/* sync data in bad blocks */
 	if (sync_badblocks_data(set, set_hs)) {
-		LOG(1, "syncing bad blocks data failed");
+		CORE_LOG_ERROR("syncing bad blocks data failed");
 		ret = -1;
 		goto out;
 	}
@@ -1409,7 +1415,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	/* find one good replica; it will be the source of data */
 	healthy_replica = replica_find_healthy_replica(set_hs);
 	if (healthy_replica == UNDEF_REPLICA) {
-		ERR("no healthy replica found");
+		ERR_WO_ERRNO("no healthy replica found");
 		errno = EINVAL;
 		ret = -1;
 		goto out;
@@ -1417,14 +1423,14 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 	/* update uuid fields in the set structure with part headers */
 	if (fill_struct_uuids(set, healthy_replica, set_hs, flags)) {
-		ERR("gathering uuids failed");
+		ERR_WO_ERRNO("gathering uuids failed");
 		ret = -1;
 		goto out;
 	}
 
 	/* create headers for broken parts */
 	if (create_headers_for_broken_parts(set, healthy_replica, set_hs)) {
-		ERR("creating headers for broken parts failed");
+		ERR_WO_ERRNO("creating headers for broken parts failed");
 		ret = -1;
 		goto out;
 	}
@@ -1432,21 +1438,21 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	/* check and copy data if possible */
 	if (copy_data_to_broken_parts(set, healthy_replica,
 			flags, set_hs)) {
-		ERR("copying data to broken parts failed");
+		ERR_WO_ERRNO("copying data to broken parts failed");
 		ret = -1;
 		goto out;
 	}
 
 	/* update uuids of replicas and parts */
 	if (update_uuids(set, set_hs)) {
-		ERR("updating uuids failed");
+		ERR_WO_ERRNO("updating uuids failed");
 		ret = -1;
 		goto out;
 	}
 
 	/* grant permissions to all created parts */
 	if (grant_created_parts_perm(set, healthy_replica, set_hs)) {
-		ERR("granting permissions to created parts failed");
+		ERR_WO_ERRNO("granting permissions to created parts failed");
 		ret = -1;
 	}
 

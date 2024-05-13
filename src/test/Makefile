@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 
 #
@@ -23,7 +23,6 @@ OBJ_TESTS = \
 	obj_many_size_allocs\
 	obj_realloc\
 	obj_sync\
-	\
 	obj_action\
 	obj_alloc\
 	obj_badblock\
@@ -63,6 +62,9 @@ OBJ_TESTS = \
 	obj_list_valgrind\
 	obj_list_macro\
 	obj_locks\
+	obj_log_get_treshold\
+	obj_log_set_function\
+	obj_log_set_treshold\
 	obj_mem\
 	obj_memblock\
 	obj_memcheck\
@@ -108,6 +110,13 @@ OBJ_TESTS = \
 
 OTHER_TESTS = \
 	arch_flags\
+	core_log\
+	core_log_default_function\
+	core_log_function_mt\
+	core_log_internal\
+	core_log_max\
+	core_log_no_func\
+	core_log_threshold_mt\
 	checksum\
 	compat_incompat_features\
 	ctl_prefault\
@@ -120,8 +129,6 @@ OTHER_TESTS = \
 	scope\
 	set_funcs\
 	traces\
-	traces_custom_function\
-	traces_pmem\
 	unicode_match_script\
 	util_badblock\
 	util_ctl\
@@ -142,7 +149,9 @@ OTHER_TESTS = \
 	util_sds\
 	util_uuid_generate\
 	util_vec\
-	util_vecq
+	util_vecq\
+	log_errno\
+	valgrind_check
 
 ifeq ($(ARCH), x86_64)
 OTHER_TESTS += \
@@ -153,6 +162,9 @@ PMEM_TESTS = \
 	pmem_include\
 	pmem_is_pmem\
 	pmem_is_pmem_posix\
+	pmem_log_get_treshold\
+	pmem_log_set_function\
+	pmem_log_set_treshold\
 	pmem_map_file\
 	pmem_has_auto_flush\
 	pmem_deep_persist\

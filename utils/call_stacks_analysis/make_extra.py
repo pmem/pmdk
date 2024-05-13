@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 import json
 from typing import Dict, List
@@ -21,15 +21,11 @@ def dict_extend(dict_, key, values):
 
 def inlines(calls: Calls) -> Calls:
         # common
-        calls['core_init'] = ['util_init', 'out_init']
-        calls['core_fini'] = ['out_fini']
-        calls['ERR'] = ['out_err']
-        calls['Print'] = ['out_print_func']
+        calls['core_init'] = ['util_init', 'core_log_init', 'out_init']
+        calls['core_fini'] = ['out_fini', 'core_log_fini', 'last_error_msg_fini']
         calls['common_init'] = ['core_init', 'util_mmap_init']
         calls['common_fini'] = ['util_mmap_fini', 'core_fini']
-        calls['Last_errormsg_key_alloc'] = ['_Last_errormsg_key_alloc']
-        calls['_Last_errormsg_key_alloc'] = ['os_once', 'os_tls_key_create']
-        calls['out_common'] = ['out_snprintf']
+        calls['core_log_init'] = ['core_log_default_init', 'core_log_set_function']
 
         # libpmem
         calls['flush_empty'] = ['flush_empty_nolog']
@@ -43,6 +39,10 @@ def inlines(calls: Calls) -> Calls:
 
         return calls
 
+def core_function_pointers(calls: Calls) -> Calls:
+        calls['core_log_va'] = ['core_log_default_function']
+        return calls
+
 def pmem_function_pointers(calls: Calls) -> Calls:
         calls['pmem_drain'] = ['fence_empty', 'memory_barrier']
 
@@ -51,7 +51,7 @@ def pmem_function_pointers(calls: Calls) -> Calls:
         calls['pmem_flush'] = flush_all
 
         # '.static' suffix added to differentiate between libpmem API function and a static helper.
-        memmove_nodrain_all = ['memmove_nodrain_libc', 'memmove_nodrain_generic', 'pmem_memmove_nodrain.static', 'pmem_memmove_nodrain_eadr.static']
+        memmove_nodrain_all = ['memmove_nodrain_libc', 'memmove_nodrain_generic', 'pmem2_memmove_nodrain', 'pmem2_memmove_nodrain_eadr']
         calls['pmem_memmove'] = memmove_nodrain_all
         calls['pmem_memcpy'] = memmove_nodrain_all
         calls['pmem_memmove_nodrain'] = memmove_nodrain_all
@@ -59,7 +59,7 @@ def pmem_function_pointers(calls: Calls) -> Calls:
         calls['pmem_memmove_persist'] = memmove_nodrain_all
         calls['pmem_memcpy_persist'] = memmove_nodrain_all
 
-        memset_nodrain_all = ['memset_nodrain_libc', 'memset_nodrain_generic', 'pmem_memset_nodrain.static', 'pmem_memset_nodrain_eadr.static']
+        memset_nodrain_all = ['memset_nodrain_libc', 'memset_nodrain_generic', 'pmem2_memset_nodrain', 'pmem2_memset_nodrain_eadr']
         calls['pmem_memset'] = memset_nodrain_all
         calls['pmem_memset_nodrain'] = memset_nodrain_all
         calls['pmem_memset_persist'] = memset_nodrain_all
@@ -103,12 +103,12 @@ def pmem_function_pointers(calls: Calls) -> Calls:
         memmove_funcs['nt']['empty'].extend(memmove_funcs_extras['nt']['empty'])
         memmove_funcs['nt']['flush'].extend(memmove_funcs_extras['nt']['flush'])
 
-        calls['pmem_memmove_nodrain.static'] = \
+        calls['pmem2_memmove_nodrain'] = \
                             memmove_funcs['t']['noflush'] + \
                             memmove_funcs['nt']['flush'] + \
                             memmove_funcs['t']['flush']
 
-        calls['pmem_memmove_nodrain_eadr.static'] = \
+        calls['pmem2_memmove_nodrain_eadr'] = \
                             memmove_funcs['t']['noflush'] + \
                             memmove_funcs['nt']['empty'] + \
                             memmove_funcs['t']['empty']
@@ -152,12 +152,12 @@ def pmem_function_pointers(calls: Calls) -> Calls:
         memsetfuncs['nt']['empty'].extend(memsetfuncs_extras['nt']['empty'])
         memsetfuncs['nt']['flush'].extend(memsetfuncs_extras['nt']['flush'])
 
-        calls['pmem_memset_nodrain.static'] = \
+        calls['pmem2_memset_nodrain'] = \
                             memsetfuncs['t']['noflush'] + \
                             memsetfuncs['nt']['flush'] + \
                             memsetfuncs['t']['flush']
 
-        calls['pmem_memset_nodrain_eadr.static'] = \
+        calls['pmem2_memset_nodrain_eadr'] = \
                             memsetfuncs['t']['noflush'] + \
                             memsetfuncs['nt']['empty'] + \
                             memsetfuncs['t']['empty']
@@ -424,13 +424,17 @@ def get_callees(calls):
                 callees.extend(v)
         return list(set(callees))
 
+# XXX
+# The way how inlines() function is used shall be changed according to:
+# https://github.com/pmem/pmdk/issues/6070
 def main():
-        extra_calls = inlines({})
+        extra_calls = core_function_pointers({})
         extra_calls = pmem_function_pointers(extra_calls)
         extra_calls = pmemobj_function_pointers(extra_calls)
         with open("extra_calls.json", "w") as outfile:
                 json.dump(extra_calls, outfile, indent = 4)
 
+        extra_calls = inlines(extra_calls)
         # All functions accessed via function pointers have to be provided
         # on top of regular API calls for cflow to process their call stacks.
         extra_entry_points = get_callees(extra_calls)

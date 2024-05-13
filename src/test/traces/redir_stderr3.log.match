@@ -1,12 +1,12 @@
-$(*)
-$(*)
-$(*)
-$(OPT)$(*) compiled with support for Valgrind pmemcheck
-$(OPT)$(*) compiled with support for Valgrind helgrind
-$(OPT)$(*) compiled with support for Valgrind memcheck
-$(OPT)$(*) compiled with support for Valgrind drd
-$(OPT)$(*) compiled with support for shutdown state
-$(OPT)$(*) compiled with libndctl 63+
-$(*)Log level NONE
-$(*)Log level ERROR
-$(*)Log level WARNING
+$(nW) <1> $(nW) $(nW) src version: $(nW)
+$(OPT)$(nW) <1> $(nW) $(nW) compiled with support for shutdown state
+$(OPT)$(nW) <1> $(nW) $(nW) compiled with libndctl 63+
+$(nW) <1> $(nW) $(nW) pid $(N): program: $(nW)
+$(nW) <1> $(nW) $(nW) ut version 1.0
+$(OPT)$(nW) <1> $(nW) $(nW) compiled with support for Valgrind pmemcheck
+$(OPT)$(nW) <1> $(nW) $(nW) compiled with support for Valgrind helgrind
+$(OPT)$(nW) <1> $(nW) $(nW) compiled with support for Valgrind memcheck
+$(OPT)$(nW) <1> $(nW) $(nW) compiled with support for Valgrind drd
+$(nW) <1> $(nW) $(nW) Log level HARK
+$(nW) <1> $(nW) $(nW) Log level ERROR
+$(nW) <2> $(nW) $(nW) Log level WARNING

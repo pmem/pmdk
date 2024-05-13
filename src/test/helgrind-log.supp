@@ -7,6 +7,7 @@
     ...
     fun:out_print_func
     fun:out_common
+    fun:out_log_va
     fun:out_log
 }
 {
@@ -17,18 +18,8 @@
     fun:fputs
     fun:out_print_func
     fun:out_common
+    fun:out_log_va
     fun:out_log
-}
-{
-    <debug_err_suppress>
-    Helgrind:Race
-    fun:*mem*cpy
-    ...
-    fun:_IO_file_xsputn@@GLIBC*
-    ...
-    fun:out_print_func
-    fun:out_error
-    fun:out_err
 }
 
 {

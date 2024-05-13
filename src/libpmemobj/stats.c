@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2021, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 /*
  * stats.c -- implementation of statistics
@@ -7,6 +7,7 @@
 
 #include "obj.h"
 #include "stats.h"
+#include "core_assert.h"
 
 STATS_CTL_HANDLER(persistent, curr_allocated, heap_curr_allocated);
 
@@ -49,6 +50,9 @@ stats_enabled_parser(const void *arg, void *dest, size_t dest_size)
 {
 	const char *vstr = arg;
 	enum pobj_stats_enabled *enabled = dest;
+#ifndef DEBUG
+	SUPPRESS_UNUSED(dest_size);
+#endif
 	ASSERTeq(dest_size, sizeof(enum pobj_stats_enabled));
 
 	int bool_out;
@@ -67,7 +71,7 @@ stats_enabled_parser(const void *arg, void *dest, size_t dest_size)
 	} else if (strcmp(vstr, "transient") == 0) {
 		*enabled = POBJ_STATS_ENABLED_TRANSIENT;
 	} else {
-		ERR("invalid enable type");
+		ERR_WO_ERRNO("invalid enable type");
 		errno = EINVAL;
 		return -1;
 	}
@@ -117,7 +121,7 @@ stats_new(PMEMobjpool *pop)
 {
 	struct stats *s = Malloc(sizeof(*s));
 	if (s == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return NULL;
 	}
 

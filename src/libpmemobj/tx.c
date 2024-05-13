@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * tx.c -- transactions implementation
@@ -7,11 +7,12 @@
 
 #include <inttypes.h>
 #include <wchar.h>
+#include <stdarg.h>
 
 #include "queue.h"
 #include "ravl.h"
 #include "obj.h"
-#include "out.h"
+#include "core_assert.h"
 #include "pmalloc.h"
 #include "tx.h"
 #include "valgrind_internal.h"
@@ -158,13 +159,14 @@ obj_tx_fail_null(int errnum, uint64_t flags)
 /* ASSERT_IN_TX -- checks whether there's open transaction */
 #define ASSERT_IN_TX(tx) do {\
 	if ((tx)->stage == TX_STAGE_NONE)\
-		FATAL("%s called outside of transaction", __func__);\
+		CORE_LOG_FATAL("%s called outside of transaction", __func__);\
 } while (0)
 
 /* ASSERT_TX_STAGE_WORK -- checks whether current transaction stage is WORK */
 #define ASSERT_TX_STAGE_WORK(tx) do {\
 	if ((tx)->stage != TX_STAGE_WORK)\
-		FATAL("%s called in invalid stage %d", __func__, (tx)->stage);\
+		CORE_LOG_FATAL("%s called in invalid stage %d",\
+			__func__, (tx)->stage);\
 } while (0)
 
 /*
@@ -268,7 +270,7 @@ tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
 			if (txrn == NULL)
 				/* we can't do it any other way */
-				FATAL("!Malloc");
+				CORE_LOG_FATAL_W_ERRNO("Malloc");
 
 			txrn->begin = txr->begin;
 			txrn->end = begin;
@@ -280,7 +282,7 @@ tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
 			if (txrn == NULL)
 				/* we can't do it any other way */
-				FATAL("!Malloc");
+				CORE_LOG_FATAL_W_ERRNO("Malloc");
 
 			txrn->begin = end;
 			txrn->end = txr->end;
@@ -317,7 +319,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 	txr = Malloc(sizeof(*txr));
 	if (txr == NULL) {
 		/* we can't do it any other way */
-		FATAL("!Malloc");
+		CORE_LOG_FATAL_W_ERRNO("Malloc");
 	}
 
 	uint64_t range_offset = ulog_entry_offset(&range->base);
@@ -495,7 +497,7 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			retval = pmemobj_mutex_lock(tx->pop,
 				txl->lock.mutex);
 			if (retval) {
-				ERR("!pmemobj_mutex_lock");
+				ERR_W_ERRNO("pmemobj_mutex_lock");
 				goto err;
 			}
 			break;
@@ -504,12 +506,12 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			retval = pmemobj_rwlock_wrlock(tx->pop,
 				txl->lock.rwlock);
 			if (retval) {
-				ERR("!pmemobj_rwlock_wrlock");
+				ERR_W_ERRNO("pmemobj_rwlock_wrlock");
 				goto err;
 			}
 			break;
 		default:
-			ERR("Unrecognized lock type");
+			ERR_WO_ERRNO("Unrecognized lock type");
 			ASSERT(0);
 			break;
 	}
@@ -546,7 +548,7 @@ release_and_free_tx_locks(struct tx *tx)
 					tx_lock->lock.rwlock);
 				break;
 			default:
-				ERR("Unrecognized lock type");
+				ERR_WO_ERRNO("Unrecognized lock type");
 				ASSERT(0);
 				break;
 		}
@@ -570,7 +572,7 @@ tx_lane_ranges_insert_def(PMEMobjpool *pop, struct tx *tx,
 
 	int ret = ravl_emplace_copy(tx->ranges, rdef);
 	if (ret && errno == EEXIST)
-		FATAL("invalid state of ranges tree");
+		CORE_LOG_FATAL("invalid state of ranges tree");
 	return ret;
 }
 
@@ -584,7 +586,7 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	LOG(3, NULL);
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
-		ERR("requested size too large");
+		ERR_WO_ERRNO("requested size too large");
 		return obj_tx_fail_null(ENOMEM, args.flags);
 	}
 
@@ -613,7 +615,7 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 
 err_oom:
 	tx_action_remove(tx);
-	ERR("out of memory");
+	ERR_WO_ERRNO("out of memory");
 	return obj_tx_fail_null(ENOMEM, args.flags);
 }
 
@@ -629,7 +631,7 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 	LOG(3, NULL);
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
-		ERR("requested size too large");
+		ERR_WO_ERRNO("requested size too large");
 		return obj_tx_fail_null(ENOMEM, flags);
 	}
 
@@ -643,7 +645,7 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 	/* if size is 0 just free */
 	if (size == 0) {
 		if (pmemobj_tx_free(oid)) {
-			ERR("pmemobj_tx_free failed");
+			ERR_WO_ERRNO("pmemobj_tx_free failed");
 			return oid;
 		} else {
 			return OID_NULL;
@@ -661,7 +663,7 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 
 	if (!OBJ_OID_IS_NULL(new_obj)) {
 		if (pmemobj_tx_free(oid)) {
-			ERR("pmemobj_tx_free failed");
+			ERR_WO_ERRNO("pmemobj_tx_free failed");
 			VEC_POP_BACK(&tx->actions);
 			return OID_NULL;
 		}
@@ -678,7 +680,7 @@ tx_construct_user_buffer(struct tx *tx, void *addr, size_t size,
 		enum pobj_log_type type, int outer_tx, uint64_t flags)
 {
 	if (tx->pop != pmemobj_pool_by_ptr(addr)) {
-		ERR("Buffer from a different pool");
+		ERR_WO_ERRNO("Buffer from a different pool");
 		goto err;
 	}
 
@@ -735,7 +737,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	if (tx->stage == TX_STAGE_WORK) {
 		ASSERTne(tx->lane, NULL);
 		if (tx->pop != pop) {
-			ERR("nested transaction for different pool");
+			ERR_WO_ERRNO("nested transaction for different pool");
 			return obj_tx_fail_err(EINVAL, 0);
 		}
 
@@ -765,13 +767,14 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 		tx->user_data = NULL;
 	} else {
-		FATAL("Invalid stage %d to begin new transaction", tx->stage);
+		CORE_LOG_FATAL("Invalid stage %d to begin new transaction",
+			tx->stage);
 	}
 
 	struct tx_data *txd = Malloc(sizeof(*txd));
 	if (txd == NULL) {
 		err = errno;
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		goto err_abort;
 	}
 
@@ -802,8 +805,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 			if (tx->stage_callback &&
 					(tx->stage_callback != cb ||
 					tx->stage_callback_arg != arg)) {
-				FATAL("transaction callback is already set, "
-					"old %p new %p old_arg %p new_arg %p",
+				CORE_LOG_FATAL(
+					"transaction callback is already set, old %p new %p old_arg %p new_arg %p",
 					tx->stage_callback, cb,
 					tx->stage_callback_arg, arg);
 			}
@@ -860,7 +863,7 @@ pmemobj_tx_xlock(enum pobj_tx_param type, void *lockp, uint64_t flags)
 	flags |= tx_abort_on_failure_flag(tx);
 
 	if (flags & ~POBJ_XLOCK_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_XLOCK_VALID_FLAGS);
 		return obj_tx_fail_err(EINVAL, flags);
 	}
@@ -940,7 +943,7 @@ obj_tx_abort(int errnum, int user)
 	tx->last_errnum = errnum;
 	errno = errnum;
 	if (user)
-		ERR("!explicit transaction abort");
+		ERR_W_ERRNO("explicit transaction abort");
 
 	/* ONABORT */
 	obj_tx_callback(tx);
@@ -1044,10 +1047,12 @@ pmemobj_tx_end(void)
 	struct tx *tx = get_tx();
 
 	if (tx->stage == TX_STAGE_WORK)
-		FATAL("pmemobj_tx_end called without pmemobj_tx_commit");
+		CORE_LOG_FATAL(
+			"pmemobj_tx_end called without pmemobj_tx_commit");
 
 	if (tx->pop == NULL)
-		FATAL("pmemobj_tx_end called without pmemobj_tx_begin");
+		CORE_LOG_FATAL(
+			"pmemobj_tx_end called without pmemobj_tx_begin");
 
 	if (tx->stage_callback &&
 			(tx->stage == TX_STAGE_ONCOMMIT ||
@@ -1229,14 +1234,14 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 	LOG(15, NULL);
 
 	if (args->size > PMEMOBJ_MAX_ALLOC_SIZE) {
-		ERR("snapshot size too large");
+		ERR_WO_ERRNO("snapshot size too large");
 		return obj_tx_fail_err(EINVAL, args->flags);
 	}
 
 	if (args->offset < tx->pop->heap_offset ||
 		(args->offset + args->size) >
 		(tx->pop->heap_offset + tx->pop->heap_size)) {
-		ERR("object outside of heap");
+		ERR_WO_ERRNO("object outside of heap");
 		return obj_tx_fail_err(EINVAL, args->flags);
 	}
 
@@ -1376,7 +1381,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 	}
 
 	if (ret != 0) {
-		ERR("out of memory");
+		ERR_WO_ERRNO("out of memory");
 		return obj_tx_fail_err(ENOMEM, args->flags);
 	}
 
@@ -1403,7 +1408,7 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 	uint64_t flags = tx_abort_on_failure_flag(tx);
 
 	if (!OBJ_PTR_FROM_POOL(tx->pop, ptr)) {
-		ERR("object outside of pool");
+		ERR_WO_ERRNO("object outside of pool");
 		ret = obj_tx_fail_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
@@ -1441,7 +1446,7 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 	flags |= tx_abort_on_failure_flag(tx);
 
 	if (flags & ~POBJ_XADD_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64, flags
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64, flags
 			& ~POBJ_XADD_VALID_FLAGS);
 		ret = obj_tx_fail_err(EINVAL, flags);
 		PMEMOBJ_API_END();
@@ -1449,7 +1454,7 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 	}
 
 	if (!OBJ_PTR_FROM_POOL(tx->pop, ptr)) {
-		ERR("object outside of pool");
+		ERR_WO_ERRNO("object outside of pool");
 		ret = obj_tx_fail_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
@@ -1486,7 +1491,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	uint64_t flags = tx_abort_on_failure_flag(tx);
 
 	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
-		ERR("invalid pool uuid");
+		ERR_WO_ERRNO("invalid pool uuid");
 		ret = obj_tx_fail_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
@@ -1524,7 +1529,7 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 	flags |= tx_abort_on_failure_flag(tx);
 
 	if (flags & ~POBJ_XADD_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64, flags
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64, flags
 			& ~POBJ_XADD_VALID_FLAGS);
 		ret = obj_tx_fail_err(EINVAL, flags);
 		PMEMOBJ_API_END();
@@ -1532,7 +1537,7 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 	}
 
 	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
-		ERR("invalid pool uuid");
+		ERR_WO_ERRNO("invalid pool uuid");
 		ret = obj_tx_fail_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
@@ -1569,7 +1574,7 @@ pmemobj_tx_alloc(size_t size, uint64_t type_num)
 
 	PMEMoid oid;
 	if (size == 0) {
-		ERR("allocation with size 0");
+		ERR_WO_ERRNO("allocation with size 0");
 		oid = obj_tx_fail_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
@@ -1600,7 +1605,7 @@ pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 	PMEMOBJ_API_START();
 	PMEMoid oid;
 	if (size == 0) {
-		ERR("allocation with size 0");
+		ERR_WO_ERRNO("allocation with size 0");
 		oid = obj_tx_fail_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
@@ -1631,14 +1636,14 @@ pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags)
 
 	PMEMoid oid;
 	if (size == 0) {
-		ERR("allocation with size 0");
+		ERR_WO_ERRNO("allocation with size 0");
 		oid = obj_tx_fail_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
 	}
 
 	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64, flags
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64, flags
 			& ~(POBJ_TX_XALLOC_VALID_FLAGS));
 		oid = obj_tx_fail_null(EINVAL, flags);
 		PMEMOBJ_API_END();
@@ -1707,7 +1712,7 @@ pmemobj_tx_xstrdup(const char *s, uint64_t type_num, uint64_t flags)
 	flags |= tx_abort_on_failure_flag(tx);
 
 	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
 		return obj_tx_fail_null(EINVAL, flags);
 	}
@@ -1715,7 +1720,7 @@ pmemobj_tx_xstrdup(const char *s, uint64_t type_num, uint64_t flags)
 	PMEMOBJ_API_START();
 	PMEMoid oid;
 	if (NULL == s) {
-		ERR("cannot duplicate NULL string");
+		ERR_WO_ERRNO("cannot duplicate NULL string");
 		oid = obj_tx_fail_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
@@ -1765,7 +1770,7 @@ pmemobj_tx_xwcsdup(const wchar_t *s, uint64_t type_num, uint64_t flags)
 	flags |= tx_abort_on_failure_flag(tx);
 
 	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
 		return obj_tx_fail_null(EINVAL, flags);
 	}
@@ -1773,7 +1778,7 @@ pmemobj_tx_xwcsdup(const wchar_t *s, uint64_t type_num, uint64_t flags)
 	PMEMOBJ_API_START();
 	PMEMoid oid;
 	if (NULL == s) {
-		ERR("cannot duplicate NULL string");
+		ERR_WO_ERRNO("cannot duplicate NULL string");
 		oid = obj_tx_fail_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
@@ -1824,7 +1829,7 @@ pmemobj_tx_xfree(PMEMoid oid, uint64_t flags)
 	flags |= tx_abort_on_failure_flag(tx);
 
 	if (flags & ~POBJ_XFREE_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_XFREE_VALID_FLAGS);
 		return obj_tx_fail_err(EINVAL, flags);
 	}
@@ -1835,7 +1840,7 @@ pmemobj_tx_xfree(PMEMoid oid, uint64_t flags)
 	PMEMobjpool *pop = tx->pop;
 
 	if (pop->uuid_lo != oid.pool_uuid_lo) {
-		ERR("invalid pool uuid");
+		ERR_WO_ERRNO("invalid pool uuid");
 		return obj_tx_fail_err(EINVAL, flags);
 	}
 
@@ -1907,7 +1912,7 @@ pmemobj_tx_xpublish(struct pobj_action *actv, size_t actvcnt, uint64_t flags)
 	flags |= tx_abort_on_failure_flag(tx);
 
 	if (flags & ~POBJ_XPUBLISH_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_XPUBLISH_VALID_FLAGS);
 		return obj_tx_fail_err(EINVAL, flags);
 	}
@@ -1952,7 +1957,7 @@ pmemobj_tx_xlog_append_buffer(enum pobj_log_type type, void *addr, size_t size,
 	flags |= tx_abort_on_failure_flag(tx);
 
 	if (flags & ~POBJ_XLOG_APPEND_BUFFER_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_XLOG_APPEND_BUFFER_VALID_FLAGS);
 		return obj_tx_fail_err(EINVAL, flags);
 	}
@@ -2201,7 +2206,8 @@ CTL_WRITE_HANDLER(size)(void *ctx,
 
 	if (arg_in < 0 || arg_in > (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE) {
 		errno = EINVAL;
-		ERR("invalid cache size, must be between 0 and max alloc size");
+		ERR_WO_ERRNO(
+			"invalid cache size, must be between 0 and max alloc size");
 		return -1;
 	}
 
@@ -2224,9 +2230,9 @@ CTL_READ_HANDLER(threshold)(void *ctx,
 	/* suppress unused-parameter errors */
 	SUPPRESS_UNUSED(ctx, source, arg, indexes);
 
-	LOG(1, "tx.cache.threshold parameter is deprecated");
+	ERR_WO_ERRNO("tx.cache.threshold parameter is deprecated");
 
-	return 0;
+	return -1;
 }
 
 /*
@@ -2239,9 +2245,9 @@ CTL_WRITE_HANDLER(threshold)(void *ctx,
 	/* suppress unused-parameter errors */
 	SUPPRESS_UNUSED(ctx, source, arg, indexes);
 
-	LOG(1, "tx.cache.threshold parameter is deprecated");
+	ERR_WO_ERRNO("tx.cache.threshold parameter is deprecated");
 
-	return 0;
+	return -1;
 }
 
 static const struct ctl_argument CTL_ARG(threshold) = CTL_ARG_LONG_LONG;

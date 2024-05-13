@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * rm.c -- implementation of pmempool_rm() function
@@ -20,9 +20,9 @@
 
 #define ERR_F(f, ...) do {\
 	if (CHECK_FLAG((f), FORCE))\
-		LOG(2, "!(ignored) " __VA_ARGS__);\
+		CORE_LOG_WARNING_W_ERRNO("(ignored) " __VA_ARGS__);\
 	else\
-		ERR(__VA_ARGS__);\
+		ERR_WO_ERRNO(__VA_ARGS__);\
 } while (0)
 
 #define CHECK_FLAG(f, i) ((f) & PMEMPOOL_RM_##i)
@@ -51,9 +51,9 @@ rm_local(const char *path, unsigned flags, int is_part_file)
 		if (S_ISDIR(buff.st_mode)) {
 			errno = EISDIR;
 			if (is_part_file)
-				ERR("%s: removing file failed", path);
+				ERR_WO_ERRNO("%s: removing file failed", path);
 			else
-				ERR("removing file failed");
+				ERR_WO_ERRNO("removing file failed");
 			return -1;
 		}
 	}
@@ -98,7 +98,7 @@ pmempool_rmU(const char *path, unsigned flags)
 	int ret;
 
 	if (flags & ~PMEMPOOL_RM_ALL_FLAGS) {
-		ERR("invalid flags specified");
+		ERR_WO_ERRNO("invalid flags specified");
 		errno = EINVAL;
 		return -1;
 	}
@@ -110,7 +110,7 @@ pmempool_rmU(const char *path, unsigned flags)
 		if (!ret) {
 			if (S_ISDIR(buff.st_mode)) {
 				errno = EISDIR;
-				ERR("removing file failed");
+				ERR_WO_ERRNO("removing file failed");
 				return -1;
 			}
 		}
@@ -122,11 +122,11 @@ pmempool_rmU(const char *path, unsigned flags)
 	}
 
 	if (!is_poolset) {
-		LOG(2, "%s: not a poolset file", path);
+		CORE_LOG_ERROR("%s: not a poolset file", path);
 		return rm_local(path, flags, 0);
 	}
 
-	LOG(2, "%s: poolset file", path);
+	CORE_LOG_ERROR("%s: poolset file", path);
 
 	/* fill up pool_set structure */
 	struct pool_set *set = NULL;

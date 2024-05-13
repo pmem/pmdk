@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -40,7 +40,8 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 	}
 
 	if (!S_ISCHR(st->st_mode)) {
-		ERR("file type 0%o not supported", st->st_mode & S_IFMT);
+		ERR_WO_ERRNO("file type 0%o not supported",
+			st->st_mode & S_IFMT);
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
@@ -50,7 +51,7 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 			os_minor(st->st_rdev));
 	if (ret < 0) {
 		/* impossible */
-		ERR("!snprintf");
+		ERR_W_ERRNO("snprintf");
 		ASSERTinfo(0, "snprintf failed");
 		return PMEM2_E_ERRNO;
 	}
@@ -60,7 +61,7 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 	char npath[PATH_MAX];
 	char *rpath = realpath(spath, npath);
 	if (rpath == NULL) {
-		ERR("!realpath \"%s\"", spath);
+		ERR_W_ERRNO("realpath \"%s\"", spath);
 		return PMEM2_E_ERRNO;
 	}
 

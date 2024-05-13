@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2020, Intel Corporation
+# Copyright 2018-2024, Intel Corporation
 #
 
 #
@@ -7,7 +7,8 @@
 #
 
 TARGET = util_ravl
-OBJS = util_ravl.o alloc.o ravl.o out.o util_posix.o util.o
+OBJS = util_ravl.o
+LIBPMEMCORE = y
 INCS += -I$(TOP)/src/common
 
 include ../Makefile.inc

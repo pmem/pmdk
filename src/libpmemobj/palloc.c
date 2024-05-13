@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * palloc.c -- implementation of pmalloc POSIX-like API
@@ -193,7 +193,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 			(uint8_t)class_id);
 
 	if (c == NULL) {
-		ERR("no allocation class for size %lu bytes", size);
+		ERR_WO_ERRNO("no allocation class for size %lu bytes", size);
 		errno = EINVAL;
 		return -1;
 	}
@@ -208,7 +208,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 	 */
 	ssize_t size_idx = alloc_class_calc_size_idx(c, size);
 	if (size_idx < 0) {
-		ERR("allocation class not suitable for size %lu bytes",
+		ERR_WO_ERRNO("allocation class not suitable for size %lu bytes",
 			size);
 		errno = EINVAL;
 		return -1;
@@ -272,7 +272,7 @@ palloc_heap_action_exec(struct palloc_heap *heap,
 #ifdef DEBUG
 	enum memblock_state s = act->m.m_ops->get_state(&act->m);
 	if (s == act->new_state || s == MEMBLOCK_STATE_UNKNOWN) {
-		ERR("invalid operation or heap corruption");
+		ERR_WO_ERRNO("invalid operation or heap corruption");
 		ASSERT(0);
 	}
 #endif /* DEBUG */
@@ -301,10 +301,11 @@ palloc_restore_free_chunk_state(struct palloc_heap *heap,
 			HEAP_ARENA_PER_THREAD);
 		if (heap_free_chunk_reuse(heap, b, m) != 0) {
 			if (errno == EEXIST) {
-				FATAL(
+				CORE_LOG_FATAL(
 					"duplicate runtime chunk state, possible double free");
 			} else {
-				LOG(2, "unable to track runtime chunk state");
+				CORE_LOG_WARNING(
+					"unable to track runtime chunk state");
 			}
 		}
 		heap_bucket_release(b);
@@ -397,10 +398,14 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 				act->m.m_ops->get_real_size(&act->m));
 		}
 	} else if (act->new_state == MEMBLOCK_FREE) {
+#if VG_MEMCHECK_ENABLED
 		if (On_memcheck) {
 			void *ptr = act->m.m_ops->get_user_data(&act->m);
 			VALGRIND_DO_MEMPOOL_FREE(heap->layout, ptr);
-		} else if (On_pmemcheck) {
+		}
+#endif /* VG_MEMCHECK_ENABLED */
+#if VG_PMEMCHECK_ENABLED
+		if (On_pmemcheck) {
 			/*
 			 * The sync module, responsible for implementations of
 			 * persistent memory resident volatile variables,
@@ -417,7 +422,7 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 			size_t size = act->m.m_ops->get_real_size(&act->m);
 			VALGRIND_REGISTER_PMEM_MAPPING(ptr, size);
 		}
-
+#endif /* VG_PMEMCHECK_ENABLED */
 		STATS_SUB(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
 		if (act->m.type == MEMORY_BLOCK_RUN) {
@@ -1274,6 +1279,7 @@ palloc_init(void *heap_start, uint64_t heap_size, uint64_t *sizep,
 	return heap_init(heap_start, heap_size, sizep, p_ops);
 }
 
+#if VG_MEMCHECK_ENABLED
 /*
  * palloc_heap_end -- returns first address after heap
  */
@@ -1282,6 +1288,7 @@ palloc_heap_end(struct palloc_heap *h)
 {
 	return heap_end(h);
 }
+#endif /* VG_MEMCHECK_ENABLED */
 
 /*
  * palloc_heap_check -- verifies heap state

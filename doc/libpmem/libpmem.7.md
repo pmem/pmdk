@@ -19,7 +19,9 @@ header: "pmem API version 1.1"
 [CAVEATS](#caveats)<br />
 [LIBRARY API VERSIONING](#library-api-versioning-1)<br />
 [ENVIRONMENT](#environment)<br />
-[DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
+[ERROR HANDLING](#error-handling)<br />
+[DEBUGGING](#debugging)<br />
+[LOGGING (DEPRECATED)](#logging-deprecated)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
@@ -223,7 +225,7 @@ affects all the PMDK libraries,** disabling mapping address randomization
 and causing the specified address to be used as a hint about where to
 place the mapping.
 
-# DEBUGGING AND ERROR HANDLING #
+# ERROR HANDLING #
 
 If an error is detected during the call to a **libpmem** function, the
 application may retrieve an error message describing the reason of the failure
@@ -238,6 +240,14 @@ call to a **libpmem** function indicated an error.
 The application must not modify or free the error message string.
 Subsequent calls to other library functions may modify the previous message.
 
+In parallel to the above mechanism, all logging messages are written to
+**syslog**(3) and/or **stderr**(3) or passed to the user-provided logging
+function. Please see **pmem_log_set_function**(3) for details.
+The influx of the reported messages can be controlled by setting a respective
+threshold value. Please see **pmem_log_set_threshold**(3) for details.
+
+# DEBUGGING #
+
 Two versions of **libpmem** are typically available on a development
 system. The normal version, accessed when a program is linked using the
 **-lpmem** option, is optimized for performance. That version skips checks
@@ -248,13 +258,17 @@ A second version of **libpmem**, accessed when a program uses the libraries
 under **/usr/lib/pmdk_debug**, contains run-time assertions and trace points.
 The typical way to access the debug version is to set the environment variable
 **LD_LIBRARY_PATH** to **/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**,
-as appropriate. Debugging output is controlled using the following environment
+as appropriate.
+
+# LOGGING (DEPRECATED) #
+
+Debugging output is controlled using the following environment
 variables. These variables have no effect on the non-debug version of the library.
 
 + **PMEM_LOG_LEVEL**
 
-The value of **PMEM_LOG_LEVEL** enables trace points in the debug version
-of the library, as follows:
+The value of the **PMEM_LOG_LEVEL** environment variable enables trace points in
+the debug version of the library, as follows:
 
 + **0** - This is the default level when **PMEM_LOG_LEVEL** is not set.
 No log messages are emitted at this level.
@@ -271,7 +285,8 @@ library.
 + **4** - Enables voluminous and fairly obscure tracing
 information that is likely only useful to the **libpmem** developers.
 
-Unless **PMEM_LOG_FILE** is set, debugging output is written to *stderr*.
+Unless the **PMEM_LOG_FILE** environment variable is set, the debugging output
+is written to *stderr*.
 
 + **PMEM_LOG_FILE**
 
@@ -280,6 +295,11 @@ all logging information should be written. If the last character in the name
 is "-", the *PID* of the current process will be appended to the file name when
 the log file is created. If **PMEM_LOG_FILE** is not set, output is
 written to *stderr*.
+
+Whenever either **PMEM_LOG_LEVEL** or **PMEM_LOG_FILE** environment variable is
+set the messages are not passed via the routes described in
+the [ERROR HANDLING](#error-handling) section except for the **pmem_errormsg**()
+which works unconditionally.
 
 # EXAMPLE #
 

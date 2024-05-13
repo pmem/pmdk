@@ -1,13 +1,14 @@
+src version: $(nW)
+$(OPT)compiled with support for shutdown state
+$(OPT)compiled with libndctl 63+
 pid $(N): program: $(nW)/util_poolset$(nW)
 ut version 1.0
-src version: $(nW)
 $(OPT)compiled with support for Valgrind pmemcheck
 $(OPT)compiled with support for Valgrind helgrind
 $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
-$(OPT)compiled with support for shutdown state
-$(OPT)compiled with libndctl 63+
 open "$(nW)/testset0": No such file or directory
+cannot create pool set -- '$(nW)/testset0'
 $(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
 $(OPT)Cannot read device usc - ndctl is not available
@@ -19,17 +20,32 @@ $(OPT)Unsafe shutdown count is not supported for this source
 $(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
 size 1000000 smaller than 2097152
+failed to create file: $(nW)/testfile41
 size 1000000 smaller than 2097152
+failed to create file: $(nW)/testfile52
 open "$(nW)/nodir/testfile62": No such file or directory
+failed to create file: $(nW)/testfile62
 open "/proc/testfile72": Permission denied
+failed to create file: /proc/testfile72
 posix_fallocate "$(nW)/testfile82", 1073741824: No space left on device
+failed to create file: $(nW)/testfile82
 open "$(nW)/testfile102": Permission denied
+failed to open file: $(nW)/testfile102
 file size does not match config: $(nW)testfile113, 4194304 != 1048576
 size 12288 smaller than 2097152
+failed to open file: $(nW)/testfile122
 size 12288 smaller than 2097152
+failed to open file: $(nW)/testfile131
 file size does not match config: $(nW)testfile142, 4194304 != 8388608
 file size does not match config: $(nW)testfile152, 3145728 != 4194304
 Non-empty file detected
+header creation failed - part #1
+replica #0 headers initialization failed
+replica #0 creation failed
 Non-empty file detected
+header creation failed - part #0
+replica #0 headers initialization failed
+replica #0 creation failed
 open "$(nW)/testset23": Permission denied
+cannot create pool set -- '$(nW)/testset23'
 reservation pool size 1048576 smaller than 4194304

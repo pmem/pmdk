@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * unittest.h -- the mundane stuff shared by all unit tests
@@ -87,6 +87,12 @@ extern "C" {
 #include "os.h"
 #include "os_thread.h"
 #include "util.h"
+#include "log_internal.h"
+#include "core_assert.h"
+
+#ifdef USE_LOG_PMEMOBJ
+#include "libpmemobj/log.h"
+#endif
 
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
@@ -117,7 +123,7 @@ void ut_err(const char *file, int line, const char *func,
 
 /* indicate the start of the test */
 #define START(argc, argv, ...)\
-    ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
+	ut_start(__FILE__, __LINE__, __func__, argc, argv, __VA_ARGS__)
 
 /* normal exit from test */
 #define DONE(...)\
@@ -144,28 +150,34 @@ void ut_err(const char *file, int line, const char *func,
 /*
  * assertions...
  */
+#define UT_ASSERT_MSG(FORMAT, ...) \
+	UT_FATAL("assertion failure: " FORMAT, ##__VA_ARGS__)
 
 /* assert a condition is true at runtime */
 #define UT_ASSERT_rt(cnd)\
-	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s", #cnd), 0)))
+	((void)((cnd) || (UT_ASSERT_MSG("%s", #cnd), 0)))
 
 /* assertion with extra info printed if assertion fails at runtime */
 #define UT_ASSERTinfo_rt(cnd, info) \
-	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (%s)", #cnd, info), 0)))
+	((void)((cnd) || (UT_ASSERT_MSG("%s (%s)", #cnd, info), 0)))
 
 /* assert two integer values are equal at runtime */
-#define UT_ASSERTeq_rt(lhs, rhs)\
-	((void)(((lhs) == (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) == %s (0x%llx)", #lhs,\
+#define UT_ASSERTeq_rt(lhs, rhs) \
+	((void)(((lhs) == (rhs)) || \
+	(UT_ASSERT_MSG("%s (0x%llx) == %s (0x%llx)", #lhs, \
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
 
 /* assert two integer values are not equal at runtime */
-#define UT_ASSERTne_rt(lhs, rhs)\
-	((void)(((lhs) != (rhs)) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (0x%llx) != %s (0x%llx)", #lhs,\
+#define UT_ASSERTne_rt(lhs, rhs) \
+	((void)(((lhs) != (rhs)) || \
+	(UT_ASSERT_MSG("%s (0x%llx) != %s (0x%llx)", #lhs, \
 	(unsigned long long)(lhs), #rhs, (unsigned long long)(rhs)), 0)))
+
+/* assert two strings are equal at runtime */
+#define UT_ASSERTstreq_rt(__s1, __s2) \
+	((void)((__s1 == NULL && __s2 == NULL) || \
+		(strcmp(__s1, __s2) == 0) || \
+		(UT_ASSERT_MSG("%s: \"%s\" != %s", #__s1, __s1, __s2), 0)))
 
 #if defined(__CHECKER__)
 #define UT_COMPILE_ERROR_ON(cond)
@@ -226,11 +238,18 @@ void ut_err(const char *file, int line, const char *func,
 #define UT_ASSERTrange(ptr, start, size)\
 	((void)(((uintptr_t)(ptr) >= (uintptr_t)(start) &&\
 	(uintptr_t)(ptr) < (uintptr_t)(start) + (uintptr_t)(size)) ||\
-	(ut_fatal(__FILE__, __LINE__, __func__,\
-	"assert failure: %s (%p) is outside range [%s (%p), %s (%p))", #ptr,\
+	(UT_ASSERT_MSG("%s (%p) is outside range [%s (%p), %s (%p))", #ptr,\
 	(void *)(ptr), #start, (void *)(start), #start"+"#size,\
 	(void *)((uintptr_t)(start) + (uintptr_t)(size))), 0)))
 
+/* assert strings are equal */
+#define UT_ASSERTstreq(__s1, __s2) \
+	do { \
+		if (__builtin_constant_p(__s1)) \
+			UT_FATAL("UT_ASSERTstreq the first param must not be " \
+				"const"); \
+		UT_ASSERTstreq_rt(__s1, __s2); \
+	} while (0)
 /*
  * memory allocation...
  */
@@ -515,12 +534,21 @@ int ut_thread_join(const char *file, int line, const char *func,
 #define FUNC_MOCK_RCOUNTER_SET(name, val)\
     RCOUNTER(name) = val;
 
-#define FUNC_MOCK(name, ret_type, ...)\
+#define _FUNC_MOCK(type, name, ret_type, ...)\
 	_FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
-	static unsigned RCOUNTER(name);\
+	type unsigned RCOUNTER(name);\
 	ret_type __wrap_##name(__VA_ARGS__);\
 	ret_type __wrap_##name(__VA_ARGS__) {\
 		switch (util_fetch_and_add32(&RCOUNTER(name), 1)) {
+
+#define FUNC_MOCK(name, ret_type, ...) \
+	_FUNC_MOCK(static, name, ret_type, ##__VA_ARGS__)
+
+#define FUNC_MOCK_NONSTATIC(name, ret_type, ...) \
+	_FUNC_MOCK(, name, ret_type, ##__VA_ARGS__)
+
+#define FUNC_MOCK_EXTERN(name) \
+	extern unsigned RCOUNTER(name)
 
 #define FUNC_MOCK_DLLIMPORT(name, ret_type, ...)\
 	__declspec(dllimport) _FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
@@ -594,6 +622,16 @@ TEST_CASE_PROCESS(int argc, char *argv[],
 {
 	if (argc < 2)
 		UT_FATAL("usage: %s <test case> [<args>]", argv[0]);
+
+	if (strcmp("ALL", argv[1]) == 0) {
+		for (size_t i = 0; i < ntests; i++) {
+			int ret = test_cases[i].func(&test_cases[i], 0, NULL);
+			if (ret < 0)
+				UT_FATAL("Test %s return negative result",
+					test_cases[i].name);
+		}
+		return;
+	}
 
 	for (int i = 1; i < argc; i++) {
 		char *str_test = argv[i];

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2022, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 #ifndef PMEM2_MEMCPY_SSE2_H
 #define PMEM2_MEMCPY_SSE2_H
@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "out.h"
+#include "core_assert.h"
 
 static force_inline void
 memmove_small_sse2_noflush(char *dest, const char *src, size_t len)
@@ -103,10 +103,13 @@ memmove_small_sse2(char *dest, const char *src, size_t len, flush_fn flush)
 	 * path) in the optimized version.
 	 * libc's memcpy also does that, so we can't use it here.
 	 */
+#if VG_PMEMCHECK_ENABLED
 	if (On_pmemcheck) {
 		memmove_nodrain_generic(dest, src, len, PMEM2_F_MEM_NOFLUSH,
 				NULL, NULL);
-	} else {
+	} else
+#endif
+	{
 		memmove_small_sse2_noflush(dest, src, len);
 	}
 

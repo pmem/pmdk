@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * mmap.c -- mmap utilities
@@ -51,9 +51,9 @@ util_mmap_init(void)
 		unsigned long long val = strtoull(e, &endp, 16);
 
 		if (errno || endp == e) {
-			LOG(2, "Invalid PMEM_MMAP_HINT");
+			CORE_LOG_WARNING("Invalid PMEM_MMAP_HINT");
 		} else if (os_access(OS_MAPFILE, R_OK)) {
-			LOG(2, "No /proc, PMEM_MMAP_HINT ignored");
+			CORE_LOG_WARNING("No /proc, PMEM_MMAP_HINT ignored");
 		} else {
 			Mmap_hint = (void *)val;
 			Mmap_no_random = 1;
@@ -91,7 +91,7 @@ util_map(int fd, os_off_t off, size_t len, int flags, int rdonly,
 	void *base;
 	void *addr = util_map_hint(len, req_align);
 	if (addr == MAP_FAILED) {
-		LOG(1, "cannot find a contiguous region of given size");
+		CORE_LOG_ERROR("cannot find a contiguous region of given size");
 		return NULL;
 	}
 
@@ -101,7 +101,7 @@ util_map(int fd, os_off_t off, size_t len, int flags, int rdonly,
 	int proto = rdonly ? PROT_READ : PROT_READ|PROT_WRITE;
 	base = util_map_sync(addr, len, proto, flags, fd, off, map_sync);
 	if (base == MAP_FAILED) {
-		ERR("!mmap %zu bytes", len);
+		ERR_W_ERRNO("mmap %zu bytes", len);
 		return NULL;
 	}
 
@@ -123,7 +123,7 @@ util_unmap(void *addr, size_t len)
 
 	int retval = munmap(addr, len);
 	if (retval < 0)
-		ERR("!munmap");
+		ERR_W_ERRNO("munmap");
 
 	return retval;
 }
@@ -152,7 +152,7 @@ util_range_ro(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ)) < 0)
-		ERR("!mprotect: PROT_READ");
+		ERR_W_ERRNO("mprotect: PROT_READ");
 
 	return retval;
 }
@@ -181,7 +181,7 @@ util_range_rw(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_READ|PROT_WRITE)) < 0)
-		ERR("!mprotect: PROT_READ|PROT_WRITE");
+		ERR_W_ERRNO("mprotect: PROT_READ|PROT_WRITE");
 
 	return retval;
 }
@@ -210,7 +210,7 @@ util_range_none(void *addr, size_t len)
 	uptr = (uintptr_t)addr & ~(Pagesize - 1);
 
 	if ((retval = mprotect((void *)uptr, len, PROT_NONE)) < 0)
-		ERR("!mprotect: PROT_NONE");
+		ERR_W_ERRNO("mprotect: PROT_NONE");
 
 	return retval;
 }
@@ -284,7 +284,7 @@ util_range_register(const void *addr, size_t len, const char *path,
 
 	/* check if not tracked already */
 	if (util_range_find((uintptr_t)addr, len) != NULL) {
-		ERR(
+		ERR_WO_ERRNO(
 		"duplicated persistent memory range; presumably unmapped with munmap() instead of pmem_unmap(): addr %p len %zu",
 			addr, len);
 		errno = ENOMEM;
@@ -294,7 +294,7 @@ util_range_register(const void *addr, size_t len, const char *path,
 	struct map_tracker *mt;
 	mt  = Malloc(sizeof(struct map_tracker));
 	if (mt == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return -1;
 	}
 
@@ -305,7 +305,7 @@ util_range_register(const void *addr, size_t len, const char *path,
 		unsigned region_id;
 		int ret = util_ddax_region_find(path, &region_id);
 		if (ret < 0) {
-			ERR("Cannot find DAX device region id");
+			ERR_WO_ERRNO("Cannot find DAX device region id");
 			return -1;
 		}
 		mt->region_id = region_id;
@@ -333,7 +333,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 	uintptr_t end = (uintptr_t)endp;
 	ASSERTne(mt, NULL);
 	if (addr == end || addr % Mmap_align != 0 || end % Mmap_align != 0) {
-		ERR(
+		ERR_WO_ERRNO(
 		"invalid munmap length, must be non-zero and page aligned");
 		return -1;
 	}
@@ -357,7 +357,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 		/* new mapping at the beginning */
 		mtb = Malloc(sizeof(struct map_tracker));
 		if (mtb == NULL) {
-			ERR("!Malloc");
+			ERR_W_ERRNO("Malloc");
 			goto err;
 		}
 
@@ -372,7 +372,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 		/* new mapping at the end */
 		mte = Malloc(sizeof(struct map_tracker));
 		if (mte == NULL) {
-			ERR("!Malloc");
+			ERR_W_ERRNO("Malloc");
 			goto err;
 		}
 

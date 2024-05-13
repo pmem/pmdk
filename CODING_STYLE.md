@@ -76,7 +76,7 @@ for width-based integral types (`uint32_t`, `int64_t`, etc.).
 - Put `LOG(3, ...)` at the beginning of each function. Consider using higher
 log level for most frequently called routines.
 - Make use of `COMPILE_ERROR_ON` and `ASSERT*` macros.
-- Use `ERR()` macro to log error messages.
+- Use `ERR_W_ERRNO()`/`ERR_WO_ERRNO()` macros to log error messages.
 
 ### Unit tests
 - There **must** be unit tests provided for each new function/module added.

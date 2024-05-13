@@ -27,6 +27,7 @@ libpmemobj_atomic_base_h
 pobj_xalloc_valid_flags
 libpmemobj_atomic_h
 libpmemobj_iterator_base_h
+libpmemobj_log_h
 libpmemobj_pool_base_h
 pmemobj_min_pool
 pmemobj_min_part

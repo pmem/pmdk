@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2023, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * feature.c -- implementation of pmempool_feature_(enable|disable|query)()
@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/mman.h>
+#include <stdarg.h>
 
 #include "libpmempool.h"
 #include "util_pmem.h"
@@ -47,12 +48,12 @@ buff_concat(char *buff, size_t *pos, const char *fmt, ...)
 	va_end(ap);
 
 	if (ret < 0) {
-		ERR("vsprintf");
+		ERR_WO_ERRNO("vsprintf");
 		return ret;
 	}
 
 	if ((size_t)ret >= size) {
-		ERR("buffer truncated %d >= %zu", ret, size);
+		ERR_WO_ERRNO("buffer truncated %d >= %zu", ret, size);
 		return -1;
 	}
 
@@ -110,7 +111,7 @@ features_check(features_t *f, struct pool_hdr *hdrp)
 				goto err;
 			if (buff_concat_features(msg, &pos, *f))
 				goto err;
-			ERR("features mismatch detected: %s", msg);
+			ERR_WO_ERRNO("features mismatch detected: %s", msg);
 			return -1;
 		} else {
 			return 0;
@@ -130,7 +131,7 @@ features_check(features_t *f, struct pool_hdr *hdrp)
 	size_t pos = 0;
 	if (buff_concat_features(msg, &pos, unknown))
 		goto err;
-	ERR("invalid features detected: %s", msg);
+	ERR_WO_ERRNO("invalid features detected: %s", msg);
 err:
 	return -1;
 }
@@ -172,7 +173,7 @@ poolset_open(const char *path, int rdonly)
 	/* read poolset */
 	int ret = util_poolset_create_set(&set, path, 0, 0, true);
 	if (ret < 0) {
-		ERR("cannot open pool set -- '%s'", path);
+		ERR_WO_ERRNO("cannot open pool set -- '%s'", path);
 		goto err_poolset;
 	}
 
@@ -196,7 +197,7 @@ poolset_open(const char *path, int rdonly)
 			}
 
 			if (features_check(&f, HDR(rep, p))) {
-				ERR(
+				ERR_WO_ERRNO(
 					"invalid features - replica #%d part #%d",
 					r, p);
 				goto err_open;
@@ -261,8 +262,10 @@ typedef enum {
 	ENABLED
 } fstate_t;
 
+#ifdef DEBUG
 #define FEATURE_IS_ENABLED_STR	"feature already enabled: %s"
 #define FEATURE_IS_DISABLED_STR	"feature already disabled: %s"
+#endif
 
 /*
  * require_feature_is -- (internal) check if required feature is enabled
@@ -277,9 +280,11 @@ require_feature_is(struct pool_set *set, features_t feature, fstate_t req_state)
 	if (state == req_state)
 		return 1;
 
+#ifdef DEBUG
 	const char *msg = (state == ENABLED)
 			? FEATURE_IS_ENABLED_STR : FEATURE_IS_DISABLED_STR;
 	LOG(3, msg, util_feature2str(feature, NULL));
+#endif
 	return 0;
 }
 
@@ -301,11 +306,14 @@ require_other_feature_is(struct pool_set *set, features_t other,
 	if (state == req_state)
 		return 1;
 
-	const char *msg = (req_state == ENABLED)
-			? FEATURE_IS_NOT_ENABLED_PRIOR_STR
-			: FEATURE_IS_NOT_DISABLED_PRIOR_STR;
-	ERR(msg, util_feature2str(other, NULL),
-			cause, util_feature2str(feature, NULL));
+	if (req_state == ENABLED)
+		ERR_WO_ERRNO(FEATURE_IS_NOT_ENABLED_PRIOR_STR,
+			util_feature2str(other, NULL), cause,
+			util_feature2str(feature, NULL));
+	else
+		ERR_WO_ERRNO(FEATURE_IS_NOT_DISABLED_PRIOR_STR,
+			util_feature2str(other, NULL), cause,
+			util_feature2str(feature, NULL));
 	return 0;
 }
 
@@ -354,7 +362,8 @@ err_open:
 static inline int
 unsupported_feature(features_t feature)
 {
-	ERR("unsupported feature: %s", util_feature2str(feature, NULL));
+	ERR_WO_ERRNO("unsupported feature: %s",
+		util_feature2str(feature, NULL));
 	errno = EINVAL;
 	return -1;
 }
@@ -600,7 +609,7 @@ static inline int
 are_flags_valid(unsigned flags)
 {
 	if (flags != 0) {
-		ERR("invalid flags: 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags: 0x%x", flags);
 		errno = EINVAL;
 		return 0;
 	}
@@ -614,7 +623,7 @@ static inline int
 is_feature_valid(uint32_t feature)
 {
 	if (feature >= FEATURE_FUNCS_MAX) {
-		ERR("invalid feature: 0x%x", feature);
+		ERR_WO_ERRNO("invalid feature: 0x%x", feature);
 		errno = EINVAL;
 		return 0;
 	}

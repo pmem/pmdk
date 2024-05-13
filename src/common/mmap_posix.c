@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * mmap_posix.c -- memory-mapped files for Posix
@@ -9,7 +9,7 @@
 #include <sys/mman.h>
 #include <sys/param.h>
 #include "mmap.h"
-#include "out.h"
+#include "core_assert.h"
 #include "os.h"
 
 #define PROCMAXLEN 2048 /* maximum expected line length in /proc files */
@@ -40,7 +40,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 
 	FILE *fp;
 	if ((fp = os_fopen(Mmap_mapfile, "r")) == NULL) {
-		ERR("!%s", Mmap_mapfile);
+		ERR_W_ERRNO("%s", Mmap_mapfile);
 		return MAP_FAILED;
 	}
 
@@ -87,7 +87,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	 * space, but is not large enough. (very unlikely)
 	 */
 	if ((raddr != NULL) && (UINTPTR_MAX - (uintptr_t)raddr < len)) {
-		ERR("end of address space reached");
+		ERR_WO_ERRNO("end of address space reached");
 		raddr = MAP_FAILED;
 	}
 
@@ -138,7 +138,7 @@ util_map_hint(size_t len, size_t req_align)
 		char *addr = mmap(NULL, len + align, PROT_READ,
 					MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 		if (addr == MAP_FAILED) {
-			ERR("!mmap MAP_ANONYMOUS");
+			ERR_W_ERRNO("mmap MAP_ANONYMOUS");
 		} else {
 			LOG(4, "system choice %p", addr);
 			hint_addr = (char *)roundup((uintptr_t)addr, align);

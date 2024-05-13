@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * pmem.c -- pmem entry points for libpmem
@@ -277,7 +277,7 @@ pmem_msync(const void *addr, size_t len)
 
 	int ret;
 	if ((ret = msync((void *)uptr, len, MS_SYNC)) < 0)
-		ERR("!msync");
+		ERR_W_ERRNO("msync");
 
 	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 
@@ -359,7 +359,7 @@ pmem_is_pmem_init(void)
 			Is_pmem = is_pmem_never;
 
 		if (!util_bool_compare_and_swap32(&init, 1, 2))
-			FATAL("util_bool_compare_and_swap32");
+			CORE_LOG_FATAL("util_bool_compare_and_swap32");
 	}
 }
 
@@ -410,14 +410,15 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		return NULL;
 
 	if (flags & ~(PMEM_FILE_ALL_FLAGS)) {
-		ERR("invalid flag specified %x", flags);
+		ERR_WO_ERRNO("invalid flag specified %x", flags);
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if (file_type == TYPE_DEVDAX) {
 		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
-			ERR("flag unsupported for Device DAX %x", flags);
+			ERR_WO_ERRNO(
+				"flag unsupported for Device DAX %x", flags);
 			errno = EINVAL;
 			return NULL;
 		} else {
@@ -425,13 +426,13 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 			flags = 0;
 			ssize_t actual_len = util_file_get_size(path);
 			if (actual_len < 0) {
-				ERR("unable to read Device DAX size");
+				ERR_WO_ERRNO("unable to read Device DAX size");
 				errno = EINVAL;
 				return NULL;
 			}
 			if (len != 0 && len != (size_t)actual_len) {
-				ERR("Device DAX length must be either 0 or "
-					"the exact size of the device: %zu",
+				ERR_WO_ERRNO(
+					"Device DAX length must be either 0 or the exact size of the device: %zu",
 					actual_len);
 				errno = EINVAL;
 				return NULL;
@@ -442,7 +443,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 
 	if (flags & PMEM_FILE_CREATE) {
 		if ((os_off_t)len < 0) {
-			ERR("invalid file length %zu", len);
+			ERR_WO_ERRNO("invalid file length %zu", len);
 			errno = EINVAL;
 			return NULL;
 		}
@@ -453,19 +454,21 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		open_flags |= O_EXCL;
 
 	if ((len != 0) && !(flags & PMEM_FILE_CREATE)) {
-		ERR("non-zero 'len' not allowed without PMEM_FILE_CREATE");
+		ERR_WO_ERRNO(
+			"non-zero 'len' not allowed without PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if ((len == 0) && (flags & PMEM_FILE_CREATE)) {
-		ERR("zero 'len' not allowed with PMEM_FILE_CREATE");
+		ERR_WO_ERRNO("zero 'len' not allowed with PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
 	}
 
 	if ((flags & PMEM_FILE_TMPFILE) && !(flags & PMEM_FILE_CREATE)) {
-		ERR("PMEM_FILE_TMPFILE not allowed without PMEM_FILE_CREATE");
+		ERR_WO_ERRNO(
+			"PMEM_FILE_TMPFILE not allowed without PMEM_FILE_CREATE");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -474,13 +477,14 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		if ((fd = util_tmpfile(path,
 					OS_DIR_SEP_STR"pmem.XXXXXX",
 					open_flags & O_EXCL)) < 0) {
-			LOG(2, "failed to create temporary file at \"%s\"",
+			CORE_LOG_ERROR(
+				"failed to create temporary file at \"%s\"",
 				path);
 			return NULL;
 		}
 	} else {
 		if ((fd = os_open(path, open_flags, mode)) < 0) {
-			ERR("!open %s", path);
+			ERR_W_ERRNO("open %s", path);
 			return NULL;
 		}
 		if ((flags & PMEM_FILE_CREATE) && (flags & PMEM_FILE_EXCL))
@@ -493,20 +497,20 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		 * (May either extend or truncate existing file.)
 		 */
 		if (os_ftruncate(fd, (os_off_t)len) != 0) {
-			ERR("!ftruncate");
+			ERR_W_ERRNO("ftruncate");
 			goto err;
 		}
 		if ((flags & PMEM_FILE_SPARSE) == 0) {
 			if ((errno = os_posix_fallocate(fd, 0,
 							(os_off_t)len)) != 0) {
-				ERR("!posix_fallocate");
+				ERR_W_ERRNO("posix_fallocate");
 				goto err;
 			}
 		}
 	} else {
 		ssize_t actual_size = util_fd_get_size(fd);
 		if (actual_size < 0) {
-			ERR("stat %s: negative size", path);
+			ERR_WO_ERRNO("stat %s: negative size", path);
 			errno = EINVAL;
 			goto err;
 		}
@@ -573,10 +577,18 @@ pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags)
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x",
 			pmemdest, src, len, flags);
 
+/*
+ * XXX
+ * Disable this warning until #5979 is fixed
+ * https://github.com/pmem/pmdk/issues/5979
+ */
+#if 0
 #ifdef DEBUG
 	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
+#endif
+
 	PMEM_API_START();
 	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
 			Funcs.flush, &Funcs.memmove_funcs);
@@ -597,10 +609,17 @@ pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags)
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x",
 			pmemdest, src, len, flags);
 
+/*
+ * Disable this warning until #5979 is fixed
+ * https://github.com/pmem/pmdk/issues/5979
+ */
+#if 0
 #ifdef DEBUG
 	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 #endif
+#endif
+
 	PMEM_API_START();
 	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
 			Funcs.flush, &Funcs.memmove_funcs);
@@ -621,9 +640,16 @@ pmem_memset(void *pmemdest, int c, size_t len, unsigned flags)
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x",
 			pmemdest, c, len, flags);
 
+/*
+ * XXX
+ * Disable this warning until #5979 is fixed
+ * https://github.com/pmem/pmdk/issues/5979
+ */
+#if 0
 #ifdef DEBUG
 	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
+#endif
 #endif
 
 	PMEM_API_START();
@@ -886,7 +912,7 @@ pmem_init(void)
 	if (Funcs.flush == flush_empty)
 		LOG(3, "not flushing CPU cache");
 	else if (Funcs.flush != Funcs.deep_flush)
-		FATAL("invalid flush function address");
+		CORE_LOG_FATAL("invalid flush function address");
 
 	pmem_os_init(&Is_pmem);
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2011-2019, Intel Corporation
+# Copyright 2011-2024, Intel Corporation
 #
 #
 # pmempool_sync/TEST53 -- test for sync command with badblocks

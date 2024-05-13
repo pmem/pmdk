@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - name: Clone the git repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Install pmem/valgrind (including dependencies)
       run: |
@@ -41,7 +41,7 @@ jobs:
         languages: cpp, python
 
     - name: Build PMDK
-      run: make EXTRA_CFLAGS=-DUSE_VALGRIND test -j$(nproc)
+      run: make test -j$(nproc)
 
     - name: CodeQL scan
       uses: github/codeql-action/analyze@v2

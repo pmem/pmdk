@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * file_posix.c -- Posix versions of file APIs
@@ -112,7 +112,7 @@ device_dax_alignment(const char *path)
 
 	int fd = os_open(path, O_RDONLY);
 	if (fd == -1) {
-		LOG(1, "Cannot open file %s", path);
+		CORE_LOG_ERROR("Cannot open file %s", path);
 		return size;
 	}
 
@@ -155,7 +155,7 @@ util_ddax_region_find(const char *path, unsigned *region_id)
 	int ret;
 
 	if (os_stat(path, &st) < 0) {
-		ERR("!stat \"%s\"", path);
+		ERR_W_ERRNO("stat \"%s\"", path);
 		return -1;
 	}
 

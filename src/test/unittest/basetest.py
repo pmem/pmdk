@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2023, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 
 """Base tests class and its functionalities.
 
@@ -66,6 +66,7 @@ from os import path
 
 from configurator import Configurator
 from consts import LIBS_LIST, ROOTDIR
+import granularity as g
 import futils
 import test_types
 import shutil
@@ -339,6 +340,13 @@ class Test(BaseTest):
         self.env.update(self._get_utenv())
         self.env.update(self._debug_log_env())
         self.ctx.add_env(self.env)
+        # disable shutdown state control for non-pmem (Page granularity)
+        if isinstance(ctx.granularity, g.Page):
+            pmemobj_conf = os.getenv('PMEMOBJ_CONF', default='')
+            if 'sds.at_create=0' not in pmemobj_conf:
+                env = dict()
+                env['PMEMOBJ_CONF'] = 'sds.at_create=0'
+                self.ctx.add_env(env)
 
         self.remove_log_files()
 

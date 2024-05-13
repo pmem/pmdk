@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 #
 # src/libpmem/Makefile -- Makefile for libpmem
@@ -18,6 +18,9 @@ SOURCE =\
 	$(CORE)/out.c\
 	$(CORE)/util.c\
 	$(CORE)/util_posix.c\
+	$(CORE)/last_error_msg.c\
+	$(CORE)/log.c\
+	$(CORE)/log_default.c\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/mmap.c\

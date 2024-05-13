@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 #include <errno.h>
 
 #include "alloc.h"
 #include "fault_injection.h"
-#include "out.h"
 
 Malloc_func fn_malloc = malloc;
 Realloc_func fn_realloc = realloc;
 
 #if FAULT_INJECTION
+#include "log_internal.h"
+
 static __thread int malloc_num;
 static __thread int fail_malloc_num;
 static __thread const char *fail_malloc_from;
@@ -58,7 +59,7 @@ core_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
 			fail_realloc_from = at;
 			break;
 		default:
-			FATAL("unknown allocation type");
+			CORE_LOG_FATAL("unknown allocation type");
 	}
 }
 

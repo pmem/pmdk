@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * list.c -- implementation of persistent atomic lists module
@@ -9,7 +9,7 @@
 #include "list.h"
 #include "obj.h"
 #include "os_thread.h"
-#include "out.h"
+#include "core_assert.h"
 #include "sync.h"
 #include "valgrind_internal.h"
 #include "memops.h"
@@ -202,7 +202,9 @@ list_update_head(PMEMobjpool *pop,
 static void
 u64_add_offset(uint64_t *value, ssize_t off)
 {
+#ifdef DEBUG /* variables required for ASSERTs below */
 	uint64_t prev = *value;
+#endif
 	if (off >= 0) {
 		*value += (size_t)off;
 		ASSERT(*value >= prev); /* detect overflow */
@@ -468,7 +470,7 @@ list_insert_new(PMEMobjpool *pop,
 	struct pobj_action reserved;
 	if (palloc_reserve(&pop->heap, size, constructor, arg,
 		type_num, 0, 0, 0, &reserved) != 0) {
-		ERR("!palloc_reserve");
+		ERR_W_ERRNO("palloc_reserve");
 		ret = -1;
 		goto err_pmalloc;
 	}
@@ -559,7 +561,7 @@ list_insert_new_user(PMEMobjpool *pop,
 	int ret;
 	if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
 		errno = ret;
-		LOG(2, "pmemobj_mutex_lock failed");
+		CORE_LOG_ERROR("pmemobj_mutex_lock failed");
 		return -1;
 	}
 
@@ -598,7 +600,7 @@ list_insert(PMEMobjpool *pop,
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 		errno = ret;
-		LOG(2, "pmemobj_mutex_lock failed");
+		CORE_LOG_ERROR("pmemobj_mutex_lock failed");
 		ret = -1;
 		goto err;
 	}
@@ -726,7 +728,7 @@ list_remove_free_user(PMEMobjpool *pop, size_t pe_offset,
 	int ret;
 	if ((ret = pmemobj_mutex_lock(pop, &user_head->lock))) {
 		errno = ret;
-		LOG(2, "pmemobj_mutex_lock failed");
+		CORE_LOG_ERROR("pmemobj_mutex_lock failed");
 		return -1;
 	}
 
@@ -760,7 +762,7 @@ list_remove(PMEMobjpool *pop,
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 		errno = ret;
-		LOG(2, "pmemobj_mutex_lock failed");
+		CORE_LOG_ERROR("pmemobj_mutex_lock failed");
 		ret = -1;
 		goto err;
 	}
@@ -837,7 +839,7 @@ list_move(PMEMobjpool *pop,
 	 */
 	if ((ret = list_mutexes_lock(pop, head_new, head_old))) {
 		errno = ret;
-		LOG(2, "list_mutexes_lock failed");
+		CORE_LOG_ERROR("list_mutexes_lock failed");
 		ret = -1;
 		goto err;
 	}

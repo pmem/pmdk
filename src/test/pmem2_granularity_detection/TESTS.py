@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 #
 
 
@@ -10,7 +10,7 @@ import futils as f
 
 
 @g.require_granularity(g.ANY)
-class PMEM2_CONFIG(t.BaseTest):
+class PMEM2_CONFIG(t.Test):
     test_type = t.Short
 
 

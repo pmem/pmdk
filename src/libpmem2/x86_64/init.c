@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2022, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 #include <string.h>
 #include <xmmintrin.h>
@@ -10,6 +10,7 @@
 #include "memcpy_memset.h"
 #include "os.h"
 #include "out.h"
+#include "core_assert.h"
 #include "pmem2_arch.h"
 #include "valgrind_internal.h"
 
@@ -64,7 +65,7 @@ flush_clwb(const void *addr, size_t len)
 #define PMEM2_F_MEM_MOV   (PMEM2_F_MEM_WB | PMEM2_F_MEM_TEMPORAL)
 
 static void *
-pmem_memmove_nodrain(void *dest, const void *src, size_t len, unsigned flags,
+pmem2_memmove_nodrain(void *dest, const void *src, size_t len, unsigned flags,
 		flush_func flushf, const struct memmove_nodrain *memmove_funcs)
 {
 	/* suppress unused-parameter errors */
@@ -88,7 +89,7 @@ pmem_memmove_nodrain(void *dest, const void *src, size_t len, unsigned flags,
 }
 
 static void *
-pmem_memmove_nodrain_eadr(void *dest, const void *src, size_t len,
+pmem2_memmove_nodrain_eadr(void *dest, const void *src, size_t len,
 		unsigned flags, flush_func flushf,
 		const struct memmove_nodrain *memmove_funcs)
 {
@@ -109,7 +110,7 @@ pmem_memmove_nodrain_eadr(void *dest, const void *src, size_t len,
 }
 
 static void *
-pmem_memset_nodrain(void *dest, int c, size_t len, unsigned flags,
+pmem2_memset_nodrain(void *dest, int c, size_t len, unsigned flags,
 		flush_func flushf, const struct memset_nodrain *memset_funcs)
 {
 	/* suppress unused-parameter errors */
@@ -133,7 +134,7 @@ pmem_memset_nodrain(void *dest, int c, size_t len, unsigned flags,
 }
 
 static void *
-pmem_memset_nodrain_eadr(void *dest, int c, size_t len, unsigned flags,
+pmem2_memset_nodrain_eadr(void *dest, int c, size_t len, unsigned flags,
 		flush_func flushf, const struct memset_nodrain *memset_funcs)
 {
 	/* suppress unused-parameter errors */
@@ -155,10 +156,10 @@ pmem_memset_nodrain_eadr(void *dest, int c, size_t len, unsigned flags,
 static void
 pmem_set_mem_funcs(struct pmem2_arch_info *info)
 {
-	info->memmove_nodrain = pmem_memmove_nodrain;
-	info->memmove_nodrain_eadr = pmem_memmove_nodrain_eadr;
-	info->memset_nodrain = pmem_memset_nodrain;
-	info->memset_nodrain_eadr = pmem_memset_nodrain_eadr;
+	info->memmove_nodrain = pmem2_memmove_nodrain;
+	info->memmove_nodrain_eadr = pmem2_memmove_nodrain_eadr;
+	info->memset_nodrain = pmem2_memset_nodrain;
+	info->memset_nodrain_eadr = pmem2_memset_nodrain_eadr;
 }
 
 enum memcpy_impl {
@@ -585,7 +586,7 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 	else if (info->flush == flush_clflush)
 		LOG(3, "using clflush");
 	else
-		FATAL("invalid deep flush function address");
+		CORE_LOG_FATAL("invalid deep flush function address");
 
 	if (impl == MEMCPY_MOVDIR64B)
 		LOG(3, "using movnt MOVDIR64B");

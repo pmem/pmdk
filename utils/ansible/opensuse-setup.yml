@@ -14,41 +14,40 @@
     testUserPass: pmdkpass
 
   tasks:
-
-    - name: "Update kernel packages"
+    - name: Update kernel packages
       package:
         name: "kernel-default"
         state: latest
       register: isUpdated
 
-    - name: "Update OS packages"
+    - name: Update OS packages
       package:
         name: "*"
         state: latest
 
-    - name: "Reboot platform to apply updates"
+    - name: Reboot platform to apply updates
       reboot:
       when: isUpdated.changed
 
-    - name: "Add permanent pkg config variable to the system"
+    - name: Add permanent pkg config variable to the system
       env:
         state: present
         name: PKG_CONFIG_PATH
         value: /usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig
 
-    - name: "Add permanent ld library path to the system"
+    - name: Add permanent ld library path to the system
       env:
         state: present
         name: LD_LIBRARY_PATH
         value: /usr/lib64:/usr/lib
 
-    - name: "Add openSUSE Leap 15.4 Oss repo"
+    - name: Add openSUSE Leap 15.4 Oss repo
       zypper_repository:
         name: oss
-        repo: 'http://download.opensuse.org/distribution/leap/15.4/repo/oss'
+        repo: "http://download.opensuse.org/distribution/leap/15.4/repo/oss"
         state: present
 
-    - name: "Install Valgrind dependencies"
+    - name: Install Valgrind dependencies
       package:
         state: present
         name:
@@ -58,7 +57,7 @@
           - findutils
           - git
 
-    - name: "Install PMDK base dependencies"
+    - name: Install PMDK base dependencies
       package:
         state: present
         name:
@@ -70,13 +69,15 @@
           - systemd
           - libndctl-devel
 
-    - name: "Install benchmarks dependencies (optional)"
+    - name: Install benchmarks dependencies (optional)
       package:
         state: present
         name:
           - glib2-devel
+          - numactl
+          - python3-pandas
 
-    - name: "Install examples dependencies (optional)"
+    - name: Install examples dependencies (optional)
       package:
         state: present
         name:
@@ -85,13 +86,13 @@
           - ncurses-devel
           - libuv-devel
 
-    - name: "Install documentation dependencies (optional)"
+    - name: Install documentation dependencies (optional)
       package:
         state: present
         name:
           - pandoc
 
-    - name: "Install tests dependencies"
+    - name: Install tests dependencies
       package:
         state: present
         name:
@@ -100,14 +101,14 @@
           - libunwind-devel
           - strace
 
-    - name: "Install packaging dependencies"
+    - name: Install packaging dependencies
       package:
         state: present
         name:
           - rpm-build
           - rpmdevtools
 
-    - name: "Install miscellaneous dependencies"
+    - name: Install miscellaneous dependencies
       package:
         state: present
         name:
@@ -123,7 +124,7 @@
           - xmlto
           - jq
 
-    - name: "Install ndctl dependencies"
+    - name: Install ndctl dependencies
       package:
         state: present
         name:
@@ -136,13 +137,13 @@
           - libuuid-devel
           - systemd-devel
 
-    - name: "Install ipmctl"
+    - name: Install ipmctl
       package:
         state: present
         name:
           - ipmctl
 
-    - name: "Install valgrind from source"
+    - name: Install valgrind from source
       script: ../docker/images/install-valgrind.sh
 
     # Disable AppArmor. 
@@ -157,7 +158,7 @@
       ignore_errors: yes
       when: ansible_facts['os_family'] == 'Suse'
 
-    - name: "Add new user"
+    - name: Add new user
       shell: |
         #!/usr/bin/env bash
         export USER={{ testUser }}
@@ -173,26 +174,26 @@
         gpasswd wheel -a $USER
       when: testUser != None
 
-    - name: "Set variable OS"
+    - name: Set variable OS
       env:
         state: present
-        name: 'OS'
-        value: 'opensuse/leap'
+        name: "OS"
+        value: "opensuse/leap"
 
-    - name: "Set variable OS_VER"
+    - name: Set variable OS_VER
       env:
         state: present
-        name: 'OS_VER'
-        value: '15'
+        name: "OS_VER"
+        value: "15"
 
-    - name: "Set variable PACKAGE_MANAGER"
+    - name: Set variable PACKAGE_MANAGER
       env:
         state: present
-        name: 'PACKAGE_MANAGER'
-        value: 'rpm'
+        name: "PACKAGE_MANAGER"
+        value: "rpm"
 
-    - name: "Set variable NOTTY"
+    - name: Set variable NOTTY
       env:
         state: present
-        name: 'NOTTY'
-        value: '1'
+        name: "NOTTY"
+        value: "1"

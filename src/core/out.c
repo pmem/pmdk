@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * out.c -- support for logging, tracing, and assertion output
@@ -17,112 +17,48 @@
 
 #include "out.h"
 #include "os.h"
-#include "os_thread.h"
 #include "valgrind_internal.h"
 #include "util.h"
+#include "log_internal.h"
+#include "last_error_msg.h"
+
+#ifdef DEBUG
+
+#define MAXPRINT 8192
 
 static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
 static unsigned Log_alignment;
 
-#ifndef NO_LIBPTHREAD
-#define MAXPRINT 8192	/* maximum expected log line */
-#else
-#define MAXPRINT 256	/* maximum expected log line for libpmem */
-#endif
-
-struct errormsg
-{
-	char msg[MAXPRINT];
+static const enum core_log_level level_to_core_log_level[5] = {
+	[0] = CORE_LOG_LEVEL_HARK,
+	[1] = CORE_LOG_LEVEL_ERROR,
+	[2] = CORE_LOG_LEVEL_NOTICE,
+	[3] = CORE_LOG_LEVEL_INFO,
+	[4] = CORE_LOG_LEVEL_DEBUG,
 };
 
-#ifndef NO_LIBPTHREAD
+static const int core_log_level_to_level[CORE_LOG_LEVEL_MAX] = {
+	[CORE_LOG_LEVEL_HARK]		= 1,
+	[CORE_LOG_LEVEL_FATAL]		= 1,
+	[CORE_LOG_LEVEL_ERROR]		= 1,
+	[CORE_LOG_LEVEL_WARNING]	= 2,
+	[CORE_LOG_LEVEL_NOTICE]		= 2,
+	[CORE_LOG_LEVEL_INFO]		= 3,
+	[CORE_LOG_LEVEL_DEBUG]		= 4,
+};
 
-static os_once_t Last_errormsg_key_once = OS_ONCE_INIT;
-static os_tls_key_t Last_errormsg_key;
-
-static void
-_Last_errormsg_key_alloc(void)
-{
-	int pth_ret = os_tls_key_create(&Last_errormsg_key, free);
-	if (pth_ret)
-		FATAL("!os_thread_key_create");
-
-	VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Last_errormsg_key_once);
-}
+#define OUT_MAX_LEVEL 4
 
 static void
-Last_errormsg_key_alloc(void)
+out_legacy(enum core_log_level core_level, const char *file_name,
+	unsigned line_no, const char *function_name, const char *message)
 {
-	os_once(&Last_errormsg_key_once, _Last_errormsg_key_alloc);
-	/*
-	 * Workaround Helgrind's bug:
-	 * https://bugs.kde.org/show_bug.cgi?id=337735
-	 */
-	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Last_errormsg_key_once);
+	int level = core_log_level_to_level[core_level];
+	out_log(file_name, line_no, function_name, level, "%s", message);
 }
-
-static inline void
-Last_errormsg_fini(void)
-{
-	void *p = os_tls_get(Last_errormsg_key);
-	if (p) {
-		free(p);
-		(void) os_tls_set(Last_errormsg_key, NULL);
-	}
-	(void) os_tls_key_delete(Last_errormsg_key);
-}
-
-static inline struct errormsg *
-Last_errormsg_get(void)
-{
-	Last_errormsg_key_alloc();
-
-	struct errormsg *errormsg = os_tls_get(Last_errormsg_key);
-	if (errormsg == NULL) {
-		errormsg = malloc(sizeof(struct errormsg));
-		if (errormsg == NULL)
-			return NULL;
-		/* make sure it contains empty string initially */
-		errormsg->msg[0] = '\0';
-		int ret = os_tls_set(Last_errormsg_key, errormsg);
-		if (ret)
-			FATAL("!os_tls_set");
-	}
-	return errormsg;
-}
-
-#else
-
-/*
- * We don't want libpmem to depend on libpthread.  Instead of using pthread
- * API to dynamically allocate thread-specific error message buffer, we put
- * it into TLS.  However, keeping a pretty large static buffer (8K) in TLS
- * may lead to some issues, so the maximum message length is reduced.
- * Fortunately, it looks like the longest error message in libpmem should
- * not be longer than about 90 chars (in case of pmem_check_version()).
- */
-
-static __thread struct errormsg Last_errormsg;
-
-static inline void
-Last_errormsg_key_alloc(void)
-{
-}
-
-static inline void
-Last_errormsg_fini(void)
-{
-}
-
-static inline const struct errormsg *
-Last_errormsg_get(void)
-{
-	return &Last_errormsg;
-}
-
-#endif /* NO_LIBPTHREAD */
+#endif /* DEBUG */
 
 /*
  * out_init -- initialize the log
@@ -135,7 +71,8 @@ out_init(const char *log_prefix, const char *log_level_var,
 		int minor_version)
 {
 	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(log_level_var, log_file_var);
+	SUPPRESS_UNUSED(log_prefix, log_level_var, log_file_var, major_version,
+		minor_version);
 
 	static int once;
 
@@ -144,19 +81,17 @@ out_init(const char *log_prefix, const char *log_level_var,
 		return;
 	once++;
 
+#ifdef DEBUG
 	Log_prefix = log_prefix;
 
-#ifdef DEBUG
-	char *log_level;
-	char *log_file;
-
-	if ((log_level = os_getenv(log_level_var)) != NULL) {
-		Log_level = atoi(log_level);
-		if (Log_level < 0) {
-			Log_level = 0;
-		}
+	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
+	if (log_alignment) {
+		int align = atoi(log_alignment);
+		if (align > 0)
+			Log_alignment = (unsigned)align;
 	}
 
+	char *log_file;
 	if ((log_file = os_getenv(log_file_var)) != NULL &&
 				log_file[0] != '\0') {
 
@@ -166,7 +101,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 		if (len > 0 && log_file[len - 1] == '-') {
 			if (util_snprintf(log_file_pid, PATH_MAX, "%s%d",
 					log_file, getpid()) < 0) {
-				ERR("snprintf: %d", errno);
+				ERR_W_ERRNO("snprintf");
 				abort();
 			}
 			log_file = log_file_pid;
@@ -181,30 +116,52 @@ out_init(const char *log_prefix, const char *log_level_var,
 			abort();
 		}
 	}
-#endif	/* DEBUG */
-
-	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
-	if (log_alignment) {
-		int align = atoi(log_alignment);
-		if (align > 0)
-			Log_alignment = (unsigned)align;
-	}
 
 	if (Out_fp == NULL)
 		Out_fp = stderr;
 	else
 		setlinebuf(Out_fp);
 
-#ifdef DEBUG
-	static char namepath[PATH_MAX];
-	LOG(1, "pid %d: program: %s", getpid(),
-		util_getexecname(namepath, PATH_MAX));
-#endif
-	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
+	char *log_level;
+	int log_level_cropped = 0;
+	int ret;
 
-	static __attribute__((used)) const char *version_msg =
-			"src version: " SRCVERSION;
-	LOG(1, "%s", version_msg);
+	if ((log_level = os_getenv(log_level_var)) != NULL) {
+		Log_level = atoi(log_level);
+		if (Log_level < 0) {
+			Log_level = 0;
+		}
+		if (Log_level <= OUT_MAX_LEVEL) {
+			log_level_cropped = Log_level;
+		} else {
+			log_level_cropped = OUT_MAX_LEVEL;
+		}
+	}
+
+	if (log_level != NULL) {
+		ret = core_log_set_threshold(CORE_LOG_THRESHOLD,
+			level_to_core_log_level[log_level_cropped]);
+		if (ret) {
+			CORE_LOG_FATAL("Cannot set log threshold");
+		}
+	}
+
+	if (log_level != NULL || log_file != NULL) {
+		ret = core_log_set_function(out_legacy);
+		if (ret) {
+			CORE_LOG_FATAL("Cannot set legacy log function");
+		}
+	}
+/*
+ * Print library info
+ */
+	static char namepath[PATH_MAX];
+	CORE_LOG_HARK("pid %d: program: %s", getpid(),
+		util_getexecname(namepath, PATH_MAX));
+
+	CORE_LOG_HARK("%s version %d.%d", log_prefix, major_version,
+		minor_version);
+
 #if VG_PMEMCHECK_ENABLED
 	/*
 	 * Attribute "used" to prevent compiler from optimizing out the variable
@@ -212,35 +169,25 @@ out_init(const char *log_prefix, const char *log_level_var,
 	 */
 	static __attribute__((used)) const char *pmemcheck_msg =
 			"compiled with support for Valgrind pmemcheck";
-	LOG(1, "%s", pmemcheck_msg);
+	CORE_LOG_HARK("%s", pmemcheck_msg);
 #endif /* VG_PMEMCHECK_ENABLED */
 #if VG_HELGRIND_ENABLED
 	static __attribute__((used)) const char *helgrind_msg =
 			"compiled with support for Valgrind helgrind";
-	LOG(1, "%s", helgrind_msg);
+	CORE_LOG_HARK("%s", helgrind_msg);
 #endif /* VG_HELGRIND_ENABLED */
 #if VG_MEMCHECK_ENABLED
 	static __attribute__((used)) const char *memcheck_msg =
 			"compiled with support for Valgrind memcheck";
-	LOG(1, "%s", memcheck_msg);
+	CORE_LOG_HARK("%s", memcheck_msg);
 #endif /* VG_MEMCHECK_ENABLED */
 #if VG_DRD_ENABLED
 	static __attribute__((used)) const char *drd_msg =
 			"compiled with support for Valgrind drd";
-	LOG(1, "%s", drd_msg);
+	CORE_LOG_HARK("%s", drd_msg);
 #endif /* VG_DRD_ENABLED */
-#if SDS_ENABLED
-	static __attribute__((used)) const char *shutdown_state_msg =
-			"compiled with support for shutdown state";
-	LOG(1, "%s", shutdown_state_msg);
-#endif
-#if NDCTL_ENABLED
-	static __attribute__((used)) const char *ndctl_ge_63_msg =
-		"compiled with libndctl 63+";
-	LOG(1, "%s", ndctl_ge_63_msg);
-#endif
-
-	Last_errormsg_key_alloc();
+#endif /* DEBUG */
+	last_error_msg_init();
 }
 
 /*
@@ -251,16 +198,17 @@ out_init(const char *log_prefix, const char *log_level_var,
 void
 out_fini(void)
 {
+#ifdef DEBUG
 	if (Out_fp != NULL && Out_fp != stderr) {
 		fclose(Out_fp);
 		Out_fp = stderr;
 	}
-
-	Last_errormsg_fini();
+#endif
 }
 
+#ifdef DEBUG
 /*
- * out_print_func -- default print_func, goes to stderr or Out_fp
+ * out_print_func -- print function, goes to Out_fp (stderr by default)
  */
 static void
 out_print_func(const char *s)
@@ -279,38 +227,6 @@ out_print_func(const char *s)
 }
 
 /*
- * calling Print(s) calls the current print_func...
- */
-typedef void (*Print_func)(const char *s);
-typedef int (*Vsnprintf_func)(char *str, size_t size, const char *format,
-		va_list ap);
-static Print_func Print = out_print_func;
-static Vsnprintf_func Vsnprintf = vsnprintf;
-
-/*
- * out_set_print_func -- allow override of print_func used by out module
- */
-void
-out_set_print_func(void (*print_func)(const char *s))
-{
-	LOG(3, "print %p", print_func);
-
-	Print = (print_func == NULL) ? out_print_func : print_func;
-}
-
-/*
- * out_set_vsnprintf_func -- allow override of vsnprintf_func used by out module
- */
-void
-out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
-				const char *format, va_list ap))
-{
-	LOG(3, "vsnprintf %p", vsnprintf_func);
-
-	Vsnprintf = (vsnprintf_func == NULL) ? vsnprintf : vsnprintf_func;
-}
-
-/*
  * out_snprintf -- (internal) custom snprintf implementation
  */
 FORMAT_PRINTF(3, 4)
@@ -321,7 +237,7 @@ out_snprintf(char *str, size_t size, const char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
-	ret = Vsnprintf(str, size, format, ap);
+	ret = vsnprintf(str, size, format, ap);
 	va_end(ap);
 
 	return (ret);
@@ -331,7 +247,7 @@ out_snprintf(char *str, size_t size, const char *format, ...)
  * out_common -- common output code, all output goes through here
  */
 static void
-out_common(const char *file, int line, const char *func, int level,
+out_common(const char *file, unsigned line, const char *func, int level,
 		const char *suffix, const char *fmt, va_list ap)
 {
 	int oerrno = errno;
@@ -341,17 +257,15 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
-	unsigned long olast_error = 0;
-
 	if (file) {
 		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
 			file = f + 1;
 		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
-				"<%s>: <%d> [%s:%d %s] ",
+				"<%s>: <%d> [%s:%u %s] ",
 				Log_prefix, level, file, line, func);
 		if (ret < 0) {
-			Print("out_snprintf failed");
+			out_print_func("out_snprintf failed");
 			goto end;
 		}
 		cc += (unsigned)ret;
@@ -365,19 +279,11 @@ out_common(const char *file, int line, const char *func, int level,
 		if (*fmt == '!') {
 			sep = ": ";
 			fmt++;
-			if (*fmt == '!') {
-				fmt++;
-				/* it will abort on non Windows OS */
-				util_strwinerror(olast_error, errstr,
-					UTIL_MAX_ERR_MSG);
-			} else {
-				util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
-			}
-
+			util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
 		}
-		ret = Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
+		ret = vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (ret < 0) {
-			Print("Vsnprintf failed");
+			out_print_func("vsnprintf failed");
 			goto end;
 		}
 		cc += (unsigned)ret;
@@ -385,181 +291,33 @@ out_common(const char *file, int line, const char *func, int level,
 
 	out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s%s", sep, errstr, suffix);
 
-	Print(buf);
+	out_print_func(buf);
 
 end:
 	errno = oerrno;
 }
 
 /*
- * out_error -- common error output code, all error messages go through here
+ * out_log_va/out_log -- output a log line if Log_level >= level
  */
 static void
-out_error(const char *file, int line, const char *func,
-		const char *suffix, const char *fmt, va_list ap)
+out_log_va(const char *file, unsigned line, const char *func, int level,
+		const char *fmt, va_list ap)
 {
-	int oerrno = errno;
-	unsigned long olast_error = 0;
-	unsigned cc = 0;
-	int ret;
-	const char *sep = "";
-	char errstr[UTIL_MAX_ERR_MSG] = "";
-
-	char *errormsg = (char *)out_get_errormsg();
-
-	if (errormsg == NULL) {
-		Print("There's no memory to properly format error strings.");
-		return;
-	}
-
-	if (fmt) {
-		if (*fmt == '!') {
-			sep = ": ";
-			fmt++;
-			if (*fmt == '!') {
-				fmt++;
-				/* it will abort on non Windows OS */
-				util_strwinerror(olast_error, errstr,
-					UTIL_MAX_ERR_MSG);
-			} else {
-				util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
-			}
-		}
-
-		ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
-		if (ret < 0) {
-			strcpy(errormsg, "Vsnprintf failed");
-			goto end;
-		}
-		cc += (unsigned)ret;
-		out_snprintf(&errormsg[cc], MAXPRINT - cc, "%s%s",
-				sep, errstr);
-	}
-
-#ifdef DEBUG
-	if (Log_level >= 1) {
-		char buf[MAXPRINT];
-		cc = 0;
-
-		if (file) {
-			char *f = strrchr(file, OS_DIR_SEPARATOR);
-			if (f)
-				file = f + 1;
-			ret = out_snprintf(&buf[cc], MAXPRINT,
-					"<%s>: <1> [%s:%d %s] ",
-					Log_prefix, file, line, func);
-			if (ret < 0) {
-				Print("out_snprintf failed");
-				goto end;
-			}
-			cc += (unsigned)ret;
-			if (cc < Log_alignment) {
-				memset(buf + cc, ' ', Log_alignment - cc);
-				cc = Log_alignment;
-			}
-		}
-
-		out_snprintf(&buf[cc], MAXPRINT - cc, "%s%s", errormsg,
-				suffix);
-
-		Print(buf);
-	}
-#else
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(file, line, func, suffix);
-#endif
-
-end:
-	errno = oerrno;
-}
-
-/*
- * out -- output a line, newline added automatically
- */
-void
-out(const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-
-	out_common(NULL, 0, NULL, 0, "\n", fmt, ap);
-
-	va_end(ap);
-}
-
-/*
- * out_nonl -- output a line, no newline added automatically
- */
-void
-out_nonl(int level, const char *fmt, ...)
-{
-	va_list ap;
-
-	if (Log_level < level)
-			return;
-
-	va_start(ap, fmt);
-	out_common(NULL, 0, NULL, level, "", fmt, ap);
-
-	va_end(ap);
-}
-
-/*
- * out_log -- output a log line if Log_level >= level
- */
-void
-out_log(const char *file, int line, const char *func, int level,
-		const char *fmt, ...)
-{
-	va_list ap;
-
 	if (Log_level < level)
 		return;
-
-	va_start(ap, fmt);
 	out_common(file, line, func, level, "\n", fmt, ap);
-
-	va_end(ap);
 }
 
-/*
- * out_fatal -- output a fatal error & die (i.e. assertion failure)
- */
 void
-out_fatal(const char *file, int line, const char *func,
+out_log(const char *file, unsigned line, const char *func, int level,
 		const char *fmt, ...)
 {
 	va_list ap;
+
 	va_start(ap, fmt);
-
-	out_common(file, line, func, 1, "\n", fmt, ap);
-
-	va_end(ap);
-
-	abort();
-}
-
-/*
- * out_err -- output an error message
- */
-void
-out_err(const char *file, int line, const char *func,
-		const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-
-	out_error(file, line, func, "\n", fmt, ap);
+	out_log_va(file, line, func, level, fmt, ap);
 
 	va_end(ap);
 }
-
-/*
- * out_get_errormsg -- get the last error message
- */
-const char *
-out_get_errormsg(void)
-{
-	const struct errormsg *errormsg = Last_errormsg_get();
-	return &errormsg->msg[0];
-}
+#endif /* DEBUG */

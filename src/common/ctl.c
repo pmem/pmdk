@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * ctl.c -- implementation of the interface for examination and modification of
@@ -8,12 +8,13 @@
 #include "ctl.h"
 #include "os.h"
 #include "alloc.h"
+#include "core_assert.h"
 
 #define CTL_MAX_ENTRIES 100
 
 #define MAX_CONFIG_FILE_LEN (1 << 20) /* 1 megabyte */
 
-#define CTL_STRING_QUERY_SEPARATOR ";"
+#define CTL_STRING_QUERY_SEPARATOR ";:"
 #define CTL_NAME_VALUE_SEPARATOR "="
 #define CTL_QUERY_NODE_SEPARATOR "."
 #define CTL_VALUE_ARG_SEPARATOR ","
@@ -128,7 +129,7 @@ ctl_parse_args(const struct ctl_argument *arg_proto, char *arg)
 
 	char *dest_arg = Malloc(arg_proto->dest_size);
 	if (dest_arg == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return NULL;
 	}
 
@@ -138,7 +139,7 @@ ctl_parse_args(const struct ctl_argument *arg_proto, char *arg)
 			p->parser != NULL; ++p) {
 		ASSERT(p->dest_offset + p->dest_size <= arg_proto->dest_size);
 		if (arg_sep == NULL) {
-			ERR("!strtok_r");
+			ERR_W_ERRNO("strtok_r");
 			goto error_parsing;
 		}
 
@@ -211,7 +212,7 @@ ctl_exec_query_read(void *ctx, const struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	if (arg == NULL) {
-		ERR("read queries require non-NULL argument");
+		ERR_WO_ERRNO("read queries require non-NULL argument");
 		errno = EINVAL;
 		return -1;
 	}
@@ -227,14 +228,14 @@ ctl_exec_query_write(void *ctx, const struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	if (arg == NULL) {
-		ERR("write queries require non-NULL argument");
+		ERR_WO_ERRNO("write queries require non-NULL argument");
 		errno = EINVAL;
 		return -1;
 	}
 
 	void *real_arg = ctl_query_get_real_args(n, arg, source);
 	if (real_arg == NULL) {
-		LOG(1, "Invalid arguments");
+		CORE_LOG_ERROR("Invalid arguments");
 		return -1;
 	}
 
@@ -274,7 +275,7 @@ ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 			ctl, ctx, source, name, type, arg);
 
 	if (name == NULL) {
-		ERR("invalid query");
+		ERR_WO_ERRNO("invalid query");
 		errno = EINVAL;
 		return -1;
 	}
@@ -298,7 +299,7 @@ ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 	}
 
 	if (n == NULL || n->type != CTL_NODE_LEAF || n->cb[type] == NULL) {
-		ERR("invalid query entry point %s", name);
+		ERR_WO_ERRNO("invalid query entry point %s", name);
 		errno = EINVAL;
 		goto out;
 	}
@@ -370,7 +371,7 @@ ctl_load_config(struct ctl *ctl, void *ctx, char *buf)
 	while (qbuf != NULL) {
 		r = ctl_parse_query(qbuf, &name, &value);
 		if (r != 0) {
-			ERR("failed to parse query %s", qbuf);
+			ERR_WO_ERRNO("failed to parse query %s", qbuf);
 			return -1;
 		}
 
@@ -396,7 +397,7 @@ ctl_load_config_from_string(struct ctl *ctl, void *ctx, const char *cfg_string)
 
 	char *buf = Strdup(cfg_string);
 	if (buf == NULL) {
-		ERR("!Strdup");
+		ERR_W_ERRNO("Strdup");
 		return -1;
 	}
 
@@ -432,7 +433,7 @@ ctl_load_config_from_file(struct ctl *ctl, void *ctx, const char *cfg_file)
 		goto error_file_parse;
 
 	if (fsize > MAX_CONFIG_FILE_LEN) {
-		ERR("Config file too large");
+		ERR_WO_ERRNO("Config file too large");
 		goto error_file_parse;
 	}
 
@@ -441,7 +442,7 @@ ctl_load_config_from_file(struct ctl *ctl, void *ctx, const char *cfg_file)
 
 	char *buf = Zalloc((size_t)fsize + 1); /* +1 for NULL-termination */
 	if (buf == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		goto error_file_parse;
 	}
 
@@ -475,7 +476,7 @@ ctl_new(void)
 {
 	struct ctl *c = Zalloc(sizeof(struct ctl));
 	if (c == NULL) {
-		ERR("!Zalloc");
+		ERR_W_ERRNO("Zalloc");
 		return NULL;
 	}
 
@@ -558,7 +559,7 @@ ctl_arg_integer(const void *arg, void *dest, size_t dest_size)
 			*(uint8_t *)dest = (uint8_t)val;
 			break;
 		default:
-			ERR("invalid destination size %zu", dest_size);
+			ERR_WO_ERRNO("invalid destination size %zu", dest_size);
 			errno = EINVAL;
 			return -1;
 	}

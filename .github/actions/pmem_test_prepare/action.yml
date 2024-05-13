@@ -9,6 +9,10 @@ inputs:
     description: Build with the fault injection capability
     required: false
     default: '0'
+  valgrind:
+    description: Build with Valgrind support
+    required: true
+
 runs:
   using: composite
   steps:
@@ -30,6 +34,9 @@ runs:
     - env:
         FAULT_INJECTION: ${{ inputs.fault_injection }}
         NDCTL_ENABLE: ${{ inputs.ndctl_enable }}
+        PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: ${{ inputs.ndctl_enable == 'n' && 'y' || 'n' }}
+        PMEMOBJ_IGNORE_BAD_BLOCKS: ${{ inputs.ndctl_enable == 'n' && 'y' || 'n' }}
+        VALGRIND: ${{ inputs.valgrind }}
       run: |
         echo '::group::Build'
         $WORKDIR/build-pmdk.sh

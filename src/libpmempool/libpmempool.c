@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * libpmempool.c -- entry points for libpmempool
@@ -56,15 +56,17 @@ pmempool_check_versionU(unsigned major_required, unsigned minor_required)
 			major_required, minor_required);
 
 	if (major_required != PMEMPOOL_MAJOR_VERSION) {
-		ERR("libpmempool major version mismatch (need %u, found %u)",
+		ERR_WO_ERRNO(
+		    "libpmempool major version mismatch (need %u, found %u)",
 			major_required, PMEMPOOL_MAJOR_VERSION);
-		return out_get_errormsg();
+		return last_error_msg_get();
 	}
 
 	if (minor_required > PMEMPOOL_MINOR_VERSION) {
-		ERR("libpmempool minor version mismatch (need %u, found %u)",
+		ERR_WO_ERRNO(
+			"libpmempool minor version mismatch (need %u, found %u)",
 			minor_required, PMEMPOOL_MINOR_VERSION);
-		return out_get_errormsg();
+		return last_error_msg_get();
 	}
 
 	return NULL;
@@ -80,17 +82,17 @@ pmempool_check_version(unsigned major_required, unsigned minor_required)
 }
 
 /*
- * pmempool_errormsgU -- return last error message
+ * pmempool_errormsgU -- return the last error message
  */
 static inline
 const char *
 pmempool_errormsgU(void)
 {
-	return out_get_errormsg();
+	return last_error_msg_get();
 }
 
 /*
- * pmempool_errormsg -- return last error message
+ * pmempool_errormsg -- return the last error message
  */
 const char *
 pmempool_errormsg(void)
@@ -130,7 +132,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	 * args_size.
 	 */
 	if (args_size < sizeof(struct pmempool_check_args)) {
-		ERR("provided args_size is not supported");
+		ERR_WO_ERRNO("provided args_size is not supported");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -144,8 +146,9 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	if (util_flag_isclr(args->flags, PMEMPOOL_CHECK_REPAIR) &&
 			util_flag_isset(args->flags, PMEMPOOL_CHECK_DRY_RUN |
 			PMEMPOOL_CHECK_ADVANCED | PMEMPOOL_CHECK_ALWAYS_YES)) {
-		ERR("dry_run, advanced and always_yes are applicable only if "
-			"repair is set");
+		ERR_WO_ERRNO(
+			"dry_run, advanced and always_yes are applicable "
+			"only if repair is set");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -155,7 +158,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	 */
 	if (util_flag_isset(args->flags, PMEMPOOL_CHECK_DRY_RUN) &&
 			args->backup_path != NULL) {
-		ERR("dry run does not allow one to perform backup");
+		ERR_WO_ERRNO("dry run does not allow one to perform backup");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -164,14 +167,14 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	 * libpmempool uses str format of communication so it must be set
 	 */
 	if (util_flag_isclr(args->flags, PMEMPOOL_CHECK_FORMAT_STR)) {
-		ERR("PMEMPOOL_CHECK_FORMAT_STR flag must be set");
+		ERR_WO_ERRNO("PMEMPOOL_CHECK_FORMAT_STR flag must be set");
 		errno = EINVAL;
 		return NULL;
 	}
 
 	PMEMpoolcheck *ppc = calloc(1, sizeof(*ppc));
 	if (ppc == NULL) {
-		ERR("!calloc");
+		ERR_W_ERRNO("calloc");
 		return NULL;
 	}
 
@@ -179,7 +182,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	memcpy(&ppc->args, args, sizeof(ppc->args));
 	ppc->path = strdup(args->path);
 	if (!ppc->path) {
-		ERR("!strdup");
+		ERR_W_ERRNO("strdup");
 		goto error_path_malloc;
 	}
 	ppc->args.path = ppc->path;
@@ -187,7 +190,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	if (args->backup_path != NULL) {
 		ppc->backup_path = strdup(args->backup_path);
 		if (!ppc->backup_path) {
-			ERR("!strdup");
+			ERR_W_ERRNO("strdup");
 			goto error_backup_path_malloc;
 		}
 		ppc->args.backup_path = ppc->backup_path;

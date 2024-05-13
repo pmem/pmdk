@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * anonymous_mmap.c -- tool for verifying if given memory length can be
@@ -18,7 +18,7 @@ main(int argc, char *argv[])
 	out_init("ANONYMOUS_MMAP", "ANONYMOUS_MMAP", "", 1, 0);
 
 	if (argc != 2) {
-		out("Usage: %s <length>", argv[0]);
+		printf("Usage: %s <length>\n", argv[0]);
 		return -1;
 	}
 
@@ -26,8 +26,9 @@ main(int argc, char *argv[])
 	char *addr = mmap(NULL, length, PROT_READ,
 				MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 	if (addr == MAP_FAILED) {
-		out("anonymous_mmap.c: Failed to mmap length=%lu of memory, "
-			"errno=%d", length, errno);
+		printf(
+			"anonymous_mmap.c: Failed to mmap length=%lu of memory, errno=%d\n",
+			length, errno);
 		return errno;
 	}
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * pmalloc.c -- implementation of pmalloc POSIX-like API
@@ -166,7 +166,10 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 	struct operation_context *ctx =
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	int ret = palloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
+#ifdef DEBUG /* variables required for ASSERTs below */
+	int ret =
+#endif
+	palloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
 		0, 0, 0, 0, ctx);
 	ASSERTeq(ret, 0);
 
@@ -231,13 +234,13 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 	}
 
 	if (p->alignment != 0 && p->unit_size % p->alignment != 0) {
-		ERR("unit size must be evenly divisible by alignment");
+		ERR_WO_ERRNO("unit size must be evenly divisible by alignment");
 		errno = EINVAL;
 		return -1;
 	}
 
 	if (p->alignment > (MEGABYTE * 2)) {
-		ERR("alignment cannot be larger than 2 megabytes");
+		ERR_WO_ERRNO("alignment cannot be larger than 2 megabytes");
 		errno = EINVAL;
 		return -1;
 	}
@@ -255,14 +258,15 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 			break;
 		case MAX_POBJ_HEADER_TYPES:
 		default:
-			ERR("invalid header type");
+			ERR_WO_ERRNO("invalid header type");
 			errno = EINVAL;
 			return -1;
 	}
 
 	if (PMDK_SLIST_EMPTY(indexes)) {
 		if (alloc_class_find_first_free_slot(ac, &id) != 0) {
-			ERR("no available free allocation class identifier");
+			ERR_WO_ERRNO(
+			    "no available free allocation class identifier");
 			errno = EINVAL;
 			return -1;
 		}
@@ -271,7 +275,7 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 		ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
 		if (idx->value < 0 || idx->value >= MAX_ALLOCATION_CLASSES) {
-			ERR("class id outside of the allowed range");
+			ERR_WO_ERRNO("class id outside of the allowed range");
 			errno = ERANGE;
 			return -1;
 		}
@@ -279,7 +283,8 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 		id = (uint8_t)idx->value;
 
 		if (alloc_class_reserve(ac, id) != 0) {
-			ERR("attempted to overwrite an allocation class");
+			ERR_WO_ERRNO(
+				"attempted to overwrite an allocation class");
 			errno = EEXIST;
 			return -1;
 		}
@@ -324,6 +329,9 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
 {
 	const char *vstr = arg;
 	enum pobj_header_type *htype = dest;
+#ifndef DEBUG
+	SUPPRESS_UNUSED(dest_size);
+#endif
 	ASSERTeq(dest_size, sizeof(enum pobj_header_type));
 
 	if (strcmp(vstr, "none") == 0) {
@@ -333,7 +341,7 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
 	} else if (strcmp(vstr, "legacy") == 0) {
 		*htype = POBJ_HEADER_LEGACY;
 	} else {
-		ERR("invalid header type");
+		ERR_WO_ERRNO("invalid header type");
 		errno = EINVAL;
 		return -1;
 	}
@@ -358,7 +366,7 @@ CTL_READ_HANDLER(desc)(void *ctx,
 	ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
 	if (idx->value < 0 || idx->value >= MAX_ALLOCATION_CLASSES) {
-		ERR("class id outside of the allowed range");
+		ERR_WO_ERRNO("class id outside of the allowed range");
 		errno = ERANGE;
 		return -1;
 	}
@@ -369,7 +377,7 @@ CTL_READ_HANDLER(desc)(void *ctx,
 		heap_alloc_classes(&pop->heap), id);
 
 	if (c == NULL) {
-		ERR("class with the given id does not exist");
+		ERR_WO_ERRNO("class with the given id does not exist");
 		errno = ENOENT;
 		return -1;
 	}
@@ -448,7 +456,9 @@ CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 
 	ssize_t arg_in = *(ssize_t *)arg;
 	if (arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
-		ERR("incorrect size for extend, must be larger than %" PRIu64,
+		ERR_WO_ERRNO(
+			"incorrect size for extend, must be larger than %"
+			PRIu64,
 			PMEMOBJ_MIN_PART);
 		return -1;
 	}
@@ -498,7 +508,9 @@ CTL_WRITE_HANDLER(granularity)(void *ctx,
 
 	ssize_t arg_in = *(int *)arg;
 	if (arg_in != 0 && arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
-		ERR("incorrect grow size, must be 0 or larger than %" PRIu64,
+		ERR_WO_ERRNO(
+			"incorrect grow size, must be 0 or larger than %"
+			PRIu64,
 			PMEMOBJ_MIN_PART);
 		return -1;
 	}
@@ -561,7 +573,7 @@ CTL_WRITE_HANDLER(max)(void *ctx,
 
 	int ret = heap_set_narenas_max(&pop->heap, size);
 	if (ret) {
-		LOG(1, "cannot change max arena number");
+		ERR_WO_ERRNO("cannot change max arena number");
 		return -1;
 	}
 
@@ -627,7 +639,7 @@ CTL_WRITE_HANDLER(arena_id)(void *ctx,
 	 * or if it is not equal zero
 	 */
 	if (arena_id < 1 || arena_id > narenas) {
-		LOG(1, "arena id outside of the allowed range: <1,%u>",
+		ERR_WO_ERRNO("arena id outside of the allowed range: <1,%u>",
 			narenas);
 		errno = ERANGE;
 		return -1;
@@ -665,14 +677,14 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 	 * or if it is not equal zero
 	 */
 	if (arena_id < 1 || arena_id > narenas) {
-		LOG(1, "arena id outside of the allowed range: <1,%u>",
+		ERR_WO_ERRNO("arena id outside of the allowed range: <1,%u>",
 			narenas);
 		errno = ERANGE;
 		return -1;
 	}
 
 	if (arg_in != 0 && arg_in != 1) {
-		LOG(1, "incorrect arena state, must be 0 or 1");
+		ERR_WO_ERRNO("incorrect arena state, must be 0 or 1");
 		return -1;
 	}
 
@@ -704,7 +716,7 @@ CTL_READ_HANDLER(automatic)(void *ctx,
 	 * or if it is not equal zero
 	 */
 	if (arena_id < 1 || arena_id > narenas) {
-		LOG(1, "arena id outside of the allowed range: <1,%u>",
+		ERR_WO_ERRNO("arena id outside of the allowed range: <1,%u>",
 			narenas);
 		errno = ERANGE;
 		return -1;
@@ -752,7 +764,7 @@ CTL_READ_HANDLER(size)(void *ctx,
 	 * or if it is not equal zero
 	 */
 	if (arena_id < 1 || arena_id > narenas) {
-		LOG(1, "arena id outside of the allowed range: <1,%u>",
+		ERR_WO_ERRNO("arena id outside of the allowed range: <1,%u>",
 			narenas);
 		errno = ERANGE;
 		return -1;
@@ -894,6 +906,9 @@ arenas_assignment_type_parser(const void *arg, void *dest, size_t dest_size)
 {
 	const char *vstr = arg;
 	enum pobj_arenas_assignment_type *atype = dest;
+#ifndef DEBUG
+	SUPPRESS_UNUSED(dest_size);
+#endif
 	ASSERTeq(dest_size, sizeof(enum pobj_header_type));
 
 	if (strcmp(vstr, "global") == 0) {
@@ -901,7 +916,7 @@ arenas_assignment_type_parser(const void *arg, void *dest, size_t dest_size)
 	} else if (strcmp(vstr, "thread") == 0) {
 		*atype = POBJ_ARENAS_ASSIGNMENT_THREAD_KEY;
 	} else {
-		ERR("invalid arena assignment type");
+		ERR_WO_ERRNO("invalid arena assignment type");
 		errno = EINVAL;
 		return -1;
 	}
@@ -951,7 +966,7 @@ CTL_WRITE_HANDLER(arenas_default_max)(void *ctx,
 	unsigned size = *(unsigned *)arg;
 
 	if (size == 0) {
-		LOG(1, "number of default arenas can't be 0");
+		ERR_WO_ERRNO("number of default arenas can't be 0");
 		return -1;
 	}
 

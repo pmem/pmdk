@@ -1,4 +1,4 @@
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2024, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,4 +40,8 @@ SOURCE +=\
 	$(CORE)/ravl.c\
 	$(CORE)/ravl_interval.c\
 	$(CORE)/util.c\
-	$(CORE)/util_posix.c
+	$(CORE)/util_posix.c \
+	$(CORE)/last_error_msg.c\
+	$(CORE)/log.c \
+	$(CORE)/log_default.c
+

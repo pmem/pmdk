@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * heap.c -- heap implementation
@@ -184,7 +184,7 @@ heap_arena_new(struct palloc_heap *heap, int automatic)
 
 	struct arena *arena = Zalloc(sizeof(struct arena));
 	if (arena == NULL) {
-		ERR("!heap: arena malloc error");
+		ERR_W_ERRNO("heap: arena malloc error");
 		return NULL;
 	}
 	arena->nthreads = 0;
@@ -741,7 +741,9 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 
 	struct recycler_element e = recycler_element_new(heap, m);
 	if (c == NULL) {
+#ifdef DEBUG
 		uint32_t size_idx = m->size_idx;
+#endif
 		struct run_bitmap b;
 		m->m_ops->get_bitmap(m, &b);
 
@@ -763,7 +765,9 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 		c->rdsc.nallocs);
 
 	if (recycler == NULL || recycler_put(recycler, e) < 0)
-		ERR("lost runtime tracking info of %u run due to OOM", c->id);
+		ERR_WO_ERRNO(
+			"lost runtime tracking info of %u run due to OOM",
+			c->id);
 
 	return 0;
 }
@@ -825,7 +829,9 @@ heap_ensure_zone_reclaimed(struct palloc_heap *heap, uint32_t zone_id)
 		DEFAULT_ALLOC_CLASS_ID,
 		HEAP_ARENA_PER_THREAD);
 
+#ifdef DEBUG /* variables required for ASSERTs below */
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
+#endif
 	ASSERTeq(z->header.magic, ZONE_HEADER_MAGIC);
 
 	/* check a second time just to make sure no other thread was first */
@@ -1042,7 +1048,7 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 	struct recycler *recycler = heap_get_recycler(heap, aclass->id,
 		aclass->rdsc.nallocs);
 	if (recycler == NULL) {
-		ERR("lost runtime tracking info of %u run due to OOM",
+		ERR_WO_ERRNO("lost runtime tracking info of %u run due to OOM",
 			aclass->id);
 		return 0;
 	}
@@ -1158,7 +1164,7 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 	struct recycler *recycler = heap_get_recycler(heap, c->id,
 		c->rdsc.nallocs);
 	if (recycler == NULL) {
-		ERR("lost runtime tracking info of %u run due to OOM",
+		ERR_WO_ERRNO("lost runtime tracking info of %u run due to OOM",
 			c->id);
 	} else {
 		recycler_inc_unaccounted(recycler, m);
@@ -1183,7 +1189,7 @@ heap_split_block(struct palloc_heap *heap, struct bucket *b,
 			NULL, NULL, 0, 0, NULL};
 		memblock_rebuild_state(heap, &r);
 		if (bucket_insert_block(b, &r) != 0)
-			LOG(2,
+			CORE_LOG_WARNING(
 				"failed to allocate memory block runtime tracking info");
 	} else {
 		uint32_t new_chunk_id = m->chunk_id + units;
@@ -1195,7 +1201,7 @@ heap_split_block(struct palloc_heap *heap, struct bucket *b,
 		*m = memblock_huge_init(heap, m->chunk_id, m->zone_id, units);
 
 		if (bucket_insert_block(b, &n) != 0)
-			LOG(2,
+			CORE_LOG_WARNING(
 				"failed to allocate memory block runtime tracking info");
 	}
 
@@ -1234,6 +1240,7 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	return 0;
 }
 
+#if VG_MEMCHECK_ENABLED
 /*
  * heap_end -- returns first address after heap
  */
@@ -1246,6 +1253,7 @@ heap_end(struct palloc_heap *h)
 
 	return &last_zone->chunks[last_zone->header.size_idx];
 }
+#endif /* VG_MEMCHECK_ENABLED */
 
 /*
  * heap_arena_create -- create a new arena, push it to the vector
@@ -1318,7 +1326,7 @@ heap_set_narenas_max(struct palloc_heap *heap, unsigned size)
 	util_mutex_lock(&h->arenas.lock);
 	unsigned capacity = (unsigned)VEC_CAPACITY(&h->arenas.vec);
 	if (size < capacity) {
-		LOG(2, "cannot decrease max number of arenas");
+		CORE_LOG_ERROR("cannot decrease max number of arenas");
 		goto out;
 	} else if (size == capacity) {
 		ret = 0;
@@ -1401,7 +1409,7 @@ heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 	a = VEC_ARR(&heap->rt->arenas.vec)[arena_id - 1];
 
 	if (!automatic && nautomatic <= 1 && a->automatic) {
-		ERR("at least one automatic arena must exist");
+		ERR_WO_ERRNO("at least one automatic arena must exist");
 		ret = -1;
 		goto out;
 	}
@@ -1596,7 +1604,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	}
 
 	if (heap_size < *sizep) {
-		ERR("mapped region smaller than the heap size");
+		ERR_WO_ERRNO("mapped region smaller than the heap size");
 		return EINVAL;
 	}
 
@@ -1778,12 +1786,12 @@ static int
 heap_verify_header(struct heap_header *hdr)
 {
 	if (util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0, 0) != 1) {
-		ERR("heap: invalid header's checksum");
+		ERR_WO_ERRNO("heap: invalid header's checksum");
 		return -1;
 	}
 
 	if (memcmp(hdr->signature, HEAP_SIGNATURE, HEAP_SIGNATURE_LEN) != 0) {
-		ERR("heap: invalid signature");
+		ERR_WO_ERRNO("heap: invalid signature");
 		return -1;
 	}
 
@@ -1801,7 +1809,7 @@ heap_verify_zone_header(struct zone_header *hdr)
 		return 0;
 
 	if (hdr->size_idx == 0) {
-		ERR("heap: invalid zone size");
+		ERR_WO_ERRNO("heap: invalid zone size");
 		return -1;
 	}
 
@@ -1816,17 +1824,17 @@ static int
 heap_verify_chunk_header(struct chunk_header *hdr)
 {
 	if (hdr->type == CHUNK_TYPE_UNKNOWN) {
-		ERR("heap: invalid chunk type");
+		ERR_WO_ERRNO("heap: invalid chunk type");
 		return -1;
 	}
 
 	if (hdr->type >= MAX_CHUNK_TYPE) {
-		ERR("heap: unknown chunk type");
+		ERR_WO_ERRNO("heap: unknown chunk type");
 		return -1;
 	}
 
 	if (hdr->flags & ~CHUNK_FLAGS_ALL_VALID) {
-		ERR("heap: invalid chunk flags");
+		ERR_WO_ERRNO("heap: invalid chunk flags");
 		return -1;
 	}
 
@@ -1843,7 +1851,7 @@ heap_verify_zone(struct zone *zone)
 		return 0; /* not initialized, and that is OK */
 
 	if (zone->header.magic != ZONE_HEADER_MAGIC) {
-		ERR("heap: invalid zone magic");
+		ERR_WO_ERRNO("heap: invalid zone magic");
 		return -1;
 	}
 
@@ -1859,7 +1867,7 @@ heap_verify_zone(struct zone *zone)
 	}
 
 	if (i != zone->header.size_idx) {
-		ERR("heap: chunk sizes mismatch");
+		ERR_WO_ERRNO("heap: chunk sizes mismatch");
 		return -1;
 	}
 
@@ -1875,7 +1883,7 @@ int
 heap_check(void *heap_start, uint64_t heap_size)
 {
 	if (heap_size < HEAP_MIN_SIZE) {
-		ERR("heap: invalid heap size");
+		ERR_WO_ERRNO("heap: invalid heap size");
 		return -1;
 	}
 

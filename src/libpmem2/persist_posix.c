@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2021, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * persist_posix.c -- POSIX-specific part of persist implementation
@@ -37,7 +37,7 @@ pmem2_flush_file_buffers_os(struct pmem2_map *map, const void *addr, size_t len,
 		ret = msync((void *)addr, len, MS_SYNC);
 
 		if (ret < 0) {
-			ERR("!msync");
+			ERR_W_ERRNO("msync");
 		} else {
 			/* full flush */
 			VALGRIND_DO_PERSIST((uintptr_t)addr, len);

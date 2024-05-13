@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2024, Intel Corporation
 
 #
 # src/test/ex_libpmemobj/TEST17 -- unit test for libpmemobj examples
@@ -13,16 +13,20 @@ require_test_type medium
 
 setup
 
+. ./common.sh
+
 EX_PATH=../../examples/libpmemobj
 
-expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 foo 100 > out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/lists $DIR/testfile1 2 bar 200 >> out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/lists $DIR/testfile1 3 foo 300 >> out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 bar 400 >> out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 foo print >> out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/lists $DIR/testfile1 2 bar print >> out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/lists $DIR/testfile1 3 foo print >> out$UNITTEST_NUM.log 2>&1
-expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 bar print >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 foo 100 > $LOG_TEMP 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 2 bar 200 >> $LOG_TEMP 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 3 foo 300 >> $LOG_TEMP 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 bar 400 >> $LOG_TEMP 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 foo print >> $LOG_TEMP 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 2 bar print >> $LOG_TEMP 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 3 foo print >> $LOG_TEMP 2>&1
+expect_normal_exit $EX_PATH/lists $DIR/testfile1 1 bar print >> $LOG_TEMP 2>&1
+
+mv $LOG_TEMP $LOG
 
 check
 

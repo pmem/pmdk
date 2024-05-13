@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 /*
  * Copyright (c) 2016-2020, Microsoft Corporation. All rights reserved.
  *
@@ -101,7 +101,6 @@ int util_snprintf(char *str, size_t size,
 
 #define UTIL_MAX_ERR_MSG 128
 void util_strerror(int errnum, char *buff, size_t bufflen);
-void util_strwinerror(unsigned long err, char *buff, size_t bufflen);
 
 void util_set_alloc_funcs(
 		void *(*malloc_func)(size_t size),
@@ -320,9 +319,9 @@ char *util_concat_str(const char *s1, const char *s2);
 #define GLUE_I(A, B) A##B
 
 /* macro for suppresing errors from unused variables (up to 9) */
-#define SUPPRESS_UNUSED(...)\
+#define SUPPRESS_UNUSED(...) \
 	GLUE(SUPPRESS_ARG_, COUNT(__VA_ARGS__))(__VA_ARGS__)
-#define SUPPRESS_ARG_1(X) (void) X
+#define SUPPRESS_ARG_1(X) (void) (X)
 #define SUPPRESS_ARG_2(X, ...) SUPPRESS_ARG_1(X); SUPPRESS_ARG_1(__VA_ARGS__)
 #define SUPPRESS_ARG_3(X, ...) SUPPRESS_ARG_1(X); SUPPRESS_ARG_2(__VA_ARGS__)
 #define SUPPRESS_ARG_4(X, ...) SUPPRESS_ARG_1(X); SUPPRESS_ARG_3(__VA_ARGS__)

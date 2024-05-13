@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2017, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * traces.c -- unit test for traces
@@ -24,9 +24,9 @@ main(int argc, char *argv[])
 	/* Execute test */
 	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 			MAJOR_VERSION, MINOR_VERSION);
-	LOG(0, "Log level NONE");
-	LOG(1, "Log level ERROR");
-	LOG(2, "Log level WARNING");
+	CORE_LOG_HARK("Log level HARK");
+	CORE_LOG_ERROR("Log level ERROR");
+	CORE_LOG_WARNING("Log level WARNING");
 	LOG(3, "Log level INFO");
 	LOG(4, "Log level DEBUG");
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * lane.c -- lane implementation
@@ -17,7 +17,7 @@
 #include "libpmemobj.h"
 #include "critnib.h"
 #include "lane.h"
-#include "out.h"
+#include "core_assert.h"
 #include "util.h"
 #include "obj.h"
 #include "os_thread.h"
@@ -40,7 +40,7 @@ lane_info_create(void)
 {
 	Lane_info_ht = critnib_new();
 	if (Lane_info_ht == NULL)
-		FATAL("critnib_new");
+		CORE_LOG_FATAL("critnib_new");
 }
 
 /*
@@ -77,7 +77,7 @@ lane_info_ht_boot(void)
 	int result = os_tls_set(Lane_info_key, Lane_info_ht);
 	if (result != 0) {
 		errno = result;
-		FATAL("!os_tls_set");
+		CORE_LOG_FATAL_W_ERRNO("os_tls_set");
 	}
 }
 
@@ -102,7 +102,7 @@ lane_info_boot(void)
 	int result = os_tls_key_create(&Lane_info_key, lane_info_ht_destroy);
 	if (result != 0) {
 		errno = result;
-		FATAL("!os_tls_key_create");
+		CORE_LOG_FATAL_W_ERRNO("os_tls_key_create");
 	}
 }
 
@@ -264,7 +264,7 @@ lane_boot(PMEMobjpool *pop)
 	pop->lanes_desc.lane = Malloc(sizeof(struct lane) * pop->nlanes);
 	if (pop->lanes_desc.lane == NULL) {
 		err = ENOMEM;
-		ERR("!Malloc of volatile lanes");
+		ERR_W_ERRNO("Malloc of volatile lanes");
 		goto error_lanes_malloc;
 	}
 
@@ -273,7 +273,7 @@ lane_boot(PMEMobjpool *pop)
 	pop->lanes_desc.lane_locks =
 		Zalloc(sizeof(*pop->lanes_desc.lane_locks) * pop->nlanes);
 	if (pop->lanes_desc.lane_locks == NULL) {
-		ERR("!Malloc for lane locks");
+		ERR_W_ERRNO("Malloc for lane locks");
 		goto error_locks_malloc;
 	}
 
@@ -286,7 +286,7 @@ lane_boot(PMEMobjpool *pop)
 		struct lane_layout *layout = lane_get_layout(pop, i);
 
 		if ((err = lane_init(pop, &pop->lanes_desc.lane[i], layout))) {
-			ERR("!lane_init");
+			ERR_W_ERRNO("lane_init");
 			goto error_lane_init;
 		}
 	}
@@ -414,7 +414,8 @@ lane_check(PMEMobjpool *pop)
 		layout = lane_get_layout(pop, j);
 		if (ulog_check((struct ulog *)&layout->internal,
 		    OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops) != 0) {
-			LOG(2, "lane %" PRIu64 " internal redo failed: %d",
+			CORE_LOG_ERROR(
+				"lane %" PRIu64 " internal redo failed: %d",
 				j, err);
 			return err;
 		}
@@ -479,7 +480,7 @@ get_lane_info_record(PMEMobjpool *pop)
 	if (unlikely(info == NULL)) {
 		info = Malloc(sizeof(struct lane_info));
 		if (unlikely(info == NULL)) {
-			FATAL("Malloc");
+			CORE_LOG_FATAL("Malloc");
 		}
 		info->pop_uuid_lo = pop->uuid_lo;
 		info->lane_idx = UINT64_MAX;
@@ -495,7 +496,7 @@ get_lane_info_record(PMEMobjpool *pop)
 
 		if (unlikely(critnib_insert(
 				Lane_info_ht, pop->uuid_lo, info) != 0)) {
-			FATAL("critnib_insert");
+			CORE_LOG_FATAL("critnib_insert");
 		}
 	}
 
@@ -551,12 +552,12 @@ lane_release(PMEMobjpool *pop)
 	ASSERTne(lane->lane_idx, UINT64_MAX);
 
 	if (unlikely(lane->nest_count == 0)) {
-		FATAL("lane_release");
+		CORE_LOG_FATAL("lane_release");
 	} else if (--(lane->nest_count) == 0) {
 		if (unlikely(!util_bool_compare_and_swap64(
 				&pop->lanes_desc.lane_locks[lane->lane_idx],
 				1, 0))) {
-			FATAL("util_bool_compare_and_swap64");
+			CORE_LOG_FATAL("util_bool_compare_and_swap64");
 		}
 	}
 }

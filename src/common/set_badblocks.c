@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2023, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * set_badblocks.c - common part of implementation of bad blocks API
@@ -43,13 +43,15 @@ badblocks_check_file_cb(struct part_file *pf, void *arg)
 
 	int ret = badblocks_check_file(pf->part->path);
 	if (ret < 0) {
-		ERR("checking the pool file for bad blocks failed -- '%s'",
+		ERR_WO_ERRNO(
+			"checking the pool file for bad blocks failed -- '%s'",
 			pf->part->path);
 		return -1;
 	}
 
 	if (ret > 0) {
-		ERR("part file contains bad blocks -- '%s'", pf->part->path);
+		ERR_WO_ERRNO("part file contains bad blocks -- '%s'",
+			pf->part->path);
 		pcfcb->n_files_bbs++;
 		pf->part->has_bad_blocks = 1;
 	}
@@ -81,7 +83,8 @@ badblocks_check_poolset(struct pool_set *set, int create)
 	}
 
 	if (cfcb.n_files_bbs) {
-		LOG(1, "%i pool file(s) contain bad blocks", cfcb.n_files_bbs);
+		CORE_LOG_ERROR("%i pool file(s) contain bad blocks",
+			cfcb.n_files_bbs);
 		set->has_bad_blocks = 1;
 	}
 
@@ -114,7 +117,8 @@ badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
 
 	int ret = badblocks_clear_all(pf->part->path);
 	if (ret < 0) {
-		ERR("clearing bad blocks in the pool file failed -- '%s'",
+		ERR_WO_ERRNO(
+			"clearing bad blocks in the pool file failed -- '%s'",
 			pf->part->path);
 		errno = EIO;
 		return -1;
@@ -164,7 +168,7 @@ badblocks_recovery_file_alloc(const char *file, unsigned rep, unsigned part)
 
 	path = Malloc(len_path + 1);
 	if (path == NULL) {
-		ERR("!Malloc");
+		ERR_W_ERRNO("Malloc");
 		return NULL;
 	}
 
@@ -206,7 +210,7 @@ badblocks_recovery_file_exists(struct pool_set *set)
 			char *rec_file =
 				badblocks_recovery_file_alloc(set->path, r, p);
 			if (rec_file == NULL) {
-				LOG(1,
+				CORE_LOG_ERROR(
 					"allocating name of bad block recovery file failed");
 				return -1;
 			}

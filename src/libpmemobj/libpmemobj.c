@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * libpmemobj.c -- pmem entry points for libpmemobj
@@ -49,15 +49,17 @@ pmemobj_check_versionU(unsigned major_required, unsigned minor_required)
 			major_required, minor_required);
 
 	if (major_required != PMEMOBJ_MAJOR_VERSION) {
-		ERR("libpmemobj major version mismatch (need %u, found %u)",
+		ERR_WO_ERRNO(
+			"libpmemobj major version mismatch (need %u, found %u)",
 			major_required, PMEMOBJ_MAJOR_VERSION);
-		return out_get_errormsg();
+		return last_error_msg_get();
 	}
 
 	if (minor_required > PMEMOBJ_MINOR_VERSION) {
-		ERR("libpmemobj minor version mismatch (need %u, found %u)",
+		ERR_WO_ERRNO(
+			"libpmemobj minor version mismatch (need %u, found %u)",
 			minor_required, PMEMOBJ_MINOR_VERSION);
-		return out_get_errormsg();
+		return last_error_msg_get();
 	}
 
 	return NULL;
@@ -88,17 +90,17 @@ pmemobj_set_funcs(
 }
 
 /*
- * pmemobj_errormsgU -- return last error message
+ * pmemobj_errormsgU -- return the last error message
  */
 static inline
 const char *
 pmemobj_errormsgU(void)
 {
-	return out_get_errormsg();
+	return last_error_msg_get();
 }
 
 /*
- * pmemobj_errormsg -- return last error message
+ * pmemobj_errormsg -- return the last error message
  */
 const char *
 pmemobj_errormsg(void)

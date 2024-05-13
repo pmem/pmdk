@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 #
 #
 # pmempool_transform/TEST9 -- test for checking pmempool transform;
@@ -86,6 +86,7 @@ dump_pool_info ${DEVICE_DAX_PATH[1]} >> $LOG_TEMP
 expect_normal_exit $CMPMAP$EXESUFFIX -z -l $HDR_LEN ${DEVICE_DAX_PATH[0]}
 
 mv $LOG_TEMP $LOG
+
 check
 
 pass

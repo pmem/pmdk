@@ -1,0 +1,41 @@
+# Verify the log calls test is up-to-date
+name: Log calls
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+
+jobs:
+  log-calls:
+    name: Log calls
+    env:
+      WORKING_DIRECTORY: utils/call_stacks_analysis/
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the git repo
+        uses: actions/checkout@v4
+
+      - name: Generate log calls' diff
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          ./log_call_all_generate.py
+          git diff > log_calls.diff
+          echo "length=$(cat log_calls.diff | wc -l)" >> $GITHUB_OUTPUT
+        id: log_calls_diff
+
+      - name: Non-empty diff
+        if: steps.log_calls_diff.outputs.length != '0'
+        run: cat ${{ env.WORKING_DIRECTORY }}/log_calls.diff
+
+      - name: Upload artifacts
+        if: steps.log_calls_diff.outputs.length != '0'
+        uses: actions/upload-artifact@v3
+        with:
+          name: log_calls_diff
+          path: ${{ env.WORKING_DIRECTORY }}/log_calls.diff
+
+      - name: Exit code
+        run: |
+          [ "${{steps.log_calls_diff.outputs.length}}" != '0' ] && exit 1
+          exit 0

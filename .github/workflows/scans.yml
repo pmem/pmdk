@@ -22,6 +22,8 @@ jobs:
     name: Coverity
   call-coverage:
     uses: ./.github/workflows/scan_coverage.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     name: Coverage
   call-documentation:
     uses: ./.github/workflows/scan_documentation.yml
@@ -32,3 +34,6 @@ jobs:
   call-stack-usage:
     uses: ./.github/workflows/scan_stack_usage.yml
     name: Stack usage
+  call-log-calls:
+    uses: ./.github/workflows/scan_log_calls.yml
+    name: Log calls

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * obj.c -- transactional object store implementation
@@ -87,7 +87,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	if (pop != NULL && (pop->ctl = ctl_new()) == NULL) {
-		LOG(2, "!ctl_new");
+		CORE_LOG_ERROR_W_ERRNO("ctl_new");
 		return -1;
 	}
 
@@ -102,8 +102,8 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	if (env_config != NULL) {
 		if (ctl_load_config_from_string(pop ? pop->ctl : NULL,
 				pop, env_config) != 0) {
-			LOG(2, "unable to parse config stored in %s "
-				"environment variable",
+			CORE_LOG_ERROR(
+				"unable to parse config stored in %s environment variable",
 				OBJ_CONFIG_ENV_VARIABLE);
 			goto err;
 		}
@@ -113,10 +113,9 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	if (env_config_file != NULL && env_config_file[0] != '\0') {
 		if (ctl_load_config_from_file(pop ? pop->ctl : NULL,
 				pop, env_config_file) != 0) {
-			LOG(2, "unable to parse config stored in %s "
-				"file (from %s environment variable)",
-				env_config_file,
-				OBJ_CONFIG_FILE_ENV_VARIABLE);
+			CORE_LOG_ERROR(
+				"unable to parse config stored in %s file (from %s environment variable)",
+				env_config_file, OBJ_CONFIG_FILE_ENV_VARIABLE);
 			goto err;
 		}
 	}
@@ -146,7 +145,7 @@ obj_pool_init(void)
 	if (pools_ht == NULL) {
 		c = critnib_new();
 		if (c == NULL)
-			FATAL("!critnib_new for pools_ht");
+			CORE_LOG_FATAL_W_ERRNO("critnib_new for pools_ht");
 		if (!util_bool_compare_and_swap64(&pools_ht, NULL, c))
 			critnib_delete(c);
 	}
@@ -154,7 +153,7 @@ obj_pool_init(void)
 	if (pools_tree == NULL) {
 		c = critnib_new();
 		if (c == NULL)
-			FATAL("!critnib_new for pools_tree");
+			CORE_LOG_FATAL_W_ERRNO("critnib_new for pools_tree");
 		if (!util_bool_compare_and_swap64(&pools_tree, NULL, c))
 			critnib_delete(c);
 	}
@@ -209,7 +208,7 @@ obj_init(void)
 	pmalloc_global_ctl_register();
 
 	if (obj_ctl_init_and_load(NULL))
-		FATAL("error: %s", pmemobj_errormsg());
+		CORE_LOG_FATAL("error: %s", pmemobj_errormsg());
 
 	lane_info_boot();
 }
@@ -250,7 +249,7 @@ static void
 obj_msync_nofail(const void *addr, size_t size)
 {
 	if (pmem_msync(addr, size))
-		FATAL("!pmem_msync");
+		CORE_LOG_FATAL_W_ERRNO("pmem_msync");
 }
 
 /*
@@ -660,12 +659,12 @@ obj_runtime_init_common(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	if ((errno = lane_boot(pop)) != 0) {
-		ERR("!lane_boot");
+		ERR_W_ERRNO("lane_boot");
 		return errno;
 	}
 
 	if ((errno = lane_recover_and_section_boot(pop)) != 0) {
-		ERR("!lane_recover_and_section_boot");
+		ERR_W_ERRNO("lane_recover_and_section_boot");
 		return errno;
 	}
 
@@ -723,7 +722,7 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	errno = palloc_init((char *)pop + pop->heap_offset, heap_size,
 		&pop->heap_size, p_ops);
 	if (errno != 0) {
-		ERR("!palloc_init");
+		ERR_W_ERRNO("palloc_init");
 		return -1;
 	}
 
@@ -771,22 +770,22 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	void *dscp = (void *)((uintptr_t)pop + sizeof(struct pool_hdr));
 
 	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0, 0)) {
-		ERR("invalid checksum of pool descriptor");
+		ERR_WO_ERRNO("invalid checksum of pool descriptor");
 		errno = EINVAL;
 		return -1;
 	}
 
 	if (layout &&
 	    strncmp(pop->layout, layout, PMEMOBJ_MAX_LAYOUT)) {
-		ERR("wrong layout (\"%s\"), "
-			"pool created with layout \"%s\"",
+		ERR_WO_ERRNO(
+			"wrong layout (\"%s\"), pool created with layout \"%s\"",
 			layout, pop->layout);
 		errno = EINVAL;
 		return -1;
 	}
 
 	if (pop->heap_offset % Pagesize) {
-		ERR("unaligned heap: off %" PRIu64, pop->heap_offset);
+		ERR_WO_ERRNO("unaligned heap: off %" PRIu64, pop->heap_offset);
 		errno = EINVAL;
 		return -1;
 	}
@@ -957,17 +956,17 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			VALGRIND_DO_MAKE_MEM_NOACCESS(end,
 				(char *)pop + pop->set->poolsize - (char *)end);
 		}
-#endif
+#endif /* VG_MEMCHECK_ENABLED */
 
 		obj_pool_init();
 
 		if ((errno = critnib_insert(pools_ht, pop->uuid_lo, pop))) {
-			ERR("!critnib_insert to pools_ht");
+			ERR_W_ERRNO("critnib_insert to pools_ht");
 			goto err_critnib_insert;
 		}
 
 		if ((errno = critnib_insert(pools_tree, (uint64_t)pop, pop))) {
-			ERR("!critnib_insert to pools_tree");
+			ERR_W_ERRNO("critnib_insert to pools_tree");
 			goto err_tree_insert;
 		}
 	}
@@ -982,7 +981,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		operation_user_buffer_range_cmp,
 		sizeof(struct user_buffer_def));
 	if (pop->ulog_user_buffers.map == NULL) {
-		ERR("!ravl_new_sized");
+		ERR_W_ERRNO("ravl_new_sized");
 		goto err_user_buffers_map;
 	}
 	pop->ulog_user_buffers.verify = 0;
@@ -1001,7 +1000,10 @@ err_user_buffers_map:
 	util_mutex_destroy(&pop->ulog_user_buffers.lock);
 	ctl_delete(pop->ctl);
 err_ctl:;
-	void *n = critnib_remove(pools_tree, (uint64_t)pop);
+#ifdef DEBUG /* variables required for ASSERTs below */
+	void *n =
+#endif
+	critnib_remove(pools_tree, (uint64_t)pop);
 	ASSERTne(n, NULL);
 err_tree_insert:
 	critnib_remove(pools_ht, pop->uuid_lo);
@@ -1031,8 +1033,8 @@ obj_get_nlanes(void)
 	if (env_nlanes) {
 		int nlanes = atoi(env_nlanes);
 		if (nlanes <= 0) {
-			ERR("%s variable must be a positive integer",
-					OBJ_NLANES_ENV_VARIABLE);
+			ERR_WO_ERRNO("%s variable must be a positive integer",
+				OBJ_NLANES_ENV_VARIABLE);
 			errno = EINVAL;
 			goto no_valid_env;
 		}
@@ -1060,7 +1062,7 @@ pmemobj_createU(const char *path, const char *layout,
 
 	/* check length of layout */
 	if (layout && (strlen(layout) >= PMEMOBJ_MAX_LAYOUT)) {
-		ERR("Layout too long");
+		ERR_WO_ERRNO("Layout too long");
 		errno = EINVAL;
 		return NULL;
 	}
@@ -1085,7 +1087,7 @@ pmemobj_createU(const char *path, const char *layout,
 	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
 			PMEMOBJ_MIN_PART, &adj_pool_attr, &runtime_nlanes,
 			REPLICAS_ENABLED) != 0) {
-		LOG(2, "cannot create pool or pool set");
+		CORE_LOG_ERROR("cannot create pool or pool set");
 		os_mutex_unlock(&pools_mutex);
 		return NULL;
 	}
@@ -1109,7 +1111,7 @@ pmemobj_createU(const char *path, const char *layout,
 
 		/* initialize replica runtime - is_pmem, funcs, ... */
 		if (obj_replica_init(rep, set, r) != 0) {
-			ERR("initialization of replica #%u failed", r);
+			ERR_WO_ERRNO("initialization of replica #%u failed", r);
 			goto err;
 		}
 
@@ -1122,14 +1124,14 @@ pmemobj_createU(const char *path, const char *layout,
 
 	/* create pool descriptor */
 	if (obj_descr_create(pop, layout, set->poolsize) != 0) {
-		LOG(2, "creation of pool descriptor failed");
+		CORE_LOG_ERROR("creation of pool descriptor failed");
 		goto err;
 	}
 
 	/* initialize runtime parts - lanes, obj stores, ... */
 	if (obj_runtime_init(pop, 0, 1 /* boot */,
 					runtime_nlanes) != 0) {
-		ERR("pool initialization failed");
+		ERR_WO_ERRNO("pool initialization failed");
 		goto err;
 	}
 
@@ -1179,12 +1181,12 @@ obj_check_basic_local(PMEMobjpool *pop, size_t mapped_size)
 	int consistent = 1;
 
 	if (pop->run_id % 2) {
-		ERR("invalid run_id %" PRIu64, pop->run_id);
+		ERR_WO_ERRNO("invalid run_id %" PRIu64, pop->run_id);
 		consistent = 0;
 	}
 
 	if ((errno = lane_check(pop)) != 0) {
-		LOG(2, "!lane_check");
+		CORE_LOG_ERROR_W_ERRNO("lane_check");
 		consistent = 0;
 	}
 
@@ -1193,7 +1195,7 @@ obj_check_basic_local(PMEMobjpool *pop, size_t mapped_size)
 	errno = palloc_heap_check((char *)pop + pop->heap_offset,
 		heap_size);
 	if (errno != 0) {
-		LOG(2, "!heap_check");
+		CORE_LOG_ERROR_W_ERRNO("heap_check");
 		consistent = 0;
 	}
 
@@ -1233,7 +1235,7 @@ obj_pool_open(struct pool_set **set, const char *path, unsigned flags,
 {
 	if (util_pool_open(set, path, PMEMOBJ_MIN_PART, &Obj_open_attr,
 				nlanes, NULL, flags) != 0) {
-		LOG(2, "cannot open pool or pool set");
+		CORE_LOG_ERROR("cannot open pool or pool set");
 		return -1;
 	}
 
@@ -1241,7 +1243,7 @@ obj_pool_open(struct pool_set **set, const char *path, unsigned flags,
 
 	/* read-only mode is not supported in libpmemobj */
 	if ((*set)->rdonly) {
-		ERR("read-only mode is not supported");
+		ERR_WO_ERRNO("read-only mode is not supported");
 		errno = EINVAL;
 		goto err_rdonly;
 	}
@@ -1274,7 +1276,7 @@ obj_replicas_init(struct pool_set *set)
 
 		/* initialize replica runtime - is_pmem, funcs, ... */
 		if (obj_replica_init(rep, set, r) != 0) {
-			ERR("initialization of replica #%u failed", r);
+			ERR_WO_ERRNO("initialization of replica #%u failed", r);
 			goto err;
 		}
 
@@ -1314,7 +1316,7 @@ obj_replicas_check_basic(PMEMobjpool *pop)
 	for (unsigned r = 0; r < pop->set->nreplicas; r++) {
 		rep = pop->set->replica[r]->part[0].addr;
 		if (obj_check_basic(rep, pop->set->poolsize) == 0) {
-			ERR("inconsistent replica #%u", r);
+			ERR_WO_ERRNO("inconsistent replica #%u", r);
 			return -1;
 		}
 	}
@@ -1370,7 +1372,8 @@ obj_open_common(const char *path, const char *layout, unsigned flags, int boot)
 		PMEMobjpool *rep = repset->part[0].addr;
 		/* check descriptor */
 		if (obj_descr_check(rep, layout, set->poolsize) != 0) {
-			LOG(2, "descriptor check of replica #%u failed", r);
+			CORE_LOG_ERROR(
+				"descriptor check of replica #%u failed", r);
 			goto err_descr_check;
 		}
 	}
@@ -1399,7 +1402,7 @@ obj_open_common(const char *path, const char *layout, unsigned flags, int boot)
 #endif
 	/* initialize runtime parts - lanes, obj stores, ... */
 	if (obj_runtime_init(pop, 0, boot, runtime_nlanes) != 0) {
-		ERR("pool initialization failed");
+		ERR_WO_ERRNO("pool initialization failed");
 		goto err_runtime_init;
 	}
 
@@ -1531,11 +1534,11 @@ pmemobj_close(PMEMobjpool *pop)
 	os_mutex_lock(&pools_mutex);
 
 	if (critnib_remove(pools_ht, pop->uuid_lo) != pop) {
-		ERR("critnib_remove for pools_ht");
+		ERR_WO_ERRNO("critnib_remove for pools_ht");
 	}
 
 	if (critnib_remove(pools_tree, (uint64_t)pop) != pop)
-		ERR("critnib_remove for pools_tree");
+		ERR_WO_ERRNO("critnib_remove for pools_tree");
 
 	if (_pobj_cached_pool.pop == pop) {
 		_pobj_cached_pool.pop = NULL;
@@ -1718,7 +1721,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	pmemobj_constr constructor, void *arg)
 {
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
-		ERR("requested size too large");
+		ERR_WO_ERRNO("requested size too large");
 		errno = ENOMEM;
 		return -1;
 	}
@@ -1761,7 +1764,7 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (size == 0) {
-		ERR("allocation with size 0");
+		ERR_WO_ERRNO("allocation with size 0");
 		errno = EINVAL;
 		return -1;
 	}
@@ -1792,13 +1795,13 @@ pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (size == 0) {
-		ERR("allocation with size 0");
+		ERR_WO_ERRNO("allocation with size 0");
 		errno = EINVAL;
 		return -1;
 	}
 
 	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
 		errno = EINVAL;
 		return -1;
@@ -1837,7 +1840,7 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	_POBJ_DEBUG_NOTICE_IN_TX();
 
 	if (size == 0) {
-		ERR("allocation with size 0");
+		ERR_WO_ERRNO("allocation with size 0");
 		errno = EINVAL;
 		return -1;
 	}
@@ -1915,7 +1918,7 @@ obj_realloc_common(PMEMobjpool *pop,
 	}
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
-		ERR("requested size too large");
+		ERR_WO_ERRNO("requested size too large");
 		errno = ENOMEM;
 		return -1;
 	}
@@ -2292,7 +2295,7 @@ pmemobj_xpersist(PMEMobjpool *pop, const void *addr, size_t len, unsigned flags)
 
 	if (flags & ~OBJ_X_VALID_FLAGS) {
 		errno = EINVAL;
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 		return -1;
 	}
 
@@ -2310,7 +2313,7 @@ pmemobj_xflush(PMEMobjpool *pop, const void *addr, size_t len, unsigned flags)
 
 	if (flags & ~OBJ_X_VALID_FLAGS) {
 		errno = EINVAL;
-		ERR("invalid flags 0x%x", flags);
+		ERR_WO_ERRNO("invalid flags 0x%x", flags);
 		return -1;
 	}
 
@@ -2412,13 +2415,13 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 		arg);
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
-		ERR("requested size too large");
+		ERR_WO_ERRNO("requested size too large");
 		errno = ENOMEM;
 		return OID_NULL;
 	}
 
 	if (size == 0 && pop->root_offset == 0) {
-		ERR("requested size cannot equals zero");
+		ERR_WO_ERRNO("requested size cannot equals zero");
 		errno = EINVAL;
 		return OID_NULL;
 	}
@@ -2432,7 +2435,7 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 	if (size > pop->root_size &&
 		obj_alloc_root(pop, size, constructor, arg)) {
 		pmemobj_mutex_unlock_nofail(pop, &pop->rootlock);
-		LOG(2, "obj_realloc_root failed");
+		CORE_LOG_ERROR("obj_realloc_root failed");
 		PMEMOBJ_API_END();
 		return OID_NULL;
 	}
@@ -2554,7 +2557,7 @@ pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	PMEMoid oid = OID_NULL;
 
 	if (flags & ~POBJ_ACTION_XRESERVE_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
+		ERR_WO_ERRNO("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_ACTION_XRESERVE_VALID_FLAGS);
 		errno = EINVAL;
 		return oid;
@@ -2663,7 +2666,8 @@ pmemobj_defrag(PMEMobjpool *pop, PMEMoid **oidv, size_t oidcnt,
 			continue;
 		if (oidv[i]->pool_uuid_lo != pop->uuid_lo) {
 			ret = -1;
-			ERR("Not all PMEMoids belong to the provided pool");
+			ERR_WO_ERRNO(
+				"Not all PMEMoids belong to the provided pool");
 			goto out;
 		}
 		objv[j++] = &oidv[i]->off;
@@ -2732,7 +2736,7 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	ASSERT(pe_offset <= size - sizeof(struct list_entry));
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
-		ERR("requested size too large");
+		ERR_WO_ERRNO("requested size too large");
 		errno = ENOMEM;
 		return OID_NULL;
 	}

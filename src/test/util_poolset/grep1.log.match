@@ -1,25 +1,35 @@
+src version: $(nW)
+$(OPT)compiled with support for shutdown state
+$(OPT)compiled with libndctl 63+
 pid $(N): program: $(nW)/util_poolset$(nW)
 ut version 1.0
-src version: $(nW)
 $(OPT)compiled with support for Valgrind pmemcheck
 $(OPT)compiled with support for Valgrind helgrind
 $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
-$(OPT)compiled with support for shutdown state
-$(OPT)compiled with libndctl 63+
 open "$(nW)/testset0": No such file or directory
+cannot open pool set -- '$(nW)/testset0'
 invalid major version (0)
+header check failed - part #0
 open "$(nW)/testset2": Permission denied
+cannot open pool set -- '$(nW)/testset2'
 open "$(nW)/testfile31": No such file or directory
-cannot open the part -- "$(nW)/testfile31": No such file or directory
+failed to open file: $(nW)/testfile31
 open "$(nW)/testfile32": No such file or directory
-cannot open the part -- "$(nW)/testfile32": No such file or directory
+failed to open file: $(nW)/testfile32
 open "$(nW)/testfile31": No such file or directory
+failed to open file: $(nW)/testfile31
 open "$(nW)/testfile42": No such file or directory
+failed to open file: $(nW)/testfile42
 size 1048576 smaller than 2097152
+failed to open file: $(nW)/testfile51
 size 1048576 smaller than 2097152
+failed to open file: $(nW)/testfile62
 size 2097151 smaller than 2097152
+failed to open file: $(nW)/testfile71
 open "$(nW)/testfile82": Permission denied
+failed to open file: $(nW)/testfile82
 file size does not match config: $(nW)testfile92, 4194304 != 65536
 file size does not match config: $(nW)testfile102, 4194303 != 4194304
 invalid major version (0)
+header check failed - part #0

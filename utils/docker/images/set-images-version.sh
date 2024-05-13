@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2023, Intel Corporation
+# Copyright 2020-2024, Intel Corporation
 #
 
 #
@@ -13,4 +13,4 @@
 # has to trigger the rebuild of all Docker images.
 #
 
-export IMG_VER=2.0
+export IMG_VER=2.1

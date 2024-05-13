@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * output.h -- declarations of output printing related functions
@@ -14,8 +14,6 @@ void out_set_stream(FILE *stream);
 void out_set_prefix(const char *prefix);
 void out_set_col_width(unsigned col_width);
 void outv_err(const char *fmt, ...) FORMAT_PRINTF(1, 2);
-void out_err(const char *file, int line, const char *func,
-		const char *fmt, ...) FORMAT_PRINTF(4, 5);
 void outv_err_vargs(const char *fmt, va_list ap);
 void outv_indent(int vlevel, int i);
 void outv(int vlevel, const char *fmt, ...) FORMAT_PRINTF(2, 3);

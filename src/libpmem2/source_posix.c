@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -28,14 +28,14 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 	int flags = fcntl(fd, F_GETFL);
 
 	if (flags == -1) {
-		ERR("!fcntl");
+		ERR_W_ERRNO("fcntl");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
 	}
 
 	if ((flags & O_ACCMODE) == O_WRONLY) {
-		ERR("fd must be open with O_RDONLY or O_RDWR");
+		ERR_WO_ERRNO("fd must be open with O_RDONLY or O_RDWR");
 		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 
@@ -50,7 +50,7 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 	os_stat_t st;
 
 	if (os_fstat(fd, &st) < 0) {
-		ERR("!fstat");
+		ERR_W_ERRNO("fstat");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
@@ -62,7 +62,8 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 		return ret;
 
 	if (ftype == PMEM2_FTYPE_DIR) {
-		ERR("cannot set fd to directory in pmem2_source_from_fd");
+		ERR_WO_ERRNO(
+			"cannot set fd to directory in pmem2_source_from_fd");
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
@@ -102,7 +103,7 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 	os_stat_t st;
 
 	if (os_fstat(src->value.fd, &st) < 0) {
-		ERR("!fstat");
+		ERR_W_ERRNO("fstat");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
@@ -117,7 +118,7 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 	}
 	case PMEM2_FTYPE_REG:
 		if (st.st_size < 0) {
-			ERR(
+			ERR_WO_ERRNO(
 				"kernel says size of regular file is negative (%ld)",
 				st.st_size);
 			return PMEM2_E_INVALID_FILE_HANDLE;
@@ -125,7 +126,7 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 		*size = (size_t)st.st_size;
 		break;
 	default:
-		FATAL(
+		CORE_LOG_FATAL(
 			"BUG: unhandled file type in pmem2_source_size");
 	}
 
@@ -161,12 +162,13 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 		*alignment = Pagesize;
 		break;
 	default:
-		FATAL(
+		CORE_LOG_FATAL(
 			"BUG: unhandled file type in pmem2_source_alignment");
 	}
 
 	if (!util_is_pow2(*alignment)) {
-		ERR("alignment (%zu) has to be a power of two", *alignment);
+		ERR_WO_ERRNO(
+			"alignment (%zu) has to be a power of two", *alignment);
 		return PMEM2_E_INVALID_ALIGNMENT_VALUE;
 	}
 
@@ -187,7 +189,7 @@ pmem2_source_get_fd(const struct pmem2_source *src, int *fd)
 	if (src->type == PMEM2_SOURCE_FD) {
 		*fd = src->value.fd;
 	} else {
-		ERR(
+		ERR_WO_ERRNO(
 			"File descriptor is not set, source type does not support fd");
 		return PMEM2_E_FILE_DESCRIPTOR_NOT_SET;
 	}

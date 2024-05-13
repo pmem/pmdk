@@ -1,12 +1,12 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021, Intel Corporation
+# Copyright 2021-2024, Intel Corporation
 #
 
 import testframework as t
 
 
-class BASE(t.BaseTest):
+class BASE(t.Test):
     test_type = t.Medium
     niter = 2
 

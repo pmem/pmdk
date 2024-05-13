@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2024, Intel Corporation
 
 #
 # src/test/ex_libpmemobj/TEST7 -- unit test for libpmemobj examples
@@ -14,13 +14,17 @@ require_build_type debug nondebug
 
 setup
 
+. ./common.sh
+
 EX_PATH=../../examples/libpmemobj/string_store
 
-expect_normal_exit $EX_PATH/writer $DIR/testfile1 > out$UNITTEST_NUM.log 2>&1 << EOF
+expect_normal_exit $EX_PATH/writer $DIR/testfile1 > $LOG_TEMP 2>&1 << EOF
 Hello!
 EOF
 
-expect_normal_exit $EX_PATH/reader $DIR/testfile1 >> out$UNITTEST_NUM.log 2>&1
+expect_normal_exit $EX_PATH/reader $DIR/testfile1 >> $LOG_TEMP 2>&1
+
+mv $LOG_TEMP $LOG
 
 check
 

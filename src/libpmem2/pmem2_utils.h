@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2023, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * pmem2_utils.h -- libpmem2 utilities functions
@@ -11,14 +11,15 @@
 #include <errno.h>
 
 #include "os.h"
-#include "out.h"
+#include "core_assert.h"
+#include "last_error_msg.h"
 #include "source.h"
 
 static inline int
 pmem2_assert_errno(void)
 {
 	if (!errno) {
-		ERR("errno is not set");
+		ERR_WO_ERRNO("errno is not set");
 		ASSERTinfo(0, "errno is not set");
 		return -EINVAL;
 	}
@@ -32,7 +33,7 @@ pmem2_assert_errno(void)
 #define PMEM2_ERR_CLR() \
 {\
 	errno = 0;\
-	char *errormsg = (char *)out_get_errormsg();\
+	char *errormsg = (char *)last_error_msg_get();\
 	strcpy(errormsg, "\0");\
 }
 #else

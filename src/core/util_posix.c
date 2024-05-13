@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * util_posix.c -- Abstraction layer for misc utilities (Posix implementation)
@@ -14,6 +14,7 @@
 #include <errno.h>
 #include "os.h"
 #include "out.h"
+#include "core_assert.h"
 #include "util.h"
 
 /* pass through for Posix */
@@ -21,17 +22,6 @@ void
 util_strerror(int errnum, char *buff, size_t bufflen)
 {
 	strerror_r(errnum, buff, bufflen);
-}
-
-/*
- * util_strwinerror -- should never be called on posix OS - abort()
- */
-void
-util_strwinerror(unsigned long err, char *buff, size_t bufflen)
-{
-	/* suppress unused-parameter errors */
-	SUPPRESS_UNUSED(err, buff, bufflen);
-	abort();
 }
 
 /*
@@ -56,20 +46,20 @@ util_compare_file_inodes(const char *path1, const char *path2)
 	struct stat sb1, sb2;
 	if (os_stat(path1, &sb1)) {
 		if (errno != ENOENT) {
-			ERR("!stat failed for %s", path1);
+			ERR_W_ERRNO("stat failed for %s", path1);
 			return -1;
 		}
-		LOG(1, "stat failed for %s", path1);
+		CORE_LOG_ERROR("stat failed for %s", path1);
 		errno = 0;
 		return strcmp(path1, path2) != 0;
 	}
 
 	if (os_stat(path2, &sb2)) {
 		if (errno != ENOENT) {
-			ERR("!stat failed for %s", path2);
+			ERR_W_ERRNO("stat failed for %s", path2);
 			return -1;
 		}
-		LOG(1, "stat failed for %s", path2);
+		CORE_LOG_ERROR("stat failed for %s", path2);
 		errno = 0;
 		return strcmp(path1, path2) != 0;
 	}
@@ -106,7 +96,7 @@ util_tmpfile_mkstemp(const char *dir, const char *templ)
 	umask(prev_umask);
 
 	if (fd < 0) {
-		ERR("!mkstemp");
+		ERR_W_ERRNO("mkstemp");
 		goto err;
 	}
 
@@ -145,7 +135,7 @@ util_tmpfile(const char *dir, const char *templ, int flags)
 	if (fd >= 0)
 		return fd;
 	if (errno != EOPNOTSUPP) {
-		ERR("!open");
+		ERR_W_ERRNO("open");
 		return -1;
 	}
 #endif

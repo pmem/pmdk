@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 #
 
 #
@@ -47,6 +47,7 @@ endif
 
 ifeq ($(LIBPMEMOBJ), y)
 LIBPMEM=y
+USE_LOG_PMEMOBJ=y
 DYNAMIC_LIBS += -lpmemobj
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
@@ -54,6 +55,7 @@ endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
 LIBPMEM=y
+USE_LOG_PMEMOBJ=y
 LIBPMEMCOMMON=internal-debug
 OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/bucket.o\
@@ -74,13 +76,15 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/ulog.o\
 	$(TOP)/src/debug/libpmemobj/sync.o\
 	$(TOP)/src/debug/libpmemobj/tx.o\
-	$(TOP)/src/debug/libpmemobj/stats.o
+	$(TOP)/src/debug/libpmemobj/stats.o\
+	$(TOP)/src/debug/libpmemobj/obj_log.o
 
 INCS += -I$(TOP)/src/libpmemobj
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
 LIBPMEM=y
+USE_LOG_PMEMOBJ=y
 LIBPMEMCOMMON=internal-nondebug
 OBJS +=	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/bucket.o\
@@ -101,7 +105,8 @@ OBJS +=	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/ulog.o\
 	$(TOP)/src/nondebug/libpmemobj/sync.o\
 	$(TOP)/src/nondebug/libpmemobj/tx.o\
-	$(TOP)/src/nondebug/libpmemobj/stats.o
+	$(TOP)/src/nondebug/libpmemobj/stats.o\
+	$(TOP)/src/nondebug/libpmemobj/obj_log.o
 
 INCS += -I$(TOP)/src/libpmemobj
 endif
@@ -388,6 +393,9 @@ ifeq ($(LIBPMEMCORE), internal-nondebug)
 OBJS +=\
 	$(TOP)/src/nondebug/core/alloc.o\
 	$(TOP)/src/nondebug/core/fs_posix.o\
+	$(TOP)/src/nondebug/core/last_error_msg.o\
+	$(TOP)/src/nondebug/core/log.o\
+	$(TOP)/src/nondebug/core/log_default.o\
 	$(TOP)/src/nondebug/core/os_posix.o\
 	$(TOP)/src/nondebug/core/os_thread_posix.o\
 	$(TOP)/src/nondebug/core/out.o\
@@ -403,6 +411,9 @@ ifeq ($(LIBPMEMCORE), internal-debug)
 OBJS +=\
 	$(TOP)/src/debug/core/alloc.o\
 	$(TOP)/src/debug/core/fs_posix.o\
+	$(TOP)/src/debug/core/last_error_msg.o\
+	$(TOP)/src/debug/core/log.o\
+	$(TOP)/src/debug/core/log_default.o\
 	$(TOP)/src/debug/core/os_posix.o\
 	$(TOP)/src/debug/core/os_thread_posix.o\
 	$(TOP)/src/debug/core/out.o\
@@ -441,7 +452,7 @@ endif
 PAREN=(
 extract_funcs = $(shell \
     awk -F '[$(PAREN),]' \
-    '/(FUNC_MOCK_RET_ALWAYS|FUNC_MOCK_RET_ALWAYS_VOID|FUNC_MOCK)\$(PAREN)[^,]/ \
+    '/(FUNC_MOCK_RET_ALWAYS|FUNC_MOCK_RET_ALWAYS_VOID|FUNC_MOCK|FUNC_MOCK_NONSTATIC)\$(PAREN)[^,]/ \
     { \
         print "-Wl,--wrap=" $$2 \
     }' $(1) )
@@ -515,6 +526,20 @@ endif
 ifeq ($(FAULT_INJECTION),1)
 CFLAGS += -DFAULT_INJECTION=1
 CXXFLAGS += -DFAULT_INJECTION=1
+endif
+
+ifeq ($(USE_LOG_PMEMOBJ),y)
+CFLAGS += -DUSE_LOG_PMEMOBJ
+endif
+
+# LIBPMEMCORE == '' means the binary is built without directly linking with
+# core units which are required whenever test makes use of core utils.
+ifeq ($(LIBPMEMCORE),)
+OBJS += $(TOP)/src/debug/core/out.o
+OBJS += $(TOP)/src/debug/core/last_error_msg.o
+OBJS += $(TOP)/src/debug/core/log.o
+OBJS += $(TOP)/src/debug/core/log_default.o
+OBJS += $(TOP)/src/debug/core/util_posix.o
 endif
 
 ifneq ($(SANITIZE),)

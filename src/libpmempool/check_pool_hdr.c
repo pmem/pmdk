@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2023, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * check_pool_hdr.c -- pool header check
@@ -216,7 +216,7 @@ pool_hdr_default_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 		memset(loc->hdr.unused, 0, sizeof(loc->hdr.unused));
 		break;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 
 	return 0;
@@ -315,7 +315,7 @@ pool_hdr_nondefault_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 		util_convert2le_hdr(&loc->hdr);
 		break;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 
 	return 0;
@@ -458,7 +458,7 @@ pool_hdr_poolset_uuid_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 			check_get_uuid_str(loc->hdr.poolset_uuid));
 		break;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 
 	return 0;
@@ -581,7 +581,7 @@ pool_hdr_uuid_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 			check_get_uuid_str(loc->hdr.uuid));
 		break;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 
 	return 0;
@@ -683,7 +683,7 @@ pool_hdr_uuid_links_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 			POOL_HDR_UUID_LEN);
 		break;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 
 	return 0;
@@ -736,7 +736,7 @@ pool_hdr_checksum_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 			loc->prefix, le64toh(loc->hdr.checksum));
 		break;
 	default:
-		ERR("not implemented question id: %u", question);
+		ERR_WO_ERRNO("not implemented question id: %u", question);
 	}
 
 	return 0;
@@ -852,7 +852,7 @@ init_location_data(PMEMpoolcheck *ppc, location *loc)
 				"replica %u part %u: ",
 				loc->replica, loc->part);
 			if (ret < 0)
-				FATAL("!snprintf");
+				CORE_LOG_FATAL_W_ERRNO("snprintf");
 		} else
 			loc->prefix[0] = '\0';
 		loc->step = 0;

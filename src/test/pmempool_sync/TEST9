@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 #
 #
 # pmempool_sync/TEST9 -- test for checking pmempool sync;
@@ -59,6 +59,7 @@ rm -f $DIR/part01
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET2 >> $LOG_TEMP 2>&1
 
 mv $LOG_TEMP $LOG
+
 check
 
 pass

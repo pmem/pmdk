@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2023, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * valgrind_internal.h -- internal definitions for valgrind macros
@@ -8,7 +8,7 @@
 #ifndef PMDK_VALGRIND_INTERNAL_H
 #define PMDK_VALGRIND_INTERNAL_H 1
 
-#if !defined(__FreeBSD__) && !defined(__riscv) && !defined(__loongarch64)
+#if !defined(__riscv) && !defined(__loongarch64)
 #ifndef VALGRIND_ENABLED
 #define VALGRIND_ENABLED 1
 #endif
@@ -19,6 +19,11 @@
 #define VG_HELGRIND_ENABLED 1
 #define VG_MEMCHECK_ENABLED 1
 #define VG_DRD_ENABLED 1
+#else
+#define VG_PMEMCHECK_ENABLED 0
+#define VG_HELGRIND_ENABLED 0
+#define VG_MEMCHECK_ENABLED 0
+#define VG_DRD_ENABLED 0
 #endif
 
 #if VG_PMEMCHECK_ENABLED || VG_HELGRIND_ENABLED || VG_MEMCHECK_ENABLED || \

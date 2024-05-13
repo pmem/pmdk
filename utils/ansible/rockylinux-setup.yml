@@ -14,22 +14,22 @@
     testUserPass: pmdkpass
 
   tasks:
-    - name: "Update kernel packages"
+    - name: Update kernel packages
       package:
         name: "kernel.x86_64"
         state: latest
       register: isUpdated
 
-    - name: "Update OS packages"
+    - name: Update OS packages
       package:
         name: "*"
         state: latest
 
-    - name: "Reboot platform to apply updates"
+    - name: Reboot platform to apply updates
       reboot:
       when: isUpdated.changed
 
-    - name: "Add permanent pkg config variable to the system"
+    - name: Add permanent pkg config variable to the system
       env:
         state: present
         name: PKG_CONFIG_PATH
@@ -37,20 +37,20 @@
 
 # For `ansible_distribution_*` variables see:
 # https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_conditionals.html#commonly-used-facts
-    - name: "Rocky - adding additional repositories"
+    - name: Rocky - adding additional repositories
       block:
-        - name: "Rocky - adding epel repository"
+        - name: Rocky - adding epel repository
           shell: yum install epel-release -y
 
-        - name: "Rocky 9 - enabling Power Tools"
+        - name: Rocky 9 - enabling Power Tools
           shell: dnf config-manager --enable crb
           when: ansible_distribution_major_version == "9"
 
-        - name: "Rocky 8 - enabling Power Tools"
+        - name: Rocky 8 - enabling Power Tools
           shell: dnf config-manager --enable powertools
           when: ansible_distribution_major_version == "8"
 
-    - name: "Install Valgrind dependencies"
+    - name: Install Valgrind dependencies
       package:
         state: present
         name:
@@ -60,7 +60,7 @@
           - findutils
           - git
 
-    - name: "Install PMDK base dependencies"
+    - name: Install PMDK base dependencies
       package:
         state: present
         name:
@@ -71,13 +71,19 @@
           - passwd
           - pkgconfig
 
-    - name: "Install benchmarks dependencies (optional)"
+    - name: Install benchmarks dependencies (optional)
       package:
         state: present
         name:
           - glib2-devel
+          - numactl
+          - python3-pip
 
-    - name: "Install examples dependencies (optional)"
+    - name: Install benchmarks dependencies part 2 (optional)
+      ansible.builtin.pip:
+        name: pandas
+
+    - name: Install examples dependencies (optional)
       package:
         state: present
         name:
@@ -86,13 +92,13 @@
           - ncurses-devel
           - libuv-devel
 
-    - name: "Install documentation dependencies (optional)"
+    - name: Install documentation dependencies (optional)
       package:
         state: present
         name:
           - pandoc
 
-    - name: "Install tests dependencies"
+    - name: Install tests dependencies
       package:
         state: present
         name:
@@ -103,7 +109,7 @@
           - openssh-server
           - strace
 
-    - name: "Install packaging dependencies"
+    - name: Install packaging dependencies
       package:
         state: present
         name:
@@ -111,7 +117,7 @@
           - rpm-build-libs
           - rpmdevtools
 
-    - name: "Install miscellaneous dependencies"
+    - name: Install miscellaneous dependencies
       package:
         state: present
         name:
@@ -128,13 +134,13 @@
           - xmlto
           - jq
 
-    - name: "Install ipmctl"
+    - name: Install ipmctl
       package:
         state: present
         name:
           - ipmctl
 
-    - name: "Install valgrind from source"
+    - name: Install valgrind from source
       script: ../docker/images/install-valgrind.sh
 
     # Disable SELinux. 
@@ -145,9 +151,9 @@
       selinux:
         state: disabled
       ignore_errors: yes
-      when: ansible_facts['os_family'] != 'Debian'
+      when: ansible_facts["os_family"] != "Debian"
 
-    - name: "Add new user"
+    - name: Add new user
       shell: |
         #!/usr/bin/env bash
         export USER={{ testUser }}
@@ -158,34 +164,34 @@
         echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
       when: testUser != none
 
-    - name: "Set variable OS"
+    - name: Set variable OS
       env:
         state: present
-        name: 'OS'
-        value: 'rockylinux/rockylinux'
+        name: "OS"
+        value: "rockylinux/rockylinux"
 
-    - name: "Set variable OS_VER (9)"
+    - name: Set variable OS_VER (9)
       env:
         state: present
-        name: 'OS_VER'
-        value: '9'
+        name: "OS_VER"
+        value: "9"
       when: ansible_distribution_major_version == "9"
 
-    - name: "Set variable OS_VER (8)"
+    - name: Set variable OS_VER (8)
       env:
         state: present
-        name: 'OS_VER'
-        value: '8'
+        name: "OS_VER"
+        value: "8"
       when: ansible_distribution_major_version == "8"
 
-    - name: "Set variable PACKAGE_MANAGER"
+    - name: Set variable PACKAGE_MANAGER
       env:
         state: present
-        name: 'PACKAGE_MANAGER'
-        value: 'rpm'
+        name: "PACKAGE_MANAGER"
+        value: "rpm"
 
-    - name: "Set variable NOTTY"
+    - name: Set variable NOTTY
       env:
         state: present
-        name: 'NOTTY'
-        value: '1'
+        name: "NOTTY"
+        value: "1"

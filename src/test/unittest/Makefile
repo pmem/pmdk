@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2023, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 #
 # src/test/unittest/Makefile -- build unittest support library
@@ -17,9 +17,6 @@ vpath %.h $(TOP)/src/core
 TARGET_UT = libut.a
 OBJS_UT = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
 	os_posix.o os_thread_posix.o util.o alloc.o rand.o ut_fh.o ut_mt.o
-
-TARGET_UT_PMEM2 = ut_pmem2.a
-OBJS_UT_PMEM2 = ut_pmem2_config.o ut_pmem2_utils.o
 
 CFLAGS = -I$(TOP)/src/include
 CFLAGS += -I$(TOP)/src/common
@@ -75,17 +72,19 @@ LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
 endif
 
+ifeq ($(VALGRIND),0)
+CFLAGS += -DVALGRIND_ENABLED=0
+CXXFLAGS += -DVALGRIND_ENABLED=0
+endif
+
 CFLAGS += $(EXTRA_CFLAGS)
 
 LIBS += $(LIBUTIL)
 
-all test: $(TARGET_UT) $(TARGET_UT_PMEM2)
+all test: $(TARGET_UT)
 
 $(TARGET_UT): $(OBJS_UT)
 	$(AR) rv $@ $(OBJS_UT)
-
-$(TARGET_UT_PMEM2): $(OBJS_UT_PMEM2)
-	$(AR) rv $@ $(OBJS_UT_PMEM2)
 
 ifneq ($(CSTYLEON),0)
 $(TARGET): unittest.htmp
@@ -106,7 +105,7 @@ clean:
 	$(RM) *.o core a.out unittest.htmp
 
 clobber: clean
-	$(RM) $(TARGET_UT) $(TARGET_UT_PMEM2)
+	$(RM) $(TARGET_UT)
 	$(RM) -r .deps
 
 test check pcheck pycheck: all

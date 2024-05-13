@@ -1,0 +1,115 @@
+name: PMEM Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      reference_ref:
+        type: string
+        default: stable-2.0
+      rival_ref:
+        type: string
+        default: master
+
+
+jobs:
+  prep_runtime:
+    name: Prepare runtime
+    runs-on: [self-hosted, benchmark]
+    permissions:
+      contents: read
+    steps:
+      - name: Clone the git repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build
+        run: make -j
+
+
+  prep_contesters:
+    name: Prepare ${{ matrix.ROLE }} (${{ matrix.GITHUB_REF }})
+    runs-on: [self-hosted, benchmark]
+    needs: prep_runtime
+    strategy:
+      matrix:
+        include:
+          - ROLE: reference
+            GITHUB_REF: ${{ inputs.reference_ref }}
+          - ROLE: rival
+            GITHUB_REF: ${{ inputs.rival_ref }}
+    permissions:
+      contents: read
+    env:
+      MANIFEST: ${{ matrix.ROLE }}/manifest.txt
+    steps:
+      - name: Clone the git repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.GITHUB_REF }}
+          fetch-depth: 1
+          path: ${{ matrix.ROLE }}
+
+      - name: Build
+        working-directory: ${{ matrix.ROLE }}
+        run: make -j
+
+      - name: Write the manifest
+        run: |
+          echo "${{ matrix.GITHUB_REF }}" >> $MANIFEST
+          git -C ${{ matrix.ROLE }} rev-parse HEAD >> $MANIFEST
+
+      - name: Archive the manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest_${{ matrix.ROLE }}
+          path: ${{ env.MANIFEST }}
+
+
+  run:
+    name: Run perf.cfg ${{ matrix.SCENARIO }}
+    runs-on: [self-hosted, benchmark]
+    needs: prep_contesters
+    strategy:
+      matrix:
+        SCENARIO:
+          - obj_tx_alloc_small_v_thread
+          - obj_pmalloc_small_v_threads
+          - obj_rbtree_map_insert
+          - obj_hashmap_tx_map_insert
+    steps:
+      - name: Benchmark
+        uses: ./.github/actions/pmem_benchmark_run
+        with:
+          runtime_dir: ./
+          reference_LIB_PATH: reference/src/nondebug
+          rival_LIB_PATH: rival/src/nondebug
+          config: perf
+          scenario: ${{ matrix.SCENARIO }}
+
+
+  repack:
+    name: Repack
+    runs-on: ubuntu-latest
+    needs: run
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: csvs
+
+      - name: Combine the manifests
+        env:
+          OUTPUT: csvs/manifest.txt
+        run: |
+          for competitor in reference rival; do
+            echo "$competitor:" >> $OUTPUT
+            cat csvs/manifest_$competitor/manifest.txt >> $OUTPUT
+            echo >> $OUTPUT
+          done
+
+      - name: Upload all as a single artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf__all__${{ github.run_id }}
+          path: csvs/**/*

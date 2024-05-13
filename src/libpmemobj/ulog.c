@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * ulog.c -- unified log implementation
@@ -12,7 +12,7 @@
 #include "pmemops.h"
 #include "ulog.h"
 #include "obj.h"
-#include "out.h"
+#include "core_assert.h"
 #include "util.h"
 #include "valgrind_internal.h"
 
@@ -26,8 +26,10 @@
 #define ULOG_OFFSET_MASK		(~(ULOG_OPERATION_MASK))
 
 #define CACHELINE_ALIGN(size) ALIGN_UP(size, CACHELINE_SIZE)
+#ifdef DEBUG /* variables required for ASSERTs below */
 #define IS_CACHELINE_ALIGNED(ptr)\
 	(((uintptr_t)(ptr) & (CACHELINE_SIZE - 1)) == 0)
+#endif
 
 /*
  * ulog_by_offset -- calculates the ulog pointer
@@ -240,7 +242,7 @@ ulog_reserve(struct ulog *ulog,
 	const struct pmem_ops *p_ops)
 {
 	if (!auto_reserve) {
-		LOG(1, "cannot auto reserve next ulog");
+		ERR_WO_ERRNO("cannot auto reserve next ulog");
 		return -1;
 	}
 
@@ -669,7 +671,8 @@ ulog_free_next(struct ulog *u, const struct pmem_ops *p_ops,
 		if (VEC_PUSH_BACK(&ulogs_internal_except_first,
 			&u->next) != 0) {
 			/* this is fine, it will just use more pmem */
-			LOG(1, "unable to free transaction logs memory");
+			CORE_LOG_NOTICE(
+				"unable to free transaction logs memory");
 			goto out;
 		}
 		u = ulog_by_offset(u->next, p_ops);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * obj_verify.c -- tool for creating and verifying a pmemobj pool
@@ -12,6 +12,7 @@
 #include "libpmemobj.h"
 #include "set.h"
 #include "os.h"
+#include "out.h"
 
 #define SIGNATURE_LEN 10
 #define NUMBER_LEN 10
@@ -93,13 +94,13 @@ do_create(const char *path, const char *layout)
 	if ((pop = pmemobj_create(path, layout, 0,
 						S_IWUSR | S_IRUSR)) == NULL) {
 		if (errno != EEXIST) {
-			out("!%s: pmemobj_create: %s",
+			printf("!%s: pmemobj_create: %s\n",
 				path, pmemobj_errormsg());
 			exit(-1);
 		}
 
 		if ((pop = pmemobj_open(path, layout)) == NULL) {
-			out("!%s: pmemobj_open: %s",
+			printf("!%s: pmemobj_open: %s\n",
 				path, pmemobj_errormsg());
 			exit(-1);
 		}
@@ -114,11 +115,11 @@ do_create(const char *path, const char *layout)
 
 	if (pmemobj_ctl_set(pop, "heap.alloc_class.new.desc", &class) != 0) {
 		pmemobj_close(pop);
-		out("!pmemobj_ctl_set: %s", path);
+		printf("!pmemobj_ctl_set: %s\n", path);
 		exit(-1);
 	}
 
-	out("create(%s): allocating records in the pool ...", path);
+	printf("create(%s): allocating records in the pool ...\n", path);
 
 	count = D_RO(root)->count;
 
@@ -128,10 +129,10 @@ do_create(const char *path, const char *layout)
 
 	count = D_RO(root)->count - count;
 	if (count) {
-		out("create(%s): allocated %lu records (of size %zu)",
+		printf("create(%s): allocated %lu records (of size %zu)\n",
 			path, count, sizeof(struct data_s));
 	} else {
-		out("create(%s): pool is full", path);
+		printf("create(%s): pool is full\n", path);
 	}
 
 	pmemobj_close(pop);
@@ -147,10 +148,12 @@ do_verify(const char *path, const char *layout)
 	PMEMoid oid;
 	uint64_t count = 0;
 	int error = 0;
+	char buff[128];
 
 	if ((pop = pmemobj_open(path, layout)) == NULL) {
-		out("!%s: pmemobj_open: %s",
-			path, pmemobj_errormsg());
+		strerror_r(errno, buff, 128);
+		printf("%s: pmemobj_open: %s: %s\n",
+			path, pmemobj_errormsg(), buff);
 		exit(-1);
 	}
 
@@ -162,7 +165,7 @@ do_verify(const char *path, const char *layout)
 		if (!util_checksum(D_RW(rec), sizeof(*D_RW(rec)),
 					&D_RW(rec)->checksum,
 					0 /* verify */, SKIP_OFFSET)) {
-			out("verify(%s): incorrect record: %s (#%lu)",
+			printf("verify(%s): incorrect record: %s (#%lu)\n",
 				path, D_RW(rec)->signature, count);
 			error = 1;
 			break;
@@ -172,8 +175,8 @@ do_verify(const char *path, const char *layout)
 	}
 
 	if (D_RO(root)->count != count) {
-		out(
-			"verify(%s): incorrect number of records (is: %lu, should be: %lu)",
+		printf(
+			"verify(%s): incorrect number of records (is: %lu, should be: %lu)\n",
 			path, count, D_RO(root)->count);
 		error = 1;
 	}
@@ -181,12 +184,12 @@ do_verify(const char *path, const char *layout)
 	pmemobj_close(pop);
 
 	if (error) {
-		out("verify(%s): pool file contains error", path);
+		printf("verify(%s): pool file contains error\n", path);
 		exit(-1);
 	}
 
-	out(
-		"verify(%s): pool file successfully verified (%lu records of size %zu)",
+	printf(
+		"verify(%s): pool file successfully verified (%lu records of size %zu)\n",
 		path, count, sizeof(struct data_s));
 }
 
@@ -197,7 +200,7 @@ main(int argc, char *argv[])
 	out_init("OBJ_VERIFY", "OBJ_VERIFY", "", 1, 0);
 
 	if (argc < 4) {
-		out("Usage: %s <obj_pool> <layout> <op:c|v>\n"
+		printf("Usage: %s <obj_pool> <layout> <op:c|v>\n"
 		    "Options:\n"
 		    "   c - create\n"
 		    "   v - verify\n",
@@ -221,7 +224,7 @@ main(int argc, char *argv[])
 		op = argv[arg];
 
 		if (op[1] != '\0') {
-			out("op must be c or v (c=create, v=verify)");
+			printf("op must be c or v (c=create, v=verify)\n");
 			exit(-1);
 		}
 
@@ -235,7 +238,7 @@ main(int argc, char *argv[])
 			break;
 
 		default:
-			out("op must be c or v (c=create, v=verify)");
+			printf("op must be c or v (c=create, v=verify)\n");
 			exit(-1);
 			break;
 		}

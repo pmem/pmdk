@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2023, Intel Corporation */
+/* Copyright 2019-2024, Intel Corporation */
 
 /*
  * map_posix.c -- pmem2_map (POSIX)
@@ -129,10 +129,10 @@ map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if (daddr == MAP_FAILED) {
 		if (errno == EEXIST) {
-			ERR("!mmap MAP_FIXED_NOREPLACE");
+			ERR_W_ERRNO("mmap MAP_FIXED_NOREPLACE");
 			return PMEM2_E_MAPPING_EXISTS;
 		}
-		ERR("!mmap MAP_ANONYMOUS");
+		ERR_W_ERRNO("mmap MAP_ANONYMOUS");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -170,7 +170,7 @@ map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
 	const size_t before = (uintptr_t)(*reserv) - (uintptr_t)daddr;
 	if (before) {
 		if (munmap(daddr, before)) {
-			ERR("!munmap");
+			ERR_W_ERRNO("munmap");
 			return PMEM2_E_ERRNO;
 		}
 	}
@@ -180,7 +180,7 @@ map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
 	void *end = (void *)((uintptr_t)(*reserv) + (uintptr_t)*reslen);
 	if (after)
 		if (munmap(end, after)) {
-			ERR("!munmap");
+			ERR_W_ERRNO("munmap");
 			return PMEM2_E_ERRNO;
 		}
 
@@ -212,7 +212,7 @@ file_map(void *reserv, size_t len, int proto, int flags,
 	if (flags & MAP_PRIVATE) {
 		*base = mmap(reserv, len, proto, flags, fd, offset);
 		if (*base == MAP_FAILED) {
-			ERR("!mmap");
+			ERR_W_ERRNO("mmap");
 			return PMEM2_E_ERRNO;
 		}
 		LOG(4, "mmap with MAP_PRIVATE succeeded");
@@ -240,7 +240,7 @@ file_map(void *reserv, size_t len, int proto, int flags,
 		}
 	}
 
-	ERR("!mmap");
+	ERR_W_ERRNO("mmap");
 	return PMEM2_E_ERRNO;
 }
 
@@ -252,7 +252,7 @@ unmap(void *addr, size_t len)
 {
 	int retval = munmap(addr, len);
 	if (retval < 0) {
-		ERR("!munmap");
+		ERR_W_ERRNO("munmap");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -266,16 +266,19 @@ unmap(void *addr, size_t len)
 static int
 vm_reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t size)
 {
+#ifdef DEBUG /* variables required for ASSERTs below */
 	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
-
+#else
+	SUPPRESS_UNUSED(rsv);
+#endif
 	ASSERT((char *)addr >= (char *)rsv_addr &&
 			(char *)addr + size <= (char *)rsv_addr + rsv_size);
 
 	char *daddr = mmap(addr, size, PROT_NONE,
 			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
 	if (daddr == MAP_FAILED) {
-		ERR("!mmap MAP_ANONYMOUS");
+		ERR_W_ERRNO("mmap MAP_ANONYMOUS");
 		return PMEM2_E_ERRNO;
 	}
 
@@ -298,7 +301,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	*map_ptr = NULL;
 
 	if (cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
-		ERR(
+		ERR_WO_ERRNO(
 			"please define the max granularity requested for the mapping");
 
 		return PMEM2_E_GRANULARITY_NOT_SET;
@@ -348,7 +351,8 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 	if (src->type == PMEM2_SOURCE_FD) {
 		if (src->value.ftype == PMEM2_FTYPE_DIR) {
-			ERR("the directory is not a supported file type");
+			ERR_WO_ERRNO(
+				"the directory is not a supported file type");
 			return PMEM2_E_INVALID_FILE_TYPE;
 		}
 
@@ -357,8 +361,8 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 		if (cfg->sharing == PMEM2_PRIVATE &&
 			src->value.ftype == PMEM2_FTYPE_DEVDAX) {
-			ERR(
-			"device DAX does not support mapping with MAP_PRIVATE");
+			ERR_WO_ERRNO(
+				"device DAX does not support mapping with MAP_PRIVATE");
 			return PMEM2_E_SRC_DEVDAX_PRIVATE;
 		}
 	}
@@ -387,27 +391,26 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 		if (rsv_offset % Mmap_align) {
 			ret = PMEM2_E_OFFSET_UNALIGNED;
-			ERR(
+			ERR_WO_ERRNO(
 				"virtual memory reservation offset %zu is not a multiple of %llu",
-					rsv_offset, Mmap_align);
+				rsv_offset, Mmap_align);
 			return ret;
 		}
 
 		if (rsv_offset + reserved_length > rsv_size) {
 			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
-			ERR(
+			ERR_WO_ERRNO(
 				"Reservation %p has not enough space for the intended content",
-					rsv);
+				rsv);
 			return ret;
 		}
 
 		reserv_region = (char *)rsv_addr + rsv_offset;
 		if ((size_t)reserv_region % alignment) {
 			ret = PMEM2_E_ADDRESS_UNALIGNED;
-			ERR(
-				"base mapping address %p (virtual memory reservation address + offset)" \
-				" is not a multiple of %zu required by device DAX",
-					reserv_region, alignment);
+			ERR_WO_ERRNO(
+				"base mapping address %p (virtual memory reservation address + offset) is not a multiple of %zu required by device DAX",
+				reserv_region, alignment);
 			return ret;
 		}
 
@@ -415,9 +418,8 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		if (vm_reservation_map_find_acquire(rsv, rsv_offset,
 				reserved_length)) {
 			ret = PMEM2_E_MAPPING_EXISTS;
-			ERR(
-				"region of the reservation %p at the offset %zu and "
-				"length %zu is at least partly occupied by other mapping",
+			ERR_WO_ERRNO(
+				"region of the reservation %p at the offset %zu and length %zu is at least partly occupied by other mapping",
 				rsv, rsv_offset, reserved_length);
 			goto err_reservation_release;
 		}
@@ -430,10 +432,10 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 				&reserved_length, cfg);
 		if (ret != 0) {
 			if (ret == PMEM2_E_MAPPING_EXISTS)
-				LOG(1,
+				CORE_LOG_ERROR(
 					"given mapping region is already occupied");
 			else
-				LOG(1,
+				CORE_LOG_ERROR(
 					"cannot find a contiguous region of given size");
 			return ret;
 		}
@@ -485,12 +487,12 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			[cfg->requested_max_granularity]
 			[available_min_granularity];
 		if (strcmp(err, GRAN_IMPOSSIBLE) == 0)
-			FATAL(
+			CORE_LOG_FATAL(
 				"unhandled granularity error: available_min_granularity: %d" \
 				"requested_max_granularity: %d",
 				available_min_granularity,
 				cfg->requested_max_granularity);
-		ERR("%s", err);
+		ERR_WO_ERRNO("%s", err);
 		ret = PMEM2_E_GRANULARITY_NOT_SUPPORTED;
 		goto err_undo_mapping;
 	}

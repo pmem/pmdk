@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2024, Intel Corporation */
 
 /*
  * util_pmem.h -- internal definitions for pmem utils
@@ -10,6 +10,7 @@
 
 #include "libpmem.h"
 #include "out.h"
+#include "log_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +27,7 @@ util_persist(int is_pmem, const void *addr, size_t len)
 	if (is_pmem)
 		pmem_persist(addr, len);
 	else if (pmem_msync(addr, len))
-		FATAL("!pmem_msync");
+		CORE_LOG_FATAL_W_ERRNO("pmem_msync");
 }
 
 /*

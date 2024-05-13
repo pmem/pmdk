@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2014-2024, Intel Corporation */
 
 /*
  * traces.c -- unit test for traces
@@ -19,7 +19,6 @@
 int
 main(int argc, char *argv[])
 {
-	char buff[UT_MAX_ERR_MSG];
 
 	START(argc, argv, "out_err");
 
@@ -28,28 +27,16 @@ main(int argc, char *argv[])
 			MAJOR_VERSION, MINOR_VERSION);
 
 	errno = 0;
-	ERR("ERR #%d", 1);
-	UT_OUT("%s", out_get_errormsg());
+	ERR_WO_ERRNO("ERR #%d", 1);
+	UT_OUT("%s", last_error_msg_get());
 
 	errno = 0;
-	ERR("!ERR #%d", 2);
-	UT_OUT("%s", out_get_errormsg());
+	ERR_W_ERRNO("ERR #%d", 2);
+	UT_OUT("%s", last_error_msg_get());
 
 	errno = EINVAL;
-	ERR("!ERR #%d", 3);
-	UT_OUT("%s", out_get_errormsg());
-
-	errno = EBADF;
-	strerror_r(errno, buff, UT_MAX_ERR_MSG);
-	out_err(__FILE__, 100, __func__,
-		"ERR1: %s:%d", buff, 1234);
-	UT_OUT("%s", out_get_errormsg());
-
-	errno = EBADF;
-	strerror_r(errno, buff, UT_MAX_ERR_MSG);
-	out_err(NULL, 0, NULL,
-		"ERR2: %s:%d", buff, 1234);
-	UT_OUT("%s", out_get_errormsg());
+	ERR_W_ERRNO("ERR #%d", 3);
+	UT_OUT("%s", last_error_msg_get());
 
 	/* Cleanup */
 	common_fini();

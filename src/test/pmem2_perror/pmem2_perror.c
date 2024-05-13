@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020-2023, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * pmem2_perror.c -- pmem2_perror unittests
@@ -59,7 +59,7 @@ test_fail_system_func_simple(const struct test_case *tc, int argc, char *argv[])
 	/* "randomly" chosen function to be failed */
 	int ret = os_open("XXX", O_RDONLY);
 	UT_ASSERTeq(ret, -1);
-	ERR("!open");
+	ERR_W_ERRNO("open");
 
 	pmem2_perror("test");
 
@@ -76,7 +76,7 @@ test_fail_system_func_format(const struct test_case *tc, int argc, char *argv[])
 	/* "randomly" chosen function to be failed */
 	int ret = os_open("XXX", O_RDONLY);
 	UT_ASSERTeq(ret, -1);
-	ERR("!open");
+	ERR_W_ERRNO("open");
 
 	pmem2_perror("test %d", 123);
 
@@ -98,7 +98,10 @@ test_fail_pmem2_syscall_simple(const struct test_case *tc,
 	src.value.fd = -1;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmem2_source_size(&src, &size);
+#ifdef DEBUG /* variables required for ASSERTs below */
+	int ret =
+#endif
+	pmem2_source_size(&src, &size);
 	ASSERTne(ret, 0);
 
 	pmem2_perror("test");
@@ -121,7 +124,10 @@ test_fail_pmem2_syscall_format(const struct test_case *tc,
 	src.value.fd = -1;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmem2_source_size(&src, &size);
+#ifdef DEBUG /* variables required for ASSERTs below */
+	int ret =
+#endif
+	pmem2_source_size(&src, &size);
 	ASSERTne(ret, 0);
 
 	pmem2_perror("test %d", 123);
