@@ -25,7 +25,7 @@ Summary:	__PACKAGE_SUMMARY__
 Packager:	__PACKAGE_MAINTAINER__
 Group:		__GROUP_SYS_LIBS__
 License:	__LICENSE__
-URL:		https://pmem.io/pmdk
+URL:		https://github.com/pmem/pmdk
 
 Source0:	%{name}-%{version}.tar.gz
 

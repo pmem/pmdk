@@ -292,7 +292,7 @@ Section: libs
 Priority: optional
 Standards-version: 4.1.4
 Build-Depends: debhelper (>= 9)
-Homepage: https://pmem.io/pmdk/
+Homepage: https://github.com/pmem/pmdk
 
 Package: libpmem
 Architecture: any
