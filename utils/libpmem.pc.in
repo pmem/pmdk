@@ -3,7 +3,7 @@ includedir=${prefix}/include
 Name: libpmem
 Description: libpmem library from PMDK project
 Version: ${version}
-URL: https://pmem.io/pmdk
+URL: https://github.com/pmem/pmdk
 Requires:
 Libs: -L${libdir} -lpmem
 Cflags: -I${includedir}
