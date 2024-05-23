@@ -128,7 +128,7 @@ To enable logging of debug information, use debug version of a library and set
 desired log level using (library-specific) variable, e.g. `PMEM_LOG_LEVEL=<level>`.
 
 For more details see appropriate manpage (debbuging section), e.g.
-[libpmem(7)](https://pmem.io/pmdk/manpages/linux/master/libpmem/libpmem.7/#debugging-and-error-handling).
+[libpmem(7)](https://github.com/pmem/pmdk/blob/master/doc/libpmem/libpmem.7.md#error-handling-1).
 
 ## Experimental Packages
 

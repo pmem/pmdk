@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2024, Intel Corporation
 
 # Name of package
 PACKAGE_NAME="pmdk"
@@ -14,4 +14,4 @@ PACKAGE_SUMMARY="Persistent Memory Development Kit"
 PACKAGE_DESCRIPTION="The collection of libraries and utilities for Persistent Memory Programming"
 
 # Website
-PACKAGE_URL="https://pmem.io/pmdk"
+PACKAGE_URL="https://github.com/pmem/pmdk"

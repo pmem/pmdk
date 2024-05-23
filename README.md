@@ -5,7 +5,6 @@
 [![Coverage](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
 [![PMem test](https://github.com/pmem/pmdk/actions/workflows/pmem_tests.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_tests.yml)
 [![Pmem RAS](https://github.com/pmem/pmdk/actions/workflows/pmem_ras.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_ras.yml)
-[![pmem.io](https://github.com/pmem/pmdk/actions/workflows/pmem.io_doc_update.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem.io_doc_update.yml)
 [![Docker rebuild](https://github.com/pmem/pmdk/actions/workflows/docker_rebuild.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/docker_rebuild.yml)
 
 The **Persistent Memory Development Kit (PMDK)** is a collection of libraries and tools for System Administrators and Application Developers to simplify managing and accessing persistent memory devices. For more information, see https://pmem.io.
