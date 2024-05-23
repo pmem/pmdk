@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2024, Intel Corporation
+
+#
+# src/test/obj_ulog_advanced/TEST9 -- a test employing pmreorder WITH error
+#                                     injection
+#
+# Please see the source code for the details of the tested scenario.
+#
+
+. ../unittest/unittest.sh
+
+. ./common.sh
+
+common_require
+
+setup
+
+ERROR_INJECT=1 # an error is being injected
+common_setup $ERROR_INJECT
+
+common_init
+common_record
+common_replay_and_check $ERROR_INJECT
+
+check
+
+pass
