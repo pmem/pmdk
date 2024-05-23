@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2024, Intel Corporation
+
+#
+# src/test/obj_ulog_advanced/TEST0 -- a kick-start test
+#
+# Since this directory contains both Bash-based and Python-based tests and match
+# files are used by some of them both groups cannot have overlapping numbering.
+# Hence the real Bash-based tests' numbering starts where the Python-based tests'
+# numbering ends. However, the Bash-based test framework relies on the existence
+# of this TEST0 file to keep looking for other Bash-based tests.
+#
+
+. ../unittest/unittest.sh
+
+. ./common.sh
+
+require_fs_type any
+require_build_type $COMMON_BUILD_TYPE
+require_test_type short
+
+setup
+
+pass
