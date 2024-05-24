@@ -1,7 +1,7 @@
 libpmem.7
 pmem_flush.3
 pmem_is_pmem.3
-pmem_log_get_treshold.3
+pmem_log_get_threshold.3
 pmem_log_set_function.3
-pmem_log_set_treshold.3
+pmem_log_set_threshold.3
 pmem_memmove_persist.3

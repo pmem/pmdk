@@ -1,4 +1,4 @@
-XXX
+Thu May 23 2024 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 2.1.0
 
@@ -15,7 +15,7 @@ XXX
 	  - The debug logging subsystem becomes DEPRECATED.
 	- Introduces fuses against ill-considered use of NDCTL_ENABLE=n.
 	  - PMEMOBJ_IGNORE_DIRTY_SHUTDOWN and PMEMOBJ_IGNORE_BAD_BLOCKS are required to acknowledge the understanding of what production-critical functions are missing for the build without NDCTL.
-	- Does not allow opening PMEMOBJ pool without unsafe shutdown counter (USC) if not explicitly disabled. (#5968)
+	- Does not allow create PMEMOBJ pool without unsafe shutdown counter (USC) if not explicitly disabled. (#5968)
 	  - use PMEMOBJ_CONF="sds.at_create=0" to disable USC when working without PMem (emulated PMem, Docker, etc.).
 	- Drops support for building without libpthread (NO_LIBPTHREAD build-time define).
 

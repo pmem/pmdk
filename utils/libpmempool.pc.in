@@ -3,7 +3,7 @@ includedir=${prefix}/include
 Name: libpmempool
 Description: libpmempool library from PMDK project
 Version: ${version}
-URL: https://pmem.io/pmdk
+URL: https://github.com/pmem/pmdk
 Requires.private: libpmem${rasdeps}
 Libs: -L${libdir} -lpmempool
 Libs.private: -ldl
