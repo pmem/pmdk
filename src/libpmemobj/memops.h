@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * memops.h -- aggregated memory operations helper definitions
@@ -19,6 +19,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* it is in the header only for testing purposes */
+#define ULOG_BASE_SIZE 1024
 
 enum operation_log_type {
 	LOG_PERSISTENT, /* log of persistent modifications */
