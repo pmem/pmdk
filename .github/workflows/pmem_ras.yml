@@ -54,7 +54,7 @@ jobs:
       - name: Fail the workflow if the playbook finished with a failure
         working-directory: ${{ env.WORKDIR }}
         run: |
-          if grep -E 'fatal: \[ras_runner\]: FAILED!|failed: \[ras_runner\]' "playbook_output.txt"; then
+          if grep -E '(fatal|failed): \[ras_runner\]' playbook_output.txt; then
             exit 1
           else
             exit 0
