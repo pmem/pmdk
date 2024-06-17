@@ -16,6 +16,10 @@
 
 #define LAYOUT_NAME "obj_ulog_advanced"
 
+#if VG_PMEMCHECK_ENABLED == 0
+#define VALGRIND_PMC_EMIT_LOG(_) /* NOP */
+#endif /* VG_PMEMCHECK_ENABLED == 0 */
+
 /*
  * BACKGROUND INFORMATION
  *
