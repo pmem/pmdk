@@ -16,6 +16,12 @@ SIGABRT_EXIT_CODE = 134
 # The 'debug' build is chosen arbitrarily to ensure these tests are run only
 # once. No dynamic libraries are used nor .static_* builds are available.
 @t.require_build('debug')
+# (memcheck) When a process forks(3) itself Valgrind can't be stopped from
+# following the child process. And since the child process ends with abort(3)
+# memory leaks are expected.
+# (helgrind, drd) There is no multithreading employed in this test.
+# (pmemcheck) It is covered with Bash-based tests.
+@t.require_valgrind_disabled('memcheck', 'helgrind', 'drd', 'pmemcheck')
 class OBJ_ULOG_ADVANCED(t.Test):
     test_type = t.Short
     test_case = 'test_init_publish_abort_and_verify'
