@@ -33,9 +33,9 @@
 # - hosts: localhost
 #   connection: local
 # c) setup PMem for the first time (establish regions):
-# ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
+# ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser newRegions=true"
 # d) setup PMem if it already has been initialized before:
-# ansible-playbook configure-pmem.yml
+# ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser"
 #
 
 - hosts: "{{ host }}"
