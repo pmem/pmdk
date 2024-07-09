@@ -68,11 +68,12 @@
 #
 
 - hosts: '{{ host }}'
+  any_errors_fatal: true
 
   vars:
     bash_path: /bin/bash
-    working_dir_path: "/var/tmp/rasUnsafeShutdown"
-    logs_dir_path: "/var/tmp/raslogs"
+    working_dir_path: "/home/pmdkuser/rasUnsafeShutdown"
+    logs_dir_path: "/home/pmdkuser/raslogs"
     test_dir_path: "{{ working_dir_path }}/testDir"
     pmdk_install_dir_path: "{{ working_dir_path }}/pmdkInstallTarget"
     pmdk_tests_build_dir_path: "{{ working_dir_path }}/pmdkTestsBuild"
@@ -174,11 +175,29 @@
           with_items: "{{ workspace_dirs }}"
 
         # The 'Main' branch is used for both repositories.
-        - name: "Clone repositories"
+        - name: "Ensure working directory exists"
+          file:
+            path: "{{ working_dir_path }}"
+            state: directory
+
+        - name: "Remove existing PMDK repository if present"
+          file:
+            path: "{{ pmdk_install_dir_path }}"
+            state: absent
+            force: yes
+
+        - name: "Remove existing PMDK-test repository if present"
+          file:
+            path: "{{ repo.pmdk_tests.target_dir }}"
+            state: absent
+            force: yes
+
+        - name: "Clone PMDK & PMDK-test repositories"
           git:
             repo: "{{ item.value.url }}"
             dest: "{{ item.value.target_dir }}"
             version: "{{ item.value.branch }}"
+            force: yes
           with_dict: "{{ repo }}"
 
         - name: "Build PMDK"

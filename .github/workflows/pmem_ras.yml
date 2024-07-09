@@ -47,15 +47,4 @@ jobs:
       # 'tee' command is used to save the overall output to the file. This file is needed for the next step.
       - name: Prepare and run RAS Linux tests via ansible-playbook
         working-directory: ${{ env.WORKDIR }}
-        run: ansible-playbook -i $ras_runner, run-ras-linux.yml -e "host=all ansible_user=$ras_user" | sed 's/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/ras_runner/' | tee playbook_output.txt
-
-      # This simple step will look through the output in search of specific fail strings.
-      # The workflow will fail if any of the expected phrases are found in the file.
-      - name: Fail the workflow if the playbook finished with a failure
-        working-directory: ${{ env.WORKDIR }}
-        run: |
-          if grep -E '(fatal|failed): \[ras_runner\]' playbook_output.txt; then
-            exit 1
-          else
-            exit 0
-          fi
+        run: ansible-playbook -i $ras_runner, run-ras-linux.yml -e "host=all ansible_user=$ras_user"
