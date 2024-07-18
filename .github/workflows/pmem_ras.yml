@@ -42,7 +42,13 @@ jobs:
       - name: Clone the git repo
         uses: actions/checkout@v4
 
-      # Variables, such as $ras_runner are set on the controller platform as environment variables.
+      # Variables, such as $ras_runner are set on the controller platform
+      # as environment variables.
       - name: Prepare and run RAS Linux tests via ansible-playbook
         working-directory: ${{ env.WORKDIR }}
-        run: ansible-playbook -i $ras_runner, run-ras-linux.yml -e "host=all ansible_user=$ras_user"
+        env:
+          # Increases human readability in case of a failure
+          ANSIBLE_STDOUT_CALLBACK: yaml
+        run: >
+          ansible-playbook -i $ras_runner, run-ras-linux.yml
+          -e "host=all ansible_user=$ras_user"
