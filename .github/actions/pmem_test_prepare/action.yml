@@ -41,6 +41,7 @@ runs:
         echo '::group::Build'
         $WORKDIR/build-pmdk.sh
         echo '::endgroup::'
+        [[ "${{ inputs.valgrind }}" ]] || { echo "valgrind input is empty" ; exit 1; }
       shell: bash
 
     - run: |

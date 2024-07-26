@@ -60,7 +60,7 @@ jobs:
       - name: Test prepare
         uses: ./.github/actions/pmem_test_prepare
         with:
-          valgrid: 1
+          valgrind: 1
 
       - name: Test run
         uses: ./.github/actions/pmem_test_run
