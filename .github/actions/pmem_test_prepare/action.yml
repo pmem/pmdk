@@ -44,6 +44,10 @@ runs:
       shell: bash
 
     - run: |
+      [[ "${{ inputs.valgrind }}" ]] || { echo "valgrind input is empty" ; exit 1; }
+    shell: bash
+
+    - run: |
         echo '::group::Create testconfig files'
         $WORKDIR/../create-testconfig.sh
         for testconfig in src/test/testconfig.sh src/test/testconfig.py; do
