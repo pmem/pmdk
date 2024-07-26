@@ -38,6 +38,9 @@ runs:
         PMEMOBJ_IGNORE_BAD_BLOCKS: ${{ inputs.ndctl_enable == 'n' && 'y' || 'n' }}
         VALGRIND: ${{ inputs.valgrind }}
       run: |
+        echo '::group::Validate input'
+        [[ "${{ inputs.valgrind }}" ]] || { echo "valgrind input is empty" ; exit 1; }
+        echo '::endgroup::'
         echo '::group::Build'
         $WORKDIR/build-pmdk.sh
         echo '::endgroup::'
