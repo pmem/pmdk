@@ -311,11 +311,11 @@
             var: phase_2
 
       # 'always' section makes sure that the temporary files are deleted regardless of the results.
-      always:
-        - name: "Delete temporary files after the job"
-          file:
-            path: "{{ item }}"
-            state: absent
-          with_items:
-            - "/tmp/tmp.fstab"
-            - "{{ working_dir_path }}"
+      # always:
+      #   - name: "Delete temporary files after the job"
+      #     file:
+      #       path: "{{ item }}"
+      #       state: absent
+      #     with_items:
+      #       - "/tmp/tmp.fstab"
+      #       - "{{ working_dir_path }}"
