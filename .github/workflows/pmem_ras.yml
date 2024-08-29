@@ -34,7 +34,7 @@ jobs:
   linux:
     name: PMEM_RAS
     if: github.repository == 'pmem/pmdk'
-    runs-on: [self-hosted, ras_controller]
+    runs-on: [self-hosted, ras_controller_debug]
     env:
       WORKDIR: utils/gha-runners
 
