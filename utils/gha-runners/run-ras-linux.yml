@@ -88,7 +88,7 @@
     repo:
       pmdk:
         url: https://github.com/pmem/pmdk.git
-        branch: master
+        branch: test_pmem_ras
         target_dir: "{{ working_dir_path }}/pmdk"
       pmdk_tests:
         url: https://github.com/pmem/pmdk-tests
