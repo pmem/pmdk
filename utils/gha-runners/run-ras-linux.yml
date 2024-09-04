@@ -217,7 +217,7 @@
 
         - name: "Build pmdk-tests"
           shell:
-            cmd: "cmake '{{ repo.pmdk_tests.target_dir }}' && make -j"
+            cmd: "cmake -DCMAKE_BUILD_TYPE=DEBUG '{{ repo.pmdk_tests.target_dir }}' && make -j"
             chdir: "{{ pmdk_tests_build_dir_path }}"
             executable: "{{ bash_path }}"
           environment:
