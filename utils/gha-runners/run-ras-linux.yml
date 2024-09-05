@@ -255,6 +255,18 @@
               - mountPoint: /mnt/{{item}}
           with_items: "{{ uuids }}"
 
+        - name: "Print SDS"
+          shell: ndctl list --health --dimms
+          register: output
+
+        - name: "SDS - output"
+          debug:
+            msg: |
+              ::group::Print_sds
+              {{ output.stderr_lines | to_nice_yaml }}
+              {{ output.stdout_lines | to_nice_yaml }}
+              ::endgroup::
+
         - name: "Phase 1 - run tests"
           shell:
             cmd: PATH=$PATH:{{ pmdk_install_dir_path }}/bin ./UNSAFE_SHUTDOWN_LOCAL 1 inject all --gtest_output=xml:{{ logs_dir_path }}/phase1.xml
@@ -270,6 +282,18 @@
 
         - name: "Flush filesystems before power cycle"
           shell: "sync"
+
+        - name: "Print SDS"
+          shell: ndctl list --regions --human
+          register: output
+
+        - name: "SDS - output"
+          debug:
+            msg: |
+              ::group::Print_sds
+              {{ output.stderr_lines | to_nice_yaml }}
+              {{ output.stdout_lines | to_nice_yaml }}
+              ::endgroup::
 
         # Combination of "async:1, poll:0 and ignore_errors: true" means more or less "fire and forget";
         # "fire and forget" (and later waiting for connection) approach is required here because Ansible
@@ -296,6 +320,18 @@
           with_together:
             - "{{ uuids }}"
             - "{{ pmem_devices }}"
+
+        - name: "Print SDS"
+          shell: ndctl list --regions --human
+          register: output
+
+        - name: "SDS - output"
+          debug:
+            msg: |
+              ::group::Print_sds
+              {{ output.stderr_lines | to_nice_yaml }}
+              {{ output.stdout_lines | to_nice_yaml }}
+              ::endgroup::
 
         - name: "Phase 2 - run tests"
           shell:
