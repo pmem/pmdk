@@ -3,6 +3,7 @@ XXX
 	* Version X.X.X
 
 	- remove non-Linux support from all compilation paths (OS_KERNEL_NAME)
+	- add an aarch64 cross-compilation (requested by DAOS)
 
 Thu May 23 2024 Oksana Sałyk <oksana.salyk@intel.com>
 

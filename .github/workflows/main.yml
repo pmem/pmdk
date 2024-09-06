@@ -76,11 +76,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        CC: [gcc, clang]
         include:
+          # common parameters for both gcc and clang
+          - LD: ld
+            OBJCOPY: objcopy
+            ARCH: x86_64
+            BUILD_ALL: y
+          # include CXX specific for each of the x86_64 compilers
           - CC: gcc
             CXX: g++
           - CC: clang
             CXX: clang++
+          # add aarch64 cross-compilation (requested by DAOS)
+          - CC: aarch64-linux-gnu-gcc
+            CXX: aarch64-linux-gnu-g++-11
+            LD: aarch64-linux-gnu-ld
+            OBJCOPY: aarch64-linux-gnu-objcopy
+            ARCH: aarch64
+            BUILD_ALL: n # exclude non-required parts from the build
     steps:
       - name: Clone the git repo
         uses: actions/checkout@v4
@@ -88,13 +102,23 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get -y install pandoc
 
+      - if: ${{ contains(matrix.CC, 'aarch64') }}
+        name: Install dependencies (aarch64)
+        run: sudo apt-get -y install gcc-aarch64-linux-gnu g++-11-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
       - name: Build sources
         env:
           NDCTL_ENABLE: n # just to speed up the job
           PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: y # not recommended for production
           PMEMOBJ_IGNORE_BAD_BLOCKS: y # not recommended for production
+          BUILD_EXAMPLES: ${{ matrix.BUILD_ALL }}
+          BUILD_BENCHMARKS: ${{ matrix.BUILD_ALL }}
+          DOC: ${{ matrix.BUILD_ALL }}
           CC: ${{ matrix.CC }}
           CXX: ${{ matrix.CXX }}
+          LD: ${{ matrix.LD }}
+          OBJCOPY: ${{ matrix.OBJCOPY }}
+          ARCH: ${{ matrix.ARCH }}
         run: make -j$(nproc) test
 
 
