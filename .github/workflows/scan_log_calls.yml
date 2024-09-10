@@ -30,7 +30,7 @@ jobs:
 
       - name: Upload artifacts
         if: steps.log_calls_diff.outputs.length != '0'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5 # v3
         with:
           name: log_calls_diff
           path: ${{ env.WORKING_DIRECTORY }}/log_calls.diff
