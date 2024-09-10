@@ -23,7 +23,7 @@ jobs:
         if: |
           !(github.repository == 'pmem/pmdk' &&
             (github.ref_name == 'master' || startsWith(github.ref_name, 'stable-')))
-        uses: Zomzog/changelog-checker@v1.3.0
+        uses: Zomzog/changelog-checker@09cfe9ad3618dcbfdba261adce0c41904cabb8c4 # v1.3.0
         with:
           fileName: ChangeLog
           noChangelogLabel: no changelog # the default
