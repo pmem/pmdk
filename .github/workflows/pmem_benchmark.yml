@@ -60,7 +60,7 @@ jobs:
           git -C ${{ matrix.ROLE }} rev-parse HEAD >> $MANIFEST
 
       - name: Archive the manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4
         with:
           name: manifest_${{ matrix.ROLE }}
           path: ${{ env.MANIFEST }}
@@ -109,7 +109,7 @@ jobs:
           done
 
       - name: Upload all as a single artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4
         with:
           name: perf__all__${{ github.run_id }}
           path: csvs/**/*
