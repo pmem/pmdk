@@ -46,7 +46,7 @@ jobs:
 
       - name: Archive logs
         if: steps.build.outcome != 'success'
-        uses: actions/upload-artifact@v4.2.0
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: logs-${{ matrix.TEST_BUILD }}
           path: ${{env.HOST_WORKDIR}}/src/test/**/*.log
