@@ -36,7 +36,7 @@ jobs:
         && sudo ./utils/docker/images/install-valgrind.sh
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@be8b74c09c1778bcdbea38e1a45efea2cb73e18c # v2
       with:
         languages: cpp, python
 
@@ -44,4 +44,4 @@ jobs:
       run: make test -j$(nproc)
 
     - name: CodeQL scan
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@be8b74c09c1778bcdbea38e1a45efea2cb73e18c # v2
