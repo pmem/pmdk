@@ -39,7 +39,7 @@ jobs:
         run: cd $WORKDIR && ./build-CI.sh
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4
         with:
           root_dir: /home/runner/work/pmdk/pmdk/
           directory: /home/runner/work/pmdk/pmdk/
