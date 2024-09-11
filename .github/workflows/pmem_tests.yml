@@ -55,7 +55,7 @@ jobs:
         build: [static_debug, static_nondebug]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Test prepare
         uses: ./.github/actions/pmem_test_prepare
@@ -76,7 +76,7 @@ jobs:
     runs-on: [self-hosted, rhel]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Test prepare
         uses: ./.github/actions/pmem_test_prepare
@@ -102,7 +102,7 @@ jobs:
     runs-on: [self-hosted, rhel]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Test prepare
         uses: ./.github/actions/pmem_test_prepare

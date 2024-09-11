@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Pull the image
         run: cd $WORKDIR && ./pull-or-rebuild-image.sh
@@ -39,7 +39,7 @@ jobs:
         run: cd $WORKDIR && ./build-CI.sh
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
         with:
           root_dir: /home/runner/work/pmdk/pmdk/
           directory: /home/runner/work/pmdk/pmdk/

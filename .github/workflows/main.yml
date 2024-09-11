@@ -13,7 +13,7 @@ jobs:
       issues: read
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           # required for `make check-license` to work properly
           fetch-depth: 50
@@ -23,7 +23,7 @@ jobs:
         if: |
           !(github.repository == 'pmem/pmdk' &&
             (github.ref_name == 'master' || startsWith(github.ref_name, 'stable-')))
-        uses: Zomzog/changelog-checker@v1.3.0
+        uses: Zomzog/changelog-checker@09cfe9ad3618dcbfdba261adce0c41904cabb8c4 # v1.3.0
         with:
           fileName: ChangeLog
           noChangelogLabel: no changelog # the default
@@ -51,7 +51,7 @@ jobs:
 
       - name: Upload check license diff
         if: steps.check_license.outcome != 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: check-license.diff
           path: /tmp/check-license.diff
@@ -97,7 +97,7 @@ jobs:
             BUILD_ALL: n # exclude non-required parts from the build
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Install dependencies
         run: sudo apt-get -y install pandoc
