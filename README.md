@@ -7,6 +7,10 @@
 [![Pmem RAS](https://github.com/pmem/pmdk/actions/workflows/pmem_ras.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/pmem_ras.yml)
 [![Docker rebuild](https://github.com/pmem/pmdk/actions/workflows/docker_rebuild.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/docker_rebuild.yml)
 
+# **!!! IT IS NOT A DEFAULT BRANCH !!!**
+# **!!! THIS IS A COPY OF MASTER/DEFAULT BRANCH UNDER EXPERIMENT !!!**
+# **!!! DO NOT USE IT !!!**
+
 The **Persistent Memory Development Kit (PMDK)** is a collection of libraries and tools for System Administrators and Application Developers to simplify managing and accessing persistent memory devices. For more information, see https://pmem.io.
 
 To install PMDK libraries please clone the tree and build it yourself. Specific installation instructions are outlined below.
