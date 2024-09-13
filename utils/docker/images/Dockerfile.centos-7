@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM centos:7
+FROM quay.io/centos/centos:7@sha256:8652b9f0cb4c0599575e5a003f5906876e10c1ceb2ab9fe1786712dac14a50cf
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables

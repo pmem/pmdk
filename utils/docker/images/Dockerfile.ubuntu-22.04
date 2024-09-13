@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM ubuntu:22.04
+FROM docker.io/library/ubuntu:22.04@sha256:53a843653cbcd9e10be207e951d907dc2481d9c222de57d24cfcac32e5165188
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables

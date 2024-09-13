@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of fedora-based
@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM fedora:31
+FROM registry.fedoraproject.org/fedora:31@sha256:a7a37f74ff864eec55891b64ad360d07020827486e30a92ea81d16459645b26a
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables
