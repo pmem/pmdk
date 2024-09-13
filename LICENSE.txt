@@ -1,5 +1,6 @@
-SPDX-License-Identifier: BSD-3-Clause
-Copyright 2014-2020, Intel Corporation
+BSD 3-Clause "New" or "Revised" License
+
+Copyright 2014-2024, Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -28,12 +29,3 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-Everything in this source tree is covered by the previous license
-with the following exceptions:
-
-* src/core/valgrind/valgrind.h, src/core/valgrind/memcheck.h,
-  src/core/valgrind/helgrind.h, src/core/valgrind/drd.h are covered by
-  another similar BSD license variant, contained in those files.
-
-* utils/cstyle (used only during development) licensed under CDDL.
