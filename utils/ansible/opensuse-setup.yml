@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 # This playbook is designed to install all required packages and configure
 # OpenSUSE to execute tests.
@@ -112,6 +112,7 @@
       package:
         state: present
         name:
+          - ansible
           - clang
           - hub
           - lbzip2
