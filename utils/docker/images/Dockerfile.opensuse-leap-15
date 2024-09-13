@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of openSUSE-based
@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM opensuse/leap:15
+FROM opensuse/leap:15@sha256:2a8c959e6b77beb76401943d01735a4fe55f2deb9eb5cba8dc659f354bdb2a23
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables

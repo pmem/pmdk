@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of rockylinux-based
@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM rockylinux/rockylinux:9
+FROM rockylinux/rockylinux:9@sha256:3c8f8ff398c0125ad595e3cfbc9e592e9c184e278e29ae3b8d70fbbd147e5989
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of centos-based
@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM docker.io/tgagor/centos:stream
+FROM docker.io/tgagor/centos:stream@sha256:14f375a0ae61106a82ab557c160bb0f1f1b439d2afc4d03d197adce2474353a1
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables

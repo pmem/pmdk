@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of Debian-based
@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM debian:11
+FROM debian:11@sha256:34662f5448c46bb16e56edc0a8224cc0c0fb0a6bc4713061857761e8684ff388
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables
