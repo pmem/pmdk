@@ -98,7 +98,7 @@ export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME= # host's name that will be visible on GitHub
 export LABELS= # rhel or opensuse
 export VARS_GHA= # e.g. proxy settings: http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
-ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars
+ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars \
   "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD \
   runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 ```
