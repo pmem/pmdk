@@ -15,7 +15,7 @@ or just begin a dialog about the Persistent Memory Development Kit:
 
 **NOTE: If you do decide to implement code changes and contribute them,
 please make sure you agree your contribution can be made available
-under the [BSD-style License used for the Persistent Memory Development Kit](https://github.com/pmem/pmdk/blob/master/LICENSE).**
+under the [BSD-style License used for the Persistent Memory Development Kit](https://github.com/pmem/pmdk/blob/master/LICENSE.txt).**
 
 **NOTE: Submitting your changes also means that you certify the following:**
 

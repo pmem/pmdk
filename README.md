@@ -44,7 +44,7 @@ Utilities available in this repository:
 
 Currently, these libraries and utilities only work on 64-bit Linux.
 
-See our [LICENSE](LICENSE) file for information on how these libraries are licensed.
+See our [LICENSE](LICENSE.txt) file for information on how these libraries are licensed.
 
 ## Getting Started
 
