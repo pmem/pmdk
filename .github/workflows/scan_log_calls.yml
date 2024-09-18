@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
   workflow_call:
 
+permissions: {}
 
 jobs:
   log-calls:

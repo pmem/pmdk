@@ -17,6 +17,8 @@ on:
         type: number
         default: 360 # The jobs.<job_id>.timeout-minutes default.
 
+permissions: {}
+
 jobs:
   job:
     name: ${{ matrix.force_enable }}, ${{ matrix.test_script }}, ${{ matrix.os }}, ${{ matrix.build }}
