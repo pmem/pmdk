@@ -89,7 +89,7 @@ to pmem is provided.
 %dir %{_datadir}/pmdk
 %{_libdir}/libpmem2.so.*
 %{_datadir}/pmdk/pmdk.magic
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -115,7 +115,7 @@ convenient.
 %{_includedir}/libpmem2/*.h
 %{_mandir}/man7/libpmem2.7.gz
 %{_mandir}/man3/pmem2_*.3.gz
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -138,7 +138,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmem2.so
 %{_libdir}/pmdk_debug/libpmem2.so.*
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -155,7 +155,7 @@ to pmem is provided.
 %dir %{_datadir}/pmdk
 %{_libdir}/libpmem.so.*
 %{_datadir}/pmdk/pmdk.magic
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -180,7 +180,7 @@ convenient.
 %{_includedir}/libpmem.h
 %{_mandir}/man7/libpmem.7.gz
 %{_mandir}/man3/pmem_*.3.gz
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -203,7 +203,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmem.so
 %{_libdir}/pmdk_debug/libpmem.so.*
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -220,7 +220,7 @@ persistent memory programming.
 %files -n libpmemobj__PKG_NAME_SUFFIX__
 %defattr(-,root,root,-)
 %{_libdir}/libpmemobj.so.*
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -250,7 +250,7 @@ probably want to start with this library.
 %{_mandir}/man3/direct_*.3.gz
 %{_mandir}/man3/d_r*.3.gz
 %{_mandir}/man3/tx_*.3.gz
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -274,7 +274,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmemobj.so
 %{_libdir}/pmdk_debug/libpmemobj.so.*
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -290,7 +290,7 @@ pools created by libpmemobj library.
 %files -n libpmempool__PKG_NAME_SUFFIX__
 %defattr(-,root,root,-)
 %{_libdir}/libpmempool.so.*
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -312,7 +312,7 @@ pools created by libpmemobj library.
 %{_mandir}/man7/libpmempool.7.gz
 %{_mandir}/man5/poolset.5.gz
 %{_mandir}/man3/pmempool_*.3.gz
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -335,7 +335,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %dir %{_libdir}/pmdk_debug
 %{_libdir}/pmdk_debug/libpmempool.so
 %{_libdir}/pmdk_debug/libpmempool.so.*
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 %package -n pmempool
@@ -357,7 +357,7 @@ and users of the applications based on PMDK libraries.
 %{_mandir}/man1/pmempool.1.gz
 %{_mandir}/man1/pmempool-*.1.gz
 %config(noreplace) %{_sysconfdir}/bash_completion.d/pmempool
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 %package -n pmreorder
@@ -374,7 +374,7 @@ provided in the command line options to check whether files are in a consistent 
 %{_bindir}/pmreorder
 %{_datadir}/pmreorder/*.py
 %{_mandir}/man1/pmreorder.1.gz
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
@@ -395,7 +395,7 @@ a device.
 %files -n daxio
 %{_bindir}/daxio
 %{_mandir}/man1/daxio.1.gz
-%license LICENSE
+%license LICENSE.txt
 %doc ChangeLog CONTRIBUTING.md README.md
 
 # end of "if _with_ndctl"
