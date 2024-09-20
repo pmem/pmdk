@@ -33,6 +33,9 @@ with the following exceptions:
 
 * src/core/valgrind/valgrind.h, src/core/valgrind/memcheck.h,
   src/core/valgrind/helgrind.h, src/core/valgrind/drd.h are covered by
-  another similar BSD license variant, contained in those files.
+  BSD-style license variants, contained in those files.
 
-* utils/cstyle (used only during development) licensed under CDDL.
+* utils/cstyle (used only during development) are covered by the 
+  Common Development and Distribution License, described in the CDDL HEADER
+  contained in this file.
+  
