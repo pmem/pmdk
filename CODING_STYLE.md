@@ -48,13 +48,9 @@ Otherwise, just use `unsigned`, `long`, etc.
 - Make sure you have the right to submit your contribution under the BSD license,
 especially if it is based upon previous work.
 See [CONTRIBUTING.md](https://github.com/pmem/pmdk/blob/master/CONTRIBUTING.md) for details.
-- A copy of the SPDX BSD-3-Clause license reference must be placed at the beginning of each
-source file, script or man page. (Obviously, it does not apply to README's, Visual Studio projects
-and \*.match files.)
-```
-/* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright <year>, <Name/Company name> */
-```
+- Place a [SPDX short-form identifier](https://spdx.dev/learn/handling-license-info/) for
+the BSD-3-Clause license at the beginning of each new source file, script or man page.
+(Obviously, it does not apply to README's, Visual Studio projects and \*.match files.)
 - When adding a new file to the repo, or when making a contribution to an existing
 file, feel free to put your copyright string on top of it.
 
