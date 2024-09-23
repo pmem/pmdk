@@ -35,6 +35,6 @@ with the following exceptions:
   src/core/valgrind/helgrind.h, src/core/valgrind/drd.h are covered by
   BSD-style licenses, contained in these files.
 
-* utils/cstyle (used only during development) are covered by the 
+* utils/cstyle (used only during development) are covered by the
   Common Development and Distribution License, described in the CDDL HEADER
   contained in that file.
