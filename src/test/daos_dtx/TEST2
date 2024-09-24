@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2024, Intel Corporation
+
+#
+# src/test/daos_dtx/TEST2 -- a test employing pmreorder
+#
+
+. ../unittest/unittest.sh
+
+. ./common.sh
+
+common_require
+
+setup
+
+common_setup
+
+common_record
+common_replay_and_check
+
+check
+
+pass

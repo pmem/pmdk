@@ -1,0 +1,141 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2024, Intel Corporation
+#
+
+name: DAOS tests
+
+on:
+  push:
+
+permissions: {}
+
+env:
+  DAOS_BUILD: 0
+  DAOS_PATH: /opt/daos
+
+jobs:
+  daos_test:
+    name: DAOS tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the DAOS repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          repository: daos-stack/daos
+          ref: release/2.6
+          path: daos
+
+      - name: Clone the PMDK repo
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+        with:
+          repository: pmem/pmdk
+          path: pmdk
+
+      - name: Apply DAOS patches
+        if: ${{ env.DAOS_BUILD == 1 }}
+        working-directory: daos
+        run: git apply ../pmdk/src/test/daos_dtx/*.patch
+
+      - name: Install DAOS' dependencies
+        working-directory: daos
+        run: |
+          sudo pip install -r requirements-build.txt
+          sudo utils/scripts/install-ubuntu.sh
+
+      # https://go.dev/doc/install
+      - name: Update the golang package
+        if: ${{ env.DAOS_BUILD == 1 }}
+        env:
+          GOLANG_VER: go1.23.1 # >= 1.21 because of https://go.dev/doc/toolchain
+        run: |
+          sudo apt-get remove golang-go
+          wget https://go.dev/dl/${{ env.GOLANG_VER }}.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf ${{ env.GOLANG_VER }}.linux-amd64.tar.gz
+
+      - name: Install Valgrind
+        working-directory: pmdk/utils/docker/images/
+        run: sudo ./install-valgrind.sh
+
+      - name: Generate ${{ env.OPTS_FILE }}
+        if: ${{ env.DAOS_BUILD == 1 }}
+        working-directory: daos
+        env:
+          OPTS_FILE: daos.conf
+        run: |
+          cat <<-EOF >> ${{ env.OPTS_FILE }}
+          BUILD_TYPE = 'debug'
+          TARGET_TYPE = 'debug'
+          PREFIX = '${{ env.DAOS_PATH }}'
+          GO_BIN = '/usr/local/go/bin/go'
+          EOF
+          cat ${{ env.OPTS_FILE }}
+
+      - name: Build DAOS
+        if: ${{ env.DAOS_BUILD == 1 }}
+        working-directory: daos
+        run: |
+          git submodule init
+          git submodule update
+          scons install -j16 --build-deps=yes
+
+      - name: Save ${{ env.DAOS_PATH }} as cache
+        if: ${{ env.DAOS_BUILD == 1 }}
+        uses: actions/cache/save@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          path: ${{ env.DAOS_PATH }}
+          key: opt_daos
+
+      - name: Restore ${{ env.DAOS_PATH }} from cache
+        if: ${{ env.DAOS_BUILD == 0 }}
+        uses: actions/cache/restore@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
+        with:
+          path: ${{ env.DAOS_PATH }}
+          key: opt_daos
+
+      - name: Install PMDK's dependencies
+        run: sudo apt-get install libndctl-dev libdaxctl-dev pandoc
+
+      - name: Build PMDK
+        working-directory: pmdk
+        env:
+          PMDK_BUILD_DAOS_TESTS: y
+          DAOS_INSTALL_PATH: ${{ env.DAOS_PATH }}
+        run: |
+          export DAOS_SRC_PATH=$(realpath ../daos)
+          utils/gha-runners/build-pmdk.sh
+
+      - name: Create testconfig files
+        working-directory: pmdk
+        env:
+          PMEM_FS_DIR: /dev/shm
+          PMEM_FS_DIR_FORCE_PMEM: 1
+        run: |
+          utils/create-testconfig.sh
+          for testconfig in src/test/testconfig.{sh,py}; do
+            echo "$testconfig"
+            cat $testconfig
+            echo
+          done
+
+      - name: Run daos_dtx tests (1/2)
+        working-directory: pmdk/src/test
+        env:
+          LD_LIBRARY_PATH: ${{ env.DAOS_PATH }}/prereq/debug/ofi/lib
+        run: |
+          export PATH=${{ env.DAOS_PATH }}/bin:$PATH
+          ./RUNTESTS.py daos_dtx
+
+      - name: Run daos_dtx tests (2/2)
+        working-directory: pmdk/src/test
+        env:
+          PMEMOBJ_CONF: sds.at_create=0
+        run: |
+          export PATH=${{ env.DAOS_PATH }}/bin:$PATH
+          ./RUNTESTS.sh daos_dtx 2> daos_dtx/err.log
+
+      - name: Upload test results as artifact
+        if: success() || failure()
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: daos_dtx
+          path: pmdk/src/test/daos_dtx

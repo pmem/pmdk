@@ -1,0 +1,172 @@
+diff --git a/src/vos/tests/vts_common.c b/src/vos/tests/vts_common.c
+index 618f9feddd..7452ba2a34 100644
+--- a/src/vos/tests/vts_common.c
++++ b/src/vos/tests/vts_common.c
+@@ -52,11 +52,22 @@ vts_file_exists(const char *filename)
+ }
+ 
+ int
+-vts_alloc_gen_fname(char **fname)
++vts_alloc_gen_fname(char *po_uuid_str, char **fname)
+ {
+ 	int rc;
+ 
+-	rc = asprintf(fname, "%s/vpool.%d", vos_path, gc++);
++	assert(*fname == NULL);
++	rc = asprintf(fname, "%s/%s/", vos_path, po_uuid_str);
++	if (rc < 0) {
++		*fname = NULL;
++		print_error("Failed to allocate memory for fname: rc = %d\n", rc);
++		return rc;
++	}
++	rc = mkdir(*fname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
++	assert(rc == 0 || errno == EEXIST);
++	free(*fname);
++
++	rc = asprintf(fname, "%s/%s/vpool.%d", vos_path, po_uuid_str, gc++);
+ 	if (rc < 0) {
+ 		*fname = NULL;
+ 		print_error("Failed to allocate memory for fname: rc = %d\n", rc);
+@@ -71,9 +82,9 @@ vts_pool_fallocate(char **fname)
+ {
+ 	int ret = 0, fd;
+ 
+-	ret = vts_alloc_gen_fname(fname);
+-	if (ret)
+-		return ret;
++	// ret = vts_alloc_gen_fname(fname);
++	// if (ret)
++	// 	return ret;
+ 
+ 	fd = open(*fname, O_CREAT | O_TRUNC | O_RDWR, 0666);
+ 	if (fd < 0) {
+@@ -92,10 +103,17 @@ int
+ vts_ctx_init(struct vos_test_ctx *tcx, size_t psize)
+ {
+ 	int	 rc;
++	char      uuid_str[] = "dd6728be-696a-11ef-a059-a4bf0165c389";
++	char      uuid_str2[] = "591d19e4-69fe-11ef-b13d-a4bf0165c389";
+ 
+ 	memset(tcx, 0, sizeof(*tcx));
++
++	uuid_parse(uuid_str, tcx->tc_po_uuid);
++	// uuid_generate_time_safe(tcx->tc_po_uuid);
++	// uuid_unparse(tcx->tc_po_uuid, uuid_str);
++
+ 	oid_cnt = 0;
+-	rc = vts_alloc_gen_fname(&tcx->tc_po_name);
++	rc = vts_alloc_gen_fname(uuid_str, &tcx->tc_po_name);
+ 	assert_int_equal(rc, 0);
+ 
+ 	if (vts_file_exists(tcx->tc_po_name)) {
+@@ -103,8 +121,8 @@ vts_ctx_init(struct vos_test_ctx *tcx, size_t psize)
+ 		assert_int_equal(rc, 0);
+ 	}
+ 
+-	uuid_generate_time_safe(tcx->tc_po_uuid);
+-	uuid_generate_time_safe(tcx->tc_co_uuid);
++	// uuid_generate_time_safe(tcx->tc_co_uuid);
++	uuid_parse(uuid_str2, tcx->tc_co_uuid);
+ 
+ 	/* specify @psize as both NVMe size and SCM size */
+ 	rc = vos_pool_create(tcx->tc_po_name, tcx->tc_po_uuid, psize, psize, 0, 0 /* version */,
+@@ -155,14 +173,14 @@ vts_ctx_fini(struct vos_test_ctx *tcx)
+ 		assert_rc_equal(rc, 0);
+ 		/* fallthrough */
+ 	case TCX_CO_CREATE:
+-		rc = vos_cont_destroy(tcx->tc_po_hdl, tcx->tc_co_uuid);
+-		assert_rc_equal(rc, 0);
++		// rc = vos_cont_destroy(tcx->tc_po_hdl, tcx->tc_co_uuid);
++		// assert_rc_equal(rc, 0);
+ 		/* fallthrough */
+ 	case TCX_PO_CREATE_OPEN:
+ 		rc = vos_pool_close(tcx->tc_po_hdl);
+ 		assert_rc_equal(rc, 0);
+-		rc = vos_pool_destroy(tcx->tc_po_name, tcx->tc_po_uuid);
+-		assert_rc_equal(rc, 0);
++		// rc = vos_pool_destroy(tcx->tc_po_name, tcx->tc_po_uuid);
++		// assert_rc_equal(rc, 0);
+ 		free(tcx->tc_po_name);
+ 		/* fallthrough */
+ 	}
+diff --git a/src/vos/tests/vts_common.h b/src/vos/tests/vts_common.h
+index 2a08cbd8ff..b7dc09dcfe 100644
+--- a/src/vos/tests/vts_common.h
++++ b/src/vos/tests/vts_common.h
+@@ -83,7 +83,7 @@ bool
+ vts_file_exists(const char *filename);
+ 
+ int
+-vts_alloc_gen_fname(char **fname);
++vts_alloc_gen_fname(char *po_uuid, char **fname);
+ 
+ int
+ vts_pool_fallocate(char **fname);
+diff --git a/src/vos/tests/vts_io.c b/src/vos/tests/vts_io.c
+index 5ec1bb08f7..abc269b1f6 100644
+--- a/src/vos/tests/vts_io.c
++++ b/src/vos/tests/vts_io.c
+@@ -956,7 +956,7 @@ io_obj_cache_test(void **state)
+ 	struct vos_object	*obj1, *obj2;
+ 	daos_epoch_range_t	 epr = {0, 1};
+ 	daos_unit_oid_t		 oids[2];
+-	char			*po_name;
++	char			*po_name = "";
+ 	uuid_t			 pool_uuid;
+ 	daos_handle_t		 l_poh, l_coh;
+ 	struct daos_lru_cache   *old_cache;
+@@ -970,8 +970,8 @@ io_obj_cache_test(void **state)
+ 	old_cache       = tls->vtl_ocache;
+ 	tls->vtl_ocache = occ;
+ 
+-	rc = vts_alloc_gen_fname(&po_name);
+-	assert_int_equal(rc, 0);
++	// rc = vts_alloc_gen_fname(&po_name);
++	// assert_int_equal(rc, 0);
+ 
+ 	uuid_generate_time_safe(pool_uuid);
+ 	rc = vos_pool_create(po_name, pool_uuid, VPOOL_256M, 0, 0, 0 /* version */, &l_poh);
+@@ -1105,7 +1105,7 @@ io_obj_cache_test(void **state)
+ 	assert_rc_equal(rc, 0);
+ 	vos_obj_cache_destroy(occ);
+ 	tls->vtl_ocache = old_cache;
+-	free(po_name);
++	// free(po_name);
+ }
+ 
+ static void
+diff --git a/src/vos/tests/vts_pool.c b/src/vos/tests/vts_pool.c
+index acfd4e46a8..8e2fe3742c 100644
+--- a/src/vos/tests/vts_pool.c
++++ b/src/vos/tests/vts_pool.c
+@@ -49,7 +49,7 @@ static int
+ pool_file_setup(void **state)
+ {
+ 	struct vp_test_args	*arg = *state;
+-	int			ret = 0;
++	// int			ret = 0;
+ 
+ 	D_ALLOC(arg->fname, sizeof(char *));
+ 	assert_ptr_not_equal(arg->fname, NULL);
+@@ -57,8 +57,8 @@ pool_file_setup(void **state)
+ 	D_ALLOC_ARRAY(arg->poh, 10);
+ 	assert_ptr_not_equal(arg->poh, NULL);
+ 
+-	ret = vts_alloc_gen_fname(&arg->fname[0]);
+-	assert_int_equal(ret, 0);
++	// ret = vts_alloc_gen_fname(&arg->fname[0]);
++	// assert_int_equal(ret, 0);
+ 	return 0;
+ }
+ 
+@@ -153,8 +153,8 @@ pool_ops_run(void **state)
+ 								 VPOOL_TEST_WAL_SZ, 0,
+ 								 0 /* version */, poh);
+ 				} else {
+-					ret = vts_alloc_gen_fname(&arg->fname[j]);
+-					assert_int_equal(ret, 0);
++					// ret = vts_alloc_gen_fname(&arg->fname[j]);
++					// assert_int_equal(ret, 0);
+ 					ret = vos_pool_create_ex(arg->fname[j], arg->uuid[j],
+ 								 VPOOL_256M, 0, VPOOL_TEST_WAL_SZ,
+ 								 0, 0 /* version */, poh);
