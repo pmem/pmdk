@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM registry.opensuse.org/opensuse/leap:15@sha256:2a8c959e6b77beb76401943d01735a4fe55f2deb9eb5cba8dc659f354bdb2a23
+FROM opensuse/leap:15@sha256:2cf0097cb60b947826e9497e1b73abefe0d4f9dbee556d0968b36684ec9e0714
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables
