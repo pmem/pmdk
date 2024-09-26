@@ -168,6 +168,7 @@ class BaseTest(metaclass=_TestCase):
             c (Context): test context
         """
         self.ctx = c
+        start_time = None
 
         try:
             # pre-execution cleanup
