@@ -10,13 +10,12 @@ on:
         type: string
         default: master
 
+permissions: {}
 
 jobs:
   prep_runtime:
     name: Prepare runtime
     runs-on: [self-hosted, benchmark]
-    permissions:
-      contents: read
     steps:
       - name: Clone the git repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
@@ -38,8 +37,6 @@ jobs:
             GITHUB_REF: ${{ inputs.reference_ref }}
           - ROLE: rival
             GITHUB_REF: ${{ inputs.rival_ref }}
-    permissions:
-      contents: read
     env:
       MANIFEST: ${{ matrix.ROLE }}/manifest.txt
     steps:

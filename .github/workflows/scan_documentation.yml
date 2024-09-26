@@ -4,6 +4,8 @@ name: Documentation
 on:
   workflow_call:
 
+permissions: {}
+
 jobs:
   linux:
     name: Documentation

@@ -5,6 +5,8 @@ on:
   workflow_dispatch:
   pull_request:
 
+permissions: {}
+
 jobs:
   src_checkers:
     name: Source checkers

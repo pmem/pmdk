@@ -7,6 +7,8 @@ on:
     # run this job at 00:00 UTC every day
     - cron:  '0 0 * * *'
 
+permissions: {}
+
 jobs:
   call-bandit:
     uses: ./.github/workflows/scan_bandit.yml
@@ -14,6 +16,10 @@ jobs:
   call-codeql:
     uses: ./.github/workflows/scan_codeql.yml
     name: CodeQL
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
   call-coverity:
     uses: ./.github/workflows/scan_coverity.yml
     secrets:
