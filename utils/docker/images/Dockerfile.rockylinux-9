@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM docker.io/rockylinux/rockylinux:9@sha256:3c8f8ff398c0125ad595e3cfbc9e592e9c184e278e29ae3b8d70fbbd147e5989
+FROM docker.io/library/rockylinux:9@sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
 MAINTAINER tomasz.gromadzki@intel.com
 
 # Set required environment variables
