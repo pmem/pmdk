@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2024, Intel Corporation
 
 . ../unittest/unittest.sh
 
@@ -11,9 +11,18 @@ setup
 create_poolset $DIR/testset1 8M:$DIR/testfile1:x 8M:$DIR/testfile2:x \
 	r 16M:$DIR/testfile3:x
 
-expect_normal_exit\
-    ./obj_basic_integration$EXESUFFIX $DIR/testset1
+expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testset1
+
+if [ "$BUILD" = "debug" ]; then
+	grep "Explicit transaction abort" pmemobj$UNITTEST_NUM.log > pmemobjXXX.log
+	mv pmemobjXXX.log pmemobj$UNITTEST_NUM.log
+	cp pmemobj0-4.log.match pmemobj$UNITTEST_NUM.log.match
+fi
 
 check
+
+if [ "$BUILD" = "debug" ]; then
+	rm pmemobj$UNITTEST_NUM.log.match
+fi
 
 pass

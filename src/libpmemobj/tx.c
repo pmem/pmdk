@@ -942,8 +942,10 @@ obj_tx_abort(int errnum, int user)
 
 	tx->last_errnum = errnum;
 	errno = errnum;
-	if (user)
-		ERR_W_ERRNO("explicit transaction abort");
+	if (user) {
+		_CORE_LOG(CORE_LOG_LEVEL_HARK, errnum,
+				"Explicit transaction abort: ");
+	}
 
 	/* ONABORT */
 	obj_tx_callback(tx);
