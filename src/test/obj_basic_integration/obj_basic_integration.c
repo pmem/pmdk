@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2022, Intel Corporation */
+/* Copyright 2015-2024, Intel Corporation */
 
 /*
  * obj_basic_integration.c -- Basic integration tests
@@ -521,9 +521,15 @@ test_tx_api(PMEMobjpool *pop)
 
 	UT_OUT("%s", pmemobj_errormsg());
 	TX_BEGIN(pop) {
-		pmemobj_tx_abort(ECANCELED);
+		pmemobj_tx_abort(0);
+		UT_ASSERT(0); /* should not get to this point */
 	} TX_END
-	UT_OUT("%s", pmemobj_errormsg());
+	UT_ASSERT(errno == ECANCELED);
+	TX_BEGIN(pop) {
+		pmemobj_tx_abort(EACCES);
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_END
+	UT_ASSERT(errno == EACCES);
 }
 
 static void
@@ -619,6 +625,13 @@ test_root_size(PMEMobjpool *pop)
 	UT_ASSERTeq(pmemobj_root_size(pop), sizeof(struct dummy_root));
 }
 
+static void
+test_core_log_function(enum pmemobj_log_level level, const char *file_name,
+	unsigned line_no, const char *function_name, const char *message)
+{
+	fprintf(stderr, "%s\n", message);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -629,6 +642,8 @@ main(int argc, char *argv[])
 
 	if (argc < 2 || argc > 2)
 		UT_FATAL("usage: %s file-name", argv[0]);
+
+	pmemobj_log_set_function(test_core_log_function);
 
 	const char *path = argv[1];
 	PMEMobjpool *pop = NULL;
