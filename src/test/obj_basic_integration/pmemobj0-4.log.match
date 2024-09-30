@@ -1,0 +1,2 @@
+<libpmemobj>: <1> [tx.c:946 obj_tx_abort] Explicit transaction abort: Operation canceled
+<libpmemobj>: <1> [tx.c:946 obj_tx_abort] Explicit transaction abort: Permission denied

@@ -29,5 +29,4 @@ POBJ_LIST_PREV: dummy_node 8
 POBJ_LIST_PREV: dummy_node 7
 POBJ_LIST_PREV: dummy_node 5
 nested transaction for different pool
-explicit transaction abort: Operation canceled
 obj_basic_integration$(nW)TEST0: DONE
