@@ -47,13 +47,8 @@ jobs:
         id: build
 
       - name: Archive logs
-        if: steps.build.outcome != 'success'
+        if: failure()
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: logs-${{ matrix.TEST_BUILD }}
           path: ${{env.HOST_WORKDIR}}/src/test/**/*.log
-
-      - name: Exit code
-        run: |
-          [ "${{steps.build.outcome}}" != "success" ] && exit 1
-          exit 0
