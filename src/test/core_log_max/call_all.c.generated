@@ -1098,9 +1098,6 @@ call_all_ERR_W_ERRNO(int errnum)
 	// src/libpmemobj/tx.c
 	ERR_W_ERRNO("Malloc");
 	UT_ASSERTeq(errno, errnum);
-	// src/libpmemobj/tx.c
-	ERR_W_ERRNO("explicit transaction abort");
-	UT_ASSERTeq(errno, errnum);
 }
 
 void
