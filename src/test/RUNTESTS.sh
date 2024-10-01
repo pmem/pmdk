@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2024, Intel Corporation
+# Copyright 2014-2023, Intel Corporation
 
 #
 # RUNTESTS.sh -- setup the environment and run each test
@@ -276,7 +276,7 @@ runtest() {
 
 		ttype=$(intersection "$_testtype" "$req_testtype" "short medium long")
 		[ -z "$ttype" ] && {
-			echo "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) test-type $testtype ($req_testtype required)"
+			echo "$UNITTEST_NAME: SKIP test-type $testtype ($req_testtype required)"
 			continue
 		}
 		# collapse test type to check if its valid superset
