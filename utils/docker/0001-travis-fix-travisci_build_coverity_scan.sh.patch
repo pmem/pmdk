@@ -22,6 +22,6 @@ index ad9d4afcf..562b08bcc 100644
 +  echo -e "\033[33;1mCoverity Scan upload failed: $response.\033[0m"
    exit 1
  fi
--- 
+--
 2.13.6
 
