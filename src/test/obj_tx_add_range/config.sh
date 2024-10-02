@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2024, Intel Corporation
 #
 #
 # obj_tx_add_range/config.sh -- test configuration
