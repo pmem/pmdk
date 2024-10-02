@@ -10,4 +10,3 @@
 # when run on a non-pmem file system.
 
 CONF_TIMEOUT[5]='10m'
-
