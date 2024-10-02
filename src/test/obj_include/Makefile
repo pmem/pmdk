@@ -14,4 +14,3 @@ OBJS = obj_atomic_base_include.o obj_atomic_include.o \
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-

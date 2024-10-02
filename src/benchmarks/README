@@ -17,4 +17,3 @@ package.
 
 rpm-based systems : glibX-devel (where X is the API/ABI version)
 dpkg-based systems: libglibX-dev (where X is the API/ABI version)
-

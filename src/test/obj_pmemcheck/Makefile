@@ -10,4 +10,3 @@ OBJS = obj_pmemcheck.o
 LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
-

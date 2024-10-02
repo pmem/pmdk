@@ -12,4 +12,3 @@ include ../Makefile.inc
 
 EXAMPLES=$(EX_LIBPMEM)/simple_copy \
 	$(EX_LIBPMEM)/full_copy
-
