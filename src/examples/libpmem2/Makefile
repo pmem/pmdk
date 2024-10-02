@@ -8,4 +8,3 @@
 DIRS = advanced basic log redo map_multiple_files unsafe_shutdown ringbuf
 
 include ../Makefile.inc
-

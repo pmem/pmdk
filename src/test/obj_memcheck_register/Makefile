@@ -10,4 +10,3 @@ OBJS = obj_memcheck_register.o
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
