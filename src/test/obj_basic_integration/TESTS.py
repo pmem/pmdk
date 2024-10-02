@@ -15,10 +15,10 @@ class BASIC(t.Test):
 
 
 @t.require_valgrind_disabled('memcheck')
-class TEST0(BASIC):
+class TEST14(BASIC):
     pass
 
 
 @t.require_valgrind_enabled('pmemcheck')
-class TEST1(BASIC):
+class TEST15(BASIC):
     pass
