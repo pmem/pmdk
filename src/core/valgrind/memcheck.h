@@ -317,4 +317,3 @@ typedef
        (_qzz_addr), (_qzz_len), 0, 0, 0)
 
 #endif
-

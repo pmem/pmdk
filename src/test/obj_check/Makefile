@@ -13,4 +13,3 @@ USE_PMEMWRITE=y
 USE_PMEMALLOC=y
 
 include ../Makefile.inc
-

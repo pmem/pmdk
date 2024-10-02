@@ -12,4 +12,3 @@ include ../../Makefile.inc
 
 writer: writer.o
 reader: reader.o
-

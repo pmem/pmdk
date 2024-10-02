@@ -17,4 +17,3 @@ CFLAGS += -g -DDEBUG
 LDFLAGS += $(call extract_funcs, obj_list.c)
 LDFLAGS += $(call extract_funcs, obj_list_mocks.c)
 LDFLAGS += $(call extract_funcs, obj_list_mocks_palloc.c)
-

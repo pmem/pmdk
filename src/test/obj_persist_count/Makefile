@@ -15,4 +15,3 @@ BUILD_STATIC_NONDEBUG=n
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_persist_count.c)
-
