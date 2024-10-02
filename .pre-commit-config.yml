@@ -13,10 +13,15 @@ repos:
     exclude: |
       (?x)(\.match$|
            unicode_match_script|
+           src\/core\/valgrind\/drd.h|
+           src\/core\/valgrind\/helgrind.h|
+           src\/core\/valgrind\/memcheck.h|
+           src\/core\/valgrind\/valgrind.h|
            src\/test\/util_map_proc)
   - id: end-of-file-fixer
     exclude: |
       (?x)(\.match$|
+           src\/core\/valgrind\/memcheck.h|
            ^GIT_VERSION$)
   - id: check-yaml
   - id: check-added-large-files
