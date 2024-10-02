@@ -11,6 +11,10 @@ repos:
     exclude: |
       (?x)(\.match$|
            unicode_match_script|
+           src\/core\/core\/valgrind\/drd.h|
+           src\/core\/core\/valgrind\/helgrind.h|
+           src\/core\/core\/valgrind\/memcheck.h|
+           src\/core\/core\/valgrind\/valgrind.h|
            src\/test\/util_map_proc)
   - id: end-of-file-fixer
     exclude: |
