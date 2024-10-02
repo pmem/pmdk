@@ -90,10 +90,6 @@ extern "C" {
 #include "log_internal.h"
 #include "core_assert.h"
 
-#ifdef USE_LOG_PMEMOBJ
-#include "libpmemobj/log.h"
-#endif
-
 int ut_get_uuid_str(char *);
 #define UT_MAX_ERR_MSG 128
 #define UT_POOL_HDR_UUID_STR_LEN 37 /* uuid string length */

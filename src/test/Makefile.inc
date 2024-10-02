@@ -47,7 +47,6 @@ endif
 
 ifeq ($(LIBPMEMOBJ), y)
 LIBPMEM=y
-USE_LOG_PMEMOBJ=y
 DYNAMIC_LIBS += -lpmemobj
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
@@ -55,7 +54,6 @@ endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
 LIBPMEM=y
-USE_LOG_PMEMOBJ=y
 LIBPMEMCOMMON=internal-debug
 OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/bucket.o\
@@ -84,7 +82,6 @@ endif
 
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
 LIBPMEM=y
-USE_LOG_PMEMOBJ=y
 LIBPMEMCOMMON=internal-nondebug
 OBJS +=	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/bucket.o\
@@ -454,10 +451,6 @@ endif
 ifeq ($(FAULT_INJECTION),1)
 CFLAGS += -DFAULT_INJECTION=1
 CXXFLAGS += -DFAULT_INJECTION=1
-endif
-
-ifeq ($(USE_LOG_PMEMOBJ),y)
-CFLAGS += -DUSE_LOG_PMEMOBJ
 endif
 
 # LIBPMEMCORE == '' means the binary is built without directly linking with
