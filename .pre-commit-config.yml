@@ -12,6 +12,7 @@ repos:
   - id: trailing-whitespace
     exclude: |
       (?x)(\.match$|
+           src\/test\/unicode_match_script\/unicodetest|
            src\/test\/util_poolset_parse\/pool32.set|
            src\/core\/valgrind\/drd.h|
            src\/core\/valgrind\/helgrind.h|
