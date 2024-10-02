@@ -20,6 +20,7 @@ repos:
     exclude: |
       (?x)(\.match$|
            src\/core\/valgrind\/memcheck.h|
+           src\/test\/checksum\/file[0-9]|
            ^GIT_VERSION$)
   - id: check-yaml
   - id: check-added-large-files
