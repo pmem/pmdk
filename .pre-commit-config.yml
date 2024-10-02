@@ -11,10 +11,15 @@ repos:
   hooks:
   - id: trailing-whitespace
     exclude: |
-      (?x)(\.match$)
+      (?x)(\.match$|
+           src/core/valgrind/drd.h|
+           src/core/valgrind/helgrind.h|
+           src/core/valgrind/memcheck.h|
+           src/core/valgrind/valgrind.h)
   - id: end-of-file-fixer
     exclude: |
       (?x)(\.match$|
+           src/core/valgrind/memcheck.h|
            ^GIT_VERSION$)
   - id: check-yaml
   - id: check-added-large-files

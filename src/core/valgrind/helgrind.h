@@ -21,16 +21,16 @@
    1. Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
 
-   2. The origin of this software must not be misrepresented; you must
-      not claim that you wrote the original software.  If you use this
-      software in a product, an acknowledgment in the product
+   2. The origin of this software must not be misrepresented; you must 
+      not claim that you wrote the original software.  If you use this 
+      software in a product, an acknowledgment in the product 
       documentation would be appreciated but is not required.
 
    3. Altered source versions must be plainly marked as such, and must
       not be misrepresented as being the original software.
 
-   4. The name of the author may not be used to endorse or promote
-      products derived from this software without specific prior written
+   4. The name of the author may not be used to endorse or promote 
+      products derived from this software without specific prior written 
       permission.
 
    THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
@@ -52,7 +52,7 @@
    the terms of the GNU General Public License, version 2.  See the
    COPYING file in the source distribution for details.
 
-   ----------------------------------------------------------------
+   ---------------------------------------------------------------- 
 */
 
 #ifndef __HELGRIND_H
@@ -72,7 +72,7 @@ typedef
          use.  Do not use them unless you are a Valgrind developer. */
 
       /* Notify the tool what this thread's pthread_t is. */
-      _VG_USERREQ__HG_SET_MY_PTHREAD_T = VG_USERREQ_TOOL_BASE('H','G')
+      _VG_USERREQ__HG_SET_MY_PTHREAD_T = VG_USERREQ_TOOL_BASE('H','G') 
                                          + 256,
       _VG_USERREQ__HG_PTH_API_ERROR,              /* char*, int */
       _VG_USERREQ__HG_PTHREAD_JOIN_POST,          /* pthread_t of quitter */
@@ -438,7 +438,7 @@ typedef
 
 /* End-user request for Ada applications compiled with GNAT.
    Helgrind understands the Ada concept of Ada task dependencies and
-   terminations. See Ada Reference Manual section 9.3 "Task Dependence
+   terminations. See Ada Reference Manual section 9.3 "Task Dependence 
    - Termination of Tasks".
    However, in some cases, the master of (terminated) tasks completes
    only when the application exits. An example of this is dynamically
@@ -528,7 +528,7 @@ typedef
    address CV. */
 #define ANNOTATE_CONDVAR_SIGNAL(cv) \
    _HG_CLIENTREQ_UNIMP("ANNOTATE_CONDVAR_SIGNAL")
-
+  
 /* Report that we are about to signal_all on the condition variable at
    CV. */
 #define ANNOTATE_CONDVAR_SIGNAL_ALL(cv) \
@@ -560,7 +560,7 @@ typedef
    of describing arbitrary inter-thread synchronisation events to
    Helgrind.  You can get a long way just with them alone.
 
-   See also, extensive discussion on semantics of this in
+   See also, extensive discussion on semantics of this in 
    https://bugs.kde.org/show_bug.cgi?id=243935
 
    ANNOTATE_HAPPENS_BEFORE_FORGET_ALL(obj) is interim until such time
@@ -612,7 +612,7 @@ typedef
 
 /* ----------------------------------------------------------------
    TSan sources say:
-
+   
      Instruct the tool to create a happens-before arc between
      MU->Unlock() and MU->Lock().  This annotation may slow down the
      race detector; normally it is used only when it would be
@@ -622,7 +622,7 @@ typedef
    If MU is a posix pthread_mutex_t then Helgrind will do this anyway.
    In any case, leave as unimp for now.  I'm unsure about the intended
    behaviour.
-   ----------------------------------------------------------------
+   ---------------------------------------------------------------- 
 */
 #define ANNOTATE_PURE_HAPPENS_BEFORE_MUTEX(mu) \
    _HG_CLIENTREQ_UNIMP("ANNOTATE_PURE_HAPPENS_BEFORE_MUTEX")
@@ -633,7 +633,7 @@ typedef
 
 /* ----------------------------------------------------------------
    TSan sources say:
-
+   
      Annotations useful when defining memory allocators, or when
      memory that was protected in one way starts to be protected in
      another.
@@ -644,7 +644,7 @@ typedef
      discipline for a variable changes.
 
    AFAICS this is the same as VALGRIND_HG_CLEAN_MEMORY.
-   ----------------------------------------------------------------
+   ---------------------------------------------------------------- 
 */
 #define ANNOTATE_NEW_MEMORY(address, size) \
    VALGRIND_HG_CLEAN_MEMORY((address), (size))
@@ -657,7 +657,7 @@ typedef
      between threads.
 
    All unimplemented.  Am not claiming to understand this (yet).
-   ----------------------------------------------------------------
+   ---------------------------------------------------------------- 
 */
 
 /* Report that the producer-consumer queue object at address PCQ has
@@ -775,7 +775,7 @@ typedef
 #define ANNOTATE_RWLOCK_CREATE(lock)                         \
    DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_RWLOCK_INIT_POST,     \
                void*,(lock))
-
+    
 /* Report that the lock at address LOCK is about to be destroyed. */
 #define ANNOTATE_RWLOCK_DESTROY(lock)                        \
    DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_RWLOCK_DESTROY_PRE,   \
