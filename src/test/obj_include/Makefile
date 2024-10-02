@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 #
 # src/test/obj_include/Makefile -- build include tests
@@ -14,4 +14,3 @@ OBJS = obj_atomic_base_include.o obj_atomic_include.o \
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-

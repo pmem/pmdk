@@ -44,4 +44,3 @@ SOURCE +=\
 	$(CORE)/last_error_msg.c\
 	$(CORE)/log.c \
 	$(CORE)/log_default.c
-

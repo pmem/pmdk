@@ -155,9 +155,9 @@
     - name: Install valgrind from source
       script: ../docker/images/install-valgrind.sh
 
-    # Disable SELinux. 
+    # Disable SELinux.
     # SELinux may block proper GHA runner installation and startup.
-    # !=`Debian` condition is inherited from the original version of 
+    # !=`Debian` condition is inherited from the original version of
     # the ansible playbook that has been created for many OSes.
     - name: Disable selinux - distribution other than Debian based
       selinux:

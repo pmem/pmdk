@@ -158,9 +158,9 @@
     - name: Install valgrind from source
       script: ../docker/images/install-valgrind.sh
 
-    # Disable AppArmor. 
+    # Disable AppArmor.
     # AppArmor may block proper GHA runner installation and startup.
-    # ==`Suse` condition is inherited from the original version of 
+    # ==`Suse` condition is inherited from the original version of
     # the ansible playbook that has been created for many OSes.
     - name: Disable AppArmor
       service:

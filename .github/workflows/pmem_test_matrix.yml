@@ -3,7 +3,7 @@
 # This workflow is run on 'self-hosted' runners.
 name: PMEM test matrix
 
-on: 
+on:
   workflow_call:
     inputs:
       force_enable:
