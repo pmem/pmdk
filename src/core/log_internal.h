@@ -125,7 +125,7 @@ void core_log(enum core_log_level level, int errnum, const char *file_name,
  * Can't check the logging level here when logging to the last error message.
  * Since the log message has to be generated anyway.
  */
-#define CORE_LOG_TO_LAST(errnum, format, ...) \
+#define _CORE_LOG_TO_LAST(errnum, format, ...) \
 	core_log(CORE_LOG_LEVEL_ERROR_LAST, errnum, __FILE__, __LINE__, \
 		__func__, format, ##__VA_ARGS__)
 
@@ -189,10 +189,10 @@ void core_log(enum core_log_level level, int errnum, const char *file_name,
  */
 
 #define CORE_LOG_ERROR_LAST(format, ...) \
-	CORE_LOG_TO_LAST(NO_ERRNO, format, ##__VA_ARGS__)
+	_CORE_LOG_TO_LAST(NO_ERRNO, format, ##__VA_ARGS__)
 
 #define CORE_LOG_ERROR_W_ERRNO_LAST(format, ...) \
-		CORE_LOG_TO_LAST(errno, format ": ", ##__VA_ARGS__);
+		_CORE_LOG_TO_LAST(errno, format ": ", ##__VA_ARGS__);
 
 /* Aliases */
 
