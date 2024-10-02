@@ -13,6 +13,7 @@ repos:
     exclude: |
       (?x)(\.match$|
            unicode_match_script|
+           src\/test\/util_poolset_parse\/pool32.set|
            src\/core\/valgrind\/drd.h|
            src\/core\/valgrind\/helgrind.h|
            src\/core\/valgrind\/memcheck.h|
