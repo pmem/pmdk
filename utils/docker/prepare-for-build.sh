@@ -10,6 +10,8 @@
 
 set -e
 
+cat /etc/*release*
+
 # This should be run only on CIs
 if [ "$CI_RUN" == "YES" ]; then
 	# Make sure $WORKDIR has correct access rights
