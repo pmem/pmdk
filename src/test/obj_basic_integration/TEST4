@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2024, Intel Corporation
 
 . ../unittest/unittest.sh
 
@@ -12,8 +12,8 @@ create_poolset $DIR/testset1 16M:$DIR/testfile1 \
 	r 18M:$DIR/testfile2 \
 	r 20M:$DIR/testfile3
 
-expect_normal_exit\
-    ./obj_basic_integration$EXESUFFIX $DIR/testset1
+expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testset1 log 2>&1 | \
+	grep "Explicit transaction abort" > grep$UNITTEST_NUM.log
 
 compare_replicas "-soOaAb -l -Z -H -C" \
 	$DIR/testfile1 $DIR/testfile2 > diff$UNITTEST_NUM.log
