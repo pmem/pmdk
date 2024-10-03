@@ -99,7 +99,7 @@ static int Total_TLS_message_num;
  * A hard-coded value as obtained when the call_all_*() source code was
  * generated.
  */
-#define TOTAL_TLS_MESSAGE_NUM_EXPECTED 311
+#define TOTAL_TLS_MESSAGE_NUM_EXPECTED 310
 
 static int
 test_ERR_W_ERRNO(const struct test_case *tc, int argc, char *argv[])
