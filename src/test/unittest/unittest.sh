@@ -282,7 +282,7 @@ else
 		DIR=/dev/null/not_existing_dir/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 		;;
 	*)
-		verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
+		verbose_msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) fs-type $FS (not configured)"
 		exit 0
 		;;
 	esac
@@ -840,11 +840,11 @@ function check_pools() {
 #
 function require_unlimited_vm() {
 	if grep -q "^mmu[[:blank:]]*: sv39" /proc/cpuinfo; then
-		msg "$UNITTEST_NAME: SKIP required: 4+ level virtual memory"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) required: 4+ level virtual memory"
 		exit 0
 	fi
 	$VM_OVERCOMMIT && [ $(ulimit -v) = "unlimited" ] && return
-	msg "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
+	msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) required: overcommit_memory enabled and unlimited virtual memory"
 	exit 0
 }
 
@@ -858,7 +858,7 @@ function require_linked_with_ndctl() {
 		fatal "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file"
 	local lddndctl=$(ldd $1 | $GREP -ce "libndctl")
 	[ "$lddndctl" == "1" ] && return
-	msg "$UNITTEST_NAME: SKIP required: executable $1 linked with libndctl"
+	msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) required: executable $1 linked with libndctl"
 	exit 0
 }
 
@@ -867,13 +867,13 @@ function require_linked_with_ndctl() {
 #
 function require_sudo_allowed() {
 	if [ "$ENABLE_SUDO_TESTS" != "y" ]; then
-		msg "$UNITTEST_NAME: SKIP: tests using 'sudo' are not enabled in testconfig.sh (ENABLE_SUDO_TESTS)"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): tests using 'sudo' are not enabled in testconfig.sh (ENABLE_SUDO_TESTS)"
 		exit 0
 	fi
 
 	if ! sh -c "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" >/dev/null 2>&1
 	then
-		msg "$UNITTEST_NAME: SKIP required: sudo allowed"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) required: sudo allowed"
 		exit 0
 	fi
 }
@@ -884,7 +884,7 @@ function require_sudo_allowed() {
 function require_no_superuser() {
 	local user_id=$(id -u)
 	[ "$user_id" != "0" ] && return
-	msg "$UNITTEST_NAME: SKIP required: run without superuser rights"
+	msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) required: run without superuser rights"
 	exit 0
 }
 
@@ -893,7 +893,7 @@ function require_no_superuser() {
 #
 function require_procfs() {
 	mount | grep -q "/proc" && return
-	msg "$UNITTEST_NAME: SKIP: /proc not mounted"
+	msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): /proc not mounted"
 	exit 0
 }
 
@@ -905,7 +905,7 @@ function require_arch() {
 	for i in "$@"; do
 		[[ "$(uname -m)" == "$i" ]] && return
 	done
-	msg "$UNITTEST_NAME: SKIP: Only supported on $1"
+	msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): Only supported on $1"
 	exit 0
 }
 
@@ -916,7 +916,7 @@ function require_arch() {
 function exclude_arch() {
 	for i in "$@"; do
 		if [[ "$(uname -m)" == "$i" ]]; then
-			msg "$UNITTEST_NAME: SKIP: Not supported on $1"
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): Not supported on $1"
 			exit 0
 		fi
 	done
@@ -966,7 +966,7 @@ function require_test_type() {
 			;;
 		esac
 	done
-	verbose_msg "$UNITTEST_NAME: SKIP test-type $TEST ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) test-type $TEST ($* required)"
 	exit 0
 }
 
@@ -974,7 +974,7 @@ function require_test_type() {
 # require_dev_dax_region -- check if region id file exist for dev dax
 #
 function require_dev_dax_region() {
-	local prefix="$UNITTEST_NAME: SKIP"
+	local prefix="$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 	local cmd="$PMEMDETECT -r"
 
 	for path in ${DEVICE_DAX_PATH[@]}
@@ -1027,7 +1027,7 @@ function require_dev_dax_node() {
 
 	local min=$1
 
-	local prefix="$UNITTEST_NAME: SKIP"
+	local prefix="$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM)"
 	if [ ${#DEVICE_DAX_PATH[@]} -lt $min ]; then
 		msg "$prefix DEVICE_DAX_PATH does not specify enough dax devices (min: $min)"
 		exit 0
@@ -1059,7 +1059,7 @@ function require_dev_dax_node() {
 #
 function require_ndctl_enable() {
 	if ! is_ndctl_enabled $PMEMPOOL$EXE &> /dev/null ; then
-		msg "$UNITTEST_NAME: SKIP: ndctl is disabled - binary not compiled with libndctl"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): ndctl is disabled - binary not compiled with libndctl"
 		exit 0
 	fi
 
@@ -1204,7 +1204,7 @@ function require_dax_device_alignments() {
 		done
 
 		if [ $i -eq $cnt ]; then
-			msg "$UNITTEST_NAME: SKIP DEVICE_DAX_PATH"\
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) DEVICE_DAX_PATH"\
 				"does not specify enough dax devices or they don't have required alignments (min: $#, alignments: $*)"
 
 			exit 0
@@ -1239,7 +1239,7 @@ function require_fs_type() {
 			([ -n "${FORCE_FS:+x}" ] && [ "$type" = "any" ] &&
 			[ "$FS" != "none" ]) && return
 	done
-	verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) fs-type $FS ($* required)"
 	exit 0
 }
 
@@ -1255,7 +1255,7 @@ function require_native_fallocate() {
 	set -e
 
 	if [ $status -eq 1 ]; then
-		msg "$UNITTEST_NAME: SKIP: filesystem does not support fallocate"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): filesystem does not support fallocate"
 		exit 0
 	elif [ $status -ne 0 ]; then
 		msg "$UNITTEST_NAME: fallocate_detect failed"
@@ -1280,7 +1280,7 @@ function require_usc_permission() {
 	rm -f $DIR/usc_permission.txt
 
 	if [ $status -eq 1 ] || [ $usc_stderr -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP: missing permissions to read usc"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): missing permissions to read usc"
 		exit 0
 	elif [ $status -ne 0 ]; then
 		msg "$UNITTEST_NAME: usc_permission_check failed"
@@ -1303,7 +1303,7 @@ function require_fs_name() {
 		fi
 	done
 
-	msg "$UNITTEST_NAME: SKIP file system $fsname ($* required)"
+	msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) file system $fsname ($* required)"
 	exit 0
 }
 
@@ -1315,7 +1315,7 @@ function require_build_type() {
 	do
 		[ "$type" = "$BUILD" ] && return
 	done
-	verbose_msg "$UNITTEST_NAME: SKIP build-type $BUILD ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) build-type $BUILD ($* required)"
 	exit 0
 }
 
@@ -1324,7 +1324,7 @@ function require_build_type() {
 #
 function require_command() {
 	if ! which $1 >/dev/null 2>&1; then
-		msg "$UNITTEST_NAME: SKIP: '$1' command required"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): '$1' command required"
 		exit 0
 	fi
 }
@@ -1349,17 +1349,17 @@ function require_kernel_module() {
 		[ "$MODINFO" == "" ] && \
 			[ -x /sbin/modinfo ] && MODINFO=/sbin/modinfo
 		[ "$MODINFO" == "" ] && \
-			msg "$UNITTEST_NAME: SKIP: modinfo command required" && \
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): modinfo command required" && \
 			exit 0
 	else
 		[ ! -x $MODINFO ] && \
-			msg "$UNITTEST_NAME: SKIP: modinfo command required" && \
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): modinfo command required" && \
 			exit 0
 	fi
 
 	$MODINFO -F name $MODULE &>/dev/null && true
 	if [ $? -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP: '$MODULE' kernel module required"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): '$MODULE' kernel module required"
 		exit 0
 	fi
 }
@@ -1371,12 +1371,12 @@ function require_kernel_module() {
 function require_pkg() {
 	if ! command -v pkg-config 1>/dev/null
 	then
-		msg "$UNITTEST_NAME: SKIP pkg-config required"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) pkg-config required"
 		exit 0
 	fi
 
 	local COMMAND="pkg-config $1"
-	local MSG="$UNITTEST_NAME: SKIP '$1' package"
+	local MSG="$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) '$1' package"
 	if [ "$#" -eq "2" ]; then
 		COMMAND="$COMMAND --atleast-version $2"
 		MSG="$MSG (version >= $2)"
@@ -1417,13 +1417,13 @@ function configure_valgrind() {
 		fi
 	else
 		if [ "$1" == "force-disable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS.sh script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) RUNTESTS.sh script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
 			exit 0
 		elif [ "$CHECK_TYPE" != "$1" -a "$2" == "force-enable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS.sh script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) RUNTESTS.sh script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
 			exit 0
 		elif [ "$CHECK_TYPE" == "$1" -a "$2" == "force-disable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS.sh script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) RUNTESTS.sh script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
 			exit 0
 		fi
 		require_valgrind_tool $CHECK_TYPE $3
@@ -1448,7 +1448,7 @@ function valgrind_version_no_check() {
 #
 function require_valgrind() {
 	if [ "$DISABLE_VALGRIND_TESTS" == "1" ]; then
-		msg=$(interactive_yellow STDOUT "SKIP:")
+		msg=$(interactive_yellow STDOUT "SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM):")
 		echo -e "$UNITTEST_NAME: $msg all Valgrind tests are disabled"
 		exit 0
 	fi
@@ -1470,7 +1470,7 @@ function require_valgrind() {
 			echo -e "$UNITTEST_NAME: $msg Valgrind not installed"
 			exit 1
 		else
-			msg=$(interactive_yellow STDOUT "SKIP:")
+			msg=$(interactive_yellow STDOUT "SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM):")
 			echo -e "$UNITTEST_NAME: $msg Valgrind required"
 			exit 0
 		fi
@@ -1516,7 +1516,7 @@ function require_valgrind_tool() {
 	strings ${binary} 2>&1 | \
 	grep -q "compiled with support for Valgrind $tool" && true
 	if [ $? -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP not compiled with support for Valgrind $tool"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) not compiled with support for Valgrind $tool"
 		exit 0
 	fi
 
@@ -1524,7 +1524,7 @@ function require_valgrind_tool() {
 		valgrind --tool=$tool --help 2>&1 | \
 		grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) Valgrind with $tool required"
 			exit 0;
 		fi
 	fi
@@ -1532,12 +1532,12 @@ function require_valgrind_tool() {
 		out=`valgrind --tool=$tool --help 2>&1` && true
 		echo "$out" | grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) Valgrind with $tool required"
 			exit 0;
 		fi
 		echo "$out" | grep -qi "expect-fence-after-clflush" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP pmemcheck does not support --expect-fence-after-clflush option. Please update it to the latest version."
+			msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) pmemcheck does not support --expect-fence-after-clflush option. Please update it to the latest version."
 			exit 0;
 		fi
 	fi
@@ -1574,7 +1574,7 @@ function require_no_asan_for() {
 	ASAN_ENABLED=$?
 	restore_exit_on_error
 	if [ "$ASAN_ENABLED" == "0" ]; then
-		msg "$UNITTEST_NAME: SKIP: ASAN enabled"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): ASAN enabled"
 		exit 0
 	fi
 }
@@ -1591,7 +1591,7 @@ function require_cxx11() {
 		echo y || echo n`
 
 	if [ "$CXX11_AVAILABLE" == "n" ]; then
-		msg "$UNITTEST_NAME: SKIP: C++11 required"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): C++11 required"
 		exit 0
 	fi
 }
@@ -1623,7 +1623,7 @@ function require_no_asan() {
 #
 function require_tty() {
 	if ! tty >/dev/null; then
-		msg "$UNITTEST_NAME: SKIP no terminal"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) no terminal"
 		exit 0
 	fi
 }
@@ -1638,7 +1638,7 @@ function require_binary() {
 		fatal "require_binary: error: binary not provided"
 	fi
 	if [ ! -x "$1" ]; then
-		msg "$UNITTEST_NAME: SKIP no binary found"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) no binary found"
 		exit 0
 	fi
 
@@ -1660,11 +1660,11 @@ function require_sds() {
 	strings ${binary} 2>&1 | \
 		grep -q "compiled with support for shutdown state" && true
 	if [ $? -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP not compiled with support for shutdown state"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) not compiled with support for shutdown state"
 		exit 0
 	fi
 	if [[ $PMEMOBJ_CONF = *'sds.at_create=0'* ]]; then
-		msg "$UNITTEST_NAME: SKIP the shutdown state has been disabled by the PMEMOBJ_CONF environment variable"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) the shutdown state has been disabled by the PMEMOBJ_CONF environment variable"
 		exit 0
 	fi
 	return 0
@@ -1687,7 +1687,7 @@ function require_no_sds() {
 		grep -c "compiled with support for shutdown state")
 	set -e
 	if [ "$found" -ne "0" ]; then
-		msg "$UNITTEST_NAME: SKIP compiled with support for shutdown state"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) compiled with support for shutdown state"
 		exit 0
 	fi
 	return 0
@@ -1719,7 +1719,7 @@ function is_ndctl_enabled() {
 #
 function require_bb_enabled_by_default() {
 	if ! is_ndctl_enabled $1 &> /dev/null ; then
-		msg "$UNITTEST_NAME: SKIP bad block checking feature disabled by default"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) bad block checking feature disabled by default"
 		exit 0
 	fi
 
@@ -1734,7 +1734,7 @@ function require_bb_enabled_by_default() {
 #
 function require_bb_disabled_by_default() {
 	if is_ndctl_enabled $1 &> /dev/null ; then
-		msg "$UNITTEST_NAME: SKIP bad block checking feature enabled by default"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) bad block checking feature enabled by default"
 		exit 0
 	fi
 	return 0
@@ -1798,7 +1798,7 @@ function require_mmap_under_valgrind() {
 	# on the size and the order of device DAXes in the testconfig.sh file.
 	# https://github.com/pmem/pmdk/issues/5615
 	if [ "$REQUIRE_DAX_DEVICES" -gt "$(< $FILE_MAX_DAX_DEVICES)" ]; then
-		msg "$UNITTEST_NAME: SKIP: anonymous mmap under Valgrind not possible for $REQUIRE_DAX_DEVICES DAX device(s)."
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): anonymous mmap under Valgrind not possible for $REQUIRE_DAX_DEVICES DAX device(s)."
 		exit 0
 	fi
 }
@@ -1825,7 +1825,7 @@ function setup() {
 	if [ "$set_test_labels_done" != "1" ]; then
 		# but some label is required then the test is skipped
 		if [ "$TEST_LABEL" ]; then
-			verbose_msg "$UNITTEST_NAME: SKIP test-label $TEST_LABEL required"
+			verbose_msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) test-label $TEST_LABEL required"
 			exit 0
 		fi
 	fi
@@ -2225,7 +2225,7 @@ function require_pmemcheck_version_ge()
 		fi
 	fi
 
-	msg "$UNITTEST_NAME: SKIP pmemcheck API version:" \
+	msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) pmemcheck API version:" \
 		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR" \
 		"is less than required" \
 		"$REQUIRE_MAJOR.$REQUIRE_MINOR"
@@ -2259,7 +2259,7 @@ function require_pmemcheck_version_lt()
 		fi
 	fi
 
-	msg "$UNITTEST_NAME: SKIP pmemcheck API version:" \
+	msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) pmemcheck API version:" \
 		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR" \
 		"is greater or equal than" \
 		"$REQUIRE_MAJOR.$REQUIRE_MINOR"
@@ -2284,7 +2284,7 @@ function require_python3()
 		return
 		;;
 	    *)
-		msg "$UNITTEST_NAME: SKIP: required python version 3"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): required python version 3"
 		exit 0
 		;;
 	esac
@@ -2429,11 +2429,11 @@ function require_free_space() {
 		row=$(echo "$output" | tail -1)
 		free_space=$(( $(echo $row | awk "{print \$$i}")*1024 ))
 	else
-		msg "$UNITTEST_NAME: SKIP: unable to check free space"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): unable to check free space"
 		exit 0
 	fi
 	if [ $free_space -lt $req_free_space ]; then
-		msg "$UNITTEST_NAME: SKIP: not enough free space ($1 required)"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): not enough free space ($1 required)"
 		exit 0
 	fi
 }
@@ -2447,7 +2447,7 @@ function require_max_devdax_size() {
 	cur_sz=$(get_devdax_size 0)
 	max_size=$2
 	if [ $cur_sz -ge $max_size ]; then
-		msg "$UNITTEST_NAME: SKIP: DevDAX $1 is too big for this test (max $2 required)"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): DevDAX $1 is too big for this test (max $2 required)"
 		exit 0
 	fi
 }
@@ -2461,7 +2461,7 @@ function require_max_block_size() {
 	cur_sz=$(stat --file-system --format=%S $1)
 	max_size=$2
 	if [ $cur_sz -gt $max_size ]; then
-		msg "$UNITTEST_NAME: SKIP: block size of $1 is too big for this test (max $2 required)"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): block size of $1 is too big for this test (max $2 required)"
 		exit 0
 	fi
 }
@@ -2505,7 +2505,7 @@ function require_badblock_tests_enabled() {
 		fi
 
 	else
-		msg "$UNITTEST_NAME: SKIP: bad block tests are not enabled in testconfig.sh"
+		msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM): bad block tests are not enabled in testconfig.sh"
 		exit 0
 	fi
 }
@@ -2604,6 +2604,6 @@ function set_test_labels() {
 	do
 		[ "$label" == "$TEST_LABEL" ] && return
 	done
-	verbose_msg "$UNITTEST_NAME: SKIP test-labels: $* ($TEST_LABEL required)"
+	verbose_msg "$UNITTEST_NAME: SKIP ($TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM) test-labels: $* ($TEST_LABEL required)"
 	exit 0
 }
