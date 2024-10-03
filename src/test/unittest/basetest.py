@@ -168,7 +168,7 @@ class BaseTest(metaclass=_TestCase):
             c (Context): test context
         """
         self.ctx = c
-        start_time = None # assign in case clean() or setup() fail
+        start_time = None  # assign in case clean() or setup() fail
 
         try:
             # pre-execution cleanup
