@@ -21,6 +21,8 @@ jobs:
       contents: read
       security-events: write
   call-coverity:
+    # Sorry, no other branches are supported. The result upload would fail.
+    if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/scan_coverity.yml
     secrets:
       COVERITY_SCAN_NOTIFICATION_EMAIL:  ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
