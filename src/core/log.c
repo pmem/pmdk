@@ -200,7 +200,7 @@ core_log_va(char *buf, size_t buf_len, enum core_log_level level,
 	/*
 	 * Despite this check is already done when the function is called from
 	 * the CORE_LOG() macro it has to be done here again since it is not
-	 * performed in the case of the CORE_LOG_TO_LAST macro. Sorry.
+	 * performed in the case of the _CORE_LOG_TO_LAST macro. Sorry.
 	 */
 	if (level > _core_log_get_threshold_internal())
 		goto end;
