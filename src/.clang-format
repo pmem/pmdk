@@ -15,7 +15,6 @@ BraceWrapping:
   BeforeElse:			false
   IndentBraces:			false
 AllowShortIfStatementsOnASingleLine: false
-IndentCaseLabels: false
 AlwaysBreakAfterDefinitionReturnType: true
 SpaceBeforeParens: ControlStatements
 SpacesBeforeTrailingComments: 1

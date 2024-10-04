@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2024, Intel Corporation
 #
 #
 # pmempool_check/config.sh -- test configuration
@@ -10,4 +10,3 @@
 # when run on a non-pmem file system.
 
 CONF_TIMEOUT[5]='10m'
-
