@@ -1,0 +1,34 @@
+diff --git a/src/vos/vos_common.c b/src/vos/vos_common.c
+index 93bf1757f1..b01947e98a 100644
+--- a/src/vos/vos_common.c
++++ b/src/vos/vos_common.c
+@@ -969,7 +969,7 @@ vos_self_fini_locked(void)
+ 	vos_self_nvme_fini();
+ 
+ 	vos_standalone_tls_fini();
+-	ABT_finalize();
++	// ABT_finalize();
+ }
+ 
+ void
+@@ -1005,16 +1005,16 @@ vos_self_init_ext(const char *db_path, bool use_sys_db, int tgt_id, bool nvme_in
+ 		goto out;
+ 	}
+ 
+-	rc = ABT_init(0, NULL);
+-	if (rc != 0)
+-		goto out;
++	// rc = ABT_init(0, NULL);
++	// if (rc != 0)
++	// 	goto out;
+ 
+ 	vos_start_epoch = 0;
+ 
+ #if VOS_STANDALONE
+ 	rc = vos_standalone_tls_init(DAOS_TGT_TAG);
+ 	if (rc) {
+-		ABT_finalize();
++		// ABT_finalize();
+ 		goto out;
+ 	}
+ #endif
