@@ -27,7 +27,7 @@
 #include "util.h"
 #include "uuid.h"
 #include "shutdown_state.h"
-#include "badblocks.h"
+#include "bad_blocks.h"
 #include "set_badblocks.h"
 
 /*

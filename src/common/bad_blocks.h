@@ -2,11 +2,11 @@
 /* Copyright 2017-2020, Intel Corporation */
 
 /*
- * badblocks.h -- bad blocks API based on the libpmem2 library
+ * bad_blocks.h -- bad blocks API based on the libpmem2 library
  */
 
-#ifndef PMDK_BADBLOCKS_H
-#define PMDK_BADBLOCKS_H 1
+#ifndef PMDK_BAD_BLOCKS_H
+#define PMDK_BAD_BLOCKS_H 1
 
 #include <string.h>
 #include <stdint.h>
@@ -74,4 +74,4 @@ int badblocks_check_file(const char *path);
 }
 #endif
 
-#endif /* PMDK_BADBLOCKS_H */
+#endif /* PMDK_BAD_BLOCKS_H */

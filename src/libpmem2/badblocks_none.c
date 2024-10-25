@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2022, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * badblocks_none.c -- fake bad blocks functions
@@ -9,6 +9,8 @@
 
 #include "libpmem2.h"
 #include "out.h"
+#include "bad_blocks.h"
+#include "badblocks.h"
 
 /*
  * pmem2_badblock_context_new -- allocate and create a new bad block context
@@ -32,10 +34,10 @@ pmem2_badblock_context_delete(
 }
 
 /*
- * pmem2_badblock_next -- get the next bad block
+ * pmem2_badblock_next_internal -- get the next bad block
  */
 int
-pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
+pmem2_badblock_next_internal(struct pmem2_badblock_context *bbctx,
 	struct pmem2_badblock *bb)
 {
 	SUPPRESS_UNUSED(bbctx, bb);
