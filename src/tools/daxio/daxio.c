@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2022, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * daxio.c -- simple app for reading and writing data from/to
@@ -26,7 +26,7 @@
 
 #include "util.h"
 #include "os.h"
-#include "badblocks.h"
+#include "bad_blocks.h"
 
 #define ALIGN_UP(size, align) (((size) + (align) - 1) & ~((align) - 1))
 #define ALIGN_DOWN(size, align) ((size) & ~((align) - 1))
