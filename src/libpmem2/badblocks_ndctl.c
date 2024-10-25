@@ -27,6 +27,7 @@
 #include "badblocks.h"
 #include "set_badblocks.h"
 #include "extent.h"
+#include "badblock.h"
 
 typedef int pmem2_badblock_next_type(
 		struct pmem2_badblock_context *bbctx,
@@ -530,8 +531,8 @@ pmem2_badblock_next_region(struct pmem2_badblock_context *bbctx,
  * pmem2_badblock_next -- get the next bad block
  */
 int
-pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
-			struct pmem2_badblock *bb)
+pmem2_badblock_next_int(struct pmem2_badblock_context *bbctx,
+			struct pmem2_badblock *bb, int warning)
 {
 	LOG(3, "bbctx %p bb %p", bbctx, bb);
 	PMEM2_ERR_CLR();
@@ -550,8 +551,9 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	int ret;
 
 	if (bbctx->rgn.region == NULL && bbctx->ndns == NULL) {
-		ERR_WO_ERRNO(
-			"Cannot find any matching device, no bad blocks found");
+		if (warning)
+			ERR_WO_ERRNO(
+				"Cannot find any matching device, no bad blocks found");
 		return PMEM2_E_NO_BAD_BLOCK_FOUND;
 	}
 
@@ -672,7 +674,14 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 
 	return 0;
 }
-
+int
+pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
+			struct pmem2_badblock *bb)
+{
+	LOG(3, "bbctx %p bb %p", bbctx, bb);
+	PMEM2_ERR_CLR();
+	return pmem2_badblock_next_int(bbctx, bb, 1);
+}
 /*
  * pmem2_badblock_clear_fsdax -- (internal) clear one bad block
  *                               in a FSDAX device
