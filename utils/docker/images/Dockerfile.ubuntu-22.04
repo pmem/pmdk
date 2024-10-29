@@ -60,10 +60,14 @@ ENV PACKAGING_DEPS "debhelper \
 	fakeroot"
 
 # Codecov (coverage measurement) dependencies (optional)
-ENV CODECOV_DEPS curl perl
+ENV CODECOV_DEPS "curl \
+	perl"
 
 # Coverity (static analysis) dependencies (optional)
-ENV COVERITY_DEPS ruby gcc g++ wget
+ENV COVERITY_DEPS "ruby \
+	gcc \
+	g++ \
+	wget"
 
 # miscellaneous dependencies (mostly for CI)
 ENV MISC_DEPS "clang \
