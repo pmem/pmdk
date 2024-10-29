@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2024, Intel Corporation */
 
 /*
  * util_badblock.c -- unit test for the linux bad block API
@@ -10,7 +10,7 @@
 #include "util.h"
 #include "out.h"
 #include "set.h"
-#include "badblocks.h"
+#include "bad_blocks.h"
 #include "set_badblocks.h"
 #include "fault_injection.h"
 #include "file.h"
