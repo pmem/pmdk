@@ -24,10 +24,10 @@
 
 #include "file.h"
 #include "out.h"
-#include "badblocks.h"
+#include "bad_blocks.h"
 #include "set_badblocks.h"
 #include "extent.h"
-#include "badblock.h"
+#include "badblocks.h"
 
 typedef int pmem2_badblock_next_type(
 		struct pmem2_badblock_context *bbctx,
@@ -528,17 +528,13 @@ pmem2_badblock_next_region(struct pmem2_badblock_context *bbctx,
 }
 
 /*
- * pmem2_badblock_next -- get the next bad block
+ * pmem2_badblock_next_internal -- get the next bad block impelmentation
  */
 int
-pmem2_badblock_next_int(struct pmem2_badblock_context *bbctx,
-			struct pmem2_badblock *bb, int warning)
+pmem2_badblock_next_internal(struct pmem2_badblock_context *bbctx,
+			struct pmem2_badblock *bb)
 {
-	LOG(3, "bbctx %p bb %p", bbctx, bb);
-	PMEM2_ERR_CLR();
-
-	ASSERTne(bbctx, NULL);
-	ASSERTne(bb, NULL);
+	LOG(4, "bbctx %p bb %p", bbctx, bb);
 
 	struct pmem2_badblock bbn;
 	unsigned long long bb_beg;
@@ -551,10 +547,8 @@ pmem2_badblock_next_int(struct pmem2_badblock_context *bbctx,
 	int ret;
 
 	if (bbctx->rgn.region == NULL && bbctx->ndns == NULL) {
-		if (warning)
-			ERR_WO_ERRNO(
-				"Cannot find any matching device, no bad blocks found");
-		return PMEM2_E_NO_BAD_BLOCK_FOUND;
+		/* Cannot find any matching device, no bad blocks found */
+		return ENODEV;
 	}
 
 	struct extents *exts = bbctx->exts;
@@ -674,14 +668,7 @@ pmem2_badblock_next_int(struct pmem2_badblock_context *bbctx,
 
 	return 0;
 }
-int
-pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
-			struct pmem2_badblock *bb)
-{
-	LOG(3, "bbctx %p bb %p", bbctx, bb);
-	PMEM2_ERR_CLR();
-	return pmem2_badblock_next_int(bbctx, bb, 1);
-}
+
 /*
  * pmem2_badblock_clear_fsdax -- (internal) clear one bad block
  *                               in a FSDAX device

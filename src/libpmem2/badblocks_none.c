@@ -9,7 +9,7 @@
 
 #include "libpmem2.h"
 #include "out.h"
-#include "badblock.h"
+#include "bad_blocks.h"
 
 /*
  * pmem2_badblock_context_new -- allocate and create a new bad block context
@@ -33,21 +33,15 @@ pmem2_badblock_context_delete(
 }
 
 /*
- * pmem2_badblock_next -- get the next bad block
+ * pmem2_badblock_next_internal -- get the next bad block implementation
  */
 int
-pmem2_badblock_next_int(struct pmem2_badblock_context *bbctx,
-	struct pmem2_badblock *bb, int warning)
-{
-	SUPPRESS_UNUSED(bbctx, bb, warning);
-
-	return PMEM2_E_NOSUPP;
-}int
-
-pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
+pmem2_badblock_next_internal(struct pmem2_badblock_context *bbctx,
 	struct pmem2_badblock *bb)
 {
-	return pmem2_badblock_next_int(bbctx, bb, 1);
+	SUPPRESS_UNUSED(bbctx, bb);
+
+	return PMEM2_E_NOSUPP;
 }
 
 /*
