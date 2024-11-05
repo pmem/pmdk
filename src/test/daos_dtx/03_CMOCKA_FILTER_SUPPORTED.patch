@@ -1,0 +1,13 @@
+diff --git a/site_scons/site_tools/compiler_setup.py b/site_scons/site_tools/compiler_setup.py
+index 9f25ccace7..a149b2ceb8 100644
+--- a/site_scons/site_tools/compiler_setup.py
++++ b/site_scons/site_tools/compiler_setup.py
+@@ -73,7 +73,7 @@ def _base_setup(env):
+         env.AppendUnique(CPPDEFINES={'FAULT_INJECTION': '1'})
+         env.AppendUnique(CPPDEFINES={'BUILD_PIPELINE': '1'})
+ 
+-    env.AppendUnique(CPPDEFINES={'CMOCKA_FILTER_SUPPORTED': '0'})
++    env.AppendUnique(CPPDEFINES={'CMOCKA_FILTER_SUPPORTED': '1'})
+ 
+     env.AppendUnique(CPPDEFINES='_GNU_SOURCE')
+ 
