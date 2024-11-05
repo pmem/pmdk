@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2024, Intel Corporation */
 
 /*
  * pmem2_badblock_mocks.c -- unit test for pmem2_badblock_*()
@@ -11,7 +11,7 @@
 #include "out.h"
 #include "ut_pmem2_utils.h"
 #include "source.h"
-#include "badblocks.h"
+#include "bad_blocks.h"
 #include "pmem2_badblock_mocks.h"
 
 #define BAD_BLOCKS_NUMBER 10
