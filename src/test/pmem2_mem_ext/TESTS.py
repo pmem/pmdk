@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020-2023, Intel Corporation
+# Copyright 2020-2024, Intel Corporation
 #
 
 import testframework as t
@@ -113,11 +113,15 @@ class Pmem2MemExt(t.Test):
         ret = tools.Tools(ctx.env, ctx.build).cpufd()
         self.check_arch(ctx.variant(), ret.returncode)
 
-        # XXX all tests with VARIANT_AVX512F are disabled under Valgrind
-        # until the issue https://github.com/pmem/pmdk/issues/5640 is fixed.
+        # XXX all tests with VARIANT_AVX512F or VARIANT_MOVDIR64B
+        # are disabled under Valgrind until the issue
+        # https://github.com/pmem/pmdk/issues/5640 and
+        # https://github.com/pmem/pmdk/issues/6129 are fixed.
         if ctx.valgrind is not None and ctx.valgrind.tool.name != "NONE":
             if ctx.variant() == VARIANT_AVX512F:
                 raise futils.Skip("AVX512F unavailable under Valigrind")
+            if ctx.variant() == VARIANT_MOVDIR64B:
+                raise futils.Skip("MOVDIR64B unavailable under Valigrind")
 
     def check_arch(self, variant, available_arch):
         if variant == VARIANT_MOVDIR64B:
