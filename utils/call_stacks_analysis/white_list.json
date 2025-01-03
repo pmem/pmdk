@@ -55,6 +55,7 @@
         "stats_enabled_parser",
 
         "__comment: libpmem2 only",
+        "pmem2_badblock_next",
         "pmem2_config_delete",
         "pmem2_config_init",
         "pmem2_config_new",
