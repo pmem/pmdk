@@ -17,6 +17,11 @@ jobs:
     name: Prepare runtime
     runs-on: [self-hosted, benchmark]
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        with:
+          egress-policy: audit
+
       - name: Clone the git repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
@@ -40,6 +45,11 @@ jobs:
     env:
       MANIFEST: ${{ matrix.ROLE }}/manifest.txt
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        with:
+          egress-policy: audit
+
       - name: Clone the git repo
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
@@ -75,6 +85,11 @@ jobs:
           - obj_rbtree_map_insert
           - obj_hashmap_tx_map_insert
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        with:
+          egress-policy: audit
+
       - name: Benchmark
         uses: ./.github/actions/pmem_benchmark_run
         with:
@@ -90,6 +105,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: run
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c95a14d0e5bab51a9f56296a4eb0e416910cd350 # v2.10.3
+        with:
+          egress-policy: audit
+
       - name: Download all artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
