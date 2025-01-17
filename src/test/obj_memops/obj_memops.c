@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2018-2023, Intel Corporation */
+/* Copyright 2025, Hewlett Packard Enterprise Development LP */
 
 /*
  * obj_memops.c -- basic memory operations tests
@@ -161,10 +162,11 @@ test_same_twice(struct operation_context *ctx, struct test_object *object)
 static void
 test_redo(PMEMobjpool *pop, struct test_object *object)
 {
-	struct operation_context *ctx = operation_new(
-		(struct ulog *)&object->redo, TEST_ENTRIES,
-		pmalloc_redo_extend, (ulog_free_fn)pfree,
-		&pop->p_ops, LOG_TYPE_REDO);
+	struct operation_context *ctx = NULL;
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
+		ctx = operation_new((struct ulog *)&object->redo, TEST_ENTRIES,
+			pmalloc_redo_extend, (ulog_free_fn)pfree, &pop->p_ops,
+			LOG_TYPE_REDO));
 
 	/*
 	 * Keep this test first.
@@ -620,10 +622,11 @@ static void
 test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
 {
 #define ULOG_SIZE 1024
-	struct operation_context *ctx = operation_new(
-		(struct ulog *)&object->redo, TEST_ENTRIES,
-		pmalloc_redo_extend, (ulog_free_fn)pfree,
-		&pop->p_ops, LOG_TYPE_REDO);
+	struct operation_context *ctx = NULL;
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
+		ctx = operation_new((struct ulog *)&object->redo, TEST_ENTRIES,
+			pmalloc_redo_extend, (ulog_free_fn)pfree, &pop->p_ops,
+			LOG_TYPE_REDO));
 
 	int ret = pmalloc(pop, &object->redo.next, ULOG_SIZE, 0, 0);
 	UT_ASSERTeq(ret, 0);
@@ -648,10 +651,11 @@ test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
 static void
 test_undo(PMEMobjpool *pop, struct test_object *object)
 {
-	struct operation_context *ctx = operation_new(
-		(struct ulog *)&object->undo, TEST_ENTRIES,
-		pmalloc_redo_extend, (ulog_free_fn)pfree,
-		&pop->p_ops, LOG_TYPE_UNDO);
+	struct operation_context *ctx = NULL;
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
+		ctx = operation_new((struct ulog *)&object->undo, TEST_ENTRIES,
+			pmalloc_redo_extend, (ulog_free_fn)pfree, &pop->p_ops,
+			LOG_TYPE_UNDO));
 
 	test_undo_small_single_copy(ctx, object);
 	test_undo_small_single_set(ctx, object);
