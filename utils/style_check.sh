@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2016-2023, Intel Corporation
+# Copyright 2025, Hewlett Packard Enterprise Development LP
 #
 # utils/style_check.sh -- common style checking script
 #
