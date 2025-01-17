@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2014-2023, Intel Corporation
+# Copyright 2025, Hewlett Packard Enterprise Development LP
 #
 # src/common.inc -- common Makefile rules for PMDK
 #
@@ -39,8 +40,8 @@ $(error Cannot evaluate version)
 endif
 
 ifeq ($(CLANG_FORMAT),)
-ifeq ($(shell command -v clang-format-9 > /dev/null && echo y || echo n), y)
-export CLANG_FORMAT ?= clang-format-9
+ifeq ($(shell command -v clang-format-14 > /dev/null && echo y || echo n), y)
+export CLANG_FORMAT ?= clang-format-14
 else
 export CLANG_FORMAT ?= clang-format
 endif
