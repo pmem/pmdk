@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2014-2023, Intel Corporation
+# Copyright 2025 Hewlett Packard Enterprise Development LP
 #
 # src/Makefile.inc -- common Makefile rules for PMDK
 #
@@ -34,6 +35,10 @@ DEFAULT_CFLAGS += -Wsign-conversion
 DEFAULT_CFLAGS += -Wsign-compare
 DEFAULT_CFLAGS += -Wunused-parameter
 DEFAULT_CFLAGS += -fstack-usage
+
+ifeq ($(CC),clang)
+DEFAULT_CFLAGS += -Wcast-function-type-strict
+endif
 
 ifeq ($(WCONVERSION_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wconversion

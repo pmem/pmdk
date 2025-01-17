@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2018-2023, Intel Corporation */
+/* Copyright 2025 Hewlett Packard Enterprise Development LP */
 
 /*
  * ctl_prefault.c -- tests for the ctl entry points: prefault
@@ -119,7 +120,10 @@ main(int argc, char *argv[])
 	int prefault = atoi(argv[2]);
 	int open = atoi(argv[3]);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
 	prefault_fun(prefault, (fun)pmemobj_ctl_get, (fun)pmemobj_ctl_set);
+#pragma GCC diagnostic pop
 	test_obj(path, open);
 
 	DONE(NULL);
