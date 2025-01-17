@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2015-2023, Intel Corporation */
-
+/* Copyright 2025 Hewlett Packard Enterprise Development LP */
 /*
  * pmembench.cpp -- main source file for benchmark framework
  */
@@ -1464,7 +1464,8 @@ out_release_clos:
 /*
  * pmembench_free_benchmarks -- release all benchmarks
  */
-static void __attribute__((destructor)) pmembench_free_benchmarks(void)
+static void __attribute__((destructor))
+pmembench_free_benchmarks(void)
 {
 	while (!PMDK_LIST_EMPTY(&benchmarks.head)) {
 		struct benchmark *bench = PMDK_LIST_FIRST(&benchmarks.head);

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2025 Hewlett Packard Enterprise Development LP */
 
 /*
  * pmem_flush.cpp -- benchmark implementation for pmem_persist and pmem_msync
@@ -357,7 +358,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
-	uint64_t (*func_mode)(struct pmem_bench * pmb, uint64_t index);
+	uint64_t (*func_mode)(struct pmem_bench *pmb, uint64_t index);
 
 	auto *pmb = (struct pmem_bench *)malloc(sizeof(struct pmem_bench));
 	assert(pmb != nullptr);
