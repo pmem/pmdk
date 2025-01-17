@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2016-2023, Intel Corporation
+# Copyright 2025 Hewlett Packard Enterprise Development LP
 #
 # utils/style_check.sh -- common style checking script
 #
@@ -33,11 +34,22 @@ function usage() {
 #
 function check_clang_version() {
 	set +e
-	which ${clang_format_bin} &> /dev/null && ${clang_format_bin} --version |\
-	grep "version 14\.0"\
-	&> /dev/null
+	which ${clang_format_bin} &> /dev/null
 	if [ $? -ne 0 ]; then
-		MSG="requires clang-format version==14.0"
+		MSG="requires clang-format version >= 14.0"
+		if [ "x$CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING" == "x1" ]; then
+			echo "FAIL: $MSG"
+			exit 1
+		else
+			echo "SKIP: $MSG"
+			exit 0
+		fi
+	fi
+
+	clang_version=`clang-format --version | awk '{print $3}'`
+
+	if [ $(echo "$clang_version 14.0" | tr " " "\n" | sort --version-sort | head -n 1) = $clang_version ]; then
+		MSG="requires clang-format version >= 14.0 (version $clang_version installed)"
 		if [ "x$CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING" == "x1" ]; then
 			echo "FAIL: $MSG"
 			exit 1
