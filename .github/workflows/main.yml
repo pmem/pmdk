@@ -3,6 +3,9 @@ name: Main
 
 on:
   workflow_dispatch:
+  schedule:
+    # run this job at 23:00 UTC every other day
+    - cron:  '0 23 */2 * *'
   pull_request:
 
 permissions: {}
