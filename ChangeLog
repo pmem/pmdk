@@ -1,10 +1,12 @@
-XXX
+DoW Mmm DD YYYY Somebody <somebody@somewhere.somewhere>  
 
 	* Version X.X.X
 
 	- remove non-Linux support from all compilation paths (OS_KERNEL_NAME)
 	- add an aarch64 cross-compilation (requested by DAOS)
-
+	- mute annoying error messages when transactions are intentional abort (#6117)
+  	- mute error message "Cannot find any matching device, no bad blocks found" when PMDK is used without PMem (#6127)
+	
 Thu May 23 2024 Oksana Sałyk <oksana.salyk@intel.com>
 
 	* Version 2.1.0
