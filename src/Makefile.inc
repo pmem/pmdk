@@ -35,6 +35,10 @@ DEFAULT_CFLAGS += -Wsign-compare
 DEFAULT_CFLAGS += -Wunused-parameter
 DEFAULT_CFLAGS += -fstack-usage
 
+ifeq ($(CC),clang)
+DEFAULT_CFLAGS += -Wno-error=cast-function-type-strict
+endif
+
 ifeq ($(WCONVERSION_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wconversion
 endif

@@ -406,6 +406,10 @@ CFLAGS += $(COMMON_FLAGS)
 
 CFLAGS += -Wsign-conversion
 
+ifeq ($(CC),clang)
+CFLAGS += -Wno-error=cast-function-type-strict
+endif
+
 ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
 CFLAGS += -Wunreachable-code-return
 endif
