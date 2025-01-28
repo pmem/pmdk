@@ -3,6 +3,9 @@ name: Main
 
 on:
   workflow_dispatch:
+  schedule:
+    # run this job at 23:00 UTC every other day
+    - cron:  '0 23 */2 * *'
   pull_request:
 
 permissions: {}
@@ -70,7 +73,7 @@ jobs:
           NDCTL_ENABLE: n # just to speed up the job
           PMEMOBJ_IGNORE_DIRTY_SHUTDOWN: y # not recommended for production
           PMEMOBJ_IGNORE_BAD_BLOCKS: y # not recommended for production
-        run: make -j$(nproc) cstyle
+        run: make cstyle
 
 
   basic_build:
