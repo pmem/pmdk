@@ -216,23 +216,21 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 	if (lane->internal == NULL)
 		goto error_internal_new;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-	lane->external = operation_new((struct ulog *)&layout->external,
-		LANE_REDO_EXTERNAL_SIZE,
-		lane_redo_extend, (ulog_free_fn)pfree, &pop->p_ops,
-		LOG_TYPE_REDO);
-#pragma GCC diagnostic pop
+	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+		lane->external = operation_new( \
+			(struct ulog *)&layout->external, \
+			LANE_REDO_EXTERNAL_SIZE, \
+			lane_redo_extend, (ulog_free_fn)pfree, &pop->p_ops, \
+			LOG_TYPE_REDO));
 	if (lane->external == NULL)
 		goto error_external_new;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-	lane->undo = operation_new((struct ulog *)&layout->undo,
-		LANE_UNDO_SIZE,
-		lane_undo_extend, (ulog_free_fn)pfree, &pop->p_ops,
-		LOG_TYPE_UNDO);
-#pragma GCC diagnostic pop
+	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+		lane->undo = operation_new( \
+			(struct ulog *)&layout->undo, \
+			LANE_UNDO_SIZE, \
+			lane_undo_extend, (ulog_free_fn)pfree, &pop->p_ops, \
+			LOG_TYPE_UNDO));
 	if (lane->undo == NULL)
 		goto error_undo_new;
 

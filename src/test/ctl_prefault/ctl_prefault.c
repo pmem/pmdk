@@ -120,10 +120,10 @@ main(int argc, char *argv[])
 	int prefault = atoi(argv[2]);
 	int open = atoi(argv[3]);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-	prefault_fun(prefault, (fun)pmemobj_ctl_get, (fun)pmemobj_ctl_set);
-#pragma GCC diagnostic pop
+	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+		prefault_fun(prefault, \
+			(fun)pmemobj_ctl_get, \
+			(fun)pmemobj_ctl_set));
 	test_obj(path, open);
 
 	DONE(NULL);
