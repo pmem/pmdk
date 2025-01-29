@@ -162,13 +162,12 @@ test_same_twice(struct operation_context *ctx, struct test_object *object)
 static void
 test_redo(PMEMobjpool *pop, struct test_object *object)
 {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-	struct operation_context *ctx = operation_new(
-		(struct ulog *)&object->redo, TEST_ENTRIES,
-		pmalloc_redo_extend, (ulog_free_fn)pfree,
-		&pop->p_ops, LOG_TYPE_REDO);
-#pragma GCC diagnostic pop
+	struct operation_context *ctx;
+	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+		ctx = operation_new((struct ulog *)&object->redo, \
+			TEST_ENTRIES, pmalloc_redo_extend, \
+			(ulog_free_fn)pfree, &pop->p_ops, \
+		LOG_TYPE_REDO));
 
 	/*
 	 * Keep this test first.
@@ -624,13 +623,11 @@ static void
 test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
 {
 #define ULOG_SIZE 1024
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-	struct operation_context *ctx = operation_new(
-		(struct ulog *)&object->redo, TEST_ENTRIES,
-		pmalloc_redo_extend, (ulog_free_fn)pfree,
-		&pop->p_ops, LOG_TYPE_REDO);
-#pragma GCC diagnostic pop
+	struct operation_context *ctx;
+	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+		ctx = operation_new((struct ulog *)&object->redo, \
+		TEST_ENTRIES, pmalloc_redo_extend, (ulog_free_fn)pfree, \
+		&pop->p_ops, LOG_TYPE_REDO));
 
 	int ret = pmalloc(pop, &object->redo.next, ULOG_SIZE, 0, 0);
 	UT_ASSERTeq(ret, 0);
@@ -655,13 +652,11 @@ test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
 static void
 test_undo(PMEMobjpool *pop, struct test_object *object)
 {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-	struct operation_context *ctx = operation_new(
-		(struct ulog *)&object->undo, TEST_ENTRIES,
-		pmalloc_redo_extend, (ulog_free_fn)pfree,
-		&pop->p_ops, LOG_TYPE_UNDO);
-#pragma GCC diagnostic pop
+	struct operation_context *ctx;
+	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+		ctx = operation_new((struct ulog *)&object->undo, \
+			TEST_ENTRIES, pmalloc_redo_extend, \
+			(ulog_free_fn)pfree, &pop->p_ops, LOG_TYPE_UNDO));
 
 	test_undo_small_single_copy(ctx, object);
 	test_undo_small_single_set(ctx, object);
