@@ -120,8 +120,9 @@ main(int argc, char *argv[])
 	int prefault = atoi(argv[2]);
 	int open = atoi(argv[3]);
 
-	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING( 
-		prefault_fun(prefault, (fun)pmemobj_ctl_get, (fun)pmemobj_ctl_set));
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
+		prefault_fun(prefault, (fun)pmemobj_ctl_get,
+			(fun)pmemobj_ctl_set));
 	test_obj(path, open);
 
 	DONE(NULL);

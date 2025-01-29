@@ -335,10 +335,10 @@ char *util_concat_str(const char *s1, const char *s2);
 /* tell clang to ignore "cast-function-type-strict" warning */
 #if __clang__
 #define CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(exp) \
-_Pragma("clang diagnostic push") \
-_Pragma("clang diagnostic ignored \"-Wcast-function-type-strict\"") \
-exp; \
-_Pragma("clang diagnostic pop")
+	_Pragma("clang diagnostic push") \
+	_Pragma("clang diagnostic ignored \"-Wcast-function-type-strict\"") \
+	exp; \
+	_Pragma("clang diagnostic pop")
 #else
 #define CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(exp) exp
 #endif

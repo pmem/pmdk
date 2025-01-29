@@ -218,15 +218,15 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 
 	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
 		lane->external = operation_new((struct ulog *)&layout->external,
-			LANE_REDO_EXTERNAL_SIZE,lane_redo_extend, (ulog_free_fn)pfree,
-			&pop->p_ops, LOG_TYPE_REDO));
+			LANE_REDO_EXTERNAL_SIZE, lane_redo_extend,
+			(ulog_free_fn)pfree, &pop->p_ops, LOG_TYPE_REDO));
 	if (lane->external == NULL)
 		goto error_external_new;
 
 	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
 		lane->undo = operation_new((struct ulog *)&layout->undo,
-			LANE_UNDO_SIZE, lane_undo_extend, (ulog_free_fn)pfree, &pop->p_ops,
-			LOG_TYPE_UNDO));
+			LANE_UNDO_SIZE, lane_undo_extend, (ulog_free_fn)pfree,
+			&pop->p_ops, LOG_TYPE_UNDO));
 	if (lane->undo == NULL)
 		goto error_undo_new;
 
