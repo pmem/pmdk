@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2014-2024, Intel Corporation */
-/* Copyright 2025 Hewlett Packard Enterprise Development LP */
+/* Copyright 2025, Hewlett Packard Enterprise Development LP */
 /*
  * Copyright (c) 2016-2020, Microsoft Corporation. All rights reserved.
  *
@@ -332,7 +332,7 @@ char *util_concat_str(const char *s1, const char *s2);
 #define SUPPRESS_ARG_8(X, ...) SUPPRESS_ARG_1(X); SUPPRESS_ARG_7(__VA_ARGS__)
 #define SUPPRESS_ARG_9(X, ...) SUPPRESS_ARG_1(X); SUPPRESS_ARG_8(__VA_ARGS__)
 
-/* macro to ignore "cast-function-type-strict" warning in clang */
+/* tell clang to ignore "cast-function-type-strict" warning */
 #if __clang__
 #define CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(exp) \
 _Pragma("clang diagnostic push") \
