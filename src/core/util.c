@@ -407,8 +407,8 @@ util_localtime(const time_t *timep, struct tm *tm)
  * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85902
  */
 #ifdef STRINGOP_TRUNCATION_SUPPORTED
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wstringop-truncation"
 #endif
 int
 util_safe_strcpy(char *dst, const char *src, size_t max_length)
@@ -421,7 +421,7 @@ util_safe_strcpy(char *dst, const char *src, size_t max_length)
 	return dst[max_length - 1] == '\0' ? 0 : -1;
 }
 #ifdef STRINGOP_TRUNCATION_SUPPORTED
-#pragma GCC diagnostic pop
+#pragma clang diagnostic pop
 #endif
 
 #define PARSER_MAX_LINE (PATH_MAX + 1024)

@@ -130,9 +130,9 @@ int
 pmem_log_set_function(pmem_log_function *log_function)
 {
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-function-type-strict"
 	int ret = core_log_set_function((core_log_function *)log_function);
-#pragma GCC diagnostic pop
+#pragma clang diagnostic pop
 	return core_log_error_translate(ret);
 }
