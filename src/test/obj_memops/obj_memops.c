@@ -163,7 +163,7 @@ static void
 test_redo(PMEMobjpool *pop, struct test_object *object)
 {
 	struct operation_context *ctx;
-	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING( \
 		ctx = operation_new((struct ulog *)&object->redo, \
 			TEST_ENTRIES, pmalloc_redo_extend, \
 			(ulog_free_fn)pfree, &pop->p_ops, \
@@ -624,7 +624,7 @@ test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
 {
 #define ULOG_SIZE 1024
 	struct operation_context *ctx;
-	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING( \
 		ctx = operation_new((struct ulog *)&object->redo, \
 		TEST_ENTRIES, pmalloc_redo_extend, (ulog_free_fn)pfree, \
 		&pop->p_ops, LOG_TYPE_REDO));
@@ -653,7 +653,7 @@ static void
 test_undo(PMEMobjpool *pop, struct test_object *object)
 {
 	struct operation_context *ctx;
-	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING( \
 		ctx = operation_new((struct ulog *)&object->undo, \
 			TEST_ENTRIES, pmalloc_redo_extend, \
 			(ulog_free_fn)pfree, &pop->p_ops, LOG_TYPE_UNDO));

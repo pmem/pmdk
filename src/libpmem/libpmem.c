@@ -130,7 +130,7 @@ int
 pmem_log_set_function(pmem_log_function *log_function)
 {
 	int ret;
-	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING( \
 		ret = core_log_set_function((core_log_function *)log_function));
 	return core_log_error_translate(ret);
 }

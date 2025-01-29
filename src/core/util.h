@@ -334,13 +334,13 @@ char *util_concat_str(const char *s1, const char *s2);
 
 /* macro to ignore "cast-function-type-strict" warning in clang */
 #if __clang__
-#define CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE(exp) \
+#define CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(exp) \
 _Pragma("clang diagnostic push") \
 _Pragma("clang diagnostic ignored \"-Wcast-function-type-strict\"") \
 exp; \
 _Pragma("clang diagnostic pop")
 #else
-#define CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE(exp) exp
+#define CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(exp) exp
 #endif
 
 #ifdef __cplusplus

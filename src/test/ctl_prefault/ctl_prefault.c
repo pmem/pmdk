@@ -120,7 +120,7 @@ main(int argc, char *argv[])
 	int prefault = atoi(argv[2]);
 	int open = atoi(argv[3]);
 
-	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING( \
 		prefault_fun(prefault, \
 			(fun)pmemobj_ctl_get, \
 			(fun)pmemobj_ctl_set));

@@ -216,7 +216,7 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 	if (lane->internal == NULL)
 		goto error_internal_new;
 
-	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING( \
 		lane->external = operation_new( \
 			(struct ulog *)&layout->external, \
 			LANE_REDO_EXTERNAL_SIZE, \
@@ -225,7 +225,7 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 	if (lane->external == NULL)
 		goto error_external_new;
 
-	CLANG_CAST_FUNCTION_TYPE_STRICT_WARNING_IGNORE( \
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING( \
 		lane->undo = operation_new( \
 			(struct ulog *)&layout->undo, \
 			LANE_UNDO_SIZE, \
