@@ -39,13 +39,14 @@ $(error Cannot evaluate version)
 endif
 
 ifeq ($(CLANG_FORMAT),)
-ifeq ($(shell command -v clang-format-9 > /dev/null && echo y || echo n), y)
-export CLANG_FORMAT ?= clang-format-9
+ifeq ($(shell command -v clang-format-14 > /dev/null && echo y || echo n), y)
+export CLANG_FORMAT ?= clang-format-14
 else
 export CLANG_FORMAT ?= clang-format
 endif
 endif
 
+$(INFO CLANG_FORMAT = $(CLANG_FORMAT))
 ifeq ($(FLAKE8),)
 export FLAKE8 ?= flake8
 endif

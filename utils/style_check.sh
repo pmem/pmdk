@@ -33,6 +33,7 @@ function usage() {
 #
 function check_clang_version() {
 	set +e
+	echo ${clang_format_bin}
 	which ${clang_format_bin} &> /dev/null && ${clang_format_bin} --version |\
 	grep "version 14\.0"\
 	&> /dev/null
