@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2016-2023, Intel Corporation
-# Copyright 2025 Hewlett Packard Enterprise Development LP
 #
 # utils/style_check.sh -- common style checking script
 #
@@ -16,8 +15,8 @@ CHECK_TYPE=$1
 # When updating, please search for all references to "clang-format" and update
 # them as well; at this time these are CONTRIBUTING.md src/common.inc and
 # docker images.
-[ -z "$clang_format_bin" ] && which clang-format-9 >/dev/null &&
-	clang_format_bin=clang-format-9
+[ -z "$clang_format_bin" ] && which clang-format-14 >/dev/null &&
+	clang_format_bin=clang-format-14
 [ -z "$clang_format_bin" ] && which clang-format >/dev/null &&
 	clang_format_bin=clang-format
 [ -z "$clang_format_bin" ] && clang_format_bin=clang-format
@@ -34,22 +33,11 @@ function usage() {
 #
 function check_clang_version() {
 	set +e
-	which ${clang_format_bin} &> /dev/null
+	which ${clang_format_bin} &> /dev/null && ${clang_format_bin} --version |\
+	grep "version 14\.0"\
+	&> /dev/null
 	if [ $? -ne 0 ]; then
-		MSG="requires clang-format version >= 14.0"
-		if [ "x$CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING" == "x1" ]; then
-			echo "FAIL: $MSG"
-			exit 1
-		else
-			echo "SKIP: $MSG"
-			exit 0
-		fi
-	fi
-
-	clang_version=`clang-format --version | awk '{print $3}'`
-
-	if [ $(echo "$clang_version 14.0" | tr " " "\n" | sort --version-sort | head -n 1) = $clang_version ]; then
-		MSG="requires clang-format version >= 14.0 (version $clang_version installed)"
+		MSG="requires clang-format version==14.0"
 		if [ "x$CSTYLE_FAIL_IF_CLANG_FORMAT_MISSING" == "x1" ]; then
 			echo "FAIL: $MSG"
 			exit 1
