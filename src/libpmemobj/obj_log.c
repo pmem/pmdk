@@ -41,9 +41,8 @@ pmemobj_log_get_threshold(enum pmemobj_log_threshold threshold,
 int
 pmemobj_log_set_function(pmemobj_log_function *log_function)
 {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-	int ret = core_log_set_function((core_log_function *)log_function);
-#pragma GCC diagnostic pop
+	int ret;
+	CLANG_IGNORE_CAST_FUNCTION_STRICT_WARN( \
+		ret = core_log_set_function((core_log_function *)log_function));
 	return core_log_error_translate(ret);
 }
