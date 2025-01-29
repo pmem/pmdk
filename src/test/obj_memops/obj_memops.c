@@ -163,7 +163,7 @@ static void
 test_redo(PMEMobjpool *pop, struct test_object *object)
 {
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wcast-function-type-strict"
 	struct operation_context *ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,
 		pmalloc_redo_extend, (ulog_free_fn)pfree,
@@ -625,7 +625,7 @@ test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
 {
 #define ULOG_SIZE 1024
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wcast-function-type-strict"
 	struct operation_context *ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,
 		pmalloc_redo_extend, (ulog_free_fn)pfree,
@@ -656,7 +656,7 @@ static void
 test_undo(PMEMobjpool *pop, struct test_object *object)
 {
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wcast-function-type-strict"
 	struct operation_context *ctx = operation_new(
 		(struct ulog *)&object->undo, TEST_ENTRIES,
 		pmalloc_redo_extend, (ulog_free_fn)pfree,

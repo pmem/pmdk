@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 	int open = atoi(argv[3]);
 
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wcast-function-type-strict"
 	prefault_fun(prefault, (fun)pmemobj_ctl_get, (fun)pmemobj_ctl_set);
 #pragma GCC diagnostic pop
 	test_obj(path, open);

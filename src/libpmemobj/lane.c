@@ -217,7 +217,7 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 		goto error_internal_new;
 
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wcast-function-type-strict"
 	lane->external = operation_new((struct ulog *)&layout->external,
 		LANE_REDO_EXTERNAL_SIZE,
 		lane_redo_extend, (ulog_free_fn)pfree, &pop->p_ops,
@@ -227,7 +227,7 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 		goto error_external_new;
 
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wcast-function-type-strict"
 	lane->undo = operation_new((struct ulog *)&layout->undo,
 		LANE_UNDO_SIZE,
 		lane_undo_extend, (ulog_free_fn)pfree, &pop->p_ops,
