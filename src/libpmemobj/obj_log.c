@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2024, Intel Corporation */
+/* Copyright 2025, Hewlett Packard Enterprise Development LP */
 
 /*
  * obj_log.c -- the public interface to control the logging output
@@ -40,6 +41,8 @@ pmemobj_log_get_threshold(enum pmemobj_log_threshold threshold,
 int
 pmemobj_log_set_function(pmemobj_log_function *log_function)
 {
-	int ret = core_log_set_function((core_log_function *)log_function);
+	int ret = EFAULT;
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
+		ret = core_log_set_function((core_log_function *)log_function));
 	return core_log_error_translate(ret);
 }

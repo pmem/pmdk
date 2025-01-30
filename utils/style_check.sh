@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2016-2023, Intel Corporation
+# Copyright 2025, Hewlett Packard Enterprise Development LP
 #
 # utils/style_check.sh -- common style checking script
 #
@@ -15,8 +16,8 @@ CHECK_TYPE=$1
 # When updating, please search for all references to "clang-format" and update
 # them as well; at this time these are CONTRIBUTING.md src/common.inc and
 # docker images.
-[ -z "$clang_format_bin" ] && which clang-format-9 >/dev/null &&
-	clang_format_bin=clang-format-9
+[ -z "$clang_format_bin" ] && which clang-format-14 >/dev/null &&
+	clang_format_bin=clang-format-14
 [ -z "$clang_format_bin" ] && which clang-format >/dev/null &&
 	clang_format_bin=clang-format
 [ -z "$clang_format_bin" ] && clang_format_bin=clang-format
