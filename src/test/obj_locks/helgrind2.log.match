@@ -4,7 +4,7 @@
 ==$(N)== Command: ./obj_locks$(nW) $(nW)
 ==$(N)== Parent PID: $(N)
 ==$(N)==$(W)
-==$(N)==$(W)
+==$(N)==$(nW)
 ==$(N)== Use --history-level=approx or =none to gain increased speed, at
 ==$(N)== the cost of reduced accuracy of conflicting-access information
 ==$(N)== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: $(N) from $(N))
