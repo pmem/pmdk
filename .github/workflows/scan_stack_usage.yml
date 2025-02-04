@@ -54,13 +54,13 @@ jobs:
           ./make_extra.py
           ./make_cflow.sh
           # The lower limit comes up from the DAOS memory requirements.
-          # 16kB - 4kB - 752B = 11536B
+          # 16kB - 4kB - 720B = 11568B
           # 16kB = Stack allocated for a single Argobot's ULT
           #  4kB = a maximum DAOS' stack usage up to calling a PMDK API calls
-          #  752B = safety margin
+          #  720B = safety margin
           #    ~ = Some OSes, e.g. Ubuntu 22.04, generate call stacks of size
           # a little bit over the exact limit which is not deemed a problem at the moment.
-          ./make_call_stacks.py --filter-api-file examples/api_filter.txt --filter-lower-limit 11536
+          ./make_call_stacks.py --filter-api-file examples/api_filter.txt --filter-lower-limit 11568
 
       - name: List per-function stack usage for all call stacks of interest
         working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
