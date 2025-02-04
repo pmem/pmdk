@@ -4,15 +4,16 @@ name: CodeQL
 on:
   workflow_call:
 
-permissions:
-  actions: read
-  contents: read
-  security-events: write
+permissions: read-all
 
 jobs:
   codeql:
     name: CodeQL
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
     steps:
     - name: Clone the git repo
