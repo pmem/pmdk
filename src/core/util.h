@@ -333,7 +333,7 @@ char *util_concat_str(const char *s1, const char *s2);
 #define SUPPRESS_ARG_9(X, ...) SUPPRESS_ARG_1(X); SUPPRESS_ARG_8(__VA_ARGS__)
 
 /* tell clang to ignore the "cast-function-type-strict" warning */
-#if __clang__
+#if defined(__clang__) && __clang_major__ >= 18
 #define CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(exp) \
 	_Pragma("clang diagnostic push") \
 	_Pragma("clang diagnostic ignored \"-Wcast-function-type-strict\"") \
