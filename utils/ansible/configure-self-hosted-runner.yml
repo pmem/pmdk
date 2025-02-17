@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023, Intel Corporation
+# Copyright 2023-2024, Intel Corporation
 
 # This playbook is designed to add a new self-hosted runner to pmem/pmdk.
 # Examples below show how to use this file:
@@ -9,14 +9,15 @@
 # export GHA_TOKEN= # a GitHub token generated for a new self-hosted runner
 # export HOST_NAME= # host's name that will be visible on GitHub
 # export LABELS= # rhel or opensuse
-# export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
+# export DOMAIN= # your proxy domain
+# export VARS_GHA=http_proxy=http://proxy-dmz.$DOMAIN.com:911,https_proxy=https://proxy-dmz.$DOMAIN.com:912
 # ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars \
 #   "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD \
 #   runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 #
 # 2) locally
 # For a playbook to be used on a local server please log in as pmdkuser:
-# a) comment out the first command: # -hosts: "{{ host }}"
+# a) comment out the first command: # - hosts: "{{ host }}"
 # b) uncomment the next two lines:
 # - hosts: localhost
 #   connection: local
@@ -24,9 +25,10 @@
 # export GHA_TOKEN= # a GitHub token generated for a new self-hosted runner
 # export HOST_NAME= # Host name that will be visible on GitHub (e.g. `hostname`)
 # export LABELS= # rhel or opensuse
-# export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
+# export DOMAIN= # your proxy domain
+# export VARS_GHA=http_proxy=http://proxy-dmz.$DOMAIN.com:911,https_proxy=https://proxy-dmz.$DOMAIN.com:912
 # ansible-playbook configure-self-hosted-runner.yml --extra-vars \
-#   "runner_name=$HOST_NAME labels=$LABELS vars_gha=$VARS_GHA token=$GHA_TOKEN"
+#   "ansible_user=pmdkuser runner_name=$HOST_NAME labels=$LABELS vars_gha=$VARS_GHA token=$GHA_TOKEN"
 #
 
 #

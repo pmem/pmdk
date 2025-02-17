@@ -4,18 +4,19 @@ name: CodeQL
 on:
   workflow_call:
 
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 jobs:
   codeql:
     name: CodeQL
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
 
     steps:
     - name: Clone the git repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
     - name: Install pmem/valgrind (including dependencies)
       run: |
@@ -36,7 +37,7 @@ jobs:
         && sudo ./utils/docker/images/install-valgrind.sh
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3.26.6
       with:
         languages: cpp, python
 
@@ -44,4 +45,4 @@ jobs:
       run: make test -j$(nproc)
 
     - name: CodeQL scan
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@4dd16135b69a43b6c8efb853346f8437d92d3c93 # v3.26.6

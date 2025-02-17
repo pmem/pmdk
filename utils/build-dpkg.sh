@@ -388,7 +388,7 @@ Description: tool to parse and replay pmemcheck logs
  whether files are in a consistent state.
 EOF
 
-cp LICENSE debian/copyright
+cp LICENSE.txt debian/copyright
 
 if [ -n "$NDCTL_ENABLE" ]; then
 	pass_ndctl_enable="NDCTL_ENABLE=$NDCTL_ENABLE"

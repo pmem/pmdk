@@ -23,6 +23,8 @@ env:
   WORKDIR:     utils/docker
   PUSH_IMAGE:  1
 
+permissions: {}
+
 jobs:
   image:
     if: github.repository == 'pmem/pmdk'
@@ -37,8 +39,8 @@ jobs:
           - {OS: ubuntu, OS_VER: 22.04}
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
-  
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
       - name: Rebuild the image
         env:
           OS: ${{ matrix.OS }}

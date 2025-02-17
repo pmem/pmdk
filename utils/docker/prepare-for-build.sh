@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2023, Intel Corporation
+# Copyright 2016-2024, Intel Corporation
 
 #
 # prepare-for-build.sh - is called inside a Docker container; prepares
@@ -9,6 +9,8 @@
 #
 
 set -e
+
+cat /etc/*release*
 
 # This should be run only on CIs
 if [ "$CI_RUN" == "YES" ]; then

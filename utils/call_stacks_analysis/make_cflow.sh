@@ -29,7 +29,7 @@ for start in `cat $API $EXTRA_ENTRY_POINTS`; do
 	STARTS="$STARTS --start $start"
 done
 
-SOURCES=`find $SRC -name *.[ch] | grep -v -e '_other.c' -e '_none.c' \
+SOURCES=`find $SRC -name *.[ch] | grep -v -e '_none.c' \
 		-e '/tools/' -e '/test/' -e '/aarch64/' -e '/examples/' \
 		-e '/ppc64/' -e '/riscv64/' -e '/loongarch64/' \
 		-e '/libpmempool/'`

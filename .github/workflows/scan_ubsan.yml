@@ -18,6 +18,8 @@ env:
   UBSAN:        1
   FAULT_INJECTION: 1
 
+permissions: {}
+
 jobs:
   linux:
     name: Linux
@@ -28,7 +30,7 @@ jobs:
         build: ['debug', 'nondebug']
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Pull the image
         run: cd $WORKDIR && ./pull-or-rebuild-image.sh

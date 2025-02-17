@@ -19,6 +19,8 @@ env:
   PMDK_CXX:       g++
   SRC_CHECKERS:   0
 
+permissions: {}
+
 jobs:
   in-tree:
     name: In-tree
@@ -35,7 +37,7 @@ jobs:
         TEST_BUILD: [debug, nondebug]
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 50
 
@@ -66,7 +68,7 @@ jobs:
                 ]
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 50
 

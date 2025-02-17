@@ -24,43 +24,33 @@
 # utils/gha-runners/run-ras-linux.yml
 name: PMEM RAS
 
-on: 
+on:
   workflow_dispatch:
   schedule:
     # run this job every 8 hours
     - cron:  '0 */8 * * *'
 
+permissions: {}
+
 jobs:
   linux:
     name: PMEM_RAS
     if: github.repository == 'pmem/pmdk'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [[self-hosted, ras_controller]]
+    runs-on: [self-hosted, ras_controller]
     env:
       WORKDIR: utils/gha-runners
 
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      # Variables, such as $ras_runner are hidden on the controller platform as environmental variables.
-      # 'sed' command is used to filter out IP addresses from the ansible output, it will show up as the 'ras_runner' instead.
-      # 'tee' command is used to save the overall output to the file. This file is needed for the next step.
+      # Variables, such as $ras_runner are set on the controller platform
+      # as environment variables.
       - name: Prepare and run RAS Linux tests via ansible-playbook
-        run: |
-          cd $WORKDIR
-          ansible-playbook -i $ras_runner, run-ras-linux.yml -e "host=all ansible_user=$ras_user" | sed 's/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/ras_runner/' | tee playbook_output.txt
-
-      # This simple step will look through the output in search of specific fail strings.
-      # If any phrase is found in the file, the workflow will fail.
-      - name: Fail the workflow if the playbook finished with a failure
-        run: |
-          cd $WORKDIR
-          if grep -E 'fatal: \[ras_runner\]: FAILED!|failed: \[ras_runner\]' "playbook_output.txt"; then
-            exit 1
-          else
-            exit 0
-          fi
+        working-directory: ${{ env.WORKDIR }}
+        env:
+          # Increases human readability in case of a failure
+          ANSIBLE_STDOUT_CALLBACK: yaml
+        run: >
+          ansible-playbook -i $ras_runner, run-ras-linux.yml
+          -e "host=all ansible_user=$ras_user"

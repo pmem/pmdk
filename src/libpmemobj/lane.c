@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2015-2024, Intel Corporation */
+/* Copyright 2025, Hewlett Packard Enterprise Development LP */
 
 /*
  * lane.c -- lane implementation
@@ -215,17 +216,17 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 	if (lane->internal == NULL)
 		goto error_internal_new;
 
-	lane->external = operation_new((struct ulog *)&layout->external,
-		LANE_REDO_EXTERNAL_SIZE,
-		lane_redo_extend, (ulog_free_fn)pfree, &pop->p_ops,
-		LOG_TYPE_REDO);
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
+		lane->external = operation_new((struct ulog *)&layout->external,
+			LANE_REDO_EXTERNAL_SIZE, lane_redo_extend,
+			(ulog_free_fn)pfree, &pop->p_ops, LOG_TYPE_REDO));
 	if (lane->external == NULL)
 		goto error_external_new;
 
-	lane->undo = operation_new((struct ulog *)&layout->undo,
-		LANE_UNDO_SIZE,
-		lane_undo_extend, (ulog_free_fn)pfree, &pop->p_ops,
-		LOG_TYPE_UNDO);
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
+		lane->undo = operation_new((struct ulog *)&layout->undo,
+			LANE_UNDO_SIZE, lane_undo_extend, (ulog_free_fn)pfree,
+			&pop->p_ops, LOG_TYPE_UNDO));
 	if (lane->undo == NULL)
 		goto error_undo_new;
 

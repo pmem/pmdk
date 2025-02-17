@@ -46,7 +46,7 @@ export SETUP_SCRIPT= # opensuse-setup.yml or rockylinux-setup.yml
 
 ansible-playbook -i $TARGET_IP, $SETUP_SCRIPT \
   --extra-vars "host=all ansible_user=root ansible_password=$ROOT_PASSWORD \
-  testUser=pmdkuser testUserPass=pmdkpass"
+  new_user=pmdkuser new_user_pass=pmdkpass"
 ```
 **Note**: If the Linux kernel is outdated, `opensuse-setup.yml` and
 `rockylinux-setup.yml` playbooks will reboot the target platform.
@@ -98,7 +98,7 @@ export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME= # host's name that will be visible on GitHub
 export LABELS= # rhel or opensuse
 export VARS_GHA= # e.g. proxy settings: http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
-ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars
+ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars \
   "host=all ansible_user=pmdkuser ansible_password=$USER_PASSWORD \
   runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 ```
@@ -111,6 +111,11 @@ ansible-playbook -i $TARGET_IP, configure-self-hosted-runner.yml --extra-vars
 
 # Provisioning from the target platform itself
 It is possible to run playbooks directly on the target platform.
+In this case, you have to always pass `ansible_user=pmdkuser` as an additional
+variable since the playbooks are fine-tuned for remote execution and assume
+the `ansible_user` variable is defined. When running on a remote target the
+connection plugin does it for you.
+
 To run playbooks inside the platform please comment out the line:
 ```
 - hosts: "{{ host }}"
@@ -123,18 +128,18 @@ uncomment the following two:
 and run commands as follows e.g.
 ```sh
 export SETUP_SCRIPT= # opensuse-setup.yml or rockylinux-setup.yml
-sudo ansible-playbook $SETUP_SCRIPT --extra-vars "testUser=pmdkuser"
+sudo ansible-playbook $SETUP_SCRIPT --extra-vars "new_user=pmdkuser"
 ```
 **Note**: If a reboot is necessary, as described above, perform it manually and
 rerun the playbook without in question.
 
 And next log in as `pmdkuser`:
 ```sh
-ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
+ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser newRegions=true"
 # you will have to perform a reboot manually
 sudo reboot
 # and re-run the playbook without newRegions=true to finalize the setup
-ansible-playbook configure-pmem.yml
+ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser"
 ```
 
 # Example - GitHub self-hosted runner setup
@@ -156,30 +161,30 @@ Update playbooks to be used directly on the target as described [above](#provisi
 and execute:
 ```sh
 # as root:
-ansible-playbook rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook rockylinux-setup.yml --extra-vars "new_user=pmdkuser new_user_pass=pmdkpass"
 # reboot shall be performed only if the playbook requests to do it.
 reboot
 # ...
 cd pmdk/utils/ansible
-ansible-playbook rockylinux-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook rockylinux-setup.yml --extra-vars "new_user=pmdkuser new_user_pass=pmdkpass"
 ```
 Log in as `pmdkuser` and execute:
 ```sh
 # as pmdkuser
 cd pmdk/utils/ansible
-ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
+ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser newRegions=true"
 sudo reboot
 # ...
 cd pmdk/utils/ansible
 # note - no newRegions=true when running the playbook after the reboot
-ansible-playbook configure-pmem.yml
+ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser"
 
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME=`hostname`
 export LABELS=rhel
 export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 ansible-playbook configure-self-hosted-runner.yml -extra-vars \
-"runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
+"ansible_user=pmdkuser runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 cd
 rm -rf pmdk
 ```
@@ -196,30 +201,30 @@ Update playbooks to be used directly on the target as described [above](#provisi
 and execute:
 ```sh
 # as root:
-ansible-playbook opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook opensuse-setup.yml --extra-vars "new_user=pmdkuser new_user_pass=pmdkpass"
 # reboot shall be performed only if the playbook requests to do it.
 reboot
 # ...
 cd pmdk/utils/ansible
-ansible-playbook opensuse-setup.yml --extra-vars "testUser=pmdkuser testUserPass=pmdkpass"
+ansible-playbook opensuse-setup.yml --extra-vars "new_user=pmdkuser new_user_pass=pmdkpass"
 ```
 Log in as `pmdkuser` and execute:
 ```sh
 # as pmdkuser:
 cd pmdk/utils/ansible
-ansible-playbook configure-pmem.yml --extra-vars "newRegions=true"
+ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser newRegions=true"
 sudo reboot
 # ...
 cd pmdk/utils/ansible
 # note - no newRegions=true when running the playbook after the reboot
-ansible-playbook configure-pmem.yml
+ansible-playbook configure-pmem.yml --extra-vars "ansible_user=pmdkuser"
 
 export GHA_TOKEN= # GitHub token generated for a new self-hosted runner
 export HOST_NAME=`hostname`
 export LABELS=opensuse
 export VARS_GHA=http_proxy=http://proxy-dmz.{XXX}.com:911,https_proxy=http://proxy-dmz.{XXX}.com:912
 ansible-playbook configure-self-hosted-runner.yml -extra-vars \
-"runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
+"ansible_user=pmdkuser runner_name=$HOST_NAME labels=$LABELS token=$GHA_TOKEN vars_gha=$VARS_GHA"
 cd
 rm -rf pmdk
 ```

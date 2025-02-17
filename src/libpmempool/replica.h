@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2022, Intel Corporation */
+/* Copyright 2016-2024, Intel Corporation */
 
 /*
  * replica.h -- module for synchronizing and transforming poolset
@@ -9,7 +9,7 @@
 
 #include "libpmempool.h"
 #include "pool.h"
-#include "badblocks.h"
+#include "bad_blocks.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -8,6 +8,8 @@ env:
   GITHUB_REPO: pmem/pmdk
   DOCKER_REPO: ghcr.io/pmem/pmdk
 
+permissions: {}
+
 jobs:
   linux:
     name: Linux
@@ -27,7 +29,7 @@ jobs:
         TEST_BUILD: ['debug', 'nondebug']
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 50
 
@@ -46,7 +48,7 @@ jobs:
 
       - name: Archive logs
         if: steps.build.outcome != 'success'
-        uses: actions/upload-artifact@v4.2.0
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: logs-${{ matrix.TEST_BUILD }}
           path: ${{env.HOST_WORKDIR}}/src/test/**/*.log

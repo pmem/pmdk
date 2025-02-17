@@ -10,16 +10,15 @@ on:
         type: string
         default: master
 
+permissions: {}
 
 jobs:
   prep_runtime:
     name: Prepare runtime
     runs-on: [self-hosted, benchmark]
-    permissions:
-      contents: read
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           fetch-depth: 1
 
@@ -38,13 +37,11 @@ jobs:
             GITHUB_REF: ${{ inputs.reference_ref }}
           - ROLE: rival
             GITHUB_REF: ${{ inputs.rival_ref }}
-    permissions:
-      contents: read
     env:
       MANIFEST: ${{ matrix.ROLE }}/manifest.txt
     steps:
       - name: Clone the git repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           ref: ${{ matrix.GITHUB_REF }}
           fetch-depth: 1
@@ -60,7 +57,7 @@ jobs:
           git -C ${{ matrix.ROLE }} rev-parse HEAD >> $MANIFEST
 
       - name: Archive the manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: manifest_${{ matrix.ROLE }}
           path: ${{ env.MANIFEST }}
@@ -94,7 +91,7 @@ jobs:
     needs: run
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           path: csvs
 
@@ -109,7 +106,7 @@ jobs:
           done
 
       - name: Upload all as a single artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: perf__all__${{ github.run_id }}
           path: csvs/**/*

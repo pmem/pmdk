@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2024, Intel Corporation
 
 #
 # src/test/obj_list/Makefile -- build obj_list test
@@ -17,4 +17,3 @@ CFLAGS += -g -DDEBUG
 LDFLAGS += $(call extract_funcs, obj_list.c)
 LDFLAGS += $(call extract_funcs, obj_list_mocks.c)
 LDFLAGS += $(call extract_funcs, obj_list_mocks_palloc.c)
-

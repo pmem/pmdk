@@ -7,6 +7,8 @@ on:
     # run this job at 00:00 UTC every day
     - cron:  '0 0 * * *'
 
+permissions: {}
+
 jobs:
   call-bandit:
     uses: ./.github/workflows/scan_bandit.yml
@@ -14,7 +16,13 @@ jobs:
   call-codeql:
     uses: ./.github/workflows/scan_codeql.yml
     name: CodeQL
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
   call-coverity:
+    # Sorry, no other branches are supported. The result upload would fail.
+    if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/scan_coverity.yml
     secrets:
       COVERITY_SCAN_NOTIFICATION_EMAIL:  ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}

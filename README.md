@@ -1,5 +1,6 @@
 # **PMDK: Persistent Memory Development Kit**
 
+[![Main](https://github.com/pmem/pmdk/actions/workflows/main.yml/badge.svg)](https://github.com/pmem/pmdk/actions/workflows/main.yml)
 [![Nightly](https://github.com/pmem/pmdk/actions/workflows/nightly.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/nightly.yml)
 [![Scans](https://github.com/pmem/pmdk/actions/workflows/scans.yml/badge.svg?branch=master)](https://github.com/pmem/pmdk/actions/workflows/scans.yml)
 [![Coverage](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
@@ -44,7 +45,7 @@ Utilities available in this repository:
 
 Currently, these libraries and utilities only work on 64-bit Linux.
 
-See our [LICENSE](LICENSE) file for information on how these libraries are licensed.
+See our [LICENSE](LICENSE.txt) file for information on how these libraries are licensed.
 
 ## Getting Started
 

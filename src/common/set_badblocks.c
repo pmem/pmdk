@@ -14,7 +14,7 @@
 #include "os.h"
 #include "out.h"
 #include "set_badblocks.h"
-#include "badblocks.h"
+#include "bad_blocks.h"
 
 /* helper structure for badblocks_check_file_cb() */
 struct check_file_cb {

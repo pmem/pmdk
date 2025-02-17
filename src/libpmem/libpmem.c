@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2014-2024, Intel Corporation */
+/* Copyright 2025, Hewlett Packard Enterprise Development LP */
 
 /*
  * libpmem.c -- pmem entry points for libpmem
@@ -128,6 +129,8 @@ pmem_log_get_threshold(enum pmem_log_threshold threshold,
 int
 pmem_log_set_function(pmem_log_function *log_function)
 {
-	int ret = core_log_set_function((core_log_function *)log_function);
+	int ret = EFAULT;
+	CLANG_IGNORE_CAST_FUNCTION_TYPE_STRICT_WARNING(
+		ret = core_log_set_function((core_log_function *)log_function));
 	return core_log_error_translate(ret);
 }

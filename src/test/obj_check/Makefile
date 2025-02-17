@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2024, Intel Corporation
 
 #
 # src/test/obj_check/Makefile -- build obj_check test
@@ -13,4 +13,3 @@ USE_PMEMWRITE=y
 USE_PMEMALLOC=y
 
 include ../Makefile.inc
-

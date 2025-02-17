@@ -15,7 +15,7 @@ or just begin a dialog about the Persistent Memory Development Kit:
 
 **NOTE: If you do decide to implement code changes and contribute them,
 please make sure you agree your contribution can be made available
-under the [BSD-style License used for the Persistent Memory Development Kit](https://github.com/pmem/pmdk/blob/master/LICENSE).**
+under the [BSD-style License used for the Persistent Memory Development Kit](LICENSE.txt).**
 
 **NOTE: Submitting your changes also means that you certify the following:**
 
@@ -73,7 +73,7 @@ Before contributing please remember to run:
 ```
 
 This will check all C/C++ files in the tree for style issues. To check C++
-files you have to have clang-format version 9.0, otherwise they will be
+files you have to have clang-format version 14.0, otherwise they will be
 skipped. If you want to run this target automatically at build time, you can
 pass CSTYLEON=1 to make. If you want cstyle to be run, but not fail the build,
 pass CSTYLEON=2 to make.

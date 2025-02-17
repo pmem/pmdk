@@ -1,0 +1,1 @@
+{$(nW).c:$(N) verify} obj_ulog_advanced/TEST$(N): Error: assertion failure: rootp->slots[i] (0x0) == exp (0x1)

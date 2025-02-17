@@ -68,6 +68,7 @@
 #
 
 - hosts: '{{ host }}'
+  any_errors_fatal: true
 
   vars:
     bash_path: /bin/bash
@@ -96,7 +97,7 @@
 
   tasks:
 
-# pmdk-tests requires cmake for building
+    # pmdk-tests requires cmake for building
     - name: "Ensure cmake availability in the system"
       package:
         state: present
@@ -174,11 +175,29 @@
           with_items: "{{ workspace_dirs }}"
 
         # The 'Main' branch is used for both repositories.
-        - name: "Clone repositories"
+        - name: "Ensure the working directory exists"
+          file:
+            path: "{{ working_dir_path }}"
+            state: directory
+
+        - name: "Remove the PMDK repository if present"
+          file:
+            path: "{{ pmdk_install_dir_path }}"
+            state: absent
+            force: yes
+
+        - name: "Remove the PMDK-test repository if present"
+          file:
+            path: "{{ repo.pmdk_tests.target_dir }}"
+            state: absent
+            force: yes
+
+        - name: "Clone the PMDK & PMDK-test repositories"
           git:
             repo: "{{ item.value.url }}"
             dest: "{{ item.value.target_dir }}"
             version: "{{ item.value.branch }}"
+            force: yes
           with_dict: "{{ repo }}"
 
         - name: "Build PMDK"
@@ -186,17 +205,32 @@
             cmd: "make -j install prefix={{ pmdk_install_dir_path }}"
             chdir: "{{ repo.pmdk.target_dir }}"
             executable: "{{ bash_path }}"
+          register: output
 
-        - name: "Configure & build pmdk-tests"
+        - name: "Build PMDK - output"
+          debug:
+            msg: |
+              ::group::Build PMDK
+              {{ output.stderr_lines | to_nice_yaml }}
+              {{ output.stdout_lines | to_nice_yaml }}
+              ::endgroup::
+
+        - name: "Build pmdk-tests"
           shell:
-            cmd: "{{ item }}"
+            cmd: "cmake '{{ repo.pmdk_tests.target_dir }}' && make -j"
             chdir: "{{ pmdk_tests_build_dir_path }}"
             executable: "{{ bash_path }}"
           environment:
             PKG_CONFIG_PATH: "{{ pmdk_install_dir_path }}/lib/pkgconfig/"
-          with_items:
-            - "cmake '{{ repo.pmdk_tests.target_dir }}'"
-            - "make -j"
+          register: output
+
+        - name: "Build pmdk-tests - output"
+          debug:
+            msg: |
+              ::group::Build pmdk-tests
+              {{ output.stderr_lines | to_nice_yaml }}
+              {{ output.stdout_lines | to_nice_yaml }}
+              ::endgroup::
 
         - name: "Create template for config.xml file"
           lineinfile:
@@ -221,7 +255,7 @@
               - mountPoint: /mnt/{{item}}
           with_items: "{{ uuids }}"
 
-        - name: "Run the first phase of tests"
+        - name: "Phase 1 - run tests"
           shell:
             cmd: PATH=$PATH:{{ pmdk_install_dir_path }}/bin ./UNSAFE_SHUTDOWN_LOCAL 1 inject all --gtest_output=xml:{{ logs_dir_path }}/phase1.xml
             chdir: "{{ pmdk_tests_build_dir_path }}"
@@ -229,10 +263,10 @@
           environment:
             LD_LIBRARY_PATH: "{{ pmdk_install_dir_path }}/lib/"
           register: phase_1
-          ignore_errors: true
 
-        - name: "Print phase I output"
-          debug: var=phase_1
+        - name: "Phase 1 - output"
+          debug:
+            var: phase_1
 
         - name: "Flush filesystems before power cycle"
           shell: "sync"
@@ -263,7 +297,7 @@
             - "{{ uuids }}"
             - "{{ pmem_devices }}"
 
-        - name: "Run the second phase of tests"
+        - name: "Phase 2 - run tests"
           shell:
             cmd: PATH=$PATH:{{ pmdk_install_dir_path }}/bin ./UNSAFE_SHUTDOWN_LOCAL 2 cleanup all --gtest_output=xml:{{ logs_dir_path }}/phase2.xml
             chdir: "{{ pmdk_tests_build_dir_path }}"
@@ -271,10 +305,10 @@
           environment:
             LD_LIBRARY_PATH: "{{ pmdk_install_dir_path }}/lib/"
           register: phase_2
-          ignore_errors: true
 
-        - name: "Print phase II output"
-          debug: var=phase_2
+        - name: "Phase 2 - output"
+          debug:
+            var: phase_2
 
       # 'always' section makes sure that the temporary files are deleted regardless of the results.
       always:

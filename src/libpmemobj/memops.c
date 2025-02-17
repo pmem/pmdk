@@ -23,7 +23,6 @@
 #include "vecq.h"
 #include "sys_util.h"
 
-#define ULOG_BASE_SIZE 1024
 #define OP_MERGE_SEARCH 64
 
 enum operation_state {

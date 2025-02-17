@@ -7,6 +7,7 @@
 
 #include "auto_flush.h"
 #include "flush.h"
+#include "log_internal.h"
 #include "out.h"
 #include "pmem2_arch.h"
 
