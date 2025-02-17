@@ -2,6 +2,10 @@ XXX
 
 	* Version X.X.X
 
+Mon Feb 17 2025 Oksana Sałyk <oksana.salyk@hpe.com>
+
+	* Version 2.1.1
+
 	- remove non-Linux support from all compilation paths (OS_KERNEL_NAME)
 	- add an aarch64 cross-compilation (requested by DAOS)
 	- mute error messages when transactions are intentionally aborted (#6117)
