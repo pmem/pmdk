@@ -1,6 +1,6 @@
-XXX
+Tue Feb 18 2025 Oksana Sałyk <oksana.salyk@hpe.com>
 
-	* Version X.X.X
+	* Version 2.1.1-rc2
 
 	- remove non-Linux support from all compilation paths (OS_KERNEL_NAME)
 	- add an aarch64 cross-compilation (requested by DAOS)
