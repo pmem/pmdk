@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2014-2018, Intel Corporation
+# Copyright 2025, Hewlett Packard Enterprise Development LP
 #
 #
 # pmempool_info/TEST14 -- test for info command
@@ -12,9 +13,9 @@ require_test_type medium
 
 require_fs_type pmem non-pmem
 
-require_sds $PMEMPOOL$EXESUFFIX
-
 setup
+
+require_sds $PMEMPOOL$EXESUFFIX
 
 require_usc_permission $DIR
 
