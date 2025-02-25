@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018-2019, Intel Corporation
+# Copyright 2025, Hewlett Packard Enterprise Development LP
 #
 #
 # libpmempool_feature/TEST2 -- unit test for PMEMPOOL_FEAT_SHUTDOWN_STATE
@@ -12,9 +13,10 @@ require_test_type medium
 
 require_fs_type any
 
+setup
+
 require_sds ./libpmempool_feature$EXESUFFIX
 
-setup
 . ./common.sh
 
 require_usc_permission $DIR
