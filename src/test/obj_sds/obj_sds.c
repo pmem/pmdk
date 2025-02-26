@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2017-2023, Intel Corporation */
+/* Copyright 2025, Hewlett Packard Enterprise Development LP */
 
 /*
  * util_sds.c -- unit test for shutdown status functions
@@ -16,6 +17,38 @@ static size_t uid_it;
 static uint64_t *uscs;
 static size_t uscs_size;
 static size_t usc_it;
+
+FUNC_MOCK(pmem2_source_device_id, int, const struct pmem2_source *src,
+	char *uid, size_t *len)
+FUNC_MOCK_RUN_DEFAULT {
+if (uid_it < uids_size) {
+	if (uid != NULL) {
+		strcpy(uid, uids[uid_it]);
+		uid_it++;
+	} else {
+		*len = strlen(uids[uid_it]) + 1;
+	}
+} else {
+	return -1;
+}
+
+return 0;
+}
+FUNC_MOCK_END
+
+FUNC_MOCK(pmem2_source_device_usc, int, const struct pmem2_source *src,
+	uint64_t *usc)
+FUNC_MOCK_RUN_DEFAULT {
+if (usc_it < uscs_size) {
+	*usc = uscs[usc_it];
+	usc_it++;
+} else {
+	return -1;
+}
+
+return 0;
+}
+FUNC_MOCK_END
 
 int
 main(int argc, char *argv[])
@@ -47,6 +80,9 @@ main(int argc, char *argv[])
 		if ((pop = pmemobj_create(path, "LAYOUT", 0, 0600)) == NULL) {
 			UT_FATAL("!%s: pmemobj_create", path);
 		}
+		/* check the call counters */
+		UT_ASSERT(RCOUNTER(pmem2_source_device_id) > 0);
+		UT_ASSERT(RCOUNTER(pmem2_source_device_usc) > 0);
 #if !NDCTL_ENABLED
 		pmemobj_close(pop);
 		pmempool_feature_enable(path, PMEMPOOL_FEAT_SHUTDOWN_STATE, 0);
@@ -71,34 +107,3 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
-
-FUNC_MOCK(pmem2_source_device_id, int, const struct pmem2_source *src,
-		char *uid, size_t *len)
-	FUNC_MOCK_RUN_DEFAULT {
-	if (uid_it < uids_size) {
-		if (uid != NULL) {
-			strcpy(uid, uids[uid_it]);
-			uid_it++;
-		} else {
-			*len = strlen(uids[uid_it]) + 1;
-		}
-	} else {
-		return -1;
-	}
-
-	return 0;
-}
-FUNC_MOCK_END
-FUNC_MOCK(pmem2_source_device_usc, int, const struct pmem2_source *src,
-		uint64_t *usc)
-	FUNC_MOCK_RUN_DEFAULT {
-	if (usc_it < uscs_size) {
-		*usc = uscs[usc_it];
-		usc_it++;
-	} else {
-		return -1;
-	}
-
-	return 0;
-}
-FUNC_MOCK_END
