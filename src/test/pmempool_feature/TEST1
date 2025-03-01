@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2018, Intel Corporation
+# Copyright 2025, Hewlett Packard Enterprise Development LP
 #
 #
 # pmempool_feature/TEST1 -- unit test for CKSUM_2K
@@ -10,11 +11,13 @@
 
 require_test_type medium
 require_fs_type any
-require_sds $PMEMPOOL$EXESUFFIX
 
 configure_valgrind force-disable
 
 setup
+
+require_sds $PMEMPOOL$EXESUFFIX
+
 . ./common.sh
 
 pmempool_feature_create_poolset "no_dax_device"

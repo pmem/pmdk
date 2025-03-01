@@ -1,6 +1,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2014-2024, Intel Corporation
+# Copyright 2025, Hewlett Packard Enterprise Development LP
 #
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
@@ -1648,6 +1649,8 @@ function require_binary() {
 #
 # require_sds -- continue script execution only if binary is compiled with
 #	shutdown state support
+#
+# Must be AFTER setup() because $PMEMOBJ_CONF, must be set.
 #
 #	usage: require_sds <binary>
 #

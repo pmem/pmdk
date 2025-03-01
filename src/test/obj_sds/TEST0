@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2017-2019, Intel Corporation
+# Copyright 2025, Hewlett Packard Enterprise Development LP
 
 #
 # src/test/obj_sds/TEST0 -- unittest for shutdown state
@@ -14,9 +15,9 @@ require_fs_type any
 
 require_build_type debug
 
-require_sds ./obj_sds
-
 setup
+
+require_sds ./obj_sds
 
 POOLSET=$DIR/pool.set
 # Create poolset file
