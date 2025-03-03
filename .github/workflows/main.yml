@@ -110,7 +110,9 @@ jobs:
 
       - if: ${{ contains(matrix.CC, 'aarch64') }}
         name: Install dependencies (aarch64)
-        run: sudo apt-get -y install gcc-aarch64-linux-gnu g++-11-aarch64-linux-gnu binutils-aarch64-linux-gnu
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install gcc-aarch64-linux-gnu g++-11-aarch64-linux-gnu binutils-aarch64-linux-gnu
 
       - name: Build sources
         env:
