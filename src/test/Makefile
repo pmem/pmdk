@@ -122,6 +122,7 @@ OTHER_TESTS = \
 	compat_incompat_features\
 	ctl_prefault\
 	ctl_cow\
+	daos_dtx\
 	magic\
 	out_err\
 	out_err_mt\
