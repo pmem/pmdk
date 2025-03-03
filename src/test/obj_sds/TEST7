@@ -17,6 +17,9 @@ require_build_type debug
 
 setup
 
+# Required pmem2_() APIs are mocked. So, the test works for both pmem and non-pmem.
+unset PMEMOBJ_CONF
+
 require_sds ./obj_sds
 
 POOLSET=$DIR/pool.set
