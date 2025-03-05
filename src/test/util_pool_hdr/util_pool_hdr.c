@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2018-2023, Intel Corporation */
+/* Copyright 2025, Hewlett Packard Enterprise Development LP */
 
 /*
  * util_pool_hdr.c -- unit test for pool_hdr layout and default values
@@ -101,7 +102,7 @@ test_layout()
 #else
 /*
  * shutdown state support on Linux requires root access on kernel < 4.20 with
- * ndctl < 63 so it is disabled by default
+ * ndctl < 63 so it was disabled by default
  */
 #define POOL_E_FEAT_SDS_FINAL		0x0000U	/* empty */
 #endif
