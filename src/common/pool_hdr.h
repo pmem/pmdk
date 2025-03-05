@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2014-2023, Intel Corporation */
+/* Copyright 2025, Hewlett Packard Enterprise Development LP */
 
 /*
  * pool_hdr.h -- internal definitions for pool header module
@@ -215,7 +216,7 @@ static const features_t features_zero =
 #else
 /*
  * shutdown state support on Linux requires root access on kernel < 4.20 with
- * ndctl < 63 so it is disabled by default
+ * ndctl < 63 so it was disabled by default
  */
 #define POOL_FEAT_INCOMPAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K)
