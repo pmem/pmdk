@@ -12,6 +12,17 @@ UNSAFE=$1 # '-f' to omit security checks
 WD=$(realpath $(dirname "$0"))
 SRC=$(realpath $WD/../../src)
 
+if ! which "cflow" >/dev/null 2>&1; then
+	echo "cflow not found in PATH, please check if it is available."
+	echo
+	echo "You can download the lates source code of cflow from:" \
+	     "https://ftp.gnu.org/gnu/cflow/cflow-latest.tar.gz"
+	echo "Then build and install it using the following commands:"
+	echo "'tar -xvzf cflow-latest.tar.gz && pushd cflow-1.7 &&" \
+	     "./configure && make && sudo make install && popd'"
+	exit 1
+fi
+
 API=$WD/api.txt
 if [ ! -f "$API" ]; then
 	echo "$API is missing"

@@ -12,7 +12,7 @@ WD=$(realpath $(dirname $0))
 TOP=$(realpath $WD/../..)
 SRC=src/$BUILD
 
-cd $TOP
+pushd $TOP
 
 SU_FILES="$SRC/core/*.su $SRC/common/*.su $SRC/libpmem/*.su $SRC/libpmemobj/*.su"
 
@@ -20,4 +20,4 @@ grep -v ^$ $SU_FILES | \
 	gawk -F "[:\t]" '{print $6 " " $5 " : " $1 ":" $2 " " $7}' | \
 	sort -n -r > $WD/stack_usage.txt
 
-cd - > /dev/null
+popd > /dev/null
