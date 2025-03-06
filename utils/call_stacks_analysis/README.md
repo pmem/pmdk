@@ -10,12 +10,7 @@
 ## Generating call stacks
 
 ```sh
-./make_stack_usage.sh && \
-./make_api.sh && \
-./make_extra.py && \
-./make_cflow.sh && \
-./make_call_stacks.py --filter-api-file examples/api_filter.txt \
-    --filter-lower-limit 11568 --dump-all-stacks
+./run_call_stack_analysis.py
 ```
 
 If succesfull, it produces:
