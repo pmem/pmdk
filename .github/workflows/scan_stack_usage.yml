@@ -26,6 +26,11 @@ jobs:
         run: |
           sudo apt-get install libdaxctl-dev libndctl-dev
 
+      - name: Install cflow
+        working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
+        run: |
+          ./install_cflow.sh
+
       - name: Build PMDK
         env:
           # just to speed up the job
@@ -35,32 +40,10 @@ jobs:
           cd pmdk/src
           make -j$(nproc)
 
-      - name: Install cflow
-        run: |
-          wget https://mirror.easyname.at/gnu/cflow/cflow-latest.tar.gz
-          tar -xzf cflow-latest.tar.gz
-          rm cflow-latest.tar.gz
-          echo cflow-*
-          cd cflow-*
-          ./configure
-          make
-          sudo make install
-
       - name: Make call stacks
         working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
         run: |
-          ./make_stack_usage.sh
-          ./make_api.sh
-          ./make_extra.py
-          ./make_cflow.sh
-          # The lower limit comes up from the DAOS memory requirements.
-          # 16kB - 4kB - 720B = 11568B
-          # 16kB = Stack allocated for a single Argobot's ULT
-          #  4kB = a maximum DAOS' stack usage up to calling a PMDK API calls
-          #  720B = safety margin
-          #    ~ = Some OSes, e.g. Ubuntu 22.04, generate call stacks of size
-          # a little bit over the exact limit which is not deemed a problem at the moment.
-          ./make_call_stacks.py --filter-api-file examples/api_filter.txt --filter-lower-limit 11568
+          ./run_call_stacks_analysis.sh
 
       - name: List per-function stack usage for all call stacks of interest
         working-directory: ${{ env.CALL_STACKS_TOOLS_PATH }}
