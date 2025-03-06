@@ -12,6 +12,12 @@ UNSAFE=$1 # '-f' to omit security checks
 WD=$(realpath $(dirname "$0"))
 SRC=$(realpath $WD/../../src)
 
+if ! which "cflow" >/dev/null 2>&1; then
+	echo "cflow is not found in the PATH, please check if it is available."
+	echo "If not, please install it using the install_cflow.sh script."
+	exit 1
+fi
+
 API=$WD/api.txt
 if [ ! -f "$API" ]; then
 	echo "$API is missing"
