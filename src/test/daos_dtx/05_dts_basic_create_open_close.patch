@@ -1,0 +1,278 @@
+diff --git a/src/dtx/tests/dts_utils.c b/src/dtx/tests/dts_utils.c
+index 607b20d732..8b63d77509 100644
+--- a/src/dtx/tests/dts_utils.c
++++ b/src/dtx/tests/dts_utils.c
+@@ -136,22 +136,13 @@ _dts_fetch_and_validate(daos_handle_t coh, struct dts_local_args *la, unsigned d
+ 
+ /** Setup and teardown functions */
+ 
+-static struct io_test_args   test_args;
+-static struct dts_local_args local_args;
+-
+-int
+-setup_local_args(void **state)
++static void
++local_args_init(struct io_test_args *arg, struct dts_local_args *la)
+ {
+-	struct io_test_args   *arg      = &test_args;
+-	struct dts_local_args *la       = &local_args;
+-	int                    int_flag;
+-	int                    rc;
+-
+-	test_args_init(&test_args, VPOOL_64M);
+-
+-	int_flag = is_daos_obj_type_set(arg->otype, DAOS_OT_DKEY_UINT64);
++	int int_flag = is_daos_obj_type_set(arg->otype, DAOS_OT_DKEY_UINT64);
++	int rc;
+ 
+-	memset(&local_args, 0, sizeof(local_args));
++	memset(la, 0, sizeof(*la));
+ 
+ 	/** prepare OID */
+ 	la->oid = gen_oid(arg->otype);
+@@ -179,6 +170,28 @@ setup_local_args(void **state)
+ 	assert_rc_equal(rc, 0);
+ 
+ 	la->epoch = START_EPOCH;
++}
++
++static void
++local_args_fini(struct dts_local_args *la)
++{
++	/** finalize scatter-gather lists */
++	d_sgl_fini(&la->sgl, false);
++	d_sgl_fini(&la->fetch_sgl, false);
++}
++
++static struct io_test_args   test_args;
++static struct dts_local_args local_args;
++
++int
++setup_local_args(void **state)
++{
++	struct io_test_args   *arg = &test_args;
++	struct dts_local_args *la  = &local_args;
++
++	test_args_init(&test_args, VPOOL_64M, true /* create */);
++
++	local_args_init(arg, la);
+ 
+ 	/** attach local arguments */
+ 	arg->custom = la;
+@@ -194,9 +207,7 @@ teardown_local_args(void **state)
+ 	struct io_test_args   *arg = *state;
+ 	struct dts_local_args *la  = arg->custom;
+ 
+-	/** finalize scatter-gather lists */
+-	d_sgl_fini(&la->sgl, false);
+-	d_sgl_fini(&la->fetch_sgl, false);
++	local_args_fini(la);
+ 
+ 	/** detach local arguments */
+ 	arg->custom = NULL;
+@@ -205,3 +216,37 @@ teardown_local_args(void **state)
+ 
+ 	return 0;
+ }
++
++int
++dts_basic_create(void **state)
++{
++	struct io_test_args *arg = &test_args;
++
++	test_args_init(&test_args, VPOOL_64M, true /* create */);
++
++	*state = arg;
++
++	return 0;
++}
++
++int
++dts_basic_close(void **state)
++{
++	struct io_test_args *arg = *state;
++
++	test_args_fini(arg);
++
++	return 0;
++}
++
++int
++dts_basic_open(void **state)
++{
++	struct io_test_args *arg = &test_args;
++
++	test_args_init(&test_args, VPOOL_64M, false /* open */);
++
++	*state = arg;
++
++	return 0;
++}
+diff --git a/src/dtx/tests/dts_utils.h b/src/dtx/tests/dts_utils.h
+index 3f42a9c58d..2943906775 100644
+--- a/src/dtx/tests/dts_utils.h
++++ b/src/dtx/tests/dts_utils.h
+@@ -112,6 +112,15 @@ setup_local_args(void **state);
+ int
+ teardown_local_args(void **state);
+ 
++int
++dts_basic_create(void **state);
++
++int
++dts_basic_close(void **state);
++
++int
++dts_basic_open(void **state);
++
+ #define BASIC_UT(NO, NAME, FUNC)                                                                   \
+ 	{                                                                                          \
+ 		"DTX" #NO ": " NAME, FUNC, setup_local_args, teardown_local_args                   \
+diff --git a/src/vos/tests/vts_common.c b/src/vos/tests/vts_common.c
+index d3d886e9a1..a2fc94b353 100644
+--- a/src/vos/tests/vts_common.c
++++ b/src/vos/tests/vts_common.c
+@@ -1,5 +1,5 @@
+ /**
+- * (C) Copyright 2016-2022 Intel Corporation.
++ * (C) Copyright 2016-2024 Intel Corporation.
+  *
+  * SPDX-License-Identifier: BSD-2-Clause-Patent
+  */
+@@ -95,7 +95,7 @@ exit:
+ }
+ 
+ int
+-vts_ctx_init(struct vos_test_ctx *tcx, size_t psize)
++vts_ctx_init(struct vos_test_ctx *tcx, size_t psize, bool create)
+ {
+ 	int	 rc;
+ 	char      uuid_str[] = "dd6728be-696a-11ef-a059-a4bf0165c389";
+@@ -111,31 +111,41 @@ vts_ctx_init(struct vos_test_ctx *tcx, size_t psize)
+ 	rc = vts_alloc_gen_fname(uuid_str, &tcx->tc_po_name);
+ 	assert_int_equal(rc, 0);
+ 
+-	if (vts_file_exists(tcx->tc_po_name)) {
+-		rc = remove(tcx->tc_po_name);
+-		assert_int_equal(rc, 0);
++	if (create) {
++		if (vts_file_exists(tcx->tc_po_name)) {
++			rc = remove(tcx->tc_po_name);
++			assert_int_equal(rc, 0);
++		}
++	} else {
++		assert_true(vts_file_exists(tcx->tc_po_name));
+ 	}
+ 
+ 	// uuid_generate_time_safe(tcx->tc_co_uuid);
+ 	uuid_parse(uuid_str2, tcx->tc_co_uuid);
+ 
+-	/* specify @psize as both NVMe size and SCM size */
+-	rc = vos_pool_create(tcx->tc_po_name, tcx->tc_po_uuid, psize, psize, 0, 0 /* version */,
+-			     &tcx->tc_po_hdl);
+-	if (rc) {
+-		print_error("vpool create %s failed with error : %d\n",
+-			    tcx->tc_po_name, rc);
+-		goto failed;
+-	}
+-	tcx->tc_step = TCX_PO_CREATE_OPEN;
++	if (create) {
++		/* specify @psize as both NVMe size and SCM size */
++		rc = vos_pool_create(tcx->tc_po_name, tcx->tc_po_uuid, psize, psize, 0,
++				     0 /* version */, &tcx->tc_po_hdl);
++		if (rc) {
++			print_error("vpool create %s failed with error : %d\n", tcx->tc_po_name,
++				    rc);
++			goto failed;
++		}
++		tcx->tc_step = TCX_PO_CREATE_OPEN;
+ 
+-	rc = vos_cont_create(tcx->tc_po_hdl, tcx->tc_co_uuid);
+-	if (rc) {
+-		print_error("vos container creation error: "DF_RC"\n",
+-			    DP_RC(rc));
+-		goto failed;
++		rc = vos_cont_create(tcx->tc_po_hdl, tcx->tc_co_uuid);
++		if (rc) {
++			print_error("vos container creation error: " DF_RC "\n", DP_RC(rc));
++			goto failed;
++		}
++		tcx->tc_step = TCX_CO_CREATE;
++	} else {
++		rc = vos_pool_open(tcx->tc_po_name, tcx->tc_po_uuid, 0, &tcx->tc_po_hdl);
++		assert_int_equal(rc, 0);
++		/* the container should already exists */
++		tcx->tc_step = TCX_CO_CREATE;
+ 	}
+-	tcx->tc_step = TCX_CO_CREATE;
+ 
+ 	rc = vos_cont_open(tcx->tc_po_hdl, tcx->tc_co_uuid,
+ 			   &tcx->tc_co_hdl);
+diff --git a/src/vos/tests/vts_common.h b/src/vos/tests/vts_common.h
+index 0e3c7fa3a9..aa4b8bc504 100644
+--- a/src/vos/tests/vts_common.h
++++ b/src/vos/tests/vts_common.h
+@@ -94,8 +94,7 @@ vts_pool_fallocate(char **fname);
+  * test context for I/O tests
+  */
+ int
+-vts_ctx_init(struct vos_test_ctx *tcx,
+-	     size_t pool_size);
++vts_ctx_init(struct vos_test_ctx *tcx, size_t pool_size, bool create);
+ 
+ void
+ vts_ctx_fini(struct vos_test_ctx *tcx);
+diff --git a/src/vos/tests/vts_io.c b/src/vos/tests/vts_io.c
+index e59defec2a..94ea64fe99 100644
+--- a/src/vos/tests/vts_io.c
++++ b/src/vos/tests/vts_io.c
+@@ -167,8 +167,7 @@ static enum daos_otype_t init_type;
+ static int init_num_keys;
+ 
+ void
+-test_args_init(struct io_test_args *args,
+-	       uint64_t pool_size)
++test_args_init(struct io_test_args *args, uint64_t pool_size, bool create)
+ {
+ 	int	rc;
+ 
+@@ -177,7 +176,7 @@ test_args_init(struct io_test_args *args,
+ 
+ 	vts_epoch_gen = 1;
+ 
+-	rc = vts_ctx_init(&args->ctx, pool_size);
++	rc = vts_ctx_init(&args->ctx, pool_size, create);
+ 	if (rc != 0)
+ 		print_error("rc = "DF_RC"\n", DP_RC(rc));
+ 	assert_rc_equal(rc, 0);
+@@ -213,7 +212,7 @@ void
+ test_args_reset(struct io_test_args *args, uint64_t pool_size)
+ {
+ 	test_args_fini(args);
+-	test_args_init(args, pool_size);
++	test_args_init(args, pool_size, true /* create */);
+ }
+ 
+ static struct io_test_args	test_args;
+@@ -226,7 +225,7 @@ setup_io(void **state)
+ 	struct vos_ts_table	*table;
+ 
+ 	srand(time(NULL));
+-	test_args_init(&test_args, VPOOL_SIZE);
++	test_args_init(&test_args, VPOOL_SIZE, true /* create */);
+ 
+ 	table = vos_ts_table_get(true);
+ 	if (table == NULL)
+diff --git a/src/vos/tests/vts_io.h b/src/vos/tests/vts_io.h
+index a8858d6384..aa3c4cc54d 100644
+--- a/src/vos/tests/vts_io.h
++++ b/src/vos/tests/vts_io.h
+@@ -100,7 +100,7 @@ void			reset_oid_stable(uint32_t seed);
+ daos_unit_oid_t		gen_oid_stable(enum daos_otype_t type);
+ void			inc_cntr(unsigned long op_flags);
+ void
+-test_args_init(struct io_test_args *args, uint64_t pool_size);
++test_args_init(struct io_test_args *args, uint64_t pool_size, bool create);
+ void
+ 			test_args_fini(struct io_test_args *args);
+ void			test_args_reset(struct io_test_args *args,

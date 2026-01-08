@@ -1,0 +1,127 @@
+diff --git a/src/dtx/tests/dts_local.c b/src/dtx/tests/dts_local.c
+index deecc597f2..3463d661e7 100644
+--- a/src/dtx/tests/dts_local.c
++++ b/src/dtx/tests/dts_local.c
+@@ -264,5 +264,5 @@ run_local_tests(const char *cfg)
+ 
+ 	dts_global_init();
+ 
+-	return cmocka_run_group_tests_name(test_name, local_tests_all, setup_io, teardown_io);
++	return cmocka_run_group_tests_name(test_name, local_tests_all, NULL, NULL);
+ }
+diff --git a/src/dtx/tests/dts_local_rdb.c b/src/dtx/tests/dts_local_rdb.c
+index eeff78553d..212113c07e 100644
+--- a/src/dtx/tests/dts_local_rdb.c
++++ b/src/dtx/tests/dts_local_rdb.c
+@@ -114,5 +114,5 @@ run_local_rdb_tests(const char *cfg)
+ 
+ 	dts_global_init();
+ 
+-	return cmocka_run_group_tests_name(test_name, tests_all, setup_io, teardown_io);
++	return cmocka_run_group_tests_name(test_name, tests_all, NULL, NULL);
+ }
+diff --git a/src/dtx/tests/dts_utils.c b/src/dtx/tests/dts_utils.c
+index 8a819e325a..c884872143 100644
+--- a/src/dtx/tests/dts_utils.c
++++ b/src/dtx/tests/dts_utils.c
+@@ -136,20 +136,22 @@ _dts_fetch_and_validate(daos_handle_t coh, struct dts_local_args *la, unsigned d
+ 
+ /** Setup and teardown functions */
+ 
++static struct io_test_args   test_args;
+ static struct dts_local_args local_args;
+ 
+ int
+ setup_local_args(void **state)
+ {
+-	struct io_test_args   *arg      = *state;
++	struct io_test_args   *arg      = &test_args;
+ 	struct dts_local_args *la       = &local_args;
+-	int                    int_flag = is_daos_obj_type_set(arg->otype, DAOS_OT_DKEY_UINT64);
++	int                    int_flag;
+ 	int                    rc;
+ 
+-	memset(&local_args, 0, sizeof(local_args));
++	test_args_init(&test_args, VPOOL_SIZE);
++
++	int_flag = is_daos_obj_type_set(arg->otype, DAOS_OT_DKEY_UINT64);
+ 
+-	/** i.a. recreates the container */
+-	test_args_reset(arg, VPOOL_SIZE);
++	memset(&local_args, 0, sizeof(local_args));
+ 
+ 	/** prepare OID */
+ 	la->oid = gen_oid(arg->otype);
+@@ -181,6 +183,8 @@ setup_local_args(void **state)
+ 	/** attach local arguments */
+ 	arg->custom = la;
+ 
++	*state = arg;
++
+ 	return 0;
+ }
+ 
+@@ -197,5 +201,7 @@ teardown_local_args(void **state)
+ 	/** detach local arguments */
+ 	arg->custom = NULL;
+ 
++	test_args_fini(arg);
++
+ 	return 0;
+ }
+diff --git a/src/vos/tests/vts_io.c b/src/vos/tests/vts_io.c
+index abc269b1f6..e59defec2a 100644
+--- a/src/vos/tests/vts_io.c
++++ b/src/vos/tests/vts_io.c
+@@ -201,14 +201,18 @@ test_args_init(struct io_test_args *args,
+ 	}
+ 	snprintf(args->fname, VTS_BUF_SIZE, "%s/vpool.test_%x",
+ 		 vos_path, init_type);
++}
+ 
+-
++void
++test_args_fini(struct io_test_args *args)
++{
++	vts_ctx_fini(&args->ctx);
+ }
+ 
+ void
+ test_args_reset(struct io_test_args *args, uint64_t pool_size)
+ {
+-	vts_ctx_fini(&args->ctx);
++	test_args_fini(args);
+ 	test_args_init(args, pool_size);
+ }
+ 
+@@ -256,7 +260,7 @@ teardown_io(void **state)
+ 	}
+ 
+ 	assert_ptr_equal(arg, &test_args);
+-	vts_ctx_fini(&arg->ctx);
++	test_args_fini(arg);
+ 	return 0;
+ }
+ 
+diff --git a/src/vos/tests/vts_io.h b/src/vos/tests/vts_io.h
+index fe67d0dc7b..a8858d6384 100644
+--- a/src/vos/tests/vts_io.h
++++ b/src/vos/tests/vts_io.h
+@@ -1,5 +1,5 @@
+ /**
+- * (C) Copyright 2016-2022 Intel Corporation.
++ * (C) Copyright 2016-2024 Intel Corporation.
+  *
+  * SPDX-License-Identifier: BSD-2-Clause-Patent
+  */
+@@ -99,6 +99,10 @@ daos_unit_oid_t		gen_oid(enum daos_otype_t type);
+ void			reset_oid_stable(uint32_t seed);
+ daos_unit_oid_t		gen_oid_stable(enum daos_otype_t type);
+ void			inc_cntr(unsigned long op_flags);
++void
++test_args_init(struct io_test_args *args, uint64_t pool_size);
++void
++			test_args_fini(struct io_test_args *args);
+ void			test_args_reset(struct io_test_args *args,
+ 					uint64_t pool_size);
+ int			io_test_obj_update(struct io_test_args *arg,

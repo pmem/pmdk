@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2023, Intel Corporation
+# Copyright 2019-2024, Intel Corporation
 #
 
 """
@@ -290,7 +290,7 @@ class Context(ContextBase):
         return _Poolset(path, self)
 
     def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None,
-             stdout_file=None, std_input=None):
+             stdout_file=None, std_input=None, cmd_requires_cwd=True):
         """
         Execute binary in the current test context as a separate process.
 
@@ -320,8 +320,8 @@ class Context(ContextBase):
         # change cmd into list for supbrocess type compliance
         cmd = [cmd, ]
 
-        cmd[0] = os.path.join(self.cwd, cmd[0]) + \
-            self.build.exesuffix
+        if cmd_requires_cwd:
+            cmd[0] = os.path.join(self.cwd, cmd[0]) + self.build.exesuffix
 
         if self.valgrind:
             cmd = self.valgrind.cmd + cmd
